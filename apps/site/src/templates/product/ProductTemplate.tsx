@@ -19,7 +19,8 @@ import { CmsIcon } from '@/lib/icons';
 import { livePaths, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
 import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
-import { StandardBody } from '../core/Standard';
+import { ShowcaseBody } from '../showcase/ShowcaseBody';
+import { TrustRibbon } from '../showcase/kit';
 import { formatDate } from '@/components/blocks/lib/format';
 
 function IntegrationFacts({ entry }: { entry: PublicEntry }) {
@@ -88,10 +89,12 @@ export async function ProductTemplate({ entry }: { entry: PublicEntry }) {
 
   return (
     <PageFrame entry={entry} plans={plans}>
-      <StandardBody
+      <ShowcaseBody
         entry={entry}
-        afterHero={isIntegration ? <IntegrationFacts entry={entry} /> : undefined}
+        afterHero={isIntegration ? <IntegrationFacts entry={entry} /> : <TrustRibbon className="mb-4" />}
         beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />}
+        kickers={{ featuresGrid: 'Features', steps: 'How it works', screenshot: 'Inside the app' }}
+        pill={isIntegration ? 'Integration' : 'Product'}
       />
       <NextSteps
         links={[

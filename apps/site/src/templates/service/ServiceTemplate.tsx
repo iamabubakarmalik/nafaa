@@ -20,7 +20,8 @@ import { CmsIcon } from '@/lib/icons';
 import { livePaths, loadCards } from '../core/data';
 import { PageFrame } from '../core/frame';
 import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
-import { StandardBody } from '../core/Standard';
+import { BuildArt } from '../showcase/BuildArt';
+import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { Arrow } from '../core/ui';
 
 function ServiceFacts({ entry }: { entry: PublicEntry }) {
@@ -75,7 +76,15 @@ export async function ServiceTemplate({ entry }: { entry: PublicEntry }) {
 
   return (
     <PageFrame entry={entry}>
-      <StandardBody entry={entry} afterHero={<ServiceFacts entry={entry} />} beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />} />
+      <ShowcaseBody
+        entry={entry}
+        afterHero={<ServiceFacts entry={entry} />}
+        beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />}
+        kickers={{ featuresGrid: 'Capabilities', steps: 'Process', screenshot: 'In Nafaa' }}
+        pill={entry.data.type === 'SERVICE' && entry.data.areaServed === 'worldwide' ? 'Worldwide' : 'Service'}
+        ctaFacts={[]}
+        heroArt={entry.data.type === 'SERVICE' && entry.data.areaServed === 'worldwide' ? <BuildArt /> : undefined}
+      />
       <NextSteps
         links={[
           { href: '/contact', label: 'Contact the team', icon: 'message-circle' },

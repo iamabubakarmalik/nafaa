@@ -11,6 +11,8 @@
 /** Same storage keys as apps/web/src/core/stores/{auth,locale}.store.ts. */
 const AUTH_STORAGE_KEY = 'nafaa-auth';
 const LOCALE_STORAGE_KEY = 'nafaa-locale';
+/** Same key and version as apps/web/src/design-system/theme/store.ts. */
+const APPEARANCE_STORAGE_KEY = 'nafaa-appearance';
 /** Same header as apps/web/src/core/lib/shopScope.ts. */
 export const SHOP_HEADER = 'x-shop-id';
 
@@ -82,10 +84,13 @@ export function initialShopId(user) {
 
 /**
  * localStorage entries to seed before the app loads. With `session` null only
- * the locale is set (public pages).
+ * the locale and colour mode are set (public pages).
  */
-export function storageEntries(session, locale) {
-  const entries = [[LOCALE_STORAGE_KEY, JSON.stringify({ state: { locale }, version: 0 })]];
+export function storageEntries(session, locale, theme = 'light') {
+  const entries = [
+    [LOCALE_STORAGE_KEY, JSON.stringify({ state: { locale }, version: 0 })],
+    [APPEARANCE_STORAGE_KEY, JSON.stringify({ state: { personal: { mode: theme } }, version: 1 })],
+  ];
   if (session) {
     entries.push([
       AUTH_STORAGE_KEY,
@@ -113,4 +118,25 @@ export async function apiGet({ apiUrl, session }, endpoint) {
   const response = await fetch(`${apiUrl}${endpoint}`, { headers, signal: AbortSignal.timeout(20_000) });
   if (!response.ok) throw new Error(`GET ${endpoint}: HTTP ${response.status}`);
   return response.json();
+}
+
+/**
+ * Stores the colour mode on the account's server-side personal appearance
+ * layer. The web app lets that copy win over local storage on load, so a
+ * capture in the other mode needs it set first. Demo accounts only.
+ */
+export async function setPersonalMode({ apiUrl, session }, mode) {
+  const headers = { authorization: `Bearer ${session.accessToken}`, 'content-type': 'application/json' };
+  const current = await fetch(`${apiUrl}/appearance`, { headers, signal: AbortSignal.timeout(20_000) })
+    .then((response) => (response.ok ? response.json() : null))
+    .catch(() => null);
+  const personal = unwrap(current)?.personal ?? {};
+  if (personal.mode === mode) return;
+  const response = await fetch(`${apiUrl}/appearance/personal`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify({ ...personal, mode }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!response.ok) throw new Error(`PUT /appearance/personal: HTTP ${response.status}`);
 }

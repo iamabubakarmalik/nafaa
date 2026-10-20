@@ -11,6 +11,7 @@ import { pathToFileURL } from 'node:url';
 
 export const DEVICES = {
   desktop: { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, isMobile: false, hasTouch: false },
+  wide: { viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 2, isMobile: false, hasTouch: false },
   laptop: { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2, isMobile: false, hasTouch: false },
   tablet: { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 2, isMobile: false, hasTouch: true },
   phone: {
@@ -25,6 +26,8 @@ export const DEVICES = {
 
 /** Frames the site renders (contract FRAMES); recorded so editors pick the right one. */
 const FRAMES = new Set(['browser', 'phone', 'tablet', 'desktop', 'receipt', 'none']);
+/** App colour mode for the capture; the app follows the system scheme unless the user picked one. */
+const THEMES = new Set(['light', 'dark']);
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]{1,62}$/;
 const APP_PATH_PATTERN = /^\/[A-Za-z0-9/_{}.?=&%-]*$/;
 const ACTION_KEYS = new Set(['click', 'fill', 'press', 'wait', 'waitFor', 'scroll', 'hover']);
@@ -83,6 +86,8 @@ export async function loadManifest(file, contract) {
     const device = shot.device ?? defaults.device ?? 'desktop';
     if (!DEVICES[device]) problems.push(`${where}.device: one of ${Object.keys(DEVICES).join(', ')}`);
     if (shot.frame !== undefined && !FRAMES.has(shot.frame)) problems.push(`${where}.frame: one of ${[...FRAMES].join(', ')}`);
+    const theme = shot.theme ?? defaults.theme ?? 'light';
+    if (!THEMES.has(theme)) problems.push(`${where}.theme: one of ${[...THEMES].join(', ')}`);
 
     const alt = contract.altTextSchema.safeParse(shot.alt ?? '');
     if (!alt.success) {
@@ -121,7 +126,9 @@ export function shotSettings(manifest, shot) {
     locale: shot.locale ?? defaults.locale ?? 'en',
     waitMs: shot.waitMs ?? defaults.waitMs ?? 800,
     hide: [...(defaults.hide ?? []), ...(shot.hide ?? [])],
+    remove: [...(defaults.remove ?? []), ...(shot.remove ?? [])],
     frame: shot.frame ?? 'browser',
+    theme: shot.theme ?? defaults.theme ?? 'light',
     fullPage: shot.fullPage === true,
   };
 }

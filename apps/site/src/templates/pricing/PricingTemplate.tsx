@@ -13,10 +13,12 @@
  * /services/hardware and the demo page (published ones only).
  */
 import type { PublicEntry } from '@/lib/cms/contract/cms-contract';
-import { Blocks, Segments, segment } from '../core/Blocks';
+import { Blocks } from '../core/Blocks';
 import { livePaths, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { LinkSections, MetaRow, NextSteps } from '../core/parts';
+import { LinkSections, NextSteps } from '../core/parts';
+import { ShowcaseBody } from '../showcase/ShowcaseBody';
+import { TrustRibbon } from '../showcase/kit';
 import { PlanMatrix } from './PlanMatrix';
 
 export async function PricingTemplate({ entry }: { entry: PublicEntry }) {
@@ -29,31 +31,37 @@ export async function PricingTemplate({ entry }: { entry: PublicEntry }) {
   const highlight = pricingBlock?.type === 'pricingTable' ? pricingBlock.highlightPlan : undefined;
   const matrix = <PlanMatrix plans={plans} highlight={highlight} />;
 
-  const segments = segment(entry.blocks, (block) =>
-    block === pricingBlock ? (
-      <>
-        <Blocks entry={entry} blocks={[block]} />
-        {matrix}
-      </>
-    ) : undefined,
-  );
-  if (!pricingBlock) segments.push({ kind: 'own', key: 'matrix', node: matrix });
-
   return (
     <PageFrame entry={entry} plans={plans}>
-      <MetaRow entry={entry} showUpdated={false} />
-      <Segments entry={entry} segments={segments} />
-      <LinkSections
-        exceptId={entry.id}
-        groups={[
-          {
-            id: 'explore-product',
-            title: 'Explore the product',
-            cards: products,
-            link: live.has('/product') ? { href: '/product', label: 'All products' } : undefined,
-          },
-        ]}
+      <ShowcaseBody
+        entry={entry}
+        showUpdated={false}
+        pill="Pricing"
+        afterHero={<TrustRibbon className="mb-2" />}
+        kickers={{ featuresGrid: 'Included', steps: 'Billing' }}
+        beforeEnd={
+          <LinkSections
+            exceptId={entry.id}
+            groups={[
+              {
+                id: 'explore-product',
+                title: 'Explore the product',
+                cards: products,
+                link: live.has('/product') ? { href: '/product', label: 'All products' } : undefined,
+              },
+            ]}
+          />
+        }
+        render={(block) =>
+          block === pricingBlock ? (
+            <>
+              <Blocks entry={entry} blocks={[block]} />
+              {matrix}
+            </>
+          ) : undefined
+        }
       />
+      {pricingBlock ? null : matrix}
       <NextSteps
         links={[
           { href: '/demo', label: 'Book a demo', icon: 'calendar' },

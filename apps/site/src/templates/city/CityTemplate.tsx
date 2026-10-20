@@ -20,8 +20,11 @@
 import type { EntryCard, EntryData, PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { getLayout } from '@/lib/cms/client';
 import { buildEntryGraph } from '@/lib/seo/graph';
+import { Blocks as CoreBlocks } from '../core/Blocks';
+import { ShowcaseBody } from '../showcase/ShowcaseBody';
+import { TrustRibbon } from '../showcase/kit';
 import { authorityName } from './common/authorities';
-import { Blocks, blockTargetId } from './common/blocks';
+import { blockTargetId } from './common/blocks';
 import { isFixture, loadEntity, loadEntries, loadEntriesFor, loadEntry } from './common/data';
 import { insertJumpItem, jumpItemsFromBlocks } from './common/jump';
 import { stringsFor } from './common/strings';
@@ -70,7 +73,6 @@ export async function CityTemplate({ entry }: { entry: PublicEntry }) {
 
   // Template sections go before the FAQ when there is one, else at the end.
   const faqBlock = entry.blocks.find((block) => block.type === 'faq');
-  const beforeFaq = faqBlock ? entry.blocks[entry.blocks.indexOf(faqBlock) - 1] : undefined;
 
   let jump = jumpItemsFromBlocks(entry.blocks);
   if (pairs.length) jump = insertJumpItem(jump, { id: PAIRS_ID, label: t.industryGuidesShort }, faqBlock ? blockTargetId(faqBlock) : undefined);
@@ -109,13 +111,26 @@ export async function CityTemplate({ entry }: { entry: PublicEntry }) {
 
   return (
     <TemplateFrame entry={entry} graph={graph}>
-      <MetaBar entry={entry} extra={authority} />
-      <Blocks
+      <ShowcaseBody
         entry={entry}
-        slots={{
-          afterHero: <JumpNav items={jump} locale={entry.locale} />,
-          ...(beforeFaq ? { after: { [beforeFaq.id]: templateSections } } : { end: templateSections }),
-        }}
+        meta={<MetaBar entry={entry} extra={authority} />}
+        pill={city?.authority}
+        afterHero={
+          <>
+            {!isPair ? <TrustRibbon className="mb-4" /> : null}
+            <JumpNav items={jump} locale={entry.locale} />
+          </>
+        }
+        beforeEnd={faqBlock ? undefined : templateSections}
+        render={(block) =>
+          block === faqBlock ? (
+            <>
+              {templateSections}
+              <CoreBlocks entry={entry} blocks={[block]} />
+            </>
+          ) : undefined
+        }
+        kickers={{ featuresGrid: cityName, steps: 'Getting started', screenshot: 'Inside the app' }}
       />
     </TemplateFrame>
   );

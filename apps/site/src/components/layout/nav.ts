@@ -29,3 +29,32 @@ export const STATUS_LABEL: Record<NonNullable<NavItem['status']>, string | null>
 export function children(item: NavItem): NavItem[] {
   return (item.children ?? []) as NavItem[];
 }
+
+/**
+ * Menu items carry no status field yet, so editors mark an unbuilt feature by
+ * starting its description with "Coming soon:" (menus.ts in the seed). The
+ * badge comes from that prefix and the prefix is not shown twice.
+ */
+const COMING_PREFIX = /^coming soon\s*[:\u2013\u2014-]\s*/i;
+
+export function itemStatus(item: NavItem): NavItem['status'] {
+  if (item.status) return item.status;
+  return item.description && COMING_PREFIX.test(item.description) ? 'coming' : undefined;
+}
+
+export function itemDescription(item: NavItem): string | undefined {
+  const text = item.description?.replace(COMING_PREFIX, '').trim();
+  return text || undefined;
+}
+
+/** A leaf (no children) that has its own page. */
+export function hasHref(item: NavItem): boolean {
+  return Boolean(item.href) && item.href !== '#';
+}
+
+/** Overview link text for a menu item's own page: "Explore all products" for collections, "Go to marketplace" otherwise. */
+const COLLECTIONS = new Set(['products', 'solutions', 'industries', 'services', 'resources']);
+export function overviewLabel(label: string): string {
+  const l = label.toLowerCase();
+  return COLLECTIONS.has(l) ? `Explore all ${l}` : `Go to ${l}`;
+}

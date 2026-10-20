@@ -40,8 +40,12 @@ import { cities } from './cities';
 import { glossary } from './glossary';
 import { compare } from './compare';
 import { blogCategories, blogPosts } from './blog';
+import { mainPageEntries, mainPageFaqs } from './main-pages';
+import { pageEntries } from './pages';
+import { faqs as libraryFaqs } from './faqs';
 
-export { faqs } from './faqs';
+/** Shared FAQ library plus the main pages' own FAQs. */
+export const faqs = [...libraryFaqs, ...mainPageFaqs];
 export { settings } from './settings';
 export { menus } from './menus';
 export { redirects, redirectsNeedingOwner } from './redirects';
@@ -82,4 +86,4 @@ const industries: SeedEntry[] = [
 ];
 
 /** Entries in apply order: categories before posts, so TAG relations resolve on the same run. */
-export const entries: SeedEntry[] = [...industries, ...cities, ...glossary, ...compare, ...blogCategories, ...blogPosts];
+export const entries: SeedEntry[] = [...industries, ...cities, ...glossary, ...compare, ...blogCategories, ...blogPosts, ...mainPageEntries, ...pageEntries];

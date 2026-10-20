@@ -8,16 +8,18 @@
  * so nothing unbuilt ever reads as live. No dates are shown: the CMS has no
  * dated plan, and none is invented. Live entries are left off this page.
  *
+ * The page itself renders with the showcase kit (stage hero, closing CTA
+ * band); each entryGrid becomes a board.
+ *
  * Schema: WebPage (graph.ts has no roadmap node, so the template adds it)
  * plus an ItemList of every roadmap item and the FAQPage of the visible FAQs.
  */
 import { FEATURE_STATUS_BADGES, ENTRY_TYPE_META, type Block, type EntryCard, type FeatureStatus, type PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { markdownToPlain } from '@/lib/seo/text';
 import { itemListNode } from '@/lib/seo/graph';
-import { Segments, segment } from '../core/Blocks';
 import { loadCards } from '../core/data';
 import { PageFrame, faqPageNode, webPageNode } from '../core/frame';
-import { MetaRow } from '../core/parts';
+import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { EntryTile } from '../core/ui';
 
 type GridBlock = Extract<Block, { type: 'entryGrid' }>;
@@ -26,14 +28,16 @@ const COLUMNS: Exclude<FeatureStatus, 'live'>[] = ['beta', 'coming'];
 function Board({ block, cards }: { block: GridBlock; cards: EntryCard[] }) {
   const id = `roadmap-${block.id}`;
   const title = block.heading?.trim() || ENTRY_TYPE_META[block.entryType].labelPlural;
+  // Only the columns that have items; an empty column adds nothing.
+  const cols = COLUMNS.filter((status) => cards.some((c) => c.status === status));
   return (
     <section aria-labelledby={id} className="py-12 md:py-16" id={block.anchor}>
       <div className="mx-auto box-content max-w-container px-gutter">
         <h2 id={id} className="text-h2 text-fg-strong">
           {title}
         </h2>
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {COLUMNS.map((status) => {
+        <div className={cols.length > 1 ? 'mt-8 grid gap-6 md:grid-cols-2' : 'mt-8 max-w-3xl'}>
+          {cols.map((status) => {
             const list = cards.filter((c) => c.status === status);
             const badge = FEATURE_STATUS_BADGES[status];
             return (
@@ -87,11 +91,11 @@ export async function RoadmapTemplate({ entry }: { entry: PublicEntry }) {
   const byBlock = new Map(grids.map((g, i) => [g.id, lists[i] ?? []]));
   const all = lists.flat();
 
-  const segments = segment(entry.blocks, (block) => {
+  const render = (block: Block) => {
     if (block.type !== 'entryGrid') return undefined;
     const cards = byBlock.get(block.id) ?? [];
     return cards.length ? <Board block={block} cards={cards} /> : null;
-  });
+  };
 
   const list = itemListNode(
     `${entry.url}#roadmap`,
@@ -108,8 +112,7 @@ export async function RoadmapTemplate({ entry }: { entry: PublicEntry }) {
 
   return (
     <PageFrame entry={entry} nodes={nodes}>
-      <MetaRow entry={entry} showUpdated={false} />
-      <Segments entry={entry} segments={segments} />
+      <ShowcaseBody entry={entry} showUpdated={false} pill="Roadmap" render={render} kickers={{ featuresGrid: 'Planned', steps: 'How it works' }} />
     </PageFrame>
   );
 }

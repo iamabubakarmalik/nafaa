@@ -148,6 +148,8 @@ interface PublicLayout {
   locale: string;
   menus: { header: MenuItemResolved[]; footer: MenuItemResolved[]; legal: MenuItemResolved[]; mobile: MenuItemResolved[] };
   site: SiteSettings;                           // section 5.3
+  industryGroups: { key: string; label: string; sortOrder: number }[];   // settings "industry-groups", sorted
+  officialDomains: string[];                    // settings seo.officialDomains (followed outbound links)
   updatedAt: string;
 }
 
@@ -382,7 +384,7 @@ interface EntitySettings {
   foundingDate?: string; founderIds: string[];        // PERSON entry ids
   offices: { label: string; street: string; city: string; region: string; postalCode?: string; country: 'PK'; phone?: string; isHq: boolean }[];  // only real offices
   contact: { email?: string; phone?: string };
-  compliance: Record<string, { text: string; evidenceRef: string }>;   // e.g. fbrPra: { text: "FBR & PRA approved POS integrator", evidenceRef: "..." }
+  compliance: Record<string /* letter, then letters/digits */, { text: string; evidenceRef: string }>;   // e.g. fbrPra: { text: "FBR & PRA approved POS integrator", evidenceRef: "..." }
   platforms: string[]; languages: string[];
   sameAs: string[]; wikidataId?: string;
 }

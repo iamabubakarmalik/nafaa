@@ -77,19 +77,47 @@ export async function resolveToken(apiUrl: string): Promise<{ token: string; as:
   }
 }
 
+const MAX_RETRIES = 8;
+const BASE_DELAY_MS = 1000;
+const MAX_DELAY_MS = 30_000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Retry-After (seconds or HTTP date) when present, else 1 s, 2 s, 4 s ... capped at 30 s, plus jitter. */
+function retryDelayMs(retryAfter: string | null, attempt: number): number {
+  if (retryAfter) {
+    const seconds = Number(retryAfter);
+    const ms = Number.isFinite(seconds) ? seconds * 1000 : Date.parse(retryAfter) - Date.now();
+    if (Number.isFinite(ms) && ms > 0) return Math.min(ms, MAX_DELAY_MS) + 100;
+  }
+  return Math.min(BASE_DELAY_MS * 2 ** attempt, MAX_DELAY_MS) + Math.floor(Math.random() * 250);
+}
+
 export class CmsApi {
   constructor(
     private readonly baseUrl: string,
     private readonly token: string,
   ) {}
 
+  /**
+   * One admin request. A 429 (the API throttles bursts) is retried with
+   * exponential backoff, honouring Retry-After when the API sends it.
+   */
   async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const route = `${method} /admin/marketing/cms${path}`;
-    const res = await fetch(`${this.baseUrl}/admin/marketing/cms${path}`, {
-      method,
-      headers: { Authorization: `Bearer ${this.token}`, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-    });
+    let res: Response;
+    for (let attempt = 0; ; attempt++) {
+      res = await fetch(`${this.baseUrl}/admin/marketing/cms${path}`, {
+        method,
+        headers: { Authorization: `Bearer ${this.token}`, ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      });
+      if (res.status !== 429 || attempt >= MAX_RETRIES) break;
+      await res.text().catch(() => '');
+      await sleep(retryDelayMs(res.headers.get('retry-after'), attempt));
+    }
     const text = await res.text();
     let json: unknown = text;
     try {

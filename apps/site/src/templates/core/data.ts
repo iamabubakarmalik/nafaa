@@ -160,8 +160,10 @@ export const loadFaqs = cache(async (locale: string = DEFAULT_LOCALE): Promise<P
   return fx?.fixtureFaqsResponse() ?? { topics: [] };
 });
 
-/** Industry group labels (settings `industry-groups`); not in the public API yet, fixtures in dev. */
-export async function loadIndustryGroups(): Promise<{ key: string; label: string; sortOrder: number }[]> {
+/** Industry group labels (settings `industry-groups`, served on the layout); fixtures in dev when none are saved. */
+export async function loadIndustryGroups(locale: string = DEFAULT_LOCALE): Promise<{ key: string; label: string; sortOrder: number }[]> {
+  const layout = await loadLayout(locale);
+  if (layout.industryGroups?.length || !fixturesOn) return layout.industryGroups ?? [];
   const fx = await fixtures();
   return fx?.fixtureIndustryGroups ?? [];
 }

@@ -8,13 +8,15 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/Badge';
-import { STATUS_LABEL, isExternalHref, type NavItem } from './nav';
+import { STATUS_LABEL, isExternalHref, itemStatus, type NavItem } from './nav';
 
-export function StatusBadge({ status }: { status: NavItem['status'] }) {
-  const label = status ? STATUS_LABEL[status] : null;
+/** Badge for an item's status; pass `item` to read the "Coming soon:" description prefix too. */
+export function StatusBadge({ status, item }: { status?: NavItem['status']; item?: NavItem }) {
+  const resolved = status ?? (item ? itemStatus(item) : undefined);
+  const label = resolved ? STATUS_LABEL[resolved] : null;
   if (!label) return null;
   return (
-    <Badge tone={status === 'coming' ? 'warning' : 'info'} className="ml-1.5 !px-1.5 !py-0 text-[0.6875rem]">
+    <Badge tone={resolved === 'coming' ? 'warning' : 'info'} className="ml-1.5 !px-1.5 !py-0 text-[0.6875rem]">
       {label}
     </Badge>
   );

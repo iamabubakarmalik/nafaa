@@ -1,32 +1,13 @@
 /*
- * Home template styles (S3). Only what Tailwind cannot say cleanly: the
- * code-drawn hero illustration, its loops and the hero wash.
+ * HeroVisual styles: the code-drawn counter illustration shown when the hero
+ * has no screenshot, its loops and its wash. The rest of the home page
+ * uses fx.module.css.
  *
  * Motion follows motion.css: loops are paused until MotionObserver marks the
  * [data-animate] root in view, never run under prefers-reduced-motion, and
  * only animate transform and opacity. The resting frame is a complete,
  * readable picture (what no-JS and reduced-motion visitors see).
  */
-
-/* ─── Hero wash ─────────────────────────────────────────────────────── */
-
-.wash {
-  position: absolute;
-  inset: -10% -10% auto -10%;
-  height: 52rem;
-  z-index: -10;
-  pointer-events: none;
-  background:
-    radial-gradient(42rem 26rem at 78% 18%, rgb(var(--brand-400) / 0.18), transparent 70%),
-    radial-gradient(30rem 22rem at 8% 0%, rgb(var(--brand-300) / 0.14), transparent 70%);
-}
-
-:global(.theme-ink) .wash,
-:global(html.theme-ink) .wash {
-  background:
-    radial-gradient(42rem 26rem at 78% 18%, rgb(var(--brand-500) / 0.16), transparent 70%),
-    radial-gradient(30rem 22rem at 8% 0%, rgb(var(--brand-600) / 0.12), transparent 70%);
-}
 
 /* ─── Illustration stage ────────────────────────────────────────────── */
 
@@ -485,15 +466,4 @@
   :global(html[data-motion][data-motion-paused]) .stage :is(.swapA, .swapB, .bobA, .bobB, .lineNew) {
     animation-play-state: paused;
   }
-}
-
-/* ─── Bento feature cards ───────────────────────────────────────────── */
-
-.bentoGlow {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: radial-gradient(28rem 14rem at 100% 0%, rgb(var(--accent, var(--brand-500)) / 0.1), transparent 70%);
-  pointer-events: none;
 }

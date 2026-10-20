@@ -36,7 +36,7 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { DEVICES, loadContract, loadManifest, shotSettings } from './lib/manifest.mjs';
-import { apiGet, assertDemoTenant, firstId, login, storageEntries } from './lib/session.mjs';
+import { apiGet, assertDemoTenant, firstId, login, setPersonalMode, storageEntries } from './lib/session.mjs';
 import { contactSheet, pngSize, sha1 } from './lib/files.mjs';
 import { assertUploadTarget, uploadShot } from './lib/upload.mjs';
 
@@ -141,17 +141,24 @@ async function captureShot({ browser, manifest, shot, session, baseUrl, apiUrl, 
     params = { [shot.resolve.param]: id };
   }
   const appPath = shotPath(shot, params);
+  if (session) {
+    try {
+      await setPersonalMode({ apiUrl, session }, settings.theme);
+    } catch (error) {
+      return { ...record, status: 'failed', reason: `could not set ${settings.theme} mode: ${error.message}` };
+    }
+  }
 
   const context = await browser.newContext({
     ...DEVICES[settings.device],
     locale: 'en-PK',
     timezoneId: 'Asia/Karachi',
-    colorScheme: 'light',
+    colorScheme: settings.theme,
     reducedMotion: 'reduce',
     serviceWorkers: 'block',
   });
   try {
-    const entries = storageEntries(session, settings.locale);
+    const entries = storageEntries(session, settings.locale, settings.theme);
     const origin = new URL(baseUrl).origin;
     await context.addInitScript(
       ({ items, appOrigin }) => {
@@ -176,6 +183,9 @@ async function captureShot({ browser, manifest, shot, session, baseUrl, apiUrl, 
     if (settings.hide.length > 0) {
       await page.addStyleTag({ content: `${settings.hide.join(',\n')} { visibility: hidden !important; }` });
     }
+    if (settings.remove.length > 0) {
+      await page.addStyleTag({ content: `${settings.remove.join(',\n')} { display: none !important; }` });
+    }
     if (shot.waitFor) await page.locator(shot.waitFor).first().waitFor({ timeout: 20_000 });
     for (const action of shot.actions ?? []) await runAction(page, action);
     if (shot.waitGone) await page.locator(shot.waitGone).first().waitFor({ state: 'hidden', timeout: 20_000 }).catch(() => {});
@@ -185,6 +195,11 @@ async function captureShot({ browser, manifest, shot, session, baseUrl, apiUrl, 
       return document.fonts.ready.then(() => true);
     });
     await page.waitForTimeout(settings.waitMs);
+    // The app shows an offline banner and an "Offline" pill when the browser
+    // reports no network; such a capture would misrepresent the product.
+    if (session && !(await page.evaluate(() => navigator.onLine))) {
+      return { ...record, status: 'failed', reason: 'the browser reported offline during capture; run again' };
+    }
 
     let buffer;
     if (shot.clip) {
@@ -361,6 +376,7 @@ function shotRecord(manifest, shot) {
     id: shot.id,
     path: shot.path,
     device: settings.device,
+    theme: settings.theme,
     frame: settings.frame,
     alt: shot.alt,
     caption: shot.caption ?? null,

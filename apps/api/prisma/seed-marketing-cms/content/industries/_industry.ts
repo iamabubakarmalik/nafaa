@@ -8,7 +8,7 @@
  * copy in these same files.
  */
 
-import type { IconName } from '../../../../src/admin-marketing/cms/contract/cms-contract';
+import type { DraftBlock, IconName } from '../../../../src/admin-marketing/cms/contract/cms-contract';
 import { answerBox, cta, faq, featuresGrid, hero, withIds, writerNotes } from '../../lib/blocks';
 import type { SeedEntry } from '../../lib/types';
 
@@ -46,6 +46,9 @@ export interface IndustrySpec {
   needsOwner?: string[];
   /** Notes for the Phase 4 writer (hidden block). */
   writerNotes?: string;
+  /** Deep copy (Phase 4 and D2): a shorter hero with a screenshot, and extra blocks after the features. */
+  heroOverride?: { heading?: string; sub: string; badges?: string[]; media?: { mediaId: string; url?: string; frame?: 'browser' | 'phone' | 'tablet' } };
+  deepBlocks?: Omit<DraftBlock, 'id'>[];
 }
 
 /** Facts every industry page shares. Prices and the compliance line come from tokens. */
@@ -55,7 +58,7 @@ function sharedFacts(spec: IndustrySpec): { label: string; value: string }[] {
     { label: 'Everyday tools', value: 'Counter (POS), stock, khata (udhaar) and reports in one app' },
     { label: 'Without internet', value: 'The counter keeps billing offline and sends the sales when the connection returns' },
     { label: 'Price', value: 'Paid plans from {{price:min.monthly}} a month, with a free trial first' },
-    { label: 'Tax', value: '{{fact:compliance.fbrPra}}' },
+    { label: 'Tax', value: 'Optional FBR/PRA integration, only if you need it' },
   ];
 }
 
@@ -65,6 +68,13 @@ const SHARED_EVIDENCE = [
   'apps/web/src/core/lib/offline/offlineSales.ts',
   'apps/web/src/modules/customers/directory/KhataBookPage.tsx',
 ];
+
+function heroBlock(spec: IndustrySpec): Omit<DraftBlock, 'id'> {
+  const base = hero(spec.heroOverride?.sub ?? spec.summary, { eyebrow: `For ${spec.shopNoun}`, heading: spec.heroOverride?.heading, badges: spec.heroOverride?.badges });
+  const media = spec.heroOverride?.media;
+  if (!media) return base;
+  return { ...base, layout: 'centered', media: { kind: 'screenshot', mediaId: media.mediaId, frame: media.frame ?? 'browser', ...(media.url ? { url: media.url } : {}) } } as Omit<DraftBlock, 'id'>;
+}
 
 export function industry(spec: IndustrySpec): SeedEntry {
   const key = `INDUSTRY:${spec.slug}`;
@@ -91,9 +101,10 @@ export function industry(spec: IndustrySpec): SeedEntry {
       appIndustryKey: spec.appIndustryKey,
     },
     blocks: withIds(key, [
-      hero(spec.summary, { eyebrow: `For ${spec.shopNoun}` }),
+      heroBlock(spec),
       answerBox(sharedFacts(spec), spec.romanUrdu),
       featuresGrid(`What Nafaa does for ${spec.shopNoun}`, spec.features),
+      ...(spec.deepBlocks ?? []),
       ...(spec.faqKeys?.length ? [faq()] : []),
       cta(`Try Nafaa in your ${spec.shortName.toLowerCase()} business`, 'Start with the free trial. No card needed.'),
       writerNotes(notes),

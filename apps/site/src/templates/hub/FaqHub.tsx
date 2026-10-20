@@ -1,45 +1,96 @@
 /**
  * FAQ hub (/faq): the PAGE entry's own blocks (hero, intro), then every
- * published FAQ grouped by topic (GET /public/site/faqs, tag `faq:<locale>`),
- * each topic as an H2 section rendered by S2's faq block, plus a topic index.
+ * published FAQ grouped by topic (GET /public/site/faqs, tag `faq:<locale>`)
+ * in one section: a sticky topic index on the left and one H2 group per
+ * topic on the right. General topics come first, then trade topics. A
+ * closing cta block, when it is the entry's last block, follows the
+ * questions.
  *
  * Schema: CollectionPage (hub) + one FAQPage that mirrors every question on
  * the page, in the same @graph.
  */
-import type { Block, PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { Container } from '@/components/ui/Container';
+import { Prose } from '@/components/ui/Prose';
+import { InlineMarkdown, Markdown } from '@/components/blocks/rich-text/Markdown';
+import { scopedSlugger } from '@/components/blocks/rich-text/slug';
+import blockStyles from '@/components/blocks/blocks.module.css';
+import type { PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { Blocks } from '../core/Blocks';
 import { loadFaqs } from '../core/data';
 import { PageFrame, faqPageNode } from '../core/frame';
 import { MetaRow } from '../core/parts';
 
+/** Topics people ask about before they start; anything else (trades) follows alphabetically. */
+const FIRST = ['getting-started', 'pricing', 'product', 'solutions', 'khata', 'compliance', 'marketplace', 'services'];
+
+function rank(key: string): number {
+  const i = FIRST.indexOf(key);
+  return i === -1 ? FIRST.length : i;
+}
+
 export async function FaqHub({ entry }: { entry: PublicEntry }) {
-  const { topics } = await loadFaqs(entry.locale);
+  const { topics: raw } = await loadFaqs(entry.locale);
+  const topics = [...raw].sort((a, b) => rank(a.key) - rank(b.key) || a.label.localeCompare(b.label));
   const all = topics.flatMap((t) => t.faqs);
   const node = faqPageNode(entry.url, all);
   const own = entry.blocks.filter((b) => b.type !== 'faq');
+  const last = own[own.length - 1];
+  const closing = own.length > 1 && last?.type === 'cta' ? last : null;
+  const lead = closing ? own.slice(0, -1) : own;
 
   return (
     <PageFrame entry={entry} nodes={node ? [node] : []}>
       <MetaRow entry={entry} showUpdated={false} />
-      <Blocks entry={entry} blocks={own} />
-      {topics.length > 1 ? (
-        <nav aria-label="FAQ topics" className="mx-auto box-content max-w-container px-gutter">
-          <ul className="flex flex-wrap gap-2">
-            {topics.map((t) => (
-              <li key={t.key}>
-                <a href={`#topic-${t.key}`} className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 text-small font-medium text-fg-muted transition-colors duration-fast hover:border-line-strong hover:text-fg-strong">
-                  {t.label}
-                  <span className="text-xs text-fg-subtle">{t.faqs.length}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
+      <Blocks entry={entry} blocks={lead} />
+      {topics.length ? (
+        <section aria-label="Questions by topic" className="pb-section">
+          <Container>
+            <div className="grid gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-16">
+              <nav aria-label="FAQ topics" className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
+                <p className="text-eyebrow uppercase text-fg-subtle">Topics</p>
+                <ul className="mt-3 flex flex-wrap gap-2 lg:flex-col lg:gap-0.5">
+                  {topics.map((t) => (
+                    <li key={t.key}>
+                      <a
+                        href={`#topic-${t.key}`}
+                        className="flex items-center justify-between gap-3 rounded-full border border-line px-3.5 py-1.5 text-small font-medium text-fg-muted transition-colors duration-fast hover:bg-surface-2 hover:text-fg-strong lg:rounded-lg lg:border-transparent lg:px-3"
+                      >
+                        {t.label}
+                        <span className="text-xs tabular-nums text-fg-subtle">{t.faqs.length}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <div className="space-y-14">
+                {topics.map((topic) => (
+                  <div key={topic.key} id={`topic-${topic.key}`} className="scroll-mt-[calc(var(--header-h)+1.5rem)]">
+                    <h2 className="text-h3 text-fg-strong">{topic.label}</h2>
+                    <div className={`${blockStyles.faqList} mt-4`}>
+                      {topic.faqs.map((faq) => (
+                        <details key={faq.id} className={blockStyles.faqItem} id={`faq-${faq.id}`}>
+                          <summary>
+                            <span>
+                              <InlineMarkdown text={faq.question} opts={{ plainLinks: true }} />
+                            </span>
+                            <span aria-hidden className={blockStyles.faqIcon} />
+                          </summary>
+                          <div className={blockStyles.faqAnswer}>
+                            <Prose className="text-[0.9875rem] text-fg-muted">
+                              <Markdown text={faq.answer} opts={{ media: entry.media, locale: entry.locale, slugger: scopedSlugger(`faq-${faq.id}`), idPrefix: `faq-${faq.id}` }} />
+                            </Prose>
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Container>
+        </section>
       ) : null}
-      {topics.map((topic) => {
-        const block: Block = { id: `faq-topic-${topic.key}`.slice(0, 32), type: 'faq', heading: topic.label, anchor: `topic-${topic.key}`.slice(0, 64) };
-        return <Blocks key={topic.key} entry={{ ...entry, faqs: topic.faqs }} blocks={[block]} />;
-      })}
+      {closing ? <Blocks entry={entry} blocks={[closing]} /> : null}
     </PageFrame>
   );
 }

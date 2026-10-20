@@ -114,6 +114,36 @@ Wastage covers the gold lost while making a piece. It is usually added as a perc
 
 In Nafaa a jeweller sets today's gold and silver rate once, and each piece carries its metal, weight and stones, so the counter prices from the current rate.`;
 
+/** The assistant is not built: every sentence is a plan, and the status is stated first. */
+const AI_ASSISTANT_BODY = `**Status: Coming soon (Jald aa raha hai).** The AI assistant is not part of Nafaa today. Nothing described here is in the app yet, and the plan may change before it ships.
+
+**Roman Urdu:** Nafaa AI assistant abhi app me nahi hai, jald aa raha hai. Aap apni sale, stock aur khata ke baare me seedha sawal poochh sakenge, English ya Roman Urdu me.
+
+## What we are building
+
+The idea is simple: ask a question about your business and get the answer from your own Nafaa data, without opening several reports. For example:
+
+- Which items sold the most this week?
+- Which customers have udhaar older than a month?
+- Which stock is running low before the weekend?
+
+## Questions in Roman Urdu
+
+Most people who use Nafaa type in Roman Urdu, so the assistant is planned to understand a question like "is hafte sab se zyada kya bika?" as well as the same question in English.
+
+## What it will not do
+
+- It is not planned to change prices, stock or bills by itself. Any change would need a person to confirm it.
+- It is planned to read only your own business data, within the permissions of the account that asks.
+
+## When it arrives
+
+There is no launch date yet. Progress is tracked on the [roadmap](/roadmap). When the assistant ships, this post will be updated and the "Coming soon" label removed.
+
+## What you can use today
+
+The data the assistant will read already lives in Nafaa: the counter (POS), stock, khata and reports. Setting those up now means the assistant will have your history to work with when it arrives.`;
+
 const POSTS: PostSpec[] = [
   {
     slug: 'fbr-e-invoicing-complete-guide-2026',
@@ -183,12 +213,16 @@ const POSTS: PostSpec[] = [
   { slug: 'ramadan-eid-retail-strategy', title: 'Ramadan and Eid Planning for Retail Shops', category: 'business', outline: ['Stock planning', 'Staff for late nights', 'Chand Raat rush', 'WhatsApp and SMS offers'], dropped: ['"How to 3x your sales" title.', FAKE_AUTHOR] },
   {
     slug: 'nafaa-ai-assistant-launch',
-    title: 'Nafaa AI Assistant: What We Are Building',
+    title: 'Nafaa AI Assistant: Coming Soon',
+    summary:
+      'Nafaa is building an AI business assistant that will answer questions about your own sales, stock and khata in English or Roman Urdu. It is not in the app yet. This post explains what is planned, what it will not do, and where to follow progress on the roadmap.',
     category: 'product',
+    body: AI_ASSISTANT_BODY,
     outline: ['What the assistant will answer', 'Roman Urdu questions', 'When it arrives (roadmap)', 'Status badge: Coming soon / Jald aa raha hai'],
-    dropped: ['"Launch" framing, "free for all Nafaa users", "Urdu voice input" and example answers: the assistant is not built (apps/web/src/modules/ai-assistant is empty).', FAKE_AUTHOR],
+    dropped: ['"Launch" framing, "free for all Nafaa users", "Urdu voice input" and example answers: the assistant is not built (apps/web/src/modules/ai-assistant has only an empty index).', FAKE_AUTHOR],
     needsOwner: ['Owner rule: a feature that is not built may only be marketed with a "Coming soon" badge and on the roadmap page. Keep noindex until it ships.'],
     noindex: true,
+    evidence: ['apps/web/src/modules/ai-assistant/index.ts'],
   },
 ];
 

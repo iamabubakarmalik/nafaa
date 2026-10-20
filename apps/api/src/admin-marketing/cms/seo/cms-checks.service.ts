@@ -237,7 +237,7 @@ export class CmsChecksService {
         issues.push(issue('MEDIA_MISSING', 'error', `Media file mojood nahi (${ref.id})`, ref.field, blockId));
         continue;
       }
-      if (ref.key === 'mediaId' && /^blocks\[\d+\]$/.test(ref.field.replace(/\.mediaId$/, '')) && !['IMAGE', 'SCREENSHOT'].includes(media.kind)) {
+      if ((ref.key === 'mediaId' || ref.key === 'darkMediaId') && /^blocks\[\d+\]$/.test(ref.field.replace(/\.(dark)?[mM]ediaId$/, '')) && !['IMAGE', 'SCREENSHOT'].includes(media.kind)) {
         issues.push(issue('INVALID_BLOCK', 'error', 'Screenshot block me sirf image ya screenshot media chal sakta hai', ref.field, blockId));
       }
       if (ref.key === 'fileMediaId' && media.kind !== 'DOCUMENT') {

@@ -210,16 +210,21 @@ export class CmsPublicService {
 
   layout(locale: string): Promise<PublicLayout> {
     return this.cache.get(`layout:${locale}`, async () => {
-      const [site, menus, siteRow, menuRows] = await Promise.all([
+      const [site, menus, siteRow, menuRows, groups, groupsRow, seo, seoRow] = await Promise.all([
         this.settings.get('site', locale),
         this.menus.publicMenus(locale),
         this.settings.raw('site', locale),
         this.prisma.cmsMenu.findMany({ where: { locale: { in: [locale, DEFAULT_LOCALE] } }, select: { updatedAt: true } }),
+        this.settings.get('industry-groups', locale),
+        this.settings.raw('industry-groups', locale),
+        this.settings.get('seo', locale),
+        this.settings.raw('seo', locale),
       ]);
       if (!site) throw new ServiceUnavailableException('Site settings (site) abhi save nahi hue');
-      const stamps = [siteRow?.updatedAt, ...menuRows.map((m) => m.updatedAt)].filter((d): d is Date => d instanceof Date);
+      const stamps = [siteRow?.updatedAt, groupsRow?.updatedAt, seoRow?.updatedAt, ...menuRows.map((m) => m.updatedAt)].filter((d): d is Date => d instanceof Date);
       const updatedAt = new Date(Math.max(0, ...stamps.map((d) => d.getTime())));
-      return { locale, menus, site, updatedAt: updatedAt.toISOString() };
+      const industryGroups = [...(groups ?? [])].sort((a, b) => a.sortOrder - b.sortOrder).map((g) => ({ key: g.key, label: g.label, sortOrder: g.sortOrder }));
+      return { locale, menus, site, industryGroups, officialDomains: seo?.officialDomains ?? [], updatedAt: updatedAt.toISOString() };
     });
   }
 

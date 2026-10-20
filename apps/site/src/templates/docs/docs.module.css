@@ -1,0 +1,65 @@
+/* ApiHero terminal on the /developers root page. */
+
+.terminal {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #0b1220;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 30px 60px -30px rgb(2 6 23 / 0.6);
+}
+
+.glow {
+  position: absolute;
+  inset: -40% -20% auto auto;
+  z-index: -1;
+  width: 70%;
+  height: 120%;
+  background:
+    radial-gradient(50% 50% at 60% 40%, rgb(var(--brand-500) / 0.35), transparent 70%),
+    radial-gradient(40% 40% at 30% 70%, rgb(45 212 191 / 0.2), transparent 70%);
+  filter: blur(30px);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.bar > span {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.16);
+}
+
+.bar > em {
+  margin-left: 0.6rem;
+  font-size: 0.75rem;
+  font-style: normal;
+  color: rgb(148 163 184);
+}
+
+.pre {
+  margin: 0;
+  padding: 1.1rem 1.25rem 1.3rem;
+  overflow-x: auto;
+  font-family: var(--font-code), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.75;
+  color: rgb(226 232 240);
+}
+
+.pre i {
+  font-style: normal;
+}
+
+.dim { color: rgb(100 116 139); }
+.key { color: #7dd3fc; }
+.str { color: #5eead4; }
+.num { color: #fcd34d; }

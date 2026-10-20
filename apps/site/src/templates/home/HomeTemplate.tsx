@@ -1,120 +1,121 @@
 /**
- * Home template (PAGE `/`, data.template "home"). ARCH 8:
+ * Home template (PAGE `/`, data.template "home").
  *
- *   hero (H1) → answerBox → featuresGrid "What Nafaa does" → entryGrid
- *   industries → diagram(s) offline + FBR → pricingTable → testimonial /
- *   logoCloud (only if real) → faq   [+ cta]
+ * The home page tells the whole story: one platform for every business. Its
+ * blocks get home-only presentations, picked by block type and anchor, so
+ * every word stays editable in the CMS (seed: content/pages/home.ts):
+ *
+ *   hero                       Hero (+ the `hero-phone` screenshot block)
+ *   featuresGrid #works-with   WorksWith ticker
+ *   answerBox                  HomeAnswer (answer first, for AEO)
+ *   featuresGrid #platform     Platform bento with code-drawn visuals
+ *   screenshot run             Tour (tabbed product tour, light/dark captures)
+ *   featuresGrid #solutions    Solutions by business type
+ *   entryGrid INDUSTRY         Industries ticker
+ *   diagram run                HomeHowItWorks band
+ *   featuresGrid #services     Services band; a following cta #quote joins it
+ *   featuresGrid #ai           AiSoon (coming soon only)
+ *   last cta                   Closing
+ *
+ * Any other block (pricingTable, faq, ...) renders through the block
+ * renderer in the order the editor set. A featuresGrid with no known anchor
+ * gets the Platform presentation the first time and the standard block after.
  *
  * Schema: WebPage + SoftwareApplication (offers from Plan, paid plans only)
- * + FAQPage, in one @graph. Required internal links: every hub, the top 8
- * industries and products, pricing and the compliance hub (only those that
- * are published), via the blocks and the "Explore Nafaa" section.
- *
- * The hero, short answer, features, industries and diagram band have a
- * home-only presentation (sections.tsx); everything else goes through the
- * block renderer, in the order the editor set.
+ * + FAQPage, in one @graph (PageFrame).
  */
-import type { Block, DiagramBlock, EntryCard, PublicEntry } from '@/lib/cms/contract/cms-contract';
+import type { Block, DiagramBlock, EntryCard, FeaturesGridBlock, PublicEntry, ScreenshotBlock } from '@/lib/cms/contract/cms-contract';
 import { Segments, segment } from '../core/Blocks';
 import { livePaths, loadCards, loadPlans, loadSite } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { HomeAnswer, HomeExplore, HomeFeatures, HomeHero, HomeHowItWorks, HomeIndustries, type ExploreColumn } from './sections';
+import { AiSoon, Industries, Platform, Services, Solutions, WorksWith } from './showcase';
+import { Closing, HomeAnswer, HomeHero, HomeHowItWorks } from './sections';
+import { Tour } from './Tour';
 
-const HUBS: { path: string; label: string }[] = [
-  { path: '/pricing', label: 'Pricing' },
-  { path: '/product', label: 'All products' },
-  { path: '/industries', label: 'All industries' },
-  { path: '/solutions', label: 'Solutions' },
-  { path: '/services', label: 'Services' },
-  { path: '/integrations', label: 'Integrations' },
-  { path: '/compliance', label: 'Tax compliance' },
-  { path: '/roadmap', label: 'Roadmap' },
-];
-const COMPANY: { path: string; label: string }[] = [
-  { path: '/faq', label: 'FAQ' },
-  { path: '/about', label: 'About Nafaa' },
-  { path: '/contact', label: 'Contact' },
-  { path: '/demo', label: 'Book a demo' },
-];
+type Features = FeaturesGridBlock;
 
-async function published(links: { path: string; label: string }[]): Promise<{ href: string; label: string }[]> {
-  const live = await livePaths(links.map((l) => l.path));
-  return links.filter((l) => live.has(l.path)).map((l) => ({ href: l.path, label: l.label }));
-}
+const DIAGRAM_LINKS = ['/product/offline-pos', '/product/pos', '/product/online-store', '/product/fbr', '/product/multi-shop', '/product/khata'];
 
 export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
-  const [site, plans] = await Promise.all([loadSite(entry.locale), loadPlans()]);
   const blocks = entry.blocks;
-
-  // Data for the home-owned sections, fetched in parallel.
   const gridBlock = blocks.find((b): b is Extract<Block, { type: 'entryGrid' }> => b.type === 'entryGrid' && b.entryType === 'INDUSTRY');
-  const [industryCards, products, topIndustries, hubs, company, live] = await Promise.all([
+  const solutionsBlock = blocks.find((b): b is Features => b.type === 'featuresGrid' && b.anchor === 'solutions');
+
+  const [site, plans, industryCards, live] = await Promise.all([
+    loadSite(entry.locale),
+    loadPlans(),
     gridBlock
-      ? loadCards({ type: 'INDUSTRY', featured: gridBlock.filter?.featured, group: gridBlock.filter?.group, tag: gridBlock.filter?.tagId, sort: gridBlock.sort, limit: gridBlock.limit ?? 8 })
+      ? loadCards({ type: 'INDUSTRY', featured: gridBlock.filter?.featured, group: gridBlock.filter?.group, tag: gridBlock.filter?.tagId, sort: gridBlock.sort, limit: gridBlock.limit ?? 40 })
       : Promise.resolve([] as EntryCard[]),
-    loadCards({ type: 'PRODUCT', limit: 8 }),
-    loadCards({ type: 'INDUSTRY', featured: true, limit: 8 }),
-    published(HUBS),
-    published(COMPANY),
-    livePaths(['/product', '/industries', '/product/pos', '/product/khata', '/product/multi-shop']),
+    livePaths(['/industries', '/product', '/roadmap', '/services', '/solutions', '/integrations', ...DIAGRAM_LINKS]),
   ]);
 
-  const explore: ExploreColumn[] = [
-    { title: 'Product', links: products.map((c) => ({ href: c.path, label: c.title, status: c.status })) },
-    { title: 'Industries', links: topIndustries.map((c) => ({ href: c.path, label: c.title })) },
-    { title: 'Nafaa', links: hubs },
-    { title: 'Company', links: company },
-  ];
+  const phone = blocks.find((b): b is ScreenshotBlock => b.type === 'screenshot' && b.anchor === 'hero-phone');
+  const quote = blocks.find((b): b is Extract<Block, { type: 'cta' }> => b.type === 'cta' && b.anchor === 'quote');
+  const lastCta = [...blocks].reverse().find((b) => b.type === 'cta' && b !== quote);
 
-  // Consecutive diagram blocks become one "How it works" band.
-  const diagramRuns = new Map<string, DiagramBlock[]>();
+  // Consecutive runs of one block type become one section (tour, how it works).
+  const runs = new Map<string, Block[]>();
   const consumed = new Set<string>();
   blocks.forEach((block, i) => {
-    if (block.type !== 'diagram' || consumed.has(block.id)) return;
-    const run: DiagramBlock[] = [];
-    for (let j = i; j < blocks.length && blocks[j]?.type === 'diagram'; j++) {
-      const b = blocks[j] as DiagramBlock;
+    if (consumed.has(block.id)) return;
+    if (block.type !== 'diagram' && !(block.type === 'screenshot' && block !== phone)) return;
+    const run: Block[] = [];
+    for (let j = i; j < blocks.length; j++) {
+      const b = blocks[j] as Block;
+      if (b.type !== block.type || b === phone) break;
       run.push(b);
       consumed.add(b.id);
     }
-    diagramRuns.set(block.id, run);
+    runs.set(block.id, run);
   });
 
+  let platformDone = false;
   let answerDone = false;
-  let featuresDone = false;
-  const lastCta = [...blocks].reverse().find((b) => b.type === 'cta');
   const segments = segment(blocks, (block) => {
     switch (block.type) {
       case 'hero':
-        return <HomeHero block={block} entry={entry} site={site} plans={plans} />;
+        return <HomeHero block={block} entry={entry} site={site} plans={plans} phone={phone} rotator={solutionsBlock?.items.map((i) => i.title)} />;
       case 'answerBox':
         if (answerDone) return undefined;
         answerDone = true;
         return <HomeAnswer block={block} entry={entry} />;
       case 'featuresGrid':
-        if (featuresDone) return undefined;
-        featuresDone = true;
-        return <HomeFeatures block={block} hubLink={live.has('/product') ? { href: '/product', label: 'All products' } : undefined} />;
+        switch (block.anchor) {
+          case 'works-with':
+            return <WorksWith block={block} link={live.has('/integrations') ? '/integrations' : undefined} />;
+          case 'solutions':
+            return <Solutions block={block} hubLink={live.has('/solutions') ? '/solutions' : undefined} />;
+          case 'services':
+            return <Services block={block} quote={quote} entry={entry} hubLink={live.has('/services') ? '/services' : undefined} />;
+          case 'ai':
+            return <AiSoon block={block} roadmap={live.has('/roadmap') ? '/roadmap' : undefined} />;
+          default:
+            if (platformDone) return undefined;
+            platformDone = true;
+            return <Platform block={block} entry={entry} hubLink={live.has('/product') ? '/product' : undefined} />;
+        }
+      case 'screenshot': {
+        if (block === phone) return null;
+        const run = runs.get(block.id);
+        if (!run) return null;
+        return <Tour blocks={run as ScreenshotBlock[]} entry={entry} />;
+      }
       case 'entryGrid':
         if (block !== gridBlock) return undefined;
-        return <HomeIndustries heading={block.heading ?? 'Industries'} intro={block.intro} cards={industryCards} hubLink={live.has('/industries') ? { href: '/industries', label: 'All industries' } : undefined} />;
+        return <Industries heading={block.heading ?? 'Industries'} intro={block.intro} cards={industryCards} hubLink={live.has('/industries') ? '/industries' : undefined} />;
       case 'diagram': {
-        const run = diagramRuns.get(block.id);
-        return run ? <HomeHowItWorks blocks={run} live={live} /> : null;
+        const run = runs.get(block.id);
+        return run ? <HomeHowItWorks blocks={run as DiagramBlock[]} live={live} /> : null;
       }
       case 'cta':
+        if (block === quote) return null;
         if (block !== lastCta) return undefined;
-        return (
-          <>
-            <HomeExplore columns={explore} />
-            <Segments entry={entry} segments={[{ kind: 'blocks', key: `cta-${block.id}`, blocks: [block] }]} />
-          </>
-        );
+        return <Closing block={block} entry={entry} />;
       default:
         return undefined;
     }
   });
-  if (!lastCta) segments.push({ kind: 'own', key: 'explore', node: <HomeExplore columns={explore} /> });
 
   return (
     <PageFrame entry={entry} plans={plans}>

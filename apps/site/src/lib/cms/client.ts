@@ -207,6 +207,8 @@ function devFallbackLayout(locale: string): SiteLayout {
       whatsapp: null,
       social: [],
     },
+    industryGroups: [],
+    officialDomains: [],
     updatedAt: new Date(0).toISOString(),
   };
 }

@@ -1,7 +1,7 @@
 /**
  * Home hero illustration: a code-drawn, data-free sketch of the Nafaa
  * counter (catalogue, cart, pay buttons) with three floating cards for the
- * things the counter does around a sale: offline billing, the FBR/PRA
+ * things the counter does around a sale: offline billing, the WhatsApp receipt,
  * invoice and the khata reminder. No numbers, prices or customer names are
  * drawn, so it never states a fact the CMS does not hold.
  *
@@ -148,7 +148,7 @@ export function HeroVisual({ appUrl }: { appUrl: string }) {
         <span className={cx(styles.bar, styles.w85)} />
         <span className={cx(styles.bar, styles.w55)} />
         <QrGlyph />
-        <span className={styles.tag}>FBR / PRA invoice</span>
+        <span className={styles.tag}>Receipt on WhatsApp</span>
       </div>
 
       <div className={cx(styles.float, styles.toast)}>

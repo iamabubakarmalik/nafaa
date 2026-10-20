@@ -14,7 +14,7 @@ import { isRecord } from './cms-http';
 
 /** Keys whose string value is a CmsMedia id. */
 export const MEDIA_ID_KEYS: ReadonlySet<string> = new Set([
-  'mediaId', 'logoMediaId', 'photoMediaId', 'staticMapMediaId', 'fileMediaId', 'imageId', 'ogImageId',
+  'mediaId', 'darkMediaId', 'logoMediaId', 'photoMediaId', 'staticMapMediaId', 'fileMediaId', 'imageId', 'ogImageId',
   'logoId', 'photoId', 'defaultOgMediaId',
 ]);
 

@@ -21,7 +21,8 @@ import type { CmsEntryType, EntryCard, PublicEntry } from '@/lib/cms/contract/cm
 import { livePaths, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
 import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
-import { StandardBody } from '../core/Standard';
+import { ShowcaseBody } from '../showcase/ShowcaseBody';
+import { TrustRibbon } from '../showcase/kit';
 
 const TAG_GROUPS: { type: CmsEntryType; id: string; title: (noun: string) => string }[] = [
   { type: 'PRODUCT', id: 'products', title: (noun) => `Products ${noun} use` },
@@ -58,7 +59,13 @@ export async function IndustryTemplate({ entry }: { entry: PublicEntry }) {
   return (
     <PageFrame entry={entry} plans={plans}>
       <div style={{ '--accent': hexToChannels(data?.color) ?? undefined }}>
-        <StandardBody entry={entry} beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />} />
+        <ShowcaseBody
+          entry={entry}
+          afterHero={<TrustRibbon className="mb-4" />}
+          beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />}
+          kickers={{ featuresGrid: `For ${noun}`, steps: 'A day at the counter', screenshot: 'Inside the app' }}
+          pill="Industry"
+        />
         <NextSteps
           links={[
             { href: '/pricing', label: 'See pricing', icon: 'tag' },

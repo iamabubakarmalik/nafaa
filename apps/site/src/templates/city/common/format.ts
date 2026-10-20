@@ -42,8 +42,8 @@ export function hostOf(url: string): string {
 
 /**
  * Official sources (ARCH 8 outbound links). The live list is settings
- * `seo.officialDomains`, which the public API does not expose yet; the
- * contract defaults are used until it does (reported in the S4 notes).
+ * `seo.officialDomains`, served on the public layout (`layout.officialDomains`);
+ * callers that do not pass it get the contract defaults.
  */
 export function isOfficialUrl(url: string, domains: readonly string[] = DEFAULT_OFFICIAL_DOMAINS): boolean {
   const host = hostOf(url);

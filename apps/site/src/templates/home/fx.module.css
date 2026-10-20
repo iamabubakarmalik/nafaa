@@ -1,0 +1,681 @@
+/*
+ * Home page effects: hero aurora, display type, product stage, tickers,
+ * bento visuals, globe and the small loops inside illustrations.
+ *
+ * Motion rules (motion.css): only transform, opacity and stroke-dashoffset
+ * animate; loops inside a [data-animate] root are paused until MotionObserver
+ * marks it in view (data-inview) and stop while the tab is hidden; nothing
+ * moves with prefers-reduced-motion, and every resting frame is complete.
+ */
+
+/* ─── Hero ──────────────────────────────────────────────────────────── */
+
+.aurora {
+  position: absolute;
+  inset: -12rem -10% auto;
+  height: 64rem;
+  z-index: -20;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.aurora span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(72px);
+  opacity: 0.55;
+}
+
+.aurora span:nth-child(1) {
+  width: 44rem;
+  height: 30rem;
+  left: 8%;
+  top: 6rem;
+  background: rgb(var(--brand-300) / 0.7);
+}
+
+.aurora span:nth-child(2) {
+  width: 36rem;
+  height: 26rem;
+  right: 6%;
+  top: 10rem;
+  background: rgb(45 212 191 / 0.45);
+}
+
+.aurora span:nth-child(3) {
+  width: 30rem;
+  height: 20rem;
+  left: 40%;
+  top: 22rem;
+  background: rgb(251 191 36 / 0.32);
+}
+
+:global(html.theme-ink) .aurora span {
+  opacity: 0.3;
+}
+
+:global(html.theme-ink) .aurora span:nth-child(1) {
+  background: rgb(var(--brand-600) / 0.8);
+}
+
+.grid {
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 10%, black 25%, transparent 75%);
+  opacity: 0.9;
+}
+
+.display {
+  font-size: clamp(2.6rem, 1.15rem + 5.4vw, 5.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 650;
+  text-wrap: balance;
+}
+
+.emphasis {
+  background-image: linear-gradient(100deg, rgb(var(--brand-700)) 10%, #0d9488 60%, rgb(var(--brand-600)) 95%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-bottom: 0.06em;
+}
+
+:global(html.theme-ink) .emphasis {
+  background-image: linear-gradient(100deg, rgb(var(--brand-300)) 10%, #5eead4 55%, #fde68a 100%);
+}
+
+.liveDot {
+  box-shadow: 0 0 0 3px rgb(var(--brand-500) / 0.2);
+}
+
+.rotatorWords {
+  grid-template-areas: 'word';
+  overflow: hidden;
+  text-align: center;
+}
+
+.rotatorWord {
+  grid-area: word;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.rotatorWord:first-child {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rotatorWord {
+    animation: var(--rot-name) var(--rot-dur) var(--ease-out) var(--delay, 0s) infinite both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotatorWord {
+    animation: none !important;
+  }
+}
+
+/* Product stage: the screenshot tilts back and settles as it scrolls in. */
+.stage {
+  position: relative;
+  perspective: 2400px;
+}
+
+.stageGlow {
+  position: absolute;
+  inset: 6% 4% -4%;
+  z-index: -1;
+  border-radius: 40px;
+  background:
+    radial-gradient(60% 60% at 30% 40%, rgb(var(--brand-500) / 0.35), transparent 70%),
+    radial-gradient(50% 50% at 75% 60%, rgb(45 212 191 / 0.28), transparent 70%);
+  filter: blur(40px);
+}
+
+.tilt {
+  transform-origin: 50% 0;
+}
+
+:global(html.theme-ink) .mainFrame {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.1),
+    0 30px 80px -20px rgb(0 0 0 / 0.7);
+}
+
+.mainFrame {
+  box-shadow:
+    0 0 0 1px rgb(15 23 42 / 0.06),
+    0 30px 80px -20px rgb(15 23 42 / 0.35),
+    0 12px 24px -12px rgb(15 23 42 / 0.2);
+  border-radius: 14px;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .tilt {
+      animation: stage-tilt linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 42%;
+    }
+  }
+}
+
+@keyframes stage-tilt {
+  from {
+    transform: rotateX(16deg) scale(0.94) translateY(-12px);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.phone {
+  position: absolute;
+  left: max(-1.5rem, -2%);
+  bottom: 2.5rem;
+  width: 17%;
+  min-width: 9.5rem;
+  filter: drop-shadow(0 30px 40px rgb(15 23 42 / 0.35));
+}
+
+.float {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 0.75rem 0.75rem;
+  border-radius: 14px;
+  border: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface) / 0.92);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 20px 40px -18px rgb(15 23 42 / 0.4);
+  max-width: 17rem;
+}
+
+.floatA {
+  right: -1.5%;
+  top: 16%;
+}
+
+.floatB {
+  right: -3%;
+  top: 48%;
+}
+
+.floatC {
+  left: -3%;
+  top: 9%;
+}
+
+.floatD {
+  right: 14%;
+  bottom: 0.5rem;
+}
+
+.ping {
+  box-shadow: 0 0 0 0 rgb(var(--brand-500) / 0.6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) .float {
+    animation: float-bob 7s var(--ease-in-out) var(--delay, 0s) infinite paused;
+  }
+
+  :global(html[data-motion]) .ping {
+    animation: ping 2s var(--ease-out) infinite paused;
+  }
+
+  :global(html[data-motion]) [data-inview] :is(.float, .ping) {
+    animation-play-state: running;
+  }
+
+  :global(html[data-motion]) .aurora span {
+    animation: aurora-drift 22s var(--ease-in-out) infinite alternate;
+  }
+
+  :global(html[data-motion]) .aurora span:nth-child(2) {
+    animation-duration: 26s;
+    animation-direction: alternate-reverse;
+  }
+
+  :global(html[data-motion]) .aurora span:nth-child(3) {
+    animation-duration: 30s;
+  }
+}
+
+@keyframes float-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes ping {
+  70% {
+    box-shadow: 0 0 0 10px rgb(var(--brand-500) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--brand-500) / 0);
+  }
+}
+
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(6%, 8%, 0) scale(1.12);
+  }
+}
+
+/* ─── Bands ─────────────────────────────────────────────────────────── */
+
+.inkGlow {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  background:
+    radial-gradient(50% 40% at 15% 0%, rgb(var(--brand-500) / 0.22), transparent 70%),
+    radial-gradient(40% 40% at 90% 100%, rgb(45 212 191 / 0.14), transparent 70%);
+}
+
+.softWash {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  background: radial-gradient(50% 30% at 50% 0%, rgb(var(--brand-400) / 0.1), transparent 70%);
+}
+
+.aiWash {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 85% 50%, rgb(251 191 36 / 0.12), transparent 70%),
+    radial-gradient(40% 50% at 70% 30%, rgb(var(--brand-400) / 0.12), transparent 70%);
+}
+
+.closingAurora {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.closingAurora span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+}
+
+.closingAurora span:nth-child(1) {
+  width: 40rem;
+  height: 22rem;
+  left: -8rem;
+  top: -8rem;
+  background: rgb(var(--brand-600) / 0.55);
+}
+
+.closingAurora span:nth-child(2) {
+  width: 34rem;
+  height: 20rem;
+  right: -8rem;
+  bottom: -10rem;
+  background: rgb(13 148 136 / 0.45);
+}
+
+/* ─── Tickers ───────────────────────────────────────────────────────── */
+
+.ticker {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+
+.tickerWide {
+  mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+}
+
+.tickerTrack {
+  display: flex;
+  width: max-content;
+}
+
+.tickerRow {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) .tickerTrack {
+    animation: ticker 48s linear infinite paused;
+  }
+
+  :global(html[data-motion]) .tickerTrack.reverse {
+    animation-direction: reverse;
+    animation-duration: 56s;
+  }
+
+  :global(html[data-motion]) .tickerTrack.slow {
+    animation-duration: 64s;
+  }
+
+  :global(html[data-motion]) [data-inview] .tickerTrack,
+  :global(html[data-motion]) [data-inview].ticker .tickerTrack {
+    animation-play-state: running;
+  }
+
+  :global(html[data-motion]) [data-inview] .ticker:hover .tickerTrack,
+  :global(html[data-motion]) [data-inview].ticker:hover .tickerTrack,
+  :global(html[data-motion]) [data-inview] .ticker:focus-within .tickerTrack {
+    animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker {
+    mask-image: none;
+  }
+
+  .tickerTrack {
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.75rem;
+  }
+
+  .tickerTrack > [aria-hidden] {
+    display: none;
+  }
+
+  .tickerRow {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.75rem;
+  }
+}
+
+@keyframes ticker {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* ─── Platform bento ────────────────────────────────────────────────── */
+
+.visual {
+  background:
+    radial-gradient(70% 90% at 50% 0%, rgb(var(--brand-400) / 0.1), transparent 70%),
+    rgb(var(--c-surface-2));
+}
+
+.visual::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgb(var(--c-fg) / 0.07) 1px, transparent 1px);
+  background-size: 14px 14px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 80%);
+}
+
+.card {
+  background-clip: padding-box;
+}
+
+.solutionGlow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(22rem 12rem at 100% 0%, rgb(var(--accent) / 0.12), transparent 70%);
+  opacity: 0.7;
+  transition: opacity 250ms var(--ease-out);
+}
+
+:global(.group:hover) > .solutionGlow {
+  opacity: 1;
+}
+
+/* Loops inside the bento visuals (paused until the bento is in view). */
+.laser {
+  top: 50%;
+}
+
+.packet {
+  offset-path: var(--path);
+  offset-distance: 0%;
+  opacity: 0;
+}
+
+.shimmer {
+  background: linear-gradient(90deg, rgb(var(--c-fg) / 0.08) 0%, rgb(var(--c-fg) / 0.16) 50%, rgb(var(--c-fg) / 0.08) 100%);
+  background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) .laser { animation: laser 2.4s var(--ease-in-out) infinite alternate var(--delay, 0s) paused; }
+  :global(html[data-motion]) .lineIn { animation: line-in 4s var(--ease-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .grow { animation: grow 1.2s var(--ease-out) both var(--delay, 0s) paused; transform-origin: left; }
+  :global(html[data-motion]) .blink { animation: blink 1.6s var(--ease-in-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .bubble { animation: bubble 5s var(--ease-out) infinite var(--delay, 0s) paused; transform-origin: 100% 100%; }
+  :global(html[data-motion]) .stamp { animation: stamp 4s var(--ease-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .toast { animation: toast 5s var(--ease-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .shine { animation: shine 3s var(--ease-in-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .rise { animation: rise 1.4s var(--ease-out) both var(--delay, 0s) paused; transform-origin: bottom; }
+  :global(html[data-motion]) .queue { animation: queue 1.6s var(--ease-in-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .packet { animation: packet 2.4s var(--ease-in-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .cycle { animation: cycle 6s var(--ease-in-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .typing { animation: typing 1.2s var(--ease-in-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .shimmer { animation: shimmer 2.2s linear infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .tap { animation: tap 4s var(--ease-out) infinite var(--delay, 0s) paused; }
+
+  :global(html[data-motion]) [data-inview] :is(.laser, .lineIn, .grow, .blink, .bubble, .stamp, .toast, .shine, .rise, .queue, .packet, .cycle, .typing, .shimmer, .tap) {
+    animation-play-state: running;
+  }
+
+  :global(html[data-motion][data-motion-paused]) :is(.laser, .lineIn, .blink, .bubble, .stamp, .toast, .shine, .queue, .packet, .cycle, .typing, .shimmer, .tap, .float, .tickerTrack) {
+    animation-play-state: paused !important;
+  }
+}
+
+/* Resting frames for no-JS and reduced motion: everything visible. */
+@media (prefers-reduced-motion: reduce) {
+  .packet {
+    opacity: 0;
+  }
+}
+
+/* A product tile being tapped: press, ring, release. At rest it shows the selected state. */
+.tap {
+  border-color: rgb(var(--brand-500));
+  box-shadow: 0 0 0 3px rgb(var(--brand-500) / 0.18);
+}
+
+@keyframes tap {
+  0%, 20% { transform: none; box-shadow: 0 0 0 0 rgb(var(--brand-500) / 0); border-color: rgb(var(--c-line)); }
+  26% { transform: scale(0.92); }
+  34% { transform: none; box-shadow: 0 0 0 6px rgb(var(--brand-500) / 0.18); border-color: rgb(var(--brand-500)); }
+  80%, 100% { box-shadow: 0 0 0 3px rgb(var(--brand-500) / 0.18); border-color: rgb(var(--brand-500)); }
+}
+
+@keyframes laser {
+  from { transform: translateY(-22px); }
+  to { transform: translateY(18px); }
+}
+
+@keyframes line-in {
+  0%, 15% { opacity: 0; transform: translateX(-8px); }
+  30%, 100% { opacity: 1; transform: none; }
+}
+
+@keyframes grow {
+  from { transform: scaleX(0); }
+}
+
+@keyframes blink {
+  50% { opacity: 0.4; }
+}
+
+@keyframes bubble {
+  0%, 20% { opacity: 0; transform: scale(0.6) translateY(6px); }
+  30%, 85% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+
+@keyframes stamp {
+  0%, 25% { opacity: 0; transform: scale(1.8) rotate(-12deg); }
+  35%, 100% { opacity: 1; transform: rotate(-6deg); }
+}
+
+@keyframes toast {
+  0%, 15% { opacity: 0; transform: translateY(-10px); }
+  25%, 80% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+
+@keyframes shine {
+  0% { background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.5) 50%, transparent 70%) -100% 0 / 200% 100% no-repeat; }
+  100% { background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.5) 50%, transparent 70%) 200% 0 / 200% 100% no-repeat; }
+}
+
+@keyframes rise {
+  from { transform: scaleY(0.1); }
+}
+
+@keyframes queue {
+  0%, 100% { opacity: 0.35; transform: translateX(0); }
+  50% { opacity: 1; transform: translateX(4px); }
+}
+
+@keyframes packet {
+  0% { offset-distance: 0%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+@keyframes cycle {
+  0%, 12% { border-color: rgb(var(--brand-500)); color: rgb(var(--c-fg-strong)); transform: translateY(-2px); box-shadow: 0 6px 16px -8px rgb(var(--brand-600) / 0.6); }
+  18%, 100% { transform: none; }
+}
+
+@keyframes typing {
+  0%, 100% { opacity: 0.3; transform: none; }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+/* ─── Globe ─────────────────────────────────────────────────────────── */
+
+.globeWrap {
+  position: relative;
+}
+
+.globeHalo {
+  fill: none;
+  stroke: rgb(74 222 128 / 0.12);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+
+.meridian {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.arc {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) .meridian { animation: meridian 16s linear infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .arc { animation: arc 4.9s var(--ease-in-out) infinite var(--delay, 0s) paused; }
+  :global(html[data-motion]) .blip { animation: blip 4.9s var(--ease-out) infinite var(--delay, 0s) paused; transform-box: fill-box; transform-origin: center; }
+  :global(html[data-motion]) .homePulse { animation: home-pulse 2.4s var(--ease-out) infinite var(--delay, 0s) paused; transform-box: fill-box; transform-origin: center; }
+
+  :global(html[data-motion]) [data-inview] :is(.meridian, .arc, .blip, .homePulse) {
+    animation-play-state: running;
+  }
+}
+
+@keyframes meridian {
+  from { transform: scaleX(1); }
+  50% { transform: scaleX(0); }
+  to { transform: scaleX(-1); }
+}
+
+@keyframes arc {
+  0% { stroke-dashoffset: 1; opacity: 1; }
+  45% { stroke-dashoffset: 0; opacity: 1; }
+  80% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+@keyframes blip {
+  0%, 40% { opacity: 0; transform: scale(0.4); }
+  50% { opacity: 1; transform: scale(1.6); }
+  60%, 85% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; }
+}
+
+@keyframes home-pulse {
+  from { transform: scale(0.6); opacity: 1; }
+  to { transform: scale(2.2); opacity: 0; }
+}
+
+/* ─── AI chat ───────────────────────────────────────────────────────── */
+
+.chat {
+  background-image: radial-gradient(80% 60% at 100% 0%, rgb(var(--brand-400) / 0.08), transparent 70%);
+}
+
+/* ─── Tour ──────────────────────────────────────────────────────────── */
+
+.tourFrame {
+  filter: drop-shadow(0 30px 50px rgb(15 23 42 / 0.18));
+}
+
+.tabProgress {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(var(--brand-500));
+  transform-origin: left;
+  animation: tab-progress var(--dur, 7s) linear both;
+}
+
+@keyframes tab-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .panelIn {
+    animation: panel-in 450ms var(--ease-out) both;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}

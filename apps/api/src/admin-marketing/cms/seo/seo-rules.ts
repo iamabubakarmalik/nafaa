@@ -119,7 +119,7 @@ export function maxSimilarity(text: string, others: readonly { id: string; title
 // ─── Media references ───
 
 /** Keys whose string value is a media id. */
-const MEDIA_ID_KEYS = new Set(['mediaId', 'logoMediaId', 'photoMediaId', 'staticMapMediaId', 'fileMediaId']);
+const MEDIA_ID_KEYS = new Set(['mediaId', 'darkMediaId', 'logoMediaId', 'photoMediaId', 'staticMapMediaId', 'fileMediaId']);
 
 /** Every media id in blocks/data: id fields, `media:<id>` values and Markdown images. */
 export function collectMediaRefs(value: unknown, prefix: string): { id: string; field: string; key: string }[] {

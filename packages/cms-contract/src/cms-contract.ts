@@ -73,6 +73,14 @@ export const anchorSchema = z.string().regex(ANCHOR_PATTERN, 'Anchor: a-z, 0-9 a
 export const KEY_PATTERN = /^[a-z0-9][a-z0-9_-]{0,47}$/;
 export const keySchema = z.string().regex(KEY_PATTERN, 'Key: a-z, 0-9, hyphen or underscore');
 
+/**
+ * Keys inside settings `entity` records that tokens address by dotted path
+ * (`{{fact:compliance.fbrPra}}`), so they follow FACT_PATH_PATTERN segments:
+ * a letter, then letters or digits (camelCase allowed).
+ */
+export const FACT_KEY_PATTERN = /^[A-Za-z][A-Za-z0-9]{0,47}$/;
+export const factKeySchema = z.string().regex(FACT_KEY_PATTERN, 'Key: a letter, then letters or digits (e.g. fbrPra)');
+
 /** Public site path without the locale prefix: "/" or "/a/b-c". */
 export const SITE_PATH_PATTERN = /^\/(?:[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*)*)?$/;
 export const sitePathSchema = z.string().max(512).regex(SITE_PATH_PATTERN, 'Path must look like /a/b-c');
@@ -900,6 +908,8 @@ const heroMediaSchema = z.discriminatedUnion('kind', [
     frame: frameSchema,
     /** Text shown in the browser frame's address bar, e.g. "app.nafaa.pk/pos". */
     url: z.string().trim().max(120).optional(),
+    /** Optional dark-theme capture of the same screen, shown while the site is dark. */
+    darkMediaId: idSchema.optional(),
   }),
   z.object({ kind: z.literal('diagram'), diagram: diagramSpecSchema }),
   z.object({ kind: z.literal('image'), mediaId: idSchema }),
@@ -970,6 +980,8 @@ export const screenshotBlockSchema = z.object({
   body: mdSchema.optional(),
   /** Media kind must be IMAGE or SCREENSHOT (checked by the API). */
   mediaId: idSchema,
+  /** Optional dark-theme capture of the same screen, shown while the site is dark. */
+  darkMediaId: idSchema.optional(),
   frame: frameSchema,
   url: z.string().trim().max(120).optional(),
   callouts: z
@@ -1749,7 +1761,7 @@ export const entitySettingsSchema = z.object({
   offices: z.array(officeSchema).max(20).default([]),
   contact: z.object({ email: z.email().optional(), phone: z.string().trim().max(30).optional() }).default({}),
   /** Exact statements used through `{{fact:compliance.<key>}}`. */
-  compliance: z.record(keySchema, z.object({ text: shortText(200), evidenceRef: shortText(500) })).default({}),
+  compliance: z.record(factKeySchema, z.object({ text: shortText(200), evidenceRef: shortText(500) })).default({}),
   platforms: z.array(shortText(60)).max(20).default([]),
   languages: z.array(shortText(40)).max(20).default([]),
   sameAs: z.array(httpUrlSchema).max(30).default([]),
@@ -2057,6 +2069,10 @@ export const publicLayoutSchema = z.object({
     mobile: z.array(menuItemResolvedSchema),
   }),
   site: siteSettingsSchema,
+  /** Settings `industry-groups`, sorted by sortOrder (labels for grouped industry grids and the mega menu). */
+  industryGroups: z.array(z.object({ key: z.string(), label: z.string(), sortOrder: z.number().int() })).default([]),
+  /** Settings `seo.officialDomains`: outbound links to these hosts are official sources and stay followed. */
+  officialDomains: z.array(z.string()).default([]),
   updatedAt: z.string(),
 });
 export type PublicLayout = z.infer<typeof publicLayoutSchema>;

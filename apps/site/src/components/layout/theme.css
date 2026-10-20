@@ -82,22 +82,24 @@
 }
 
 /* Mega menu: opens on hover (pointer devices) and on keyboard focus. A short
-   close delay stops it flickering when the pointer crosses the gap. */
+   open delay stops panels flashing while the pointer crosses the nav, and a
+   short close delay stops flicker in the gap under the trigger. */
 .mega-panel {
   visibility: hidden;
   opacity: 0;
-  transform: translateY(-4px);
+  transform: translate3d(-50%, -6px, 0) scale(0.985);
+  transform-origin: 50% 0;
   transition:
-    opacity 150ms var(--ease-out, ease-out),
-    transform 150ms var(--ease-out, ease-out),
-    visibility 0s linear 150ms;
+    opacity 160ms var(--ease-out, ease-out),
+    transform 220ms var(--ease-out, ease-out),
+    visibility 0s linear 160ms;
 }
 
 .mega-item:focus-within > .mega-panel,
 .mega-item[data-open] > .mega-panel {
   visibility: visible;
   opacity: 1;
-  transform: none;
+  transform: translate3d(-50%, 0, 0);
   transition-delay: 0s;
 }
 
@@ -105,19 +107,64 @@
   .mega-item:hover > .mega-panel {
     visibility: visible;
     opacity: 1;
-    transform: none;
-    transition-delay: 60ms;
+    transform: translate3d(-50%, 0, 0);
+    transition-delay: 80ms;
   }
 }
 
-.mega-item:is(:hover, :focus-within) > button .mega-chevron {
+.mega-item:is(:hover, :focus-within, [data-open]) > .mega-trigger {
+  color: rgb(var(--c-fg-strong));
+  background-color: rgb(var(--c-surface-3));
+}
+
+.mega-item:is(:hover, :focus-within, [data-open]) > button .mega-chevron {
   transform: rotate(180deg);
+}
+
+/* Columns inside an open panel arrive a beat after the sheet. */
+.mega-sheet li {
+  transition: opacity 260ms var(--ease-out, ease-out), transform 260ms var(--ease-out, ease-out);
+}
+.mega-item:not(:hover):not(:focus-within):not([data-open]) .mega-sheet li,
+.mega-item[data-closed] .mega-sheet li {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+/* Rail cards: the first one carries a soft brand wash. */
+.mega-rail-brand {
+  background-image:
+    radial-gradient(120% 90% at 100% 0%, rgb(var(--brand-500) / 0.16), transparent 60%),
+    linear-gradient(rgb(var(--c-surface)), rgb(var(--c-surface)));
+}
+.mega-rail-soft {
+  background-color: rgb(var(--c-surface));
 }
 
 @media (prefers-reduced-motion: reduce) {
   .mega-panel,
-  .mega-chevron {
+  .mega-chevron,
+  .mega-sheet li {
     transition: none;
+  }
+}
+
+/* Header: a hairline and shadow appear once the page scrolls (CSS only). */
+@supports (animation-timeline: scroll()) {
+  .site-header {
+    animation: header-raise linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 96px;
+  }
+}
+@keyframes header-raise {
+  from {
+    border-bottom-color: transparent;
+    box-shadow: none;
+  }
+  to {
+    border-bottom-color: rgb(var(--c-line) / 0.9);
+    box-shadow: 0 8px 24px -16px rgb(2 6 23 / 0.25);
   }
 }
 

@@ -9,19 +9,12 @@
 
 import { answerBox, hero, withIds, writerNotes } from '../../lib/blocks';
 import type { SeedEntry } from '../../lib/types';
+import { enrichLahore } from './lahore';
 
 type Province = 'Punjab' | 'Sindh' | 'Khyber Pakhtunkhwa' | 'Balochistan' | 'Islamabad Capital Territory';
 type Authority = 'PRA' | 'SRB' | 'KPRA' | 'BRA' | 'ICT';
 
 const CHECKED_ON = '2026-10-20';
-
-const AUTHORITY_NAME: Record<Authority, string> = {
-  PRA: 'the Punjab Revenue Authority (PRA)',
-  SRB: 'the Sindh Revenue Board (SRB)',
-  KPRA: 'the Khyber Pakhtunkhwa Revenue Authority (KPRA)',
-  BRA: 'the Balochistan Revenue Authority (BRA)',
-  ICT: 'FBR under the Islamabad Capital Territory services tax law',
-};
 
 interface CitySpec {
   slug: string;
@@ -53,10 +46,9 @@ const CITIES: CitySpec[] = [
 
 function city(c: CitySpec, index: number): SeedEntry {
   const key = `CITY:${c.slug}`;
-  const tax = AUTHORITY_NAME[c.authority];
   const summary =
-    `Nafaa is POS, stock and khata software for shops in ${c.name}. It runs in the browser, keeps billing without internet, ` +
-    `and keeps udhaar in a digital khata. In ${c.name}, sales tax on services is collected by ${tax}, while sales tax on goods is collected by FBR.`;
+    `Nafaa is POS, stock and khata software for shops, restaurants and wholesalers in ${c.name}. It runs in the browser on any phone or computer, keeps billing without internet, ` +
+    `and keeps udhaar in a digital khata, with screens for each trade, online orders and setup help on WhatsApp.`;
   return {
     type: 'CITY',
     slug: c.slug,
@@ -77,8 +69,8 @@ function city(c: CitySpec, index: number): SeedEntry {
       hero(summary, { eyebrow: `POS software in ${c.name}` }),
       answerBox(
         [
-          { label: 'Services tax', value: c.authority === 'ICT' ? 'FBR (Islamabad Capital Territory)' : tax.replace(/^the /, '') },
-          { label: 'Goods tax', value: 'FBR (Federal Board of Revenue)' },
+          { label: 'Runs on', value: 'The phone, tablet or computer you already have, also without internet' },
+          { label: 'For', value: 'Shops, restaurants, wholesalers, online sellers and service businesses' },
           { label: 'Setup', value: 'Remote setup and support on WhatsApp' },
           { label: 'Price', value: 'Paid plans from {{price:min.monthly}} a month, with a free trial first' },
         ],
@@ -119,4 +111,4 @@ function city(c: CitySpec, index: number): SeedEntry {
   };
 }
 
-export const cities: SeedEntry[] = CITIES.map(city);
+export const cities: SeedEntry[] = CITIES.map((c, i) => (c.slug === 'lahore' ? enrichLahore(city(c, i)) : city(c, i)));

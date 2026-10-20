@@ -22,6 +22,11 @@ export function assertUploadTarget(apiUrl, allowRemote) {
   }
 }
 
+/** The API wraps responses as `{ success, data }`; older handlers return the row itself. */
+function payload(body) {
+  return body && typeof body === 'object' && body.data && typeof body.data === 'object' ? body.data : body;
+}
+
 function errorText(status, body) {
   const message = typeof body?.message === 'string' ? body.message : Array.isArray(body?.message) ? body.message.join('; ') : '';
   return `HTTP ${status}${message ? `: ${message}` : ''}`;
@@ -43,7 +48,7 @@ export async function uploadShot({ apiUrl, token, buffer, fileName, shot }) {
     const response = await fetch(`${base}/${encodeURIComponent(shot.mediaId)}/replace`, { method: 'POST', headers, body: form });
     const body = await response.json().catch(() => null);
     if (!response.ok) throw new Error(`replace ${shot.mediaId}: ${errorText(response.status, body)}`);
-    return { status: 'replaced', mediaId: body?.id ?? shot.mediaId };
+    return { status: 'replaced', mediaId: payload(body)?.id ?? shot.mediaId };
   }
 
   const form = new FormData();
@@ -55,7 +60,8 @@ export async function uploadShot({ apiUrl, token, buffer, fileName, shot }) {
 
   const response = await fetch(base, { method: 'POST', headers, body: form });
   const body = await response.json().catch(() => null);
-  if (response.status === 409 && body?.duplicateOf?.id) return { status: 'duplicate', mediaId: body.duplicateOf.id };
+  const duplicateOf = body?.duplicateOf ?? body?.data?.duplicateOf;
+  if (response.status === 409 && duplicateOf?.id) return { status: 'duplicate', mediaId: duplicateOf.id };
   if (!response.ok) throw new Error(`upload ${shot.id}: ${errorText(response.status, body)}`);
-  return { status: 'created', mediaId: body?.id ?? null };
+  return { status: 'created', mediaId: payload(body)?.id ?? null };
 }

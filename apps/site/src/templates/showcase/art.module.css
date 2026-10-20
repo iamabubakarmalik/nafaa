@@ -1,0 +1,360 @@
+/*
+ * BuildArt: layered browser, phone and code card for the build services
+ * hero. Skeleton bars shimmer and the caret blinks only when motion is
+ * allowed.
+ */
+
+.wrap {
+  position: relative;
+  aspect-ratio: 16 / 10.5;
+  width: 100%;
+  max-width: 64rem;
+  margin-inline: auto;
+}
+
+.glow {
+  position: absolute;
+  inset: 8% 6% 0;
+  z-index: -1;
+  border-radius: 40px;
+  background:
+    radial-gradient(50% 60% at 30% 40%, rgb(var(--brand-500) / 0.35), transparent 70%),
+    radial-gradient(45% 55% at 75% 60%, rgb(45 212 191 / 0.25), transparent 70%);
+  filter: blur(48px);
+}
+
+.browser {
+  position: absolute;
+  left: 9%;
+  top: 0;
+  width: 80%;
+  border-radius: 14px;
+  box-shadow: 0 30px 60px -20px rgb(15 23 42 / 0.35);
+}
+
+.browserBack {
+  opacity: 0.9;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.1rem 1.4rem 1.6rem;
+  background: rgb(var(--c-surface));
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.logo {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-right: auto;
+  border-radius: 7px;
+  background: linear-gradient(135deg, rgb(var(--brand-500)), rgb(var(--brand-700)));
+}
+
+.navCta {
+  width: 4.5rem;
+  height: 1.3rem;
+  border-radius: 7px;
+  background: rgb(var(--brand-600));
+}
+
+.heroRow {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 1.4rem;
+  align-items: center;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ctas {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.btn,
+.btnGhost {
+  width: 4.75rem;
+  height: 1.5rem;
+  border-radius: 8px;
+}
+
+.btn {
+  background: rgb(var(--brand-600));
+}
+
+.btnGhost {
+  box-shadow: inset 0 0 0 1.5px rgb(var(--c-line-strong));
+}
+
+.heroImage {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  background:
+    radial-gradient(60% 70% at 25% 20%, rgb(var(--brand-400) / 0.55), transparent 70%),
+    radial-gradient(60% 70% at 80% 90%, rgb(45 212 191 / 0.5), transparent 70%),
+    radial-gradient(40% 50% at 85% 15%, rgb(251 191 36 / 0.45), transparent 70%),
+    rgb(var(--c-surface-3));
+}
+
+.shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.35) 50%, transparent 70%);
+  transform: translateX(-100%);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.8rem;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgb(var(--c-line));
+}
+
+.cardIcon {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-bottom: 0.2rem;
+  border-radius: 6px;
+  background: rgb(var(--brand-500) / 0.18);
+}
+
+.bar {
+  width: var(--w, 50%);
+  display: block;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgb(var(--c-fg) / 0.1);
+}
+
+.muted { background: rgb(var(--c-fg) / 0.1); }
+.strong { background: rgb(var(--c-fg) / 0.2); }
+.brand { background: rgb(var(--brand-500) / 0.6); }
+.thin { height: 0.35rem; }
+.thick { height: 0.85rem; }
+.onBrand { background: rgb(255 255 255 / 0.6); }
+
+/* Code card */
+
+.code {
+  position: absolute;
+  left: 0;
+  bottom: 4%;
+  z-index: 2;
+  width: 52%;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #0b1220;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 30px 60px -20px rgb(2 6 23 / 0.6);
+  font-family: var(--font-code), ui-monospace, monospace;
+}
+
+.codeHead {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.codeHead > span {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.18);
+}
+
+.codeHead > em {
+  margin-left: 0.5rem;
+  font-size: 0.7rem;
+  font-style: normal;
+  color: rgb(148 163 184);
+}
+
+.code pre {
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
+  overflow: hidden;
+  font-size: clamp(0.6rem, 0.45rem + 0.45vw, 0.78rem);
+  line-height: 1.7;
+  color: rgb(226 232 240);
+  white-space: pre;
+}
+
+.code i {
+  font-style: normal;
+}
+
+.k { color: #c084fc; }
+.f { color: #5eead4; }
+.s { color: #fcd34d; }
+
+.caret {
+  display: inline-block;
+  width: 0.5em;
+  height: 1.1em;
+  margin-left: 2px;
+  vertical-align: -0.2em;
+  background: #5eead4;
+}
+
+/* Phone */
+
+.phone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  width: 24%;
+  filter: drop-shadow(0 30px 40px rgb(15 23 42 / 0.35));
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  aspect-ratio: 9 / 19;
+  padding: 1.6rem 0.7rem 0.8rem;
+  background: rgb(var(--c-surface));
+}
+
+.appTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.avatar {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: rgb(var(--brand-500) / 0.3);
+}
+
+.appHero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.8rem 0.7rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgb(var(--brand-600)), rgb(var(--brand-800)));
+}
+
+.appRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgb(var(--c-line));
+}
+
+.appDot {
+  flex: none;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 8px;
+  background: rgb(45 212 191 / 0.3);
+}
+
+.appRowText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.appCta {
+  height: 1.6rem;
+  margin-top: auto;
+  border-radius: 9px;
+  background: rgb(var(--brand-600));
+}
+
+/* Stack labels */
+
+.stack {
+  position: absolute;
+  top: 16%;
+  left: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  list-style: none;
+}
+
+.stack li {
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(var(--c-fg-strong));
+  background: rgb(var(--c-surface) / 0.85);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--c-line)),
+    0 8px 20px -10px rgb(15 23 42 / 0.35);
+  backdrop-filter: blur(8px);
+}
+
+@media (max-width: 767px) {
+  .stack { display: none; }
+  .code { width: 64%; }
+  .phone { width: 28%; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(100%); }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -8px, 0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shine { animation: shimmer 4.5s ease-in-out infinite; }
+  .caret { animation: blink 1.1s steps(1) infinite; }
+  .phone { animation: float 7s ease-in-out infinite; }
+  .code { animation: float 8s ease-in-out -3s infinite; }
+}
+
+/* Phones: the layered stage does not fit a narrow column. The browser takes
+   the full width in normal flow, the code card overlaps its lower edge and
+   the phone mock is left out. */
+@media (max-width: 640px) {
+  .wrap { aspect-ratio: auto; padding-bottom: 3.5rem; }
+  .browser { position: relative; left: 0; width: 100%; }
+  .code { left: 6%; bottom: 0; width: 88%; }
+  .phone { display: none; }
+}

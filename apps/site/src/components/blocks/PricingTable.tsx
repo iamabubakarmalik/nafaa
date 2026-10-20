@@ -21,6 +21,7 @@ import type { PublicPlan } from '@/lib/cms/contract/cms-contract';
 import { BlockHeading } from './parts/BlockHeading';
 import { CtaButton } from './parts/CtaButton';
 import { formatCount, formatPkr } from './lib/format';
+import { whatsappHref } from './lib/links';
 import { strings, type BlockStrings } from './lib/i18n';
 import { reveal } from './lib/reveal';
 import type { BlockProps } from './types';
@@ -106,7 +107,9 @@ export async function PricingTable({ block, ctx }: BlockProps<'pricingTable'>) {
             const highlighted = plan.slug === highlightSlug;
             const free = plan.priceMonthly <= 0 && plan.priceQuarterly <= 0 && plan.priceYearly <= 0;
             const features = plan.features.filter((feature) => !featureKeys || featureKeys.has(feature.key));
-            const href = plan.display.ctaHref || site.signupUrl;
+            // Plan display links may use the CTA keywords (signup, demo, whatsapp); blocks get them resolved by the API, plans do not.
+            const raw = plan.display.ctaHref || 'signup';
+            const href = raw === 'signup' ? site.signupUrl : raw === 'demo' ? site.demoPath : raw === 'whatsapp' ? whatsappHref(site.whatsapp) ?? site.signupUrl : raw;
             const limits = [
               limitText(plan.limits.maxProducts, t, 'products'),
               limitText(plan.limits.maxSalesPerMonth, t, 'sales'),

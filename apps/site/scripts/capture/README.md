@@ -55,7 +55,7 @@ CMS_ADMIN_TOKEN=<apps/admin access token> node scripts/capture/capture.mjs --upl
     "account": "bakery",                // null for public pages (login, sign-up)
     "path": "/bakery/production",       // app route; "{param}" needs "resolve"
     "resolve": { "api": "/sales", "param": "id" },  // optional: first item id from an app API list
-    "device": "desktop",                // desktop 1440x900 | laptop 1280x800 | tablet 820x1180 | phone 412x915, all at 2x
+    "device": "desktop",                // desktop 1440x900 | wide 1600x1000 | laptop 1280x800 | tablet 820x1180 | phone 412x915, all at 2x
     "frame": "browser",                 // frame the site should use: browser | phone | tablet | desktop | receipt | none
     "alt": "…",                         // required, 5-250 characters, describes what the image shows
     "caption": "…",                     // optional, up to 300 characters
@@ -67,6 +67,8 @@ CMS_ADMIN_TOKEN=<apps/admin access token> node scripts/capture/capture.mjs --upl
     "waitGone": "css selector",         // optional: wait for this (a loader) to disappear
     "actions": [{ "click": "sel" }, { "fill": ["sel", "text"] }, { "press": "Enter" }, { "hover": "sel" }, { "scroll": "sel" }, { "waitFor": "sel" }, { "wait": 500 }],
     "hide": ["css selector"],           // added to defaults.hide (visibility: hidden)
+    "remove": ["css selector"],         // added to defaults.remove (display: none, for banners and popups)
+    "theme": "light",                   // app colour mode: light | dark (defaults.theme, else light)
     "clip": "css selector",             // capture only this element
     "fullPage": false,
     "clock": "2026-10-15T14:30:00+05:00" // optional fixed page clock

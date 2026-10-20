@@ -47,7 +47,7 @@ export const settings: SeedSetting[] = [
       brandName: 'Nafaa',
       disambiguatingDescription: 'Nafaa (nafaa.pk), Pakistani POS and business software; not NAFA Funds',
       description:
-        'Nafaa is POS, stock and khata software for shops and businesses in Pakistan, with apps for each industry and billing that keeps working without internet.',
+        'Nafaa is business software from Pakistan: POS, stock, khata, purchasing, staff and reports for shops, restaurants, service businesses and multi-branch companies, with online orders and a marketplace for e-commerce sellers, and billing that keeps working without internet.',
       founderIds: [],
       offices: [],
       contact: { email: 'info@nafaa.pk', phone: '+92 324 1772933' },

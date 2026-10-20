@@ -11,7 +11,7 @@
 import type { PublicEntity, PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { loadEntity } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { StandardBody } from '../core/Standard';
+import { ShowcaseBody } from '../showcase/ShowcaseBody';
 
 function EntityFacts({ entity }: { entity: PublicEntity }) {
   const facts = [
@@ -47,7 +47,7 @@ export async function DefaultTemplate({ entry }: { entry: PublicEntry }) {
   const entity = entry.path === '/about' ? await loadEntity(entry.locale) : null;
   return (
     <PageFrame entry={entry}>
-      <StandardBody entry={entry} showUpdated={false} afterHero={entity ? <EntityFacts entity={entity} /> : undefined} />
+      <ShowcaseBody entry={entry} showUpdated={false} afterHero={entity ? <EntityFacts entity={entity} /> : undefined} kickers={{ featuresGrid: 'Features', steps: 'How it works' }} />
     </PageFrame>
   );
 }

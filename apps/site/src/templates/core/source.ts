@@ -28,5 +28,5 @@ export const templateSource: BlockDataSource = {
   entries: (q) => loadCards(q),
   entry: (path, locale) => loadEntry(path, locale),
   site: (locale) => loadSite(locale),
-  industryGroups: () => loadIndustryGroups(),
+  industryGroups: (locale) => loadIndustryGroups(locale),
 };

@@ -1,7 +1,8 @@
 /** Industry: Kiryana & Grocery Store (/industries/kiryana). Imported from apps/marketing and checked against the app. */
+import { SHOT, pricing, prose, shot, steps, table } from '../main-pages/_build';
 import { industry } from './_industry';
 
-export default industry({
+const entry = industry({
   slug: "kiryana",
   title: "Kiryana & Grocery Store",
   shortName: "Kiryana",
@@ -38,5 +39,79 @@ export default industry({
     "Testimonial t5 (no recorded consent).",
   ],
   needsOwner: ["Separate wholesale and retail price lists for the same product: confirm before claiming."],
+  heroOverride: {
+    heading: "The kiryana counter, the khata and the stock in one app",
+    sub: "Bill faster with barcodes and quick keys, sell atta by the kilo and oil by the carton, keep every customer's udhaar in a digital khata, and keep selling when the internet drops.",
+    badges: ["Udhaar on WhatsApp", "Piece, dozen, carton", "Works offline"],
+    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+  },
+  deepBlocks: [
+    shot({
+      heading: "A counter built for a busy kiryana",
+      body: "Daal, chawal, chai and soap sit in big tiles by category, with the stock left on every tile. Loose items get quick keys, packed items scan, and the bill stays on the right with every way to pay.",
+      id: SHOT.pos,
+      url: "app.nafaa.pk/pos",
+      layout: "full",
+      callouts: [
+        { x: 40, y: 26, label: "Categories like Atta, Rice & Daal" },
+        { x: 30, y: 47, label: "Stock left on each item" },
+        { x: 85, y: 93, label: "Cash, JazzCash, Easypaisa or udhaar" },
+      ],
+    }),
+    steps("A day at the kiryana counter", [
+      ["Morning", "Open the low-stock list and call the supplier before the rush starts.", SHOT.lowStock],
+      ["Rush hour", "Scan packed items, tap quick keys for loose ones, and print or WhatsApp the bill."],
+      ["Udhaar customers", "Put the bill on the customer's khata; the counter stops at their credit limit unless you approve it."],
+      ["Closing", "Count the galla, read today's profit and send a few udhaar reminders on WhatsApp."],
+    ]),
+    shot({
+      heading: "The udhaar register, finally under control",
+      body: "Every udhaar bill lands in the customer's khata from the counter. See total receivable by age, and send a polite WhatsApp reminder with the exact balance in one tap.",
+      id: SHOT.khata,
+      url: "app.nafaa.pk/khata",
+      layout: "split-right",
+    }),
+    table("Paper register or Nafaa?", "How the everyday jobs of a kiryana store compare on a paper register and on Nafaa.", [
+      { key: "paper", label: "Paper register" },
+      { key: "nafaa", label: "Nafaa", highlight: true },
+    ], [
+      ["Writing the bill", "By hand, totals on a calculator", "Scan or tap; totals and receipt by themselves"],
+      ["Udhaar", "Pages that get lost or wet", "Digital khata per customer with ageing"],
+      ["Reminders", "Phone calls and awkward talks", "One-tap WhatsApp message with the balance"],
+      ["Stock", "Guessing from the shelf", "Live stock in every unit with low-stock alerts"],
+      ["Profit", "Known at the end of the month, roughly", "Profit after cost and expenses, every day"],
+    ]),
+    prose(`## What to look for in kiryana software
+
+A kiryana store sells hundreds of small items to the same neighbourhood every day, so the software has to be fast, forgiving and honest about money. Before you choose, check that it can:
+
+- **Sell in more than one unit.** Cooking oil by the bottle and the carton, eggs by the piece and the dozen, each with its own price.
+- **Keep udhaar properly.** A khata per customer, balances brought over from the old register, and reminders that do not embarrass anyone.
+- **Keep billing without internet.** Load-shedding and weak signal should never stop the counter.
+- **Show real profit.** Sales minus cost and expenses, not just the day's takings.
+- **Grow with you.** A second counter or a second branch should not mean new software.
+
+Nafaa does all of this on the phone or computer you already have, in English or Roman Urdu.`),
+    pricing("Plans for one counter or many"),
+  ],
   writerNotes: "Owner decision O11 (pending): slug stays /industries/kiryana; use \"grocery\" in the copy.",
 });
+
+/** Internal links (D2): the products kiryana stores use, the matching solution and related trades. */
+export default {
+  ...entry,
+  relations: [
+    { ref: 'PRODUCT:pos', kind: 'TAG' },
+    { ref: 'PRODUCT:khata', kind: 'TAG' },
+    { ref: 'PRODUCT:inventory', kind: 'TAG' },
+    { ref: 'PRODUCT:purchasing', kind: 'TAG' },
+    { ref: 'PRODUCT:whatsapp-sms', kind: 'TAG' },
+    { ref: 'SOLUTION:single-shop', kind: 'TAG' },
+    { ref: 'SOLUTION:wholesale-distribution', kind: 'TAG' },
+    { ref: 'CITY:lahore', kind: 'TAG' },
+    { ref: 'INDUSTRY:retail', kind: 'RELATED' },
+    { ref: 'INDUSTRY:dairy', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:khata', kind: 'RELATED' },
+    { ref: 'BLOG_POST:digital-khata-vs-paper-ledger', kind: 'RELATED' },
+  ],
+} satisfies typeof entry;

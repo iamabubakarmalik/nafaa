@@ -13,7 +13,8 @@ import type { CmsEntryType, EntryCard, PublicEntry } from '@/lib/cms/contract/cm
 import { livePaths, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
 import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
-import { StandardBody } from '../core/Standard';
+import { ShowcaseBody } from '../showcase/ShowcaseBody';
+import { IndustryMarquee, TrustRibbon } from '../showcase/kit';
 
 export async function SolutionTemplate({ entry }: { entry: PublicEntry }) {
   const [plans, live, siblings] = await Promise.all([
@@ -21,6 +22,7 @@ export async function SolutionTemplate({ entry }: { entry: PublicEntry }) {
     livePaths(['/solutions', '/pricing', '/contact', '/services']),
     loadCards({ type: 'SOLUTION', limit: 6 }),
   ]);
+  const industries = await loadCards({ type: 'INDUSTRY', limit: 40 });
   const byType = (type: CmsEntryType): EntryCard[] => [...(entry.tags[type] ?? []), ...entry.related.filter((c) => c.type === type)];
 
   const groups: LinkGroup[] = [
@@ -33,7 +35,18 @@ export async function SolutionTemplate({ entry }: { entry: PublicEntry }) {
 
   return (
     <PageFrame entry={entry} plans={plans}>
-      <StandardBody entry={entry} beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />} />
+      <ShowcaseBody
+        entry={entry}
+        afterHero={
+          <>
+            <TrustRibbon className="mb-12" />
+            <IndustryMarquee cards={industries} title={`Runs ${industries.length} kinds of business on one platform`} link={live.has('/industries') ? { href: '/industries', label: 'All industries' } : undefined} />
+          </>
+        }
+        beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />}
+        kickers={{ featuresGrid: 'Capabilities', steps: 'How it runs', screenshot: 'Inside the app' }}
+        pill="Solution"
+      />
       <NextSteps
         links={[
           { href: '/pricing', label: 'See pricing', icon: 'tag' },

@@ -453,6 +453,8 @@ export function buildFixtures(site: string): FixtureSet {
       whatsapp: null,
       social: [],
     },
+    industryGroups: [{ key: 'retail', label: 'Retail shops', sortOrder: 1 }],
+    officialDomains: ['fbr.gov.pk'],
     updatedAt: UPDATED_DATE,
   };
 

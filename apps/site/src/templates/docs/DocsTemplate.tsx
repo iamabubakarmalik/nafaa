@@ -18,6 +18,7 @@ import { FixtureRibbon } from '../article/parts/FixtureRibbon';
 import { formatDate, isoDate } from '../article/parts/format';
 import { s5Graph } from '../article/parts/graph';
 import { outline } from '../article/parts/outline';
+import { ApiHero } from './ApiHero';
 import { buildDocTree, containsPath, flattenDocs, type DocNode } from './tree';
 
 const METHOD_TONE: Record<string, string> = {
@@ -155,6 +156,7 @@ export function DocsTemplate({ entry, docs, site, entity }: DocsTemplateProps) {
                 </p>
               ) : null}
             </header>
+            {isRoot ? <ApiHero live={new Set(docs.map((d) => d.path))} /> : null}
 
             <div className="docs-body -mx-gutter mt-8 [&_.mx-auto]:!ml-0">
               <Body entry={entry} variant="docs" withFaqs />

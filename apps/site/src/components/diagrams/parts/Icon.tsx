@@ -8,7 +8,7 @@
  * This runs only on the server, so the full icon map costs no client JS.
  * TODO(S1): switch to `@/lib/icons` once it lands, so the site has one map.
  */
-import { icons, type LucideIcon } from 'lucide-react';
+import { Building2, icons, type LucideIcon } from 'lucide-react';
 import { LOGO_BOWL, LOGO_DOT } from '@/lib/brand/logo';
 import styles from '../diagrams.module.css';
 
@@ -24,12 +24,12 @@ const iconMap = icons as unknown as Record<string, LucideIcon | undefined>;
  * Names in the contract's allowed list that lucide 1.x keeps only as export
  * aliases, so they are missing from the `icons` map.
  */
-const ALIASES: Readonly<Record<string, string>> = {
-  'building-2': 'building-complex',
+const ALIASES: Readonly<Record<string, LucideIcon>> = {
+  'building-2': Building2,
 };
 
 export function resolveIcon(name: string): LucideIcon {
-  return iconMap[toPascal(ALIASES[name] ?? name)] ?? icons.Circle;
+  return ALIASES[name] ?? iconMap[toPascal(name)] ?? icons.Circle;
 }
 
 interface SvgIconProps {

@@ -144,7 +144,9 @@ export function validateContent(content: SeedContent): ValidationResult {
 
   for (const e of content.entries) {
     const key = entryKey(e);
-    if (!SLUG_PATTERN.test(e.slug)) errors.push(`${key}: bad slug`);
+    // The home page is the one PAGE with an empty slug (the API maps it to '/').
+    const isHome = e.type === 'PAGE' && e.slug === '';
+    if (!isHome && !SLUG_PATTERN.test(e.slug)) errors.push(`${key}: bad slug`);
 
     const titleKey = `${e.locale ?? 'en'}:${e.type}:${e.title.toLowerCase()}`;
     if (titles.has(titleKey)) warnings.push(`${key}: same title as ${titles.get(titleKey)}`);

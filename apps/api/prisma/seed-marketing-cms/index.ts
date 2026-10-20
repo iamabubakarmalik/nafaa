@@ -44,6 +44,8 @@ function parseArgs(argv: string[]): Args {
 
 function pathOf(e: SeedEntry): string {
   const prefix = ENTRY_TYPE_META[e.type].prefix;
+  // Top-level PAGE entries (no parent) live at /<slug>.
+  if (e.type === 'PAGE') return `/${e.slug}`;
   if (!prefix) throw new Error(`${entryKey(e)}: the seed only handles types with a fixed prefix`);
   return `/${prefix}/${e.slug}`;
 }
@@ -104,7 +106,10 @@ async function main(): Promise<void> {
       for (const item of await api.listAll<AdminEntryListItem>('/entries', { locale: 'en' })) existingByPath.set(`${item.locale}:${item.path}`, item);
       for (const f of await api.listAll<AdminFaq>('/faqs', { locale: 'en' })) existingFaqs.set(f.question.trim().toLowerCase(), f);
       bundle = await api.get<Record<string, unknown>>('/settings');
-      for (const m of await api.get<{ key: string; locale: string }[]>('/menus')) existingMenus.add(`${m.locale}:${m.key}`);
+      // GET /menus lists every key, saved or not; a never-saved menu has no updatedAt.
+      for (const m of await api.get<{ key: string; locale: string; updatedAt?: string | null }[]>('/menus')) {
+        if (m.updatedAt) existingMenus.add(`${m.locale}:${m.key}`);
+      }
     } catch (err) {
       const msg = err instanceof ApiError ? `${err.status} on ${err.route}` : (err as Error).message;
       if (args.apply) {
