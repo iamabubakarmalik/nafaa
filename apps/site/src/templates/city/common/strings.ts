@@ -1,0 +1,141 @@
+/**
+ * Interface text for the S4 templates (city, compliance, best-of, compare).
+ *
+ * Only labels live here: page copy, facts and claims always come from the
+ * CMS. English is the default; `ur` is Roman Urdu with business terms in
+ * English, matching the contract's badge text (FEATURE_STATUS_BADGES).
+ */
+
+const en = {
+  updated: 'Updated',
+  lastChecked: 'Last checked',
+  factChecked: 'Fact-checked',
+  reviewedBy: 'Reviewed by',
+  writtenBy: 'Written by',
+  onThisPage: 'On this page',
+  sources: 'Sources',
+  source: 'Source',
+  checked: 'checked',
+  visitSite: 'Visit website',
+  fixtureRibbon: 'Dev fixture: sample data rendered because the CMS has no published entry at this path. Never shown in production.',
+  // City
+  cityEyebrow: 'POS software in',
+  servicesTaxBy: 'Services tax',
+  goodsTaxBy: 'Goods tax',
+  province: 'Province',
+  industryGuides: (city: string) => `Industry guides for ${city}`,
+  industryGuidesIntro: (city: string) => `Pages written for one type of business in ${city}.`,
+  industryGuidesShort: 'Industry guides',
+  allCities: 'All cities',
+  allPages: 'All pages',
+  cityDirectoryTitle: 'POS software by city',
+  cityDirectoryIntro: 'Each city page covers the tax authority, markets, areas and support for that city.',
+  backToCity: (city: string) => `More about ${city}`,
+  nationalIndustry: (name: string) => `${name} software across Pakistan`,
+  // Compliance
+  atAGlance: 'At a glance',
+  authority: 'Authority',
+  effectiveFrom: 'Effective from',
+  rules: 'Rules and SROs',
+  penalties: 'Penalties',
+  otherAuthorities: 'Other tax authorities',
+  citiesUnder: (authority: string) => `Cities under ${authority}`,
+  complianceDirectoryTitle: 'Tax and invoicing rules',
+  complianceDirectoryIntro: 'Who must integrate a POS with each tax authority, and how Nafaa handles it.',
+  // Best-of
+  ourProduct: 'Our product',
+  disclosureBestOf: 'Nafaa makes one of the products on this list. Every price is dated and linked to its source, and how we ranked them is just below.',
+  bestFor: 'Best for',
+  strengths: 'Strengths',
+  weaknesses: 'Watch out for',
+  startingPrice: 'Starting price',
+  priceNotListed: 'Not published by the vendor',
+  theList: 'The list',
+  howWeRanked: 'How we ranked them',
+  bestDirectoryTitle: 'Best software guides',
+  // Compare
+  verdict: 'Short answer',
+  headToHead: 'At a glance',
+  website: 'Website',
+  pricing: 'Price',
+  freeTrial: 'Free trial',
+  disclosureCompare: 'Written by the Nafaa team. Competitor details come from their own pages and are dated; tell us if something has changed and we will update it.',
+  moreComparisons: 'More comparisons',
+  compareDirectoryTitle: 'Compare Nafaa',
+  compareDirectoryIntro: 'Honest, dated comparisons with other ways to run a shop.',
+  alternativeEyebrow: 'Alternative',
+  compareEyebrow: 'Compare',
+  vs: 'vs',
+  nafaaPaidFrom: (price: string) => `Paid plans from ${price} a month`,
+  seePricing: 'See pricing',
+} as const;
+
+type Strings = { [K in keyof typeof en]: (typeof en)[K] extends (...args: infer A) => string ? (...args: A) => string : string };
+
+const ur: Strings = {
+  updated: 'Update hua',
+  lastChecked: 'Aakhri check',
+  factChecked: 'Fact-check hua',
+  reviewedBy: 'Review kiya',
+  writtenBy: 'Likha',
+  onThisPage: 'Is page par',
+  sources: 'Sources',
+  source: 'Source',
+  checked: 'check kiya',
+  visitSite: 'Website dekhein',
+  fixtureRibbon: en.fixtureRibbon,
+  cityEyebrow: 'POS software:',
+  servicesTaxBy: 'Services tax',
+  goodsTaxBy: 'Goods tax',
+  province: 'Soobah',
+  industryGuides: (city) => `${city} me karobar ke hisaab se pages`,
+  industryGuidesIntro: (city) => `${city} me ek qisam ke karobar ke liye likhe gaye pages.`,
+  industryGuidesShort: 'Karobar ke pages',
+  allCities: 'Saare shehar',
+  allPages: 'Saare pages',
+  cityDirectoryTitle: 'Shehar ke hisaab se POS software',
+  cityDirectoryIntro: 'Har shehar ke page par tax authority, markets, areas aur support ki maloomat hai.',
+  backToCity: (city) => `${city} ke baare me aur`,
+  nationalIndustry: (name) => `Poore Pakistan ke liye ${name} software`,
+  atAGlance: 'Mukhtasar',
+  authority: 'Authority',
+  effectiveFrom: 'Kab se lagoo',
+  rules: 'Qawaid aur SROs',
+  penalties: 'Jurmana',
+  otherAuthorities: 'Doosri tax authorities',
+  citiesUnder: (authority) => `${authority} ke shehar`,
+  complianceDirectoryTitle: 'Tax aur invoice ke qawaid',
+  complianceDirectoryIntro: 'Kis ko POS tax authority se jorna hai, aur Nafaa yeh kaise karta hai.',
+  ourProduct: 'Hamara product',
+  disclosureBestOf: 'Is list me ek product Nafaa ka hai. Har price ke saath date aur source diya gaya hai, aur ranking ka tareeqa neeche likha hai.',
+  bestFor: 'Kis ke liye behtar',
+  strengths: 'Khoobiyan',
+  weaknesses: 'Dhyan dein',
+  startingPrice: 'Shuru ki price',
+  priceNotListed: 'Company ne price nahi batayi',
+  theList: 'List',
+  howWeRanked: 'Ranking kaise ki',
+  bestDirectoryTitle: 'Behtareen software guides',
+  verdict: 'Mukhtasar jawab',
+  headToHead: 'Mukhtasar',
+  website: 'Website',
+  pricing: 'Price',
+  freeTrial: 'Free trial',
+  disclosureCompare: 'Yeh Nafaa team ne likha hai. Doosri company ki maloomat unke apne pages se li gayi hai, date ke saath; kuch badla ho to batayein, hum update kar denge.',
+  moreComparisons: 'Aur muqable',
+  compareDirectoryTitle: 'Nafaa ka muqabla',
+  compareDirectoryIntro: 'Dukaan chalane ke doosre tareeqon se seedha aur dated muqabla.',
+  alternativeEyebrow: 'Alternative',
+  compareEyebrow: 'Compare',
+  vs: 'vs',
+  nafaaPaidFrom: (price) => `Paid plans ${price} mahana se`,
+  seePricing: 'Pricing dekhein',
+};
+
+const BY_LOCALE: Record<string, Strings> = { en, ur };
+
+export function stringsFor(locale: string): Strings {
+  return BY_LOCALE[locale] ?? en;
+}
+
+export type TemplateStrings = Strings;

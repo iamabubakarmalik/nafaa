@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Container, Heading, LinkCard, Section, Text } from '@/components/ui';
-import { Palette, Workflow } from 'lucide-react';
+import { LayoutGrid, Palette, Workflow } from 'lucide-react';
 
 export const metadata: Metadata = { title: 'Internal galleries' };
 
@@ -29,6 +29,15 @@ export default function DevIndexPage() {
               icon={Workflow}
               title="Diagrams and frames"
               description="Code-drawn diagrams, screenshot frames and callouts."
+              cta="Open"
+            />
+          </li>
+          <li>
+            <LinkCard
+              href="/_dev/blocks"
+              icon={LayoutGrid}
+              title="Blocks"
+              description="Every CMS block rendered by the real renderer, with live API data or fixtures."
               cta="Open"
             />
           </li>

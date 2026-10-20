@@ -8,7 +8,7 @@ import { Injectable } from '@nestjs/common';
 import { CmsEntryType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { tzParts } from '../../../common/helpers/business-time.helper';
-import { COUNT_TOKEN_KEYS, DEFAULT_LOCALE, type CountTokenKey } from '../contract/cms-contract';
+import { COUNT_TOKEN_KEYS, DEFAULT_LOCALE, FEATURE_STATUSES, featureStatusOf, type CountTokenKey, type FeatureStatus } from '../contract/cms-contract';
 import type { TokenContext, TokenPlan } from './tokens';
 
 type Db = PrismaService | Prisma.TransactionClient;
@@ -27,13 +27,18 @@ export function currentYearPk(now: Date = new Date()): number {
   return tzParts(now, 'Asia/Karachi').year;
 }
 
-/** `published.data.status` when the snapshot has it, else the draft `data.status`. */
-function integrationStatus(published: Prisma.JsonValue | null, data: Prisma.JsonValue): unknown {
-  const snap = published as { data?: { status?: unknown } } | null;
-  if (snap && typeof snap === 'object' && snap.data && typeof snap.data === 'object' && 'status' in snap.data) {
-    return snap.data.status;
-  }
-  return (data as { status?: unknown } | null)?.status;
+/**
+ * Feature status of a live integration: the snapshot's computed
+ * `featureStatus`, else its `data.status`, else the draft `data.status`.
+ * A missing or unknown value reads as `coming` (contract `featureStatusOf`).
+ */
+export function liveIntegrationStatus(published: Prisma.JsonValue | null, data: Prisma.JsonValue): FeatureStatus {
+  const snap = published && typeof published === 'object' && !Array.isArray(published) ? (published as Record<string, unknown>) : null;
+  const computed = snap?.featureStatus;
+  if (typeof computed === 'string' && (FEATURE_STATUSES as readonly string[]).includes(computed)) return computed as FeatureStatus;
+  const snapData = snap?.data;
+  if (snapData && typeof snapData === 'object' && 'status' in snapData) return featureStatusOf('INTEGRATION', snapData) ?? 'coming';
+  return featureStatusOf('INTEGRATION', data) ?? 'coming';
 }
 
 @Injectable()
@@ -50,8 +55,10 @@ export class CmsTokenService {
   }
 
   /**
-   * Live (published) entries per count key in a locale. Integrations with
-   * status `planned` are not counted: they are not available yet.
+   * Live (published) entries per count key in a locale. Integrations count
+   * only with feature status `live` (contract 1.1.0): `beta` and `coming`
+   * are not generally available, and this matches
+   * `entity.counts.integrationsLive`.
    */
   async publishedCounts(locale: string = DEFAULT_LOCALE, db: Db = this.prisma): Promise<Record<CountTokenKey, number>> {
     const types = COUNT_TOKEN_KEYS.map((k) => COUNT_TOKEN_TYPES[k]);
@@ -66,12 +73,12 @@ export class CmsTokenService {
       where: { locale, publishedPath: { not: null }, type: CmsEntryType.INTEGRATION },
       select: { published: true, data: true },
     });
-    const planned = integrations.filter((row) => integrationStatus(row.published, row.data) === 'planned').length;
+    const liveIntegrations = integrations.filter((row) => liveIntegrationStatus(row.published, row.data) === 'live').length;
 
     const counts = {} as Record<CountTokenKey, number>;
     for (const key of COUNT_TOKEN_KEYS) {
       const total = byType.get(COUNT_TOKEN_TYPES[key]) ?? 0;
-      counts[key] = key === 'integrations' ? Math.max(0, total - planned) : total;
+      counts[key] = key === 'integrations' ? liveIntegrations : total;
     }
     return counts;
   }

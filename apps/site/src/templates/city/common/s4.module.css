@@ -1,0 +1,56 @@
+/*
+ * Styles the S4 templates cannot express with utilities: the sticky jump
+ * bar's scroll padding, hidden scrollbars on its chip row, and the
+ * head-to-head connector line.
+ */
+
+/* Anchored sections land below the site header plus the sticky jump bar. */
+:global(html):has(.jumpbar) {
+  scroll-padding-top: calc(var(--header-h) + 4.25rem);
+}
+
+.jumpbar {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 20;
+}
+
+.chips {
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  mask-image: linear-gradient(to right, transparent 0, black 1rem, black calc(100% - 2rem), transparent 100%);
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+/* The line between the two sides of a compare card draws itself once. */
+.connector {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html[data-motion]) :global([data-animate]:not([data-seen])) .connector {
+    stroke-dashoffset: 1;
+  }
+
+  :global(html[data-motion]) :global([data-animate][data-seen='later']) .connector {
+    animation: s4-draw var(--d-draw) var(--ease-out) both;
+  }
+}
+
+@keyframes s4-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* A rank number that reads as a quiet watermark behind each best-of item. */
+.rank {
+  font-feature-settings: 'tnum' 1;
+}

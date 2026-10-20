@@ -1,0 +1,41 @@
+/* /_dev/blocks gallery chrome. DEV ONLY. */
+
+.root {
+  min-height: 100vh;
+}
+
+.toolbar {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 30;
+  border-bottom: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-canvas) / 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.sample {
+  border-top: 1px dashed rgb(var(--c-line-strong));
+  scroll-margin-top: calc(var(--header-h) + 4rem);
+}
+
+.label {
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+}
+
+.rm {
+  width: 1rem;
+  height: 1rem;
+  accent-color: rgb(var(--brand-600));
+}
+
+/* "Preview reduced motion": the same result as the OS setting, for review. */
+.root:has(.rm:checked) :global(:is([data-reveal], [data-reveal] > *, [data-animate] *, [data-price])) {
+  animation: none !important;
+  transition: none !important;
+}
+
+.root:has(.rm:checked) * {
+  transition: none !important;
+}

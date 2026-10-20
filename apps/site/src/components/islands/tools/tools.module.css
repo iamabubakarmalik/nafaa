@@ -1,0 +1,25 @@
+/*
+ * Print rules for the invoice generator: when the visitor prints, only the
+ * invoice sheet is printed, at full width, without the site chrome.
+ */
+@media print {
+  :global(body):has(.sheet) * {
+    visibility: hidden;
+  }
+
+  .sheet,
+  .sheet * {
+    visibility: visible;
+  }
+
+  .sheet {
+    position: absolute;
+    inset: 0 0 auto 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    font-size: 12pt;
+  }
+}

@@ -1,0 +1,145 @@
+# Quality gates for the nafaa.pk site (apps/site), ARCH 14 and 15 Q1.
+#
+# - checks: every push/PR that touches the site, the CMS contract or the shared
+#   tokens. Typecheck, lint, contract and token sync, next build, bundle and
+#   HTML budgets, the SEO crawl (schema, links, junk URLs, noindex guard),
+#   city uniqueness and Lighthouse CI (mobile) on one URL per template.
+#   The build reads the CI fixture API (apps/site/scripts/ci), or a CMS API
+#   when the SITE_CI_CMS_API_URL secret is set.
+# - deployment: after Vercel reports a successful site deployment (or by hand
+#   with a URL), the crawl and Lighthouse run against that deployment.
+#   Previews and staging must be noindex; Production must be indexable.
+#
+# The same gates run locally: `node scripts/site-ci.mjs` in apps/site.
+name: Site CI
+
+on:
+  pull_request:
+    paths:
+      - apps/site/**
+      - packages/cms-contract/**
+      - scripts/sync-cms-contract.mjs
+      - apps/web/src/design-system/styles/tokens.css
+      - .github/workflows/site-ci.yml
+  push:
+    branches: [main, design/overhaul, site/rebuild]
+    paths:
+      - apps/site/**
+      - packages/cms-contract/**
+      - scripts/sync-cms-contract.mjs
+      - apps/web/src/design-system/styles/tokens.css
+      - .github/workflows/site-ci.yml
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment URL to check (leave empty to build and check this commit)
+        required: false
+        default: ''
+      expect:
+        description: noindex for previews and staging, index for production
+        required: false
+        default: noindex
+        type: choice
+        options: [noindex, index]
+
+concurrency:
+  group: site-ci-${{ github.event_name }}-${{ github.event.deployment.id || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  checks:
+    name: Site — build, budgets, SEO, Lighthouse
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.target == '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: apps/site
+    steps:
+      - uses: actions/checkout@v4
+
+      # apps/site is a standalone pnpm project (its own lockfile, ARCH D2).
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/site/package.json
+      - uses: actions/setup-node@v4
+        with:
+          # 22.18+ runs the TypeScript contract and fixtures through type stripping.
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/site/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+
+      - name: Next build cache
+        uses: actions/cache@v4
+        with:
+          path: apps/site/.next/cache
+          key: site-next-${{ hashFiles('apps/site/pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: site-next-${{ hashFiles('apps/site/pnpm-lock.yaml') }}-
+
+      - name: Gates (typecheck, lint, sync checks, build, budgets, crawl, uniqueness, Lighthouse)
+        env:
+          SITE_CI_CMS_API_URL: ${{ secrets.SITE_CI_CMS_API_URL }}
+        run: |
+          if [ -n "$SITE_CI_CMS_API_URL" ]; then
+            node scripts/site-ci.mjs --in-place --api="$SITE_CI_CMS_API_URL"
+          else
+            node scripts/site-ci.mjs --in-place --fixtures-only
+          fi
+
+      - name: Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-ci-reports
+          path: |
+            apps/site/.site-ci/
+            apps/site/.lighthouseci/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  deployment:
+    name: Site deployment — crawl, noindex guard, Lighthouse
+    # Vercel reports deployments of every project in this repo; only the site's
+    # count. Set the repository variable SITE_VERCEL_PROJECT to the site's
+    # Vercel project name (Vercel names the environment "Preview – <project>").
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.target != '') ||
+      (github.event_name == 'deployment_status' &&
+       github.event.deployment_status.state == 'success' &&
+       contains(github.event.deployment.environment, vars.SITE_VERCEL_PROJECT || 'nafaa-site'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The crawl and uniqueness scripts have no dependencies; Lighthouse CI
+      # comes through npx at a pinned version.
+      - name: Crawl and Lighthouse
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          TARGET: ${{ inputs.target || github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
+          EXPECT: ${{ inputs.expect || (startsWith(github.event.deployment.environment, 'Production') && 'index' || 'noindex') }}
+        run: node scripts/site-ci.mjs --target="$TARGET" --expect="$EXPECT" --workdir="$RUNNER_TEMP/site-ci"
+
+      - name: Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-deployment-reports
+          path: ${{ runner.temp }}/site-ci/
+          retention-days: 14
+          if-no-files-found: ignore

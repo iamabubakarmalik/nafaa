@@ -7,12 +7,17 @@
  * (or the draft in preview) → redirect table → 404.
  */
 import type { Metadata } from 'next';
-import { getEntry, getLayout, getPaths } from '@/lib/cms/client';
+import { getLayout, getPaths } from '@/lib/cms/client';
+import { loadEntry } from '@/templates/core/data';
+import { TYPE_ROOT_SEGMENTS } from '@/lib/cms/contract/cms-contract';
 import { isProduction } from '@/lib/cms/env';
 import { DEFAULT_LOCALE, dirFor, localizePath, splitLocalePath } from '@/lib/cms/locale';
 import { redirectOrNotFound } from '@/lib/cms/redirects';
 import { buildEntryMetadata } from '@/lib/seo/metadata';
 import { PageView } from './PageView';
+
+/** First segments served by dedicated route files (S3/S4/S5); the catch-all does not prebuild them. */
+const OWN_ROUTES: ReadonlySet<string> = new Set<string>([...TYPE_ROOT_SEGMENTS, 'pricing', 'faq', 'roadmap']);
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -23,7 +28,8 @@ export async function generateStaticParams(): Promise<{ slug: string[] }[]> {
   try {
     const items = await getPaths('PAGE');
     return items
-      .filter((item) => item.path !== '/')
+      // Home, the reserved PAGE paths and the type hubs have their own route files.
+      .filter((item) => item.path !== '/' && !OWN_ROUTES.has(item.path.split('/')[1] ?? ''))
       .map((item) => ({ slug: localizePath(item.locale, item.path).split('/').filter(Boolean) }));
   } catch (error) {
     // Production builds fail when the API is down (ARCH 7.1); local work renders on demand.
@@ -37,7 +43,8 @@ async function resolve(params: Params) {
   const requestPath = `/${slug.join('/')}`;
   const { site } = await getLayout(DEFAULT_LOCALE);
   const { locale, path } = splitLocalePath(requestPath, site.locales);
-  const entry = await getEntry(path, locale);
+  // loadEntry = getEntry, plus S3's development fixtures when the API has no data.
+  const entry = await loadEntry(path, locale);
   return { requestPath, locale, entry };
 }
 

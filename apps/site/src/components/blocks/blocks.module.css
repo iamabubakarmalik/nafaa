@@ -1,0 +1,566 @@
+/*
+ * Block styles that Tailwind utilities cannot express cleanly: code panels
+ * and their tokens, CSS-only tabs and the pricing period switch, FAQ
+ * disclosure motion, step connectors and table details.
+ *
+ * Colours come from the semantic tokens (--c-*), the brand scale and slate,
+ * so every rule follows the light, dark and ink themes. Motion uses the
+ * shared tokens and is removed under prefers-reduced-motion.
+ */
+
+/* ─── Code panel ─────────────────────────────────────────────────────── */
+
+.code {
+  --code-bg: 11 17 32;
+  --code-bar: 17 24 41;
+  --code-line: 255 255 255;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgb(var(--code-bg));
+  box-shadow:
+    0 0 0 1px rgb(var(--code-line) / 0.06),
+    0 1px 2px rgb(2 6 23 / 0.2),
+    0 18px 40px -18px rgb(2 6 23 / 0.45);
+  color: rgb(226 232 240);
+}
+
+:global(.prose) .code {
+  margin-block: 1.75em;
+}
+
+.codeBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0 0.5rem 0 0.75rem;
+  border-bottom: 1px solid rgb(var(--code-line) / 0.07);
+  background: rgb(var(--code-bar));
+}
+
+.codeTabs {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.codeTab {
+  position: relative;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.codeTab > span {
+  display: inline-flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0 0.7rem;
+  border-radius: 7px;
+  color: rgb(148 163 184);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition:
+    color var(--d-fast) ease,
+    background-color var(--d-fast) ease;
+}
+
+.codeTab:hover > span {
+  color: rgb(226 232 240);
+}
+
+.codeTab input:checked + span {
+  background: rgb(var(--code-line) / 0.08);
+  color: rgb(255 255 255);
+}
+
+.codeTab input:focus-visible + span {
+  outline: 2px solid rgb(var(--brand-400));
+  outline-offset: 1px;
+}
+
+.codeLang {
+  color: rgb(148 163 184);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.codeCopy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2rem;
+  padding: 0 0.65rem;
+  border-radius: 7px;
+  color: rgb(148 163 184);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition:
+    color var(--d-fast) ease,
+    background-color var(--d-fast) ease;
+}
+
+.codeCopy:hover {
+  background: rgb(var(--code-line) / 0.07);
+  color: rgb(255 255 255);
+}
+
+.codeCopy[data-copied] {
+  color: rgb(var(--brand-300));
+}
+
+.codePanel pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 1.1rem 1.25rem 1.25rem;
+  font-family: var(--font-code);
+  font-size: 0.8125rem;
+  line-height: 1.75;
+  tab-size: 2;
+}
+
+.codePanel pre:focus-visible {
+  outline: 2px solid rgb(var(--brand-400));
+  outline-offset: -2px;
+}
+
+/* Tabs: panel 0 shows by default; with :has() support the checked tab wins. */
+.code [data-code-panel]:not([data-code-panel='0']) {
+  display: none;
+}
+
+@supports selector(:has(*)) {
+  .code:has(input[data-code-tab]:checked) [data-code-panel] {
+    display: none;
+  }
+  .code:has(input[data-code-tab][value='0']:checked) [data-code-panel='0'],
+  .code:has(input[data-code-tab][value='1']:checked) [data-code-panel='1'],
+  .code:has(input[data-code-tab][value='2']:checked) [data-code-panel='2'],
+  .code:has(input[data-code-tab][value='3']:checked) [data-code-panel='3'],
+  .code:has(input[data-code-tab][value='4']:checked) [data-code-panel='4'],
+  .code:has(input[data-code-tab][value='5']:checked) [data-code-panel='5'] {
+    display: block;
+  }
+}
+
+/* Token colours (tuned for the dark panel, AA on --code-bg). */
+.tkC { color: rgb(125 139 160); font-style: italic; }
+.tkS { color: rgb(134 239 172); }
+.tkN { color: rgb(253 186 116); }
+.tkK { color: rgb(196 181 253); }
+.tkF { color: rgb(125 211 252); }
+.tkP { color: rgb(110 231 183); }
+.tkV { color: rgb(249 168 212); }
+.tkO { color: rgb(148 163 184); }
+.tkT { color: rgb(252 211 77); }
+
+/* ─── Rich text extras ───────────────────────────────────────────────── */
+
+.mdTable {
+  overflow-x: auto;
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 14px;
+  background: rgb(var(--c-surface));
+}
+
+:global(.prose) .mdTable table {
+  display: table;
+  margin: 0;
+  min-width: 100%;
+}
+
+:global(.prose) .mdTable :is(th, td) {
+  padding: 0.7rem 1rem;
+}
+
+:global(.prose) .mdTable thead th {
+  background: rgb(var(--c-surface-2));
+  font-size: 0.875rem;
+}
+
+:global(.prose) .mdTable tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.mdTable [data-align='center'] { text-align: center; }
+.mdTable [data-align='right'] { text-align: right; }
+
+:global(.prose) .taskList {
+  list-style: none;
+  padding-left: 0;
+}
+
+.taskList > li {
+  display: flex;
+  gap: 0.65rem;
+  padding-left: 0;
+}
+
+.taskBox {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.3em;
+  border: 1.5px solid rgb(var(--c-line-strong));
+  border-radius: 5px;
+  color: white;
+}
+
+.taskList > li[data-checked='true'] > .taskBox {
+  border-color: rgb(var(--brand-700));
+  background: rgb(var(--brand-700));
+}
+
+.taskBox svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+/* ─── Hero ───────────────────────────────────────────────────────────── */
+
+.heroGlow {
+  pointer-events: none;
+  position: absolute;
+  inset: -20% -10% auto;
+  z-index: -1;
+  height: 38rem;
+  background:
+    radial-gradient(40% 55% at 70% 20%, rgb(var(--accent, var(--brand-500)) / 0.13), transparent 70%),
+    radial-gradient(35% 45% at 18% 0%, rgb(var(--brand-400) / 0.1), transparent 70%);
+}
+
+.heroMedia {
+  position: relative;
+}
+
+.heroMedia::before {
+  content: '';
+  position: absolute;
+  inset: 8% -4% -6% 6%;
+  z-index: -1;
+  border-radius: 28px;
+  background: radial-gradient(60% 60% at 50% 50%, rgb(var(--accent, var(--brand-500)) / 0.16), transparent 75%);
+  filter: blur(8px);
+}
+
+/* ─── FAQ ────────────────────────────────────────────────────────────── */
+
+.faqItem {
+  border-bottom: 1px solid rgb(var(--c-line));
+}
+
+.faqItem:first-child {
+  border-top: 1px solid rgb(var(--c-line));
+}
+
+.faqItem > summary {
+  display: flex;
+  cursor: pointer;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.15rem 0;
+  list-style: none;
+  color: rgb(var(--c-fg-strong));
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+
+.faqItem > summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqItem > summary:hover .faqIcon {
+  background: rgb(var(--c-surface-3));
+  color: rgb(var(--c-fg-strong));
+}
+
+.faqIcon {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-top: -0.1rem;
+  border-radius: 999px;
+  color: rgb(var(--c-fg-subtle));
+  transition:
+    background-color var(--d-fast) ease,
+    color var(--d-fast) ease;
+}
+
+.faqIcon::before,
+.faqIcon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.75rem;
+  height: 1.5px;
+  border-radius: 2px;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+  transition: transform var(--d-base) var(--ease-out);
+}
+
+.faqIcon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.faqItem[open] .faqIcon::after {
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.faqAnswer {
+  padding: 0 2.5rem 1.4rem 0;
+}
+
+/* Animate the open/close where the browser can size `auto` (Chrome 131+). */
+@supports (interpolate-size: allow-keywords) {
+  .faqList {
+    interpolate-size: allow-keywords;
+  }
+  .faqItem::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height var(--d-slow) var(--ease-out),
+      content-visibility var(--d-slow) allow-discrete;
+  }
+  .faqItem[open]::details-content {
+    height: auto;
+  }
+}
+
+/* ─── Steps ──────────────────────────────────────────────────────────── */
+
+.steps {
+  counter-reset: step;
+}
+
+.stepNum {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: rgb(var(--c-surface));
+  box-shadow:
+    0 0 0 1px rgb(var(--c-line-strong)),
+    0 1px 2px rgb(15 23 42 / 0.06);
+  color: rgb(var(--c-fg-strong));
+  font-size: 0.875rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Vertical connector between numbered steps. */
+.stepRow {
+  position: relative;
+}
+
+.stepRow:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 2.75rem;
+  bottom: -0.5rem;
+  left: 1.125rem;
+  width: 1px;
+  background: linear-gradient(rgb(var(--c-line-strong)), rgb(var(--c-line)));
+}
+
+/* ─── Pricing ────────────────────────────────────────────────────────── */
+
+/* The server renders every period; the toggle (island) sets data-period on
+   the root. Without JS the monthly price shows. */
+.pricing [data-price]:not([data-price='monthly']) {
+  display: none;
+}
+
+.pricing[data-period='quarterly'] [data-price='monthly'],
+.pricing[data-period='yearly'] [data-price='monthly'] {
+  display: none;
+}
+
+.pricing[data-period='quarterly'] [data-price='quarterly'],
+.pricing[data-period='yearly'] [data-price='yearly'] {
+  display: flex;
+}
+
+.pricing [data-price] {
+  animation: price-in var(--d-base) var(--ease-out);
+}
+
+@keyframes price-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.planHighlight {
+  position: relative;
+  box-shadow:
+    0 0 0 1.5px rgb(var(--brand-600)),
+    0 2px 4px rgb(15 23 42 / 0.04),
+    0 24px 48px -16px rgb(var(--brand-700) / 0.28);
+}
+
+.planHighlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(var(--brand-500) / 0.07), transparent 40%);
+}
+
+.toggle {
+  display: inline-flex;
+  padding: 0.25rem;
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 999px;
+  background: rgb(var(--c-surface-2));
+}
+
+.toggle button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  color: rgb(var(--c-fg-muted));
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    color var(--d-fast) ease,
+    background-color var(--d-base) var(--ease-out),
+    box-shadow var(--d-base) var(--ease-out);
+}
+
+.toggle button[aria-checked='true'] {
+  background: rgb(var(--c-surface));
+  box-shadow:
+    0 0 0 1px rgb(var(--c-line)),
+    0 1px 3px rgb(15 23 42 / 0.1);
+  color: rgb(var(--c-fg-strong));
+}
+
+/* ─── Comparison table ───────────────────────────────────────────────── */
+
+.compare th[data-highlight],
+.compare td[data-highlight] {
+  background: rgb(var(--brand-500) / 0.06);
+}
+
+.compare thead th[data-highlight] {
+  box-shadow: inset 0 2px 0 rgb(var(--brand-600));
+  color: rgb(var(--c-link));
+}
+
+.compare tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: rgb(var(--c-surface));
+}
+
+.compare tbody tr:hover > * {
+  background-color: rgb(var(--c-surface-2));
+}
+
+.compare tbody tr:hover > [data-highlight] {
+  background-color: rgb(var(--brand-500) / 0.09);
+}
+
+/* ─── Logo cloud ─────────────────────────────────────────────────────── */
+
+.logo img {
+  max-height: 2.5rem;
+  width: auto;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.72;
+  transition:
+    filter var(--d-base) ease,
+    opacity var(--d-base) ease;
+}
+
+.logo:hover img {
+  filter: none;
+  opacity: 1;
+}
+
+:global(.theme-ink) .logo img {
+  filter: grayscale(1) brightness(0) invert(1);
+  opacity: 0.66;
+}
+
+:global(.theme-ink) .logo:hover img {
+  opacity: 1;
+}
+
+/* ─── Cards: hover lift shared by grids ─────────────────────────────── */
+
+.lift {
+  transition:
+    transform var(--d-base) var(--ease-out),
+    box-shadow var(--d-base) var(--ease-out),
+    border-color var(--d-base) ease,
+    background-color var(--d-base) ease;
+}
+
+@media (hover: hover) {
+  .lift:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.arrow {
+  transition: transform var(--d-fast) var(--ease-out);
+}
+
+:is(a:hover, a:focus-visible) .arrow {
+  transform: translateX(3px);
+}
+
+/* Stats: tabular, tight numerals. */
+.statValue {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.035em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lift,
+  .arrow,
+  .faqIcon::before,
+  .faqIcon::after,
+  .toggle button,
+  .codeTab > span,
+  .codeCopy {
+    transition: none;
+  }
+  .lift:hover,
+  :is(a:hover, a:focus-visible) .arrow {
+    transform: none;
+  }
+  .pricing [data-price] {
+    animation: none;
+  }
+  .faqItem::details-content {
+    transition: none;
+  }
+}
