@@ -62,6 +62,11 @@ export function googleVerification(): string | undefined {
   return pick(process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION, /^[A-Za-z0-9_-]{10,100}$/);
 }
 
+/** Bing Webmaster Tools verification token (NEXT_PUBLIC_BING_VERIFICATION). */
+export function bingVerification(): string | undefined {
+  return pick(process.env.NEXT_PUBLIC_BING_VERIFICATION, /^[A-Za-z0-9_-]{8,100}$/);
+}
+
 /** WhatsApp number from NEXT_PUBLIC_WHATSAPP ("+92 324 ..."), digits with country code. */
 export function whatsappFromEnv(): { number: string; message: string } | null {
   const digits = (process.env.NEXT_PUBLIC_WHATSAPP ?? '').replace(/\D/g, '').replace(/^0/, '92');

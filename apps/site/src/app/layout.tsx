@@ -31,7 +31,7 @@ import { ThemeScript } from '@/components/layout/ThemeScript';
 import { Analytics } from '@/components/islands/Analytics';
 import { ConsentBanner } from '@/components/islands/ConsentBanner';
 import { MotionObserver } from '@/components/motion/MotionObserver';
-import { googleVerification, hasThirdParty, thirdPartyIdsFromEnv, whatsappFromEnv } from '@/lib/analytics/env';
+import { bingVerification, googleVerification, hasThirdParty, thirdPartyIdsFromEnv, whatsappFromEnv } from '@/lib/analytics/env';
 import { getEntity, getLayout, getPreviewToken, validatePreviewToken } from '@/lib/cms/client';
 import { siteIndexable, siteUrl } from '@/lib/cms/env';
 import { PREVIEW } from '@/lib/cms/preview';
@@ -43,6 +43,7 @@ import '@/components/layout/theme.css';
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getLayout(DEFAULT_LOCALE);
   const google = googleVerification();
+  const bing = bingVerification();
   return {
     metadataBase: new URL(siteUrl()),
     title: { default: site.name, template: `%s | ${site.name}` },
@@ -59,7 +60,9 @@ export async function generateMetadata(): Promise<Metadata> {
     formatDetection: { telephone: false, email: false, address: false },
     openGraph: { siteName: site.name, type: 'website', locale: OG_LOCALE[DEFAULT_LOCALE] },
     twitter: { card: 'summary_large_image' },
-    ...(google ? { verification: { google } } : {}),
+    ...(google || bing
+      ? { verification: { ...(google ? { google } : {}), ...(bing ? { other: { 'msvalidate.01': bing } } : {}) } }
+      : {}),
   };
 }
 
