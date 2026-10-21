@@ -28,7 +28,8 @@ export const SportsPack: IndustryPack = {
   matches: (tenant) => {
     if (!tenant) return false;
     const type = (tenant.businessType ?? '').toUpperCase();
-    return type.includes('SPORTS') || type.includes('GYM') || type.includes('CRICKET');
+    // Gym / fitness centres belong to the Gym pack; only sports goods shops land here.
+    return type.includes('SPORTS') || type.includes('CRICKET');
   },
 
   navGroups: [{
