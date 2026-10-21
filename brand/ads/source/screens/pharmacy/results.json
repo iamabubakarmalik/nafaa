@@ -1,0 +1,37 @@
+{
+  "when": "2026-10-21T09:24:07.035Z",
+  "mode": "dry-run",
+  "baseUrl": "http://localhost:5173",
+  "manifest": "../../../../../../private/tmp/claude-501/-Users-abubakarmalik-Projects-nafaa/c6631190-2ed6-4b2e-9119-12e6106b5561/scratchpad/ads/a1/manifest-pharmacy.json",
+  "counts": {
+    "captured": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "results": [
+    {
+      "id": "feature-2-phone-scrolled",
+      "path": "/pharmacy/expiring",
+      "device": "phone",
+      "theme": "light",
+      "frame": "phone",
+      "alt": "Medicines expiring soon by batch in Nafaa (phone)",
+      "caption": null,
+      "tags": [
+        "industry:pharmacy",
+        "feature:inventory"
+      ],
+      "reviewed": false,
+      "mediaId": null,
+      "account": "pharmacy",
+      "status": "captured",
+      "url": "/pharmacy/expiring",
+      "fileName": "feature-2-phone-scrolled.png",
+      "bytes": 187282,
+      "width": 824,
+      "height": 1830,
+      "sha1": "45f39f993e6ae31d54825d96889f4ea95b99aaca",
+      "file": "../../brand/ads/source/screens/pharmacy/feature-2-phone-scrolled.png"
+    }
+  ]
+}
