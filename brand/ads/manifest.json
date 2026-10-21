@@ -1,5 +1,5 @@
 {
- "built": "2026-10-21T09:29:03.053Z",
+ "built": "2026-10-21T09:41:49.058Z",
  "industries": {
   "kiryana": {
    "name": "Kiryana & retail",
@@ -15,7 +15,7 @@
      "formatLabel": "Feed 1:1",
      "w": 1080,
      "h": 1080,
-     "bytes": 268938
+     "bytes": 268626
     },
     {
      "file": "kiryana/kiryana-a-problem-1080x1350.png",
@@ -27,7 +27,7 @@
      "formatLabel": "Feed 4:5 (main)",
      "w": 1080,
      "h": 1350,
-     "bytes": 566639
+     "bytes": 567116
     },
     {
      "file": "kiryana/kiryana-a-problem-1080x1920.png",
@@ -39,7 +39,7 @@
      "formatLabel": "Stories / Reels 9:16",
      "w": 1080,
      "h": 1920,
-     "bytes": 190485
+     "bytes": 189190
     },
     {
      "file": "kiryana/kiryana-a-problem-1200x628.png",
@@ -51,7 +51,7 @@
      "formatLabel": "Link / right column 1.91:1",
      "w": 1200,
      "h": 628,
-     "bytes": 329472
+     "bytes": 329800
     },
     {
      "file": "kiryana/kiryana-a-problem-urdu-1080x1080.png",
@@ -63,7 +63,7 @@
      "formatLabel": "Feed 1:1",
      "w": 1080,
      "h": 1080,
-     "bytes": 138458
+     "bytes": 467079
     },
     {
      "file": "kiryana/kiryana-a-problem-urdu-1080x1350.png",
@@ -75,7 +75,7 @@
      "formatLabel": "Feed 4:5 (main)",
      "w": 1080,
      "h": 1350,
-     "bytes": 532054
+     "bytes": 532479
     },
     {
      "file": "kiryana/kiryana-a-problem-urdu-1080x1920.png",
@@ -87,7 +87,7 @@
      "formatLabel": "Stories / Reels 9:16",
      "w": 1080,
      "h": 1920,
-     "bytes": 601077
+     "bytes": 132637
     },
     {
      "file": "kiryana/kiryana-a-problem-urdu-1200x628.png",
@@ -99,7 +99,7 @@
      "formatLabel": "Link / right column 1.91:1",
      "w": 1200,
      "h": 628,
-     "bytes": 323978
+     "bytes": 181750
     },
     {
      "file": "kiryana/kiryana-b-dashboard-1080x1080.png",
@@ -123,7 +123,7 @@
      "formatLabel": "Feed 4:5 (main)",
      "w": 1080,
      "h": 1350,
-     "bytes": 520119
+     "bytes": 525163
     },
     {
      "file": "kiryana/kiryana-b-dashboard-1080x1920.png",
@@ -135,7 +135,7 @@
      "formatLabel": "Stories / Reels 9:16",
      "w": 1080,
      "h": 1920,
-     "bytes": 598265
+     "bytes": 606924
     },
     {
      "file": "kiryana/kiryana-b-dashboard-1200x628.png",
@@ -147,7 +147,7 @@
      "formatLabel": "Link / right column 1.91:1",
      "w": 1200,
      "h": 628,
-     "bytes": 347318
+     "bytes": 350595
     },
     {
      "file": "kiryana/kiryana-b-dashboard-urdu-1080x1080.png",
@@ -159,7 +159,7 @@
      "formatLabel": "Feed 1:1",
      "w": 1080,
      "h": 1080,
-     "bytes": 425371
+     "bytes": 431777
     },
     {
      "file": "kiryana/kiryana-b-dashboard-urdu-1080x1350.png",
@@ -171,7 +171,7 @@
      "formatLabel": "Feed 4:5 (main)",
      "w": 1080,
      "h": 1350,
-     "bytes": 241951
+     "bytes": 320484
     },
     {
      "file": "kiryana/kiryana-b-dashboard-urdu-1080x1920.png",
@@ -183,7 +183,7 @@
      "formatLabel": "Stories / Reels 9:16",
      "w": 1080,
      "h": 1920,
-     "bytes": 598368
+     "bytes": 605278
     },
     {
      "file": "kiryana/kiryana-b-dashboard-urdu-1200x628.png",
@@ -195,7 +195,7 @@
      "formatLabel": "Link / right column 1.91:1",
      "w": 1200,
      "h": 628,
-     "bytes": 341868
+     "bytes": 343536
     },
     {
      "file": "kiryana/kiryana-c-trio-1080x1080.png",
@@ -207,7 +207,7 @@
      "formatLabel": "Feed 1:1",
      "w": 1080,
      "h": 1080,
-     "bytes": 387083
+     "bytes": 410453
     },
     {
      "file": "kiryana/kiryana-c-trio-1080x1350.png",
@@ -219,7 +219,7 @@
      "formatLabel": "Feed 4:5 (main)",
      "w": 1080,
      "h": 1350,
-     "bytes": 457026
+     "bytes": 487425
     },
     {
      "file": "kiryana/kiryana-c-trio-1080x1920.png",
@@ -231,7 +231,7 @@
      "formatLabel": "Stories / Reels 9:16",
      "w": 1080,
      "h": 1920,
-     "bytes": 515537
+     "bytes": 543792
     },
     {
      "file": "kiryana/kiryana-c-trio-1200x628.png",
@@ -243,7 +243,7 @@
      "formatLabel": "Link / right column 1.91:1",
      "w": 1200,
      "h": 628,
-     "bytes": 145105
+     "bytes": 306356
     },
     {
      "file": "kiryana/kiryana-c-trio-urdu-1080x1080.png",
@@ -255,7 +255,7 @@
      "formatLabel": "Feed 1:1",
      "w": 1080,
      "h": 1080,
-     "bytes": 167794
+     "bytes": 390656
     },
     {
      "file": "kiryana/kiryana-c-trio-urdu-1080x1350.png",
@@ -267,7 +267,7 @@
      "formatLabel": "Feed 4:5 (main)",
      "w": 1080,
      "h": 1350,
-     "bytes": 220283
+     "bytes": 464902
     },
     {
      "file": "kiryana/kiryana-c-trio-urdu-1080x1920.png",
@@ -279,7 +279,7 @@
      "formatLabel": "Stories / Reels 9:16",
      "w": 1080,
      "h": 1920,
-     "bytes": 493839
+     "bytes": 517097
     },
     {
      "file": "kiryana/kiryana-c-trio-urdu-1200x628.png",
@@ -291,7 +291,7 @@
      "formatLabel": "Link / right column 1.91:1",
      "w": 1200,
      "h": 628,
-     "bytes": 266849
+     "bytes": 138446
     }
    ],
    "carousel": [
@@ -300,42 +300,42 @@
      "card": 1,
      "w": 1080,
      "h": 1080,
-     "bytes": 451544
+     "bytes": 456799
     },
     {
      "file": "kiryana/carousel/kiryana-carousel-2-1080x1080.png",
      "card": 2,
      "w": 1080,
      "h": 1080,
-     "bytes": 475818
+     "bytes": 455100
     },
     {
      "file": "kiryana/carousel/kiryana-carousel-3-1080x1080.png",
      "card": 3,
      "w": 1080,
      "h": 1080,
-     "bytes": 446300
+     "bytes": 432233
     },
     {
      "file": "kiryana/carousel/kiryana-carousel-4-1080x1080.png",
      "card": 4,
      "w": 1080,
      "h": 1080,
-     "bytes": 383409
+     "bytes": 335039
     },
     {
      "file": "kiryana/carousel/kiryana-carousel-5-1080x1080.png",
      "card": 5,
      "w": 1080,
      "h": 1080,
-     "bytes": 323785
+     "bytes": 301868
     }
    ],
    "cover": {
     "file": "kiryana/kiryana-reels-cover-1080x1920.png",
     "w": 1080,
     "h": 1920,
-    "bytes": 572272
+    "bytes": 574513
    }
   }
  }
