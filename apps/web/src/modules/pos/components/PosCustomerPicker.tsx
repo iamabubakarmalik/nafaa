@@ -2,20 +2,29 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X, User, UserPlus, ChevronDown, Check } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
+import { Kbd } from '@/design-system/components';
+import { looksLikePhone, phoneDigits } from '../lib/posKeys';
 
 /**
  * Customer for the bill: type a name or phone to filter, arrows and Enter
  * to choose, Esc to close. Each row shows the customer's current udhaar,
- * since credit is decided while choosing the customer.
+ * since credit is decided while choosing the customer. A phone number or
+ * name nobody has yet adds a new customer with that filled in (Enter).
  */
 export function PosCustomerPicker({
-  customers, customerId, setCustomerId, selectedCustomer, onAddCustomer,
+  customers, customerId, setCustomerId, selectedCustomer, onAddCustomer, openKey, onClosed, compact,
 }: {
   customers: any[];
   customerId: string;
   setCustomerId: (id: string) => void;
   selectedCustomer?: any;
-  onAddCustomer: () => void;
+  /** New customer; `prefill` is what was typed (a phone number or a name). */
+  onAddCustomer: (prefill?: string) => void;
+  /** Changing this number opens the list (F2 on the counter). */
+  openKey?: number;
+  /** Called after the list closes, so the counter can take focus back. */
+  onClosed?: () => void;
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
@@ -50,24 +59,30 @@ export function PosCustomerPicker({
     };
   }, [open]);
 
+  useEffect(() => { if (openKey) setOpen(true); }, [openKey]);
+  const wasOpen = useRef(false);
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 30);
-    else { setQ(''); setHi(0); }
-  }, [open]);
+    else { setQ(''); setHi(0); if (wasOpen.current) onClosed?.(); }
+    wasOpen.current = open;
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return customers;
+    const digits = /\d{4,}/.test(needle) ? phoneDigits(needle) : '';
     return customers.filter((c: any) =>
       (c.name || '').toLowerCase().includes(needle) ||
-      (c.phone || '').toLowerCase().includes(needle)
+      (c.phone || '').toLowerCase().includes(needle) ||
+      (!!digits && phoneDigits(c.phone || '').includes(digits))
     );
   }, [customers, q]);
 
   /** Walk-in hamesha pehli qatar — is liye index 0 usi ka hai */
   const rows = useMemo(() => [null, ...filtered], [filtered]);
 
-  useEffect(() => { setHi(0); }, [q]);
+  // Typing a name highlights the first match (row 0 is Walk-in), so Enter picks it.
+  useEffect(() => { setHi(q.trim() && filtered.length ? 1 : 0); }, [q]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const choose = (c: any | null) => {
     setCustomerId(c ? c.id : '');
@@ -78,8 +93,14 @@ export function PosCustomerPicker({
     if (e.key === 'Escape') { e.preventDefault(); setOpen(false); return; }
     if (e.key === 'ArrowDown') { e.preventDefault(); setHi((i) => Math.min(i + 1, rows.length - 1)); }
     if (e.key === 'ArrowUp') { e.preventDefault(); setHi((i) => Math.max(i - 1, 0)); }
-    if (e.key === 'Enter') { e.preventDefault(); choose(rows[hi] ?? null); }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Nobody matches what was typed: add them.
+      if (filtered.length === 0 && q.trim()) { addNew(); return; }
+      choose(rows[hi] ?? null);
+    }
   };
+  const addNew = () => { const typed = q.trim(); setOpen(false); onAddCustomer(typed || undefined); };
 
   useEffect(() => {
     listRef.current?.querySelector('[data-hi="1"]')?.scrollIntoView({ block: 'nearest' });
@@ -98,17 +119,19 @@ export function PosCustomerPicker({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`flex h-11 w-full items-center gap-2.5 rounded-lg border bg-white px-2.5 text-left transition ${
+        title="Customer (F2)"
+        className={`flex ${compact ? 'h-9' : 'h-11'} w-full items-center gap-2.5 rounded-lg border bg-white px-2.5 text-left transition ${
           open ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-slate-300 hover:border-slate-400'
         }`}
       >
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500">
           {selectedCustomer ? <span className="text-[0.75rem] font-semibold">{(selectedCustomer.name || '?').trim().charAt(0).toUpperCase()}</span> : <User className="h-4 w-4" />}
         </span>
-        <span className="min-w-0 flex-1">
+        <span className={`min-w-0 flex-1 ${compact ? 'flex items-baseline gap-2' : ''}`}>
           <span className="block truncate text-[0.875rem] font-medium text-slate-900">{selectedCustomer ? selectedCustomer.name : 'Walk-in customer'}</span>
           {selectedCustomer?.phone && <span className="block truncate text-[0.6875rem] text-slate-500 tabular-nums">{selectedCustomer.phone}</span>}
         </span>
+        <Kbd className="hidden xl:inline-flex">F2</Kbd>
         <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition ${open ? 'rotate-180' : ''}`} />
       </button>
 
@@ -145,9 +168,13 @@ export function PosCustomerPicker({
               </button>
 
               {filtered.length === 0 ? (
-                <div className="px-3 py-6 text-center">
+                <div className="px-3 py-4 text-center">
                   <p className="text-[0.875rem] font-medium text-slate-700">Koi customer nahi mila</p>
-                  <p className="mt-0.5 text-[0.75rem] text-slate-500">"{q}" ke naam se kuch nahi</p>
+                  <button type="button" onClick={addNew}
+                    className="mt-2 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-[0.8125rem] font-semibold text-brand-fg hover:bg-brand-700">
+                    <UserPlus className="h-4 w-4" /> {looksLikePhone(q) ? `${q.trim()} naya customer` : `"${q.trim()}" naya customer`}
+                    <kbd className="rounded bg-white/20 px-1 text-[0.625rem]">Enter</kbd>
+                  </button>
                 </div>
               ) : (
                 filtered.map((c: any, idx: number) => {
@@ -171,7 +198,7 @@ export function PosCustomerPicker({
               )}
             </div>
 
-            <button type="button" onClick={() => { setOpen(false); onAddCustomer(); }}
+            <button type="button" onClick={addNew}
               className="flex h-11 w-full items-center justify-center gap-2 border-t border-slate-100 text-[0.875rem] font-semibold text-brand-700 transition hover:bg-brand-50">
               <UserPlus className="h-4 w-4" /> Naya customer
             </button>

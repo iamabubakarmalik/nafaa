@@ -286,7 +286,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
               <p className="mt-1 text-sm text-slate-500">Upar naam likhein ya barcode scan karein. Carton/box ka barcode ho to wohi unit khud lagta hai.</p>
             </div>
           ) : (
-            <ul className="space-y-2">
+            <ul data-enter-next className="space-y-2">
               {lines.map((l) => <LineRow key={l.key} line={l} d={d} badge={l.source.kind === 'product' ? config.lineBadge?.(l.source.id) : null} onCustomUnit={() => setCustomFor(l)} />)}
             </ul>
           )}

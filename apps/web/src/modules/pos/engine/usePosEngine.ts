@@ -46,6 +46,8 @@ import { splitReceiptLines } from '../components/PosSplitTender';
 import { keepAdvance, salePayment } from '../lib/posCheckout';
 import { askManagerPin } from '@core/security/ManagerPin';
 import { isTempId } from '@core/lib/offline/db';
+import { normalizePosCounter, usePosUserLayout } from '../lib/posCounterConfig';
+import { bumpRecent, parseQtyPrefix, posBeep, topRecent } from '../lib/posKeys';
 import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem, PosSavedSale, PosUsedPhoneLine } from './types';
 
 /** Customers refresh after a sale (balances change). */
@@ -124,7 +126,8 @@ export function usePosEngine(config: PosIndustryConfig) {
   const [filterId, setFilterId] = useState('');
   const [view, setView] = useState<PosView>((prefs.viewMode as PosView) || 'products');
   const [visible, setVisible] = useState(60);
-  useEffect(() => { const t = setTimeout(() => setQuery(search), 120); return () => clearTimeout(t); }, [search]);
+  // A quantity typed in front ("3*maggi") is not part of the search.
+  useEffect(() => { const t = setTimeout(() => setQuery(parseQtyPrefix(search).rest), 120); return () => clearTimeout(t); }, [search]);
   useEffect(() => { setVisible(60); }, [query, categoryId, filterId, view]);
   useEffect(() => { prefs.setViewMode(view); }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -149,17 +152,28 @@ export function usePosEngine(config: PosIndustryConfig) {
   }, [items, unitIndex]);
 
   const filter = config.filters?.find((f) => f.id === filterId);
-  const filtered = useMemo(() => {
+  const filterRows = useCallback((text: string) => {
     let rows = index;
     if (filter) rows = rows.filter((r) => filter.match(r.it));
     if (categoryId) rows = rows.filter((r) => r.it.categoryId === categoryId);
-    const q = query.toLowerCase().trim();
+    const q = text.toLowerCase().trim();
     if (q) {
       const words = q.split(/\s+/);
       rows = rows.filter((r) => words.every((w) => r.hay.includes(w)));
+      // Name matches first (code, start of name, start of a word, anywhere), then category / extra-word matches.
+      const score = (it: PosItem) => {
+        const n = it.name.toLowerCase();
+        if ((it.product.barcode ?? '').toLowerCase() === q || (it.product.sku ?? '').toLowerCase() === q) return 0;
+        if (n.startsWith(q)) return 1;
+        if (words.every((w) => n.split(/[\s(/-]+/).some((part) => part.startsWith(w)))) return 2;
+        if (words.every((w) => n.includes(w))) return 3;
+        return 4;
+      };
+      return rows.map((r, i) => ({ it: r.it, s: score(r.it), i })).sort((a, b) => a.s - b.s || a.i - b.i).map((x) => x.it);
     }
     return rows.map((r) => r.it);
-  }, [index, filter, categoryId, query]);
+  }, [index, filter, categoryId]);
+  const filtered = useMemo(() => filterRows(query), [filterRows, query]);
 
   const categories = useMemo(() => {
     const m = new Map<string, { id: string; name: string; color?: string | null; count: number }>();
@@ -216,6 +230,24 @@ export function usePosEngine(config: PosIndustryConfig) {
   }), [ls, user]);
   const rulesRef = useRef(rules);
   rulesRef.current = rules;
+
+  // Counter layout and parts shown: shop default, with this user's own layout and density on top.
+  const userLayout = usePosUserLayout(user?.id);
+  const shopCounter = useMemo(() => normalizePosCounter(ls?.posCounter), [ls]);
+  const counter = useMemo(() => ({
+    ...shopCounter,
+    layout: userLayout.layout ?? shopCounter.layout,
+    density: userLayout.density ?? shopCounter.density,
+  }), [shopCounter, userLayout.layout, userLayout.density]);
+  const soundsRef = useRef(false);
+  soundsRef.current = counter.sounds;
+  const beep = useCallback((kind: 'ok' | 'error' | 'done') => { if (soundsRef.current) posBeep(kind); }, []);
+  /** This counter's own auto-print choice, or the shop default when it never chose. */
+  const autoPrint = prefs.autoPrintOwn ?? counter.autoPrint;
+  /** Lowering a line's rate: on for everyone when the shop allows it, otherwise only for staff trusted with discounts. */
+  const canEditPrice = counter.priceEdit || rules.discountTrusted;
+  /** The line last added or changed; "+", "-" and "3*" work on it when no line is selected. */
+  const [lastLineId, setLastLineId] = useState<string | null>(null);
 
   // A new customer must not inherit the previous customer's receiver.
   useEffect(() => { setReceiver(emptyReceiver()); }, [customerId]);
@@ -283,6 +315,8 @@ export function usePosEngine(config: PosIndustryConfig) {
   const [picker, setPicker] = useState<ReactNode>(null);
   const [checkout, setCheckout] = useState<{ mode: PosCheckoutMode; method?: PaymentMethod } | null>(null);
   const [lastSale, setLastSale] = useState<PosLastSaleFull | null>(null);
+  const [lastBill, setLastBill] = useState<{ number: string; total: number; change: number; printPayload: ReceiptPayload; lines: PosCartLine[]; customerId: string } | null>(null);
+  const [recentTick, setRecentTick] = useState(0);
   const successTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   /* ── Adding lines ── */
@@ -305,12 +339,17 @@ export function usePosEngine(config: PosIndustryConfig) {
       if (existing) {
         const nq = Number((existing.quantity + qty).toFixed(3));
         const nb = nq * unit.conversionRate;
-        if (nb > existing.baseStock) { toast.error(`Stock sirf ${Number(item.stock.toFixed(2))} ${item.unit}`); return prev; }
+        if (nb > existing.baseStock) { beep('error'); toast.error(`Stock sirf ${Number(item.stock.toFixed(2))} ${item.unit}`); return prev; }
         toast.success(`${item.name} +${qty}`, { duration: 800 });
+        beep('ok');
+        setLastLineId(existing.id);
         return prev.map((l) => (l.id === existing.id ? { ...l, quantity: nq, baseQuantity: nb, lineTotal: nq * l.unitPrice } : l));
       }
-      if (baseQty > limit) { toast.error(`Stock sirf ${Number(Math.max(limit, 0).toFixed(2))} ${item.unit}`); return prev; }
+      if (baseQty > limit) { beep('error'); toast.error(`Stock sirf ${Number(Math.max(limit, 0).toFixed(2))} ${item.unit}`); return prev; }
       toast.success(`${item.name}${opts.variant ? ` · ${opts.variant.name}` : ''} — ${qty} ${unit.unitName}`, { duration: 800 });
+      beep('ok');
+      const newId = posLineId();
+      setLastLineId(newId);
       const notes = [
         unit.conversionRate !== 1 ? `${qty} ${unit.unitName} = ${Number(baseQty.toFixed(3))} ${item.unit}` : '',
         opts.serial ? `S/N: ${opts.serial.serialNumber}${opts.serial.imei ? ` · IMEI: ${opts.serial.imei}` : ''}` : '',
@@ -319,7 +358,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         opts.note ?? '',
       ].filter(Boolean);
       return [...prev, {
-        id: posLineId(), type: 'product', productId: item.id, name: item.name, image: item.image,
+        id: newId, type: 'product', productId: item.id, name: item.name, image: item.image,
         unitName: unit.unitName, unitLabel: unit.label, emoji: unit.emoji,
         unitPrice: price, basePrice: price,
         quantity: qty, baseQuantity: baseQty, conversionRate: unit.conversionRate, baseUnit: item.unit, baseStock: limit,
@@ -330,7 +369,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         warrantyMonths: opts.warrantyMonths, lockQty: single,
       }];
     });
-  }, []);
+  }, [beep]);
 
   /** A used phone: no catalog product, quantity 1, its own price. */
   const addUsedPhone = useCallback((u: PosUsedPhoneLine) => {
@@ -398,11 +437,16 @@ export function usePosEngine(config: PosIndustryConfig) {
       const existing = !picked && prev.find((l) => l.comboId === b.id && !l.comboSerials);
       if (existing) {
         toast.success(`${b.name} +${qty}`, { duration: 800 });
+        beep('ok');
+        setLastLineId(existing.id);
         return prev.map((l) => (l.id === existing.id ? { ...l, quantity: l.quantity + qty, lineTotal: (l.quantity + qty) * l.unitPrice } : l));
       }
       toast.success(b.name, { duration: 800 });
+      beep('ok');
+      const newId = posLineId();
+      setLastLineId(newId);
       return [...prev, {
-        id: posLineId(), type: 'combo', comboId: b.id, name: b.name, image: b.image,
+        id: newId, type: 'combo', comboId: b.id, name: b.name, image: b.image,
         unitName: 'combo', unitLabel: 'COMBO', emoji: '🎁',
         unitPrice: b.price, basePrice: b.price, quantity: qty, baseQuantity: qty, conversionRate: 1, baseUnit: 'combo', baseStock: 9999,
         lineTotal: qty * b.price, comboItems: b.items, savings: b.savings ?? 0,
@@ -413,7 +457,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         ].join(' • '),
       }];
     });
-  }, [config, itemsById]);
+  }, [config, itemsById, beep]);
 
   const addQuickKey = useCallback(async (qk: QuickKey) => {
     if (qk.comboId) { const b = bundles.find((x) => x.id === qk.comboId); return b ? addBundle(b) : toast.error('Combo nahi mila'); }
@@ -477,6 +521,8 @@ export function usePosEngine(config: PosIndustryConfig) {
     setPriceEditId(null);
   };
   const removeLine = (id: string) => setCart((prev) => prev.filter((l) => l.id !== id));
+  const setLineNote = (id: string, note: string) =>
+    setCart((prev) => prev.map((l) => (l.id === id ? { ...l, customNote: note.trim() || undefined } : l)));
   /** Sell this line from a chosen batch; null goes back to the earliest expiry. */
   const setLineBatch = (id: string, batch: PosBatch | null) =>
     setCart((prev) => prev.map((l) => (l.id === id ? { ...l, batchId: batch?.id, batchNumber: batch?.batchNumber } : l)));
@@ -507,7 +553,8 @@ export function usePosEngine(config: PosIndustryConfig) {
   const deleteHeld = (id: string) => setHeldCarts((p) => p.filter((h) => h.id !== id));
 
   /* ── Barcode ── */
-  const handleBarcode = useCallback(async (raw: string) => {
+  const handleBarcode = useCallback(async (raw: string, qty?: number | null) => {
+    const withQty = qty && qty > 0 ? { qty } : {};
     const code = raw.trim();
     if (!code) return;
     const lower = code.toLowerCase();
@@ -526,13 +573,13 @@ export function usePosEngine(config: PosIndustryConfig) {
           id: pack.id, unitName: pack.unitName, label: (pack.unitLabel || pack.unitName).toUpperCase(), emoji: unitEmoji(pack.unitName),
           conversionRate: rate, price: Number(pack.price) || it.price * rate, wholesalePrice: pack.wholesalePrice ?? null,
         };
-        void addItem(it, { unit });
+        void addItem(it, { unit, ...withQty });
         return;
       }
     }
 
     const local = items.find((i) => (i.product.barcode ?? '').toLowerCase() === lower || (i.product.sku ?? '').toLowerCase() === lower);
-    if (local) { void addItem(local); return; }
+    if (local) { void addItem(local, withQty); return; }
 
     try {
       const p = await offlineProductsApi.byBarcode(code) as Awaited<ReturnType<typeof offlineProductsApi.byBarcode>> & {
@@ -546,30 +593,42 @@ export function usePosEngine(config: PosIndustryConfig) {
         void addItem(it, { variant: { id: mv.id, name: mv.name, price: mv.price ?? null, stock: p.shopStock ?? mv.stock ?? null } });
         return;
       }
-      if (it) { void addItem(it); return; }
+      if (it) { void addItem(it, withQty); return; }
     } catch { /* not a product barcode */ }
+    beep('error');
     toast.error(`Barcode "${code}" nahi mila`);
-  }, [config, bundles, addBundle, unitIndex, itemsById, items, addItem]);
+  }, [config, bundles, addBundle, unitIndex, itemsById, items, addItem, beep]);
 
   /** Search box Enter: exact code scans; otherwise the first result goes on the bill. */
-  const submitSearch = useCallback(() => {
-    const q = search.trim();
+  /** True when the text is a barcode/SKU on this counter (product, pack or combo). */
+  const isCode = useCallback((text: string) => {
+    const lower = text.trim().toLowerCase();
+    return !!lower && (items.some((i) => (i.product.barcode ?? '').toLowerCase() === lower || (i.product.sku ?? '').toLowerCase() === lower)
+      || unitIndex.byBarcode.has(lower) || bundles.some((b) => (b.barcode ?? '').toLowerCase() === lower));
+  }, [items, unitIndex, bundles]);
+
+  /**
+   * Search box Enter: exact code scans; otherwise the highlighted result
+   * (`pick`, first by default) goes on the bill. "3*" in front sets the quantity.
+   */
+  const submitSearch = useCallback((pick = 0) => {
+    const { qty, rest: q } = parseQtyPrefix(search);
     if (!q) return;
-    const lower = q.toLowerCase();
-    const exact = items.find((i) => (i.product.barcode ?? '').toLowerCase() === lower || (i.product.sku ?? '').toLowerCase() === lower)
-      || unitIndex.byBarcode.has(lower) || bundles.some((b) => (b.barcode ?? '').toLowerCase() === lower);
-    if (exact || /^\d{6,}$/.test(q) || (config.scan && /^[\w-]{8,}$/.test(q) && filtered.length === 0)) {
-      void handleBarcode(q);
-    } else if (view === 'products' && filtered.length > 0) {
-      void addItem(filtered[0]);
+    // Enter can come before the debounced filter catches up with fast typing.
+    const list = parseQtyPrefix(query).rest === q ? filtered : filterRows(q);
+    if (isCode(q) || /^\d{6,}$/.test(q) || (config.scan && /^[\w-]{8,}$/.test(q) && list.length === 0)) {
+      void handleBarcode(q, qty);
+    } else if (view === 'products' && list.length > 0) {
+      void addItem(list[Math.min(Math.max(pick, 0), list.length - 1)], qty ? { qty } : {});
     } else if (view === 'combos' && filteredBundles.length > 0) {
-      addBundle(filteredBundles[0]);
+      addBundle(filteredBundles[Math.min(Math.max(pick, 0), filteredBundles.length - 1)], qty ?? 1);
     } else {
+      beep('error');
       toast.error(`"${q}" nahi mila`);
       return;
     }
     setSearch('');
-  }, [search, items, unitIndex, bundles, config.scan, filtered, view, filteredBundles, handleBarcode, addItem, addBundle]);
+  }, [search, query, filtered, filterRows, isCode, config.scan, view, filteredBundles, handleBarcode, addItem, addBundle, beep]);
 
   /* ── Voice ── */
   const aliases = useMemo(() => ({ ...BASE_VOICE_ALIASES, ...(config.voiceAliases ?? {}) }), [config.voiceAliases]);
@@ -646,7 +705,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     lines: cart.map((l) => ({
       name: l.variantName ? `${l.name} (${l.variantName})` : l.name,
       qty: l.quantity, unit: l.unitName, price: l.unitPrice, total: l.lineTotal,
-      note: [l.serialNumber ? `S/N ${l.serialNumber}` : '', ...(l.comboSerials ?? []).map((u) => `S/N ${u.serialNumber}`), l.batchNumber ? `Batch ${l.batchNumber}` : '', l.imei ? `IMEI ${l.imei}` : '', l.warrantyMonths ? `Warranty ${l.warrantyMonths} mahine` : ''].filter(Boolean).join(' · ') || undefined,
+      note: [l.customNote ?? '', l.serialNumber ? `S/N ${l.serialNumber}` : '', ...(l.comboSerials ?? []).map((u) => `S/N ${u.serialNumber}`), l.batchNumber ? `Batch ${l.batchNumber}` : '', l.imei ? `IMEI ${l.imei}` : '', l.warrantyMonths ? `Warranty ${l.warrantyMonths} mahine` : ''].filter(Boolean).join(' · ') || undefined,
     })),
     subtotal, discount: discountAmount + codeDiscount + loyaltyDiscount, total,
     deliveryCharge: deliveryFee || undefined,
@@ -739,7 +798,7 @@ export function usePosEngine(config: PosIndustryConfig) {
             variantId: l.variantId,
             quantity: l.baseQuantity,
             priceOverride: l.unitPrice / l.conversionRate,
-            note: l.note,
+            note: [l.note, l.customNote].filter(Boolean).join(' • ') || undefined,
             ...(l.serialId ? { serialId: l.serialId } : {}),
             ...(l.imeiId ? { imeiId: l.imeiId } : {}),
             ...(l.batchId ? { batchId: l.batchId } : {}),
@@ -772,10 +831,14 @@ export function usePosEngine(config: PosIndustryConfig) {
       const change = Math.max(d.paidAmount - total, 0);
       const printPayload = receiptFor(s, paidAmount, d.paymentMethod, credit, d.payments);
       setLastSale({ id: s.id, number: s.saleNumber, change, total, deposited, credit, printPayload, customerPhone: selectedCustomer?.phone });
+      setLastBill({ number: s.saleNumber, total, change: deposited ? 0 : change, printPayload, lines: cart, customerId });
+      cart.forEach((l) => { if (l.productId) bumpRecent(config.id, l.productId); });
+      setRecentTick((t) => t + 1);
+      beep('done');
       setCheckout(null);
       clearCart();
       [...refreshKeys, ...SALE_REFRESH].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      if (prefs.autoPrint && !printReceiptDirect(printPayload, prefs.printerWidth)) toast.error('Popup band hai — browser mein popups allow karein');
+      if (autoPrint && !printReceiptDirect(printPayload, prefs.printerWidth)) toast.error('Popup band hai — browser mein popups allow karein');
       if (prefs.autoClose) successTimer.current = setTimeout(() => setLastSale(null), 3500);
       // Industry follow-up (qist offer…) only for bills the server saved, never for a queued offline one.
       const queued = isTempId(String(s.id ?? '')) || (sale as { status?: string }).status === 'pending';
@@ -808,6 +871,34 @@ export function usePosEngine(config: PosIndustryConfig) {
   }, [cart.length, rules, customerId, config, cart]);
 
   const closeSuccess = useCallback(() => { clearTimeout(successTimer.current); setLastSale(null); }, []);
+
+  /* ── Last bill: reprint and sell the same again ── */
+  const reprintLast = useCallback(() => {
+    if (!lastBill) { toast.info('Is session me abhi koi bill nahi bana'); return; }
+    if (!printReceiptDirect(lastBill.printPayload, prefs.printerWidth)) toast.error('Popup band hai — browser mein popups allow karein');
+    else toast.success(`Bill ${lastBill.number} dobara print`);
+  }, [lastBill, prefs.printerWidth]);
+  const repeatLast = useCallback(() => {
+    if (!lastBill) { toast.info('Is session me abhi koi bill nahi bana'); return; }
+    // A tracked unit (serial, IMEI, used phone) was sold already; it cannot go on a second bill.
+    const lines = lastBill.lines.filter((l) => !l.serialId && !l.imeiId && !l.usedPhoneId && !l.comboSerials?.length);
+    if (!lines.length) { toast.error('Pichhle bill ki cheezein dobara nahi bik saktin (serial/IMEI)'); return; }
+    setCart((prev) => [...prev, ...lines.map((l) => ({ ...l, id: posLineId() }))]);
+    if (!customerId && lastBill.customerId) setCustomerId(lastBill.customerId);
+    if (lines.length < lastBill.lines.length) toast.info('Serial/IMEI wali cheezein chhor di gayin');
+    toast.success(`Bill ${lastBill.number} ki ${lines.length} cheezein bill mein`);
+  }, [lastBill, customerId]);
+
+  /* ── Most sold on this counter (featured fill the rest) ── */
+  const recentItems = useMemo(() => {
+    const out: PosItem[] = [];
+    for (const id of topRecent(config.id, 9)) { const it = itemsById.get(id); if (it) out.push(it); }
+    for (const it of items) { if (out.length >= 9) break; if (it.featured && !out.includes(it)) out.push(it); }
+    return out;
+  }, [config.id, itemsById, items, recentTick]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Quick discount button: a % within this cashier's limit. */
+  const quickDiscountLimit = rules.discountTrusted ? 100 : rules.maxDiscountPercent;
   useEffect(() => () => clearTimeout(successTimer.current), []);
 
   /** WhatsApp text of the last bill. */
@@ -820,10 +911,10 @@ export function usePosEngine(config: PosIndustryConfig) {
   }, [lastSale]);
 
   return {
-    config, prefs, shopId, tenant,
+    config, prefs, shopId, tenant, counter, shopCounter, userLayout, autoPrint, canEditPrice, beep, user,
     // catalog
     items, loading, filtered, visible, setVisible, categories, filterCounts, bundles, filteredBundles, quickKeys, groupedQuickKeys,
-    search, setSearch, submitSearch, categoryId, setCategoryId, filterId, setFilterId, view, setView, inCartBy,
+    search, setSearch, submitSearch, isCode, recentItems, categoryId, setCategoryId, filterId, setFilterId, view, setView, inCartBy,
     // bill
     cart, customers, customerId, setCustomerId, selectedCustomer, receiver, setReceiver, soldById, setSoldById,
     delivery, setDelivery, deliveryFee, discountMode, discountPct, discountRs, discountAmount, subtotal, total, totalSavings, totalQty,
@@ -835,7 +926,8 @@ export function usePosEngine(config: PosIndustryConfig) {
     promo, applyCode, removeCode: () => setPromo(null), codeDiscount,
     loyalty: { on: loyaltyOn, available: pointsAvailable, max: pointsMax, min: pointsMin, rate: pointRate, used: pointsUsed, wanted: pointsWanted, setWanted: setPointsWanted },
     loyaltyDiscount,
-    priceEditId, setPriceEditId, changeQty, setQty, setPrice, removeLine, decrementItem, clearCart, batchOf, setLineBatch,
+    priceEditId, setPriceEditId, changeQty, setQty, setPrice, removeLine, setLineNote, lastLineId, quickDiscountLimit,
+    lastBill, reprintLast, repeatLast, decrementItem, clearCart, batchOf, setLineBatch,
     heldCarts, hold, resume, deleteHeld,
     // actions
     addItem: (it: PosItem, o?: AddOptions) => void addItem(it, o), addBundle, addQuickKey, handleBarcode, onVoice,

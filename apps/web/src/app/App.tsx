@@ -80,6 +80,7 @@ import BrandsPage from '@modules/inventory/brands/pages/BrandsPage';
 import TagsPage from '@modules/inventory/tags/pages/TagsPage';
 import ProductsListGate from '@modules/inventory/products/pages/ProductsListGate';
 import ProductBulkImportPage from '@modules/inventory/products/pages/ProductBulkImportPage';
+import ProductBulkEditPage from '@modules/inventory/products/pages/ProductBulkEditPage';
 import ProductFormPage from '@modules/inventory/products/pages/ProductFormPage';
 import ProductFormGate from '@modules/inventory/products/pages/ProductFormGate';
 import ProductViewGate from '@modules/inventory/products/pages/ProductViewGate';
@@ -406,7 +407,9 @@ export default function App() {
 
                   {/* ── Products & Catalog ───────────────────────── */}
                   <Route path="/products/new" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductFormGate />)} />
-                  <Route path="/products/bulk-import" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductBulkImportPage />)} />
+                  <Route path="/products/bulk-import" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductBulkImportPage key="bulk-import" />)} />
+                  <Route path="/products/bulk-create" element={secure(PERMISSIONS.PRODUCTS_CREATE, <ProductBulkImportPage key="bulk-create" start="blank" />)} />
+                  <Route path="/products/bulk-edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductBulkEditPage />)} />
                   <Route path="/products/:id/edit" element={secure(PERMISSIONS.PRODUCTS_EDIT, <ProductFormGate />)} />
                   <Route path="/products/:id/imei" element={secure(PERMISSIONS.MOBILE_IMEI_VIEW, <GlobalImeiInventoryPage />)} />
                   <Route path="/products/:id" element={secure(PERMISSIONS.PRODUCTS_VIEW, <ProductViewGate />)} />

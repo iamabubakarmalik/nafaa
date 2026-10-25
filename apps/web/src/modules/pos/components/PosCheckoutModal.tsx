@@ -5,7 +5,9 @@
  * Split payment takes the bill by several methods (cash + card …, or a
  * trade-in phone where the shop offers it).
  *
- * Keys: Enter confirm · F1/F3/F4/F5/F7 payment method · F6 full credit.
+ * Keys: type the amount · Enter confirm · Tab next field · F1/F3/F4/F5/F7
+ * payment method (in a split: the highlighted line's method) · F6 full
+ * credit · Alt+S split on/off · Alt+A one more split line.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -49,7 +51,7 @@ const NOTES = [
 
 export function PosCheckoutModal({
   total, itemCount, loading, customerName, customerBalance = 0, hasCustomer,
-  initMode, initAmount, initMethod = 'CASH', receiver, allowCredit = true, allowSplit = true, tradeIns, onConfirm, onClose,
+  initMode, initAmount, initMethod = 'CASH', initSplit, receiver, allowCredit = true, allowSplit = true, tradeIns, onConfirm, onClose,
 }: {
   total: number;
   itemCount: number;
@@ -61,6 +63,8 @@ export function PosCheckoutModal({
   initAmount?: number;
   /** Payment method selected when the dialog opens. */
   initMethod?: PaymentMethod;
+  /** Open straight in split payment. */
+  initSplit?: boolean;
   customerId?: string;
   receiver?: PosReceiverValue;
   /** Settings can switch credit off; then the bill must be paid in full. */
@@ -95,9 +99,16 @@ export function PosCheckoutModal({
   const blocked = isCredit && !short && (!hasCustomer || !allowCredit);
 
   const startSplit = () => {
-    const first = Math.min(entered || total, total);
-    setRows([{ method: method, amount: String(Number(first.toFixed(2))) }, { method: method === 'CASH' ? 'CARD' : 'CASH', amount: first < total ? String(Number((total - first).toFixed(2))) : '' }]);
-    setActive(1);
+    // With an amount typed, it becomes the first part and the rest goes to the second;
+    // otherwise both start empty and the cashier types the first part.
+    const second: PaymentMethod = method === 'CASH' ? 'CARD' : 'CASH';
+    if (entered > 0 && entered < total) {
+      setRows([{ method, amount: String(Number(entered.toFixed(2))) }, { method: second, amount: String(Number((total - entered).toFixed(2))) }]);
+      setActive(1);
+    } else {
+      setRows([{ method, amount: '' }, { method: second, amount: '' }]);
+      setActive(0);
+    }
     setDeposit(false);
     setSplit(true);
   };
@@ -130,12 +141,25 @@ export function PosCheckoutModal({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement)) { e.preventDefault(); submit(); return; }
       const m = POS_PAYMENT_METHODS.find((x) => x.key === e.key);
-      if (m && !splitting) { e.preventDefault(); setMethod(m.id); if (mode === 'credit') setMode('full'); return; }
-      if (e.key === 'F6') { e.preventDefault(); if (hasCustomer && allowCredit) choose('credit'); }
+      if (m && splitting) {
+        e.preventDefault();
+        setRows((rs) => rs.map((r, j) => (j === active ? { ...r, method: m.id, reference: undefined, note: undefined } : r)));
+        return;
+      }
+      if (m) { e.preventDefault(); setMethod(m.id); if (mode === 'credit') setMode('full'); return; }
+      if (e.key === 'F6') { e.preventDefault(); if (hasCustomer && allowCredit) choose('credit'); return; }
+      const code = e.code;
+      if (e.altKey && code === 'KeyS' && allowSplit && mode !== 'credit') { e.preventDefault(); if (splitting) setSplit(false); else startSplit(); return; }
+      if (e.altKey && code === 'KeyA' && splitting) { e.preventDefault(); document.querySelector<HTMLButtonElement>('[data-split-add]')?.click(); }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [submit, hasCustomer, mode, splitting]);
+  }, [submit, hasCustomer, mode, splitting, active, allowSplit, entered, method, total]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { if (initSplit && allowSplit && initMode !== 'credit') startSplit(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Typing goes straight into the amount box; back there after leaving split.
+  useEffect(() => { if (!splitting && mode !== 'credit') setTimeout(() => inputRef.current?.focus(), 0); }, [splitting, mode]);
 
   const press = (k: string) => {
     if (mode === 'credit') setMode('full');
@@ -215,6 +239,7 @@ export function PosCheckoutModal({
                   className={cn('inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.75rem] font-semibold transition',
                     splitting ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>
                   <Split className="h-3.5 w-3.5" /> {splitting ? 'Ek tareeqa' : tradeIns ? 'Split / Trade-in' : 'Split payment'}
+                  <kbd className="rounded bg-black/10 px-1 font-mono text-[0.5625rem]">Alt S</kbd>
                 </button>}
               </div>
               {splitting ? (
@@ -295,7 +320,7 @@ export function PosCheckoutModal({
                 onChange={(e) => setTendered(e.target.value.replace(/[^\d.]/g, ''))}
                 placeholder={mode === 'full' ? String(total) : '0'}
                 aria-label="Mila hua paisa"
-                data-autofocus={mode === 'partial' ? true : undefined}
+                data-autofocus
                 className="w-full bg-transparent text-right text-4xl font-bold tabular-nums tracking-tight text-white outline-none placeholder:text-slate-600"
               />
               <div className="mt-0.5 h-4 text-[0.75rem] font-medium tabular-nums text-emerald-400">

@@ -176,9 +176,9 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
           </ol>
         </nav>
 
-        <main className="min-w-0">
+        <section data-enter-next className="min-w-0">
           {e.step.render({ draft: e.draft, isEdit: e.isEdit, productId: e.id, setCore: e.setCore, setExtra: e.setExtra, errors: e.errors, touch: e.touch })}
-        </main>
+        </section>
 
         {/* Live summary */}
         <aside className="hidden xl:block">

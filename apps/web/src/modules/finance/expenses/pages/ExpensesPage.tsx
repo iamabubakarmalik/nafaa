@@ -9,6 +9,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   ArrowDownWideNarrow, BarChart3, CalendarClock, CheckCircle2, ChevronDown, CircleSlash, Clock, Copy, CreditCard, Filter, FolderTree,
@@ -64,6 +65,13 @@ export default function ExpensesPage() {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [form, setForm] = useState<ExpenseDraft | null>(null);
+  // "?new=1" (command palette "Expense") opens the new-expense form once.
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    if (params.get('new') !== '1') return;
+    if (canWrite) setForm({ mode: 'new' });
+    setParams((p) => { p.delete('new'); return p; }, { replace: true });
+  }, [params, setParams, canWrite]);
   const [cats, setCats] = useState(false);
   const [voucher, setVoucher] = useState<Expense | null>(null);
 

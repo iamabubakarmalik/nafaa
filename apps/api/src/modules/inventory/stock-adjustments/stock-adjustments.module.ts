@@ -6,5 +6,6 @@ import { StockAdjustmentsService } from './stock-adjustments.service';
 @Module({
   controllers: [StockAdjustmentsController],
   providers: [StockAdjustmentsService, TenantTimezoneService],
+  exports: [StockAdjustmentsService],
 })
 export class StockAdjustmentsModule {}

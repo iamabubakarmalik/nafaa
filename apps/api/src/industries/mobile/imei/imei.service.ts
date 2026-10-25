@@ -173,7 +173,11 @@ export class ImeiService {
   // ════════════════════════════════════════════════════════
   // BULK CREATE
   // ════════════════════════════════════════════════════════
-  async bulkCreate(user: AuthenticatedUser, dto: BulkCreateImeiDto) {
+  /**
+   * `opts` lets the product import book the phones as opening stock
+   * (OPENING_BALANCE) instead of the default stock-in movement.
+   */
+  async bulkCreate(user: AuthenticatedUser, dto: BulkCreateImeiDto, opts?: { inType?: 'OPENING_BALANCE'; reference?: string; note?: string }) {
     const product = await this.assertOwnProduct(user, dto.productId, dto.variantId);
     const numbers = dto.imeis.flatMap((i) => [i.imei1, i.imei2 ?? '']).filter(Boolean);
     const dup = numbers.find((x, i) => numbers.indexOf(x) !== i);
@@ -206,7 +210,8 @@ export class ImeiService {
       });
       await syncImeiStock(tx, user, {
         productId: dto.productId, variantId: dto.variantId, shopIds: [shopId],
-        reference: `IMEI-BULK`, note: `${count} naye phone IMEI ke saath`, unitCost: cost,
+        reference: opts?.reference ?? `IMEI-BULK`, note: opts?.note ?? `${count} naye phone IMEI ke saath`, unitCost: cost,
+        ...(opts?.inType && { inType: opts.inType }),
       });
     });
 

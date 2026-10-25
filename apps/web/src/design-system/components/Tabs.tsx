@@ -5,6 +5,7 @@
 
 import type { ReactNode } from 'react';
 import { cn } from '@core/lib/cn';
+import { onTabsKeyDown } from '../keyboard/useMenuKeys';
 
 export interface TabItem<T extends string> {
   value: T;
@@ -32,7 +33,7 @@ interface TabsProps<T extends string> {
 
 export function Tabs<T extends string>({ value, onChange, items, label, className }: TabsProps<T>) {
   return (
-    <div role="tablist" aria-label={label} className={cn('-mb-px flex gap-5 overflow-x-auto border-b border-slate-200 [scrollbar-width:none]', className)}>
+    <div role="tablist" aria-label={label} onKeyDown={onTabsKeyDown} className={cn('-mb-px flex gap-5 overflow-x-auto border-b border-slate-200 [scrollbar-width:none]', className)}>
       {items.map((t) => {
         const active = t.value === value;
         return (
@@ -66,7 +67,7 @@ export function Tabs<T extends string>({ value, onChange, items, label, classNam
 
 export function Segmented<T extends string>({ value, onChange, items, label, className }: TabsProps<T>) {
   return (
-    <div role="radiogroup" aria-label={label} className={cn('inline-flex rounded-lg bg-slate-100 p-0.5', className)}>
+    <div role="radiogroup" aria-label={label} onKeyDown={onTabsKeyDown} className={cn('inline-flex rounded-lg bg-slate-100 p-0.5', className)}>
       {items.map((t) => {
         const active = t.value === value;
         return (

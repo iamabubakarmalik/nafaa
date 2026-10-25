@@ -46,6 +46,23 @@ move over when their industry flow is rebuilt.
 - Works offline (sales queue), auto-print to the thermal printer, customer
   display, cash drawer, WhatsApp bill.
 
+## Layouts and keyboard
+
+- Four layouts on the same engine: `classic`, `express` (search + bill
+  table), `cartfocus` (big bill + narrow list) and `touch`. The shop default
+  and the parts shown (images, categories, quick keys, receiver, delivery,
+  discount, line notes, price edit, sounds, auto-print, stock, recent items,
+  change due, quick discount %) live in `receiptConfig.posCounter` on the
+  server (`GET /settings/counter`, `PATCH /settings/pos-counter`); see
+  `lib/posCounterConfig`. Each user can pick their own layout and density
+  (localStorage, ⚙️ on the counter). Phones always get `classic`.
+- Keyboard first: the search box keeps focus; ↑/↓ + Enter pick a result,
+  `3*` sets a quantity, `+`/`-` change the last or selected line, F3 moves
+  into the bill lines (↑/↓, +/-, Delete, Enter qty, R rate, N note, Esc).
+  F2 customer, F4 discount, F6 hold/resume, F8 payment (1–6), F9 more,
+  F12 cash + print, Ctrl+Enter checkout, Ctrl+P reprint, Alt+R repeat last
+  bill, Alt+1–9 most sold. `?` lists them all (`components/PosShortcutsOverlay`).
+
 ## Adding an industry
 
 Write `industries/<id>/pos/config.ts`:

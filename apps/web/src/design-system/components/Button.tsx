@@ -57,6 +57,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
+      data-variant={variant}
       className={cn(
         'inline-flex select-none items-center justify-center whitespace-nowrap font-semibold transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white',

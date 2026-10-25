@@ -271,7 +271,7 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
         </Button>
       </>}>
       {allShops ? <BranchPicker what="Adjustment" /> : (
-        <div className="space-y-4">
+        <div data-enter-next className="space-y-4">
           <div>
             <ProductSearch sources={sources} byCode={byCode} loading={loading} onPick={(s, u) => add(s, u)}
               onMiss={industry?.id === 'mobile' || industry?.id === 'electronics' ? onMiss : undefined}

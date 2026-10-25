@@ -216,7 +216,9 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
           <button type="button" onClick={() => void exportCsv()} disabled={exporting} className={heroButton}><Download className="h-4 w-4" />{exporting ? 'Ban raha…' : 'CSV'}</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Print" /></span>
           {HeroExtra && <HeroExtra />}
-          {can.create && config.paths.bulkImport && <Link to={config.paths.bulkImport} title="Excel se daalein" className={heroIconButton}><FileUp className="h-4 w-4" /></Link>}
+          {can.create && config.paths.bulkImport && <Link to={config.paths.bulkImport} title="Excel ya CSV file se products daalein" className={heroButton}><FileUp className="h-4 w-4" /><span className="hidden sm:inline">Excel import</span></Link>}
+          {can.create && <Link to="/products/bulk-create" title="Bohat se products ek sheet me likh kar banayein" className={heroButton}><Table2 className="h-4 w-4" /><span className="hidden sm:inline">Bulk banayein</span></Link>}
+          {can.edit && <Link to="/products/bulk-edit" title="Bulk edit — bohat se products ek saath (spreadsheet)" className={heroIconButton}><ListChecks className="h-4 w-4" /></Link>}
           <button type="button" onClick={() => void c.refresh()} title="Taaza karein (R)" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', c.fetching && 'animate-spin')} /></button>
           <button type="button" onClick={() => setGuide(true)} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {can.create && <Link to={config.paths.create} className={heroPrimaryButton}><Plus className="h-4 w-4" />Naya</Link>}

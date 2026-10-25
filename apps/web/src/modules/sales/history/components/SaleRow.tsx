@@ -88,8 +88,8 @@ export function SaleRow({ sale, money, onOpen, onReturn, waLink, extra }: {
   );
 
   return (
-    <li className={cn('group relative px-4 py-3 transition hover:bg-slate-50/80 sm:px-5', voided && 'opacity-60')}>
-      <button type="button" onClick={onOpen} className="absolute inset-0" aria-label={`Bill ${sale.saleNumber} kholein`} />
+    <li data-nav-row className={cn('group relative px-4 py-3 transition hover:bg-slate-50/80 sm:px-5', voided && 'opacity-60')}>
+      <button type="button" data-nav-open onClick={onOpen} className="absolute inset-0" aria-label={`Bill ${sale.saleNumber} kholein`} />
 
       {/* Phones and tablets: one compact card. */}
       <div className="flex gap-3 lg:hidden">

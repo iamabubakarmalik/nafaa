@@ -52,6 +52,14 @@ interface PosItemProps {
   /** Tile background when there is no image (Tailwind gradient classes). */
   tint?: string;
   category?: string;
+  /** Highlighted by the keyboard (arrow keys in the search box). */
+  active?: boolean;
+  /** Shop turned product pictures off: a text-only card. */
+  noImage?: boolean;
+  /** Touch layout: bigger text and targets. */
+  touch?: boolean;
+  /** Tighter list row. */
+  dense?: boolean;
 }
 
 const qtyText = (n: number) => String(Number(n.toFixed(2)));
@@ -81,18 +89,30 @@ function Stepper({ qty, onAdd, onRemove, size = 'md' }: { qty: number; onAdd: ()
 }
 
 /** Product card for the POS grid. */
-export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart, featured, badges, subline, hidePrices, dim, onClick, onDecrement, fallback, tint }: PosItemProps) {
+export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart, featured, badges, subline, hidePrices, dim, onClick, onDecrement, fallback, tint, active, noImage, touch }: PosItemProps) {
   const out = stock !== undefined && stock <= 0;
   const low = !out && stock !== undefined && lowStock !== undefined && stock <= lowStock;
   return (
-    <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
-      aria-label={`${name}, ${hidePrices ? '' : formatPKR(price)}`}
+    <div role="button" tabIndex={-1} onClick={onClick} onMouseDown={(e) => e.preventDefault()} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      aria-label={`${name}, ${hidePrices ? '' : formatPKR(price)}`} data-active={active ? '1' : undefined}
       className={cn(
         'group relative flex cursor-pointer select-none flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition duration-200',
         'hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 active:translate-y-0 active:scale-[0.99]',
         inCart > 0 ? 'ring-2 ring-brand-500 shadow-brand-500/10' : 'ring-slate-200/80 hover:ring-slate-300',
+        active && 'ring-[3px] ring-amber-400 shadow-lg shadow-amber-500/20',
         (dim || out) && 'opacity-60 saturate-50',
       )}>
+      {noImage ? (
+        <div className="flex items-start justify-between gap-1 px-3 pt-2.5">
+          <div className="flex flex-wrap items-center gap-1">
+            {featured && <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}
+            {badges?.map((b) => (
+              <span key={b.label} className={cn('rounded-full px-1.5 py-0.5 text-[0.5625rem] font-semibold uppercase', BADGE[b.tone])}>{b.label}</span>
+            ))}
+          </div>
+          {stock !== undefined && <StockPill stock={stock} low={low} unit={unit} className="ring-1 ring-slate-200" />}
+        </div>
+      ) : (
       <div className={cn('relative aspect-[5/4] w-full overflow-hidden', !image && 'bg-gradient-to-br', !image && (tint ?? 'from-slate-100 to-slate-200'))}>
         {image ? (
           <img src={image} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
@@ -114,15 +134,16 @@ export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart,
           {stock !== undefined && <StockPill stock={stock} low={low} unit={unit} />}
         </div>
       </div>
-      <div className="flex flex-1 flex-col gap-1.5 p-3">
-        <p className="line-clamp-2 min-h-[2.4rem] text-[0.875rem] font-semibold leading-tight text-slate-900">{name}</p>
-        <div className="mt-auto flex items-end justify-between gap-2">
+      )}
+      <div className={cn('flex flex-1 flex-col gap-1.5', noImage ? 'px-3 pb-3 pt-1.5' : 'p-3', touch && 'p-4')}>
+        <p className={cn('line-clamp-2 min-h-[2.4rem] font-semibold leading-tight text-slate-900', touch ? 'text-[1rem]' : 'text-[0.875rem]')}>{name}</p>
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-1">
           <div className="min-w-0">
-            <div className="text-[1.0625rem] font-bold tabular-nums leading-none tracking-tight text-brand-700">{hidePrices ? '••••' : formatPKR(price)}</div>
+            <div className={cn(touch ? 'text-[1.25rem]' : 'text-[1rem]', 'whitespace-nowrap font-bold tabular-nums leading-none tracking-tight text-brand-700')}>{hidePrices ? '••••' : formatPKR(price)}</div>
             <div className="mt-1 truncate text-[0.6875rem] text-slate-500">{subline ?? `per ${unit}`}</div>
           </div>
           {inCart > 0 && onDecrement ? (
-            <Stepper qty={inCart} onAdd={onClick} onRemove={onDecrement} size="sm" />
+            <Stepper qty={inCart} onAdd={onClick} onRemove={onDecrement} size={touch ? 'md' : 'sm'} />
           ) : (
             <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition',
               inCart > 0 ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-600 group-hover:bg-brand-600 group-hover:text-brand-fg')}>
@@ -136,34 +157,34 @@ export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart,
 }
 
 /** Dense row for the POS list view: many products on screen, fastest to scan by eye. */
-export function PosItemRow({ name, image, price, unit, stock, lowStock, inCart, badges, subline, hidePrices, dim, onClick, onDecrement, fallback, tint }: PosItemProps) {
+export function PosItemRow({ name, image, price, unit, stock, lowStock, inCart, badges, subline, hidePrices, dim, onClick, onDecrement, fallback, tint, active, noImage, dense }: PosItemProps) {
   const out = stock !== undefined && stock <= 0;
   const low = !out && stock !== undefined && lowStock !== undefined && stock <= lowStock;
   return (
-    <div role="button" tabIndex={0} onClick={onClick} onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }}
-      className={cn('group flex cursor-pointer items-center gap-3 rounded-xl bg-white px-3 py-2 ring-1 transition hover:shadow-md',
-        inCart > 0 ? 'ring-2 ring-brand-500' : 'ring-slate-200/80 hover:ring-slate-300', (dim || out) && 'opacity-60')}>
-      <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl text-2xl', !image && 'bg-gradient-to-br', !image && (tint ?? 'from-slate-100 to-slate-200'))}>
+    <div role="button" tabIndex={-1} onClick={onClick} onMouseDown={(e) => e.preventDefault()} onKeyDown={(e) => { if (e.key === 'Enter') onClick(); }} data-active={active ? '1' : undefined}
+      className={cn('group flex cursor-pointer items-center rounded-xl bg-white ring-1 transition hover:shadow-md', dense ? 'gap-2 px-2.5 py-1.5' : 'gap-3 px-3 py-2',
+        inCart > 0 ? 'ring-2 ring-brand-500' : 'ring-slate-200/80 hover:ring-slate-300', active && 'bg-amber-50 ring-2 ring-amber-400', (dim || out) && 'opacity-60')}>
+      {!noImage && <span className={cn(dense ? 'h-8 w-8 text-lg' : 'h-11 w-11 text-2xl', 'flex shrink-0 items-center justify-center overflow-hidden rounded-xl', !image && 'bg-gradient-to-br', !image && (tint ?? 'from-slate-100 to-slate-200'))}>
         {image ? <img src={image} alt="" loading="lazy" className="h-full w-full object-cover" /> : fallback ?? <Package className="h-5 w-5 text-slate-400" />}
-      </span>
+      </span>}
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
           <span className="truncate text-[0.875rem] font-semibold text-slate-900">{name}</span>
-          {badges?.slice(0, 2).map((b) => (
+          {badges?.slice(0, dense ? 1 : 2).map((b) => (
             <span key={b.label} className={cn('hidden shrink-0 rounded-full px-1.5 py-0.5 text-[0.5625rem] font-semibold uppercase sm:inline', BADGE[b.tone])}>{b.label}</span>
           ))}
         </span>
-        <span className="block truncate text-[0.75rem] text-slate-500">{subline ?? `per ${unit}`}</span>
+        {!dense && <span className="block truncate text-[0.75rem] text-slate-500">{subline ?? `per ${unit}`}</span>}
       </span>
       {stock !== undefined && (
-        <span className={cn('hidden w-20 shrink-0 text-right text-[0.8125rem] font-medium tabular-nums sm:block', out ? 'text-rose-600' : low ? 'text-amber-600' : 'text-slate-500')}>
+        <span className={cn('hidden shrink-0', dense ? 'w-9' : 'w-16', ' text-right text-[0.8125rem] font-medium tabular-nums sm:block', out ? 'text-rose-600' : low ? 'text-amber-600' : 'text-slate-500')}>
           {out ? 'Khatam' : `${qtyText(stock)} ${isWeightUnit(unit) ? unit : ''}`}
         </span>
       )}
-      <span className="w-24 shrink-0 text-right text-[0.9375rem] font-bold tabular-nums text-slate-900">{hidePrices ? '••••' : formatPKR(price)}</span>
+      <span className={cn('shrink-0 text-right font-bold tabular-nums text-slate-900', dense ? 'text-[0.875rem]' : 'w-24 text-[0.9375rem]')}>{hidePrices ? '••••' : formatPKR(price)}</span>
       {inCart > 0 && onDecrement
         ? <Stepper qty={inCart} onAdd={onClick} onRemove={onDecrement} size="sm" />
-        : <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-hover:bg-brand-600 group-hover:text-brand-fg"><Plus className="h-4 w-4" /></span>}
+        : dense ? null : <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-hover:bg-brand-600 group-hover:text-brand-fg"><Plus className="h-4 w-4" /></span>}
     </div>
   );
 }
@@ -219,13 +240,13 @@ export function PosViewTab({ active, onClick, icon: Icon, label, count, shortcut
   shortcut?: string; color?: string; highlight?: boolean;
 }) {
   return (
-    <button type="button" role="tab" aria-selected={active} onClick={onClick}
-      className={cn('inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold transition',
+    <button type="button" role="tab" aria-selected={active} onClick={onClick} onMouseDown={(e) => e.preventDefault()} title={shortcut ? `${label} (${shortcut})` : label}
+      className={cn('inline-flex h-8 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-[0.8125rem] font-semibold transition',
         active ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800')}>
       <Icon className="h-4 w-4" />
       {label}
       {count !== undefined && <span className="tabular-nums text-slate-400">{count}</span>}
-      {shortcut && <kbd className="ml-0.5 hidden rounded border border-slate-200 px-1 font-mono text-[0.625rem] text-slate-400 xl:inline">{shortcut}</kbd>}
+      {shortcut && <kbd className="ml-0.5 hidden rounded border border-slate-200 px-1 font-mono text-[0.625rem] text-slate-400 2xl:inline">{shortcut}</kbd>}
     </button>
   );
 }

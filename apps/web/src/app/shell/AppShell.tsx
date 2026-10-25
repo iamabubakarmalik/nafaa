@@ -8,10 +8,14 @@
  *  - 1024–1279px   the sidebar defaults to the 72px icon rail;
  *  - 1280px and up the full 264px sidebar.
  * Users can override the last two with Ctrl/⌘+B (see useSidebarState).
+ *
+ * Keyboard: skip links lead to the content or the menu; app-wide keys live in
+ * keyboard/useGlobalKeys, list keys (↑ ↓ Enter…) apply to the content area,
+ * and "?" shows every shortcut.
  */
 
 import { confirmDialog } from '@/design-system/components';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -24,6 +28,8 @@ import { OnlineOrderAlert } from '@integrations/online-orders/components/OnlineO
 import { clearShopifyShop, pendingShopifyShop } from '@integrations/online-orders/lib/pendingShopify';
 import { cn } from '@core/lib/cn';
 import { useAppearance } from '@/design-system';
+import { Kbd } from '@/design-system/components';
+import { useDialogFocusManager, useListKeys, useSuggestKeys } from '@/design-system/keyboard';
 import { isSettingsPath, LAST_APP_PATH_KEY } from './navigation/nav-config';
 import { Sidebar } from './sidebar/Sidebar';
 import { MobileSidebar } from './sidebar/MobileSidebar';
@@ -31,7 +37,11 @@ import { Topbar } from './topbar/Topbar';
 import { GlobalSearchDialog } from './topbar/GlobalSearch';
 import { SettingsShell } from './settings/SettingsShell';
 import { useShellBoot } from './useShellBoot';
+import { ShortcutsHelp, useShortcutsHelp } from './keyboard/ShortcutsHelp';
+import { GO_TO, useGlobalKeys } from './keyboard/useGlobalKeys';
 import { useSidebarState } from './useSidebarState';
+
+const SKIP_LINK = 'pointer-events-auto -translate-y-16 rounded-xl bg-brand-600 px-4 py-2 text-[0.875rem] font-semibold text-brand-fg shadow-lg transition focus:translate-y-0';
 
 export default function AppShell() {
   useShellBoot();
@@ -46,6 +56,14 @@ export default function AppShell() {
     ? ({ '--shell-sidebar': 'var(--shell-sidebar-dark)', '--shell-line': 'var(--shell-sidebar-dark-line)' } as React.CSSProperties)
     : undefined;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+  const openHelp = useShortcutsHelp((s) => s.setOpen);
+  const { chord } = useGlobalKeys(mainRef, () => openHelp(true));
+  // The POS counter has its own keys.
+  const onPos = location.pathname.startsWith('/pos');
+  useListKeys(mainRef, { global: true, enabled: !onPos });
+  useSuggestKeys({ enabled: !onPos });
+  useDialogFocusManager();
 
   // Settings remember the page the user came from, so closing them returns there.
   const settingsMode = isSettingsPath(location.pathname);
@@ -95,6 +113,10 @@ export default function AppShell() {
 
   return (
     <div className="h-screen-dvh overflow-hidden bg-shell-canvas">
+      <div className="pointer-events-none fixed left-2 top-2 z-[100] flex gap-2">
+        <a href="#main-content" className={SKIP_LINK}>Seedha content par jayein</a>
+        {!settingsMode && <a href="#main-nav" onClick={(e) => { e.preventDefault(); document.querySelector<HTMLElement>('nav[aria-label="Main"] a[href]')?.focus(); }} className={SKIP_LINK}>Menu par jayein</a>}
+      </div>
       <div
         className={cn(
           'grid h-full transition-[grid-template-columns] duration-300 ease-out',
@@ -116,7 +138,11 @@ export default function AppShell() {
           <Topbar user={user} tenant={tenant} onOpenMobileSidebar={() => setMobileOpen(true)} onLogout={handleLogout} />
 
           <main
+            ref={mainRef}
+            id="main-content"
+            tabIndex={-1}
             className={cn(
+              'outline-none',
               'min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable] print:overflow-visible print:p-0',
               settingsMode ? 'bg-shell-canvas' : 'bg-shell-canvas p-3 sm:p-5 xl:p-6',
             )}
@@ -141,6 +167,13 @@ export default function AppShell() {
       </div>
 
       <GlobalSearchDialog />
+      <ShortcutsHelp />
+      {chord && (
+        <div role="status" className="fixed bottom-4 left-1/2 z-[100] flex -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 rounded-2xl bg-slate-900 px-3 py-2 text-[0.75rem] text-white shadow-xl print:hidden">
+          <Kbd className="border-white/20 bg-white/10 text-white">G</Kbd> phir:
+          {GO_TO.map((g) => <span key={g.key} className="inline-flex items-center gap-1"><Kbd className="border-white/20 bg-white/10 text-white">{g.key.toUpperCase()}</Kbd>{g.label}</span>)}
+        </div>
+      )}
       {/* New online order: popup and sound on every page. */}
       <OnlineOrderAlert />
     </div>

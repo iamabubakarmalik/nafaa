@@ -141,6 +141,36 @@
 @keyframes ds-slide-up { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes ds-shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
+/*
+ * Keyboard focus ring. Written outside @layer so utility classes such as
+ * `outline-none` cannot remove it; it shows only for keyboard focus
+ * (:focus-visible) and follows the accent colour. Text fields keep their own
+ * border and ring styles.
+ */
+:is(a[href], button, summary, [role="button"], [role="tab"], [role="link"], [role="checkbox"], [role="switch"], [role="radio"],
+  [tabindex]:not([tabindex="-1"]), input[type="checkbox"], input[type="radio"], input[type="range"], input[type="file"], input[type="color"]):focus-visible {
+  outline: 2px solid rgb(var(--ring-color)) !important;
+  outline-offset: 2px !important;
+}
+/* Items inside clipped lists draw the ring inside so it is not cut off. */
+:is([role="option"], [role="menuitem"], [data-nav-row] a, [data-nav-row] button):focus-visible {
+  outline: 2px solid rgb(var(--ring-color)) !important;
+  outline-offset: -2px !important;
+}
+/* The active row of a list or table (arrow keys). */
+[data-nav-row]:focus-visible {
+  outline: 2px solid rgb(var(--ring-color)) !important;
+  outline-offset: -2px !important;
+  background-color: rgb(var(--brand-500) / 0.07);
+}
+tr[data-nav-row]:focus-visible > td { background-color: rgb(var(--brand-500) / 0.07); }
+/* Result highlighted with the arrow keys in a search-as-you-type picker. */
+[data-kb-active] {
+  outline: 2px solid rgb(var(--ring-color)) !important;
+  outline-offset: -2px !important;
+  background-color: rgb(var(--brand-500) / 0.1) !important;
+}
+
 /* Toasts (sonner) */
 [data-sonner-toaster] {
   --normal-bg: rgb(var(--surface));

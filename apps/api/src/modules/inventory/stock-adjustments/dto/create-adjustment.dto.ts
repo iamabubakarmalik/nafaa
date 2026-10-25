@@ -166,6 +166,8 @@ export class CountLineDto {
 
 export class StockCountDto {
   @IsOptional() @IsString() shopId?: string;
+  /** Reason on each line; "Stock ginti" when left out (bulk edit sends "Bulk edit"). */
+  @IsOptional() @IsString() @MaxLength(120) reason?: string;
   @IsOptional() @IsString() @MaxLength(500) note?: string;
   @IsArray() @ArrayMinSize(1) @ArrayMaxSize(2000) @ValidateNested({ each: true }) @Type(() => CountLineDto) items!: CountLineDto[];
 }

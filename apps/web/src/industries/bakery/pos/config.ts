@@ -8,6 +8,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { confirmDialog } from '@/design-system/components';
 import { Cake, Flame, Package, Snowflake, Timer } from 'lucide-react';
 import { createElement } from 'react';
 import { formatPKR } from '@core/lib/format';
@@ -111,17 +112,14 @@ export const bakeryPos: PosIndustryConfig = {
     const left = item.meta?.hoursLeft as number | undefined;
     const confirmed = opts.confirmed ?? [];
     if (left !== undefined && left <= 0 && !confirmed.includes('expired')) {
-      toast.error(`${item.name} — freshness ka waqt guzar chuka`, {
-        description: 'Batch check kar lein, kharab maal na bike', duration: 8000,
-        action: { label: 'Phir bhi bechein', onClick: () => api.addItem(item, { ...opts, confirmed: [...confirmed, 'expired'] }) },
-      });
+      // A dialog (not a toast button) so the cashier can answer from the keyboard.
+      void confirmDialog({ title: `${item.name} — freshness ka waqt guzar chuka`, text: 'Batch check kar lein, kharab maal na bike.', yes: 'Phir bhi bechein', danger: true })
+        .then((ok) => { if (ok) api.addItem(item, { ...opts, confirmed: [...confirmed, 'expired'] }); });
       return 'handled';
     }
     if (item.stock <= 0 && !opts.oversell) {
-      toast.error(`${item.name} — stock 0 hai`, {
-        description: 'Abhi bana hai aur stock mein nahi chadha?', duration: 8000,
-        action: { label: 'Phir bhi bechein', onClick: () => api.addItem(item, { ...opts, oversell: true }) },
-      });
+      void confirmDialog({ title: `${item.name} — stock 0 hai`, text: 'Abhi bana hai aur stock mein nahi chadha?', yes: 'Phir bhi bechein' })
+        .then((ok) => { if (ok) api.addItem(item, { ...opts, oversell: true }); });
       return 'handled';
     }
     if (left !== undefined && left > 0 && !api.cart.some((l) => l.productId === item.id)) {

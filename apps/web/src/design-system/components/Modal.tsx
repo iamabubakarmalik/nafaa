@@ -5,12 +5,17 @@
  * locks page scroll, closes on Escape and (optionally) backdrop click, keeps
  * keyboard focus inside while open and returns it to the trigger on close.
  * Nested modals stack correctly: only the top one reacts to Escape.
+ *
+ * Keyboard: the first field gets focus (or the element marked
+ * `data-autofocus`); Enter in the only field of a dialog presses its main
+ * button; Ctrl/⌘+Enter or Ctrl/⌘+S submits; Esc closes; Tab stays inside.
  */
 
 import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { FIELD, focusables, isMod, triggerDialogSubmit } from '../keyboard';
 
 type Size = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
@@ -36,6 +41,9 @@ const SIZES: Record<Size, string> = {
 };
 
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+/** Text-like fields that take focus first; read-only ones are skipped. */
+const FIRST_FIELD = 'input:not([disabled]):not([readonly]):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]),select:not([disabled]),textarea:not([disabled]):not([readonly])';
+const hasHover = () => window.matchMedia?.('(hover: hover)').matches ?? true;
 
 /** Open modals, newest last; Escape closes only the top one. */
 const stack: string[] = [];
@@ -54,13 +62,35 @@ export function Modal({ open, onClose, title, description, children, size = 'md'
     document.body.style.overflow = 'hidden';
 
     const panel = panelRef.current;
-    const first = panel?.querySelector<HTMLElement>('[data-autofocus]') ?? panel?.querySelector<HTMLElement>(FOCUSABLE);
+    const body = panel?.querySelector<HTMLElement>('[data-modal-body]');
+    // Skip the header close button: start on the first field, then the first control.
+    // Phones skip fields so the on-screen keyboard does not cover the dialog.
+    const first = panel?.querySelector<HTMLElement>('[data-autofocus]')
+      ?? (body && hasHover() ? focusables(body, FIRST_FIELD)[0] : undefined)
+      ?? (body ? focusables(body, FOCUSABLE)[0] : undefined)
+      ?? (panel ? focusables(panel, '[data-modal-footer] button:not([disabled])').pop() : undefined);
     (first ?? panel)?.focus({ preventScroll: true });
 
     const onKey = (e: KeyboardEvent) => {
       if (stack[stack.length - 1] !== id) return;
       if (e.key === 'Escape') { e.stopPropagation(); onCloseRef.current(); return; }
-      if (e.key !== 'Tab' || !panel) return;
+      if (!panel || e.defaultPrevented) return;
+      // Ctrl/⌘+Enter and Ctrl/⌘+S submit the dialog.
+      if (isMod(e) && !e.altKey && (e.key === 'Enter' || e.key.toLowerCase() === 's')) {
+        e.preventDefault();
+        triggerDialogSubmit(panel);
+        return;
+      }
+      // Enter in the only field of a dialog (outside a form, which submits itself) presses the main button.
+      const target = e.target as HTMLElement;
+      if (e.key === 'Enter' && !e.shiftKey && !isMod(e) && !e.isComposing && panel.contains(target)
+        && target.matches(FIELD) && target.tagName === 'INPUT' && !(target as HTMLInputElement).form
+        && focusables(panel, FIELD).length === 1) {
+        e.preventDefault();
+        triggerDialogSubmit(panel);
+        return;
+      }
+      if (e.key !== 'Tab') return;
       const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.offsetParent !== null);
       if (!items.length) return;
       const [head, tail] = [items[0], items[items.length - 1]];
@@ -114,8 +144,8 @@ export function Modal({ open, onClose, title, description, children, size = 'md'
             )}
           </div>
         )}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
-        {footer && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">{footer}</div>}
+        <div data-modal-body className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
+        {footer && <div data-modal-footer className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3">{footer}</div>}
       </div>
     </div>,
     document.body,

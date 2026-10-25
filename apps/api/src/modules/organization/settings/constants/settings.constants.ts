@@ -122,3 +122,48 @@ export const DEFAULT_SETTINGS: Record<string, any> = {
     autoCreateCustomer: false,
   },
 };
+
+/**
+ * POS counter screen: layout and which parts the counter shows. Stored as
+ * `posCounter` inside TenantSettings.receiptConfig (JSON), so no column is
+ * needed. Each user may pick their own layout and density on their counter.
+ */
+export const POS_LAYOUTS = ['classic', 'express', 'cartfocus', 'touch'] as const;
+export const POS_DENSITIES = ['compact', 'comfortable'] as const;
+
+export const POS_COUNTER_DEFAULTS = {
+  layout: 'classic' as (typeof POS_LAYOUTS)[number],
+  density: 'compact' as (typeof POS_DENSITIES)[number],
+  showImages: true,
+  showCategories: true,
+  showQuickKeys: true,
+  showReceiver: true,
+  showDelivery: true,
+  showDiscount: true,
+  lineNotes: false,
+  priceEdit: true,
+  sounds: false,
+  autoPrint: true,
+  showStock: true,
+  recentItems: true,
+  changeDue: true,
+  /** Discount % buttons a cashier can tap; only those within their limit are shown. */
+  quickDiscounts: [5, 10] as number[],
+};
+
+export type PosCounterConfig = typeof POS_COUNTER_DEFAULTS;
+
+const POS_BOOL_KEYS = Object.entries(POS_COUNTER_DEFAULTS).filter(([, v]) => typeof v === 'boolean').map(([k]) => k);
+
+/** Stored value with defaults filled in; unknown or broken values fall back to the default. */
+export function normalizePosCounter(raw: unknown): PosCounterConfig {
+  const s = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const out: Record<string, unknown> = { ...POS_COUNTER_DEFAULTS };
+  for (const k of POS_BOOL_KEYS) if (typeof s[k] === 'boolean') out[k] = s[k];
+  if (POS_LAYOUTS.includes(s.layout as never)) out.layout = s.layout;
+  if (POS_DENSITIES.includes(s.density as never)) out.density = s.density;
+  if (Array.isArray(s.quickDiscounts)) {
+    out.quickDiscounts = [...new Set(s.quickDiscounts.map(Number).filter((n) => Number.isFinite(n) && n > 0 && n <= 100))].sort((a, b) => a - b).slice(0, 6);
+  }
+  return out as PosCounterConfig;
+}

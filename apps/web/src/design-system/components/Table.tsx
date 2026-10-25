@@ -6,6 +6,9 @@
  *     <THead><Tr><Th>Name</Th><Th align="right">Total</Th></Tr></THead>
  *     <TBody><Tr><Td>…</Td><Td align="right">…</Td></Tr></TBody>
  *   </Table>
+ *
+ * `<Tr interactive onClick>` rows join keyboard list navigation: ↑ ↓ move,
+ * Enter opens (clicks the row), Space selects when the row has a checkbox.
  */
 
 import type { HTMLAttributes, ReactNode, TdHTMLAttributes, ThHTMLAttributes } from 'react';
@@ -28,7 +31,7 @@ export const TBody = (props: HTMLAttributes<HTMLTableSectionElement>) => (
 );
 
 export const Tr = ({ interactive, ...props }: HTMLAttributes<HTMLTableRowElement> & { interactive?: boolean }) => (
-  <tr {...props} className={cn(interactive && 'cursor-pointer transition-colors hover:bg-slate-50', props.className)} />
+  <tr data-nav-row={interactive ? '' : undefined} {...props} className={cn(interactive && 'cursor-pointer transition-colors hover:bg-slate-50', props.className)} />
 );
 
 type Align = { align?: 'left' | 'center' | 'right' };

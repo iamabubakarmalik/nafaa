@@ -7,7 +7,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
-  ArrayMaxSize, IsArray, IsBoolean, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested,
+  ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsOptional, IsString, IsUUID, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 
 /** One sheet row after column mapping. `row` is the line number in the file. */
@@ -45,6 +45,29 @@ export class ImportRowDto {
   /** Batch and expiry of the opening stock. */
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) batchNumber?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) expiryDate?: string;
+
+  /** Phone IMEIs (15 digits each), separated by commas or spaces; stock is their count. */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20_000) imei?: string;
+}
+
+export const EXISTING_STOCK_MODES = ['add', 'set', 'skip'] as const;
+export type ExistingStockMode = (typeof EXISTING_STOCK_MODES)[number];
+
+/**
+ * What to do with a row whose product is already in the shop. Left out, such
+ * rows are skipped (the behaviour before these options existed).
+ */
+export class ExistingOptionsDto {
+  /** add: stock in the file is added; set: stock becomes the file's number; skip: stock untouched. */
+  @ApiProperty({ enum: EXISTING_STOCK_MODES })
+  @IsIn(EXISTING_STOCK_MODES)
+  stock!: ExistingStockMode;
+
+  /** Also update price and cost from the file. */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  prices?: boolean;
 }
 
 export class ImportCheckDto {
@@ -60,6 +83,12 @@ export class ImportCheckDto {
   @IsOptional()
   @IsUUID()
   shopId?: string;
+
+  @ApiPropertyOptional({ type: ExistingOptionsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ExistingOptionsDto)
+  existing?: ExistingOptionsDto;
 }
 
 /** One chunk of an import. The first chunk opens a job; later chunks pass its id. */
@@ -80,6 +109,12 @@ export class ImportRunDto {
   @IsOptional()
   @IsUUID()
   jobId?: string;
+
+  @ApiPropertyOptional({ type: ExistingOptionsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ExistingOptionsDto)
+  existing?: ExistingOptionsDto;
 
   @ApiProperty({ example: 'maal.xlsx' })
   @IsString()

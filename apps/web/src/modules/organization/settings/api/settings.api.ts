@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import type { PosCounterConfig } from '@modules/pos/lib/posCounterConfig';
 
 export interface TenantSettings {
   id: string;
@@ -115,10 +116,15 @@ export type CounterRules = Pick<TenantSettings,
   | 'allowDiscount' | 'maxDiscountPercent' | 'roundTotal' | 'allowCredit'
   | 'requirePinForVoid' | 'requirePinForDiscount' | 'requirePinForRefund' | 'hasManagerPin'
   | 'enableLoyalty' | 'loyaltyPointsPerRupee' | 'loyaltyRedemptionRate' | 'loyaltyMinRedeem' | 'loyaltyMaxRedeemPercent'
-  | 'serviceChargePct' | 'exchangeDays'>;
+  | 'serviceChargePct' | 'exchangeDays'> & {
+    /** POS counter layout and parts shown; older servers leave it out. */
+    posCounter?: Partial<PosCounterConfig>;
+  };
 
 export const settingsApi = {
   counter: () => apiClient.get('/settings/counter').then((r) => unwrap<CounterRules | null>(r)),
+  updatePosCounter: (data: Partial<PosCounterConfig>) =>
+    apiClient.patch('/settings/pos-counter', data).then((r) => unwrap<PosCounterConfig>(r)),
   get: () => apiClient.get('/settings').then((r) => unwrap<{ settings: TenantSettings; tenant: any; subscription?: any; plan?: any; notificationPref?: any }>(r)),
   update: (data: Partial<TenantSettings>) =>
     apiClient.patch('/settings', data).then((r) => unwrap<TenantSettings>(r)),

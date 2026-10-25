@@ -9,6 +9,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
 import { UpdateReceiptConfigDto } from './dto/update-receipt-config.dto';
 import { UpdateReportsConfigDto } from './dto/update-reports-config.dto';
+import { UpdatePosCounterDto } from './dto/update-pos-counter.dto';
 import {
   LockedRoutesDto, PinPrefsDto, RemovePinDto, ResetPinDto, SetPinDto, VerifyPinDto,
 } from './dto/verify-pin.dto';
@@ -30,6 +31,14 @@ export class SettingsController {
   /** The counter's rules for every staff member, without any secret. */
   @Get('counter') @ApiOperation({ summary: 'POS rules: stock, discount, credit, PIN, loyalty' })
   counter(@GetUser() u: AuthenticatedUser) { return this.svc.core.counterRules(u); }
+
+  @Get('pos-counter') @ApiOperation({ summary: 'POS counter layout and parts shown' })
+  getPosCounter(@GetUser() u: AuthenticatedUser) { return this.svc.core.getPosCounter(u); }
+
+  @Patch('pos-counter') @ApiOperation({ summary: 'Update the POS counter layout and parts shown (partial)' })
+  updatePosCounter(@GetUser() u: AuthenticatedUser, @Body() dto: UpdatePosCounterDto) {
+    return this.svc.core.updatePosCounter(u, dto);
+  }
 
   @Patch() @ApiOperation({ summary: 'Update settings (partial)' })
   update(@GetUser() u: AuthenticatedUser, @Body() dto: UpdateSettingsDto) {

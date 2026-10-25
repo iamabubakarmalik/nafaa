@@ -17,9 +17,13 @@ import { isActivePath, isSettingsPath, loadGroupState, MAX_RECENT, saveGroupStat
 import { useVisibleNav } from '../navigation/useVisibleNav';
 import { useFavorites, useRecentPaths } from '../navigation/useNavMemory';
 import { IconButton, Kbd } from '@/design-system/components';
+import { handleMenuKey } from '@/design-system/keyboard';
 import { BrandMark } from './BrandMark';
 import { FooterLink, GroupHeader, NavRow, NavSection } from './NavParts';
 import { SidebarRail } from './SidebarRail';
+
+/** Menu entries reachable with the arrow keys (pin stars are skipped). */
+const NAV_ITEMS = 'a[href],button[aria-expanded]';
 
 export interface SidebarProps {
   tenantName?: string;
@@ -138,7 +142,12 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
             ref={searchRef}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Escape') { setSearch(''); searchRef.current?.blur(); } }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') { setSearch(''); searchRef.current?.blur(); }
+              // ↓ from the menu search goes to the first menu link.
+              if (e.key === 'ArrowDown') { e.preventDefault(); navRef.current?.querySelector<HTMLElement>(NAV_ITEMS)?.focus(); }
+              if (e.key === 'Enter') navRef.current?.querySelector<HTMLElement>('a[href]')?.click();
+            }}
             placeholder="Search menu"
             aria-label="Search menu"
             className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[0.8125rem] text-slate-900 transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-ink-white/10 dark:bg-ink-white/[0.04] dark:text-ink-white"
@@ -162,7 +171,11 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
       </div>
 
       {/* Navigation */}
-      <nav ref={navRef} aria-label="Main" className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-2 pb-4 [scrollbar-width:thin]">
+      <nav ref={navRef} aria-label="Main" onKeyDown={(e) => {
+        // ↑ ↓ Home End move between menu links and group headers.
+        if (e.key === 'ArrowUp' && document.activeElement === navRef.current?.querySelector(NAV_ITEMS)) { e.preventDefault(); searchRef.current?.focus(); return; }
+        if (navRef.current && handleMenuKey(e, navRef.current, NAV_ITEMS, false)) e.preventDefault();
+      }} className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-2 pb-4 [scrollbar-width:thin]">
         {query && (
           <div className="px-2.5 text-[0.75rem] text-slate-500">{total === 0 ? 'No matches' : `${total} result${total > 1 ? 's' : ''}`}</div>
         )}

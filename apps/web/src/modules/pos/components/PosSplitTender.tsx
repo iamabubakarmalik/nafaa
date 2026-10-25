@@ -4,6 +4,7 @@
  * focus; change can only come from cash.
  */
 
+import { useEffect } from 'react';
 import { Delete, Plus, Repeat, X } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
@@ -70,6 +71,14 @@ export function PosSplitTender({ total, rows, onRows, active, onActive, tradeIns
   tradeIns?: PosTradeIn[];
 }) {
   const s = splitSummary(rows, total);
+  // The highlighted line's amount box takes the typing.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const el = document.querySelector<HTMLInputElement>(`[data-split-amount="${active}"]`);
+      if (el && document.activeElement !== el) { el.focus(); el.select(); }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [active, rows.length]);
   const options = [...POS_PAYMENT_METHODS, ...(tradeIns ? [TRADE_IN_OPTION] : [])];
   const usedCodes = new Set(rows.map((r) => r.reference).filter(Boolean));
 
@@ -119,9 +128,20 @@ export function PosSplitTender({ total, rows, onRows, active, onActive, tradeIns
                   style={{ color: opt?.color }}>
                   {options.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
                 </select>
-                <input inputMode="decimal" value={r.amount} aria-label="Amount" placeholder="0"
+                <input inputMode="decimal" value={r.amount} aria-label="Amount" placeholder="0" data-split-amount={i}
                   readOnly={r.method === 'TRADE_IN'} onFocus={() => onActive(i)}
                   onChange={(e) => update(i, { amount: e.target.value.replace(/[^\d.]/g, '') })}
+                  onKeyDown={(e) => {
+                    // Enter with money still due moves to the next line (filled with what is left); otherwise checkout completes.
+                    if (e.key !== 'Enter' || s.remaining <= 0.005) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rest = String(Number(s.remaining.toFixed(2)));
+                    if (i + 1 < rows.length) {
+                      if (!amountOf(rows[i + 1])) onRows(rows.map((r, j) => (j === i + 1 ? { ...r, amount: rest } : r)));
+                      onActive(i + 1);
+                    } else add();
+                  }}
                   className="h-10 w-28 rounded-lg border border-slate-200 bg-white px-2 text-right text-base font-bold tabular-nums outline-none focus:border-brand-500" />
                 <button type="button" onClick={(e) => { e.stopPropagation(); remove(i); }} disabled={rows.length <= 1} aria-label="Hatayein"
                   className="flex h-10 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-rose-600 disabled:opacity-30">
@@ -142,10 +162,11 @@ export function PosSplitTender({ total, rows, onRows, active, onActive, tradeIns
         })}
       </ul>
 
-      <button type="button" onClick={add} disabled={rows.length >= MAX_ROWS}
+      <button type="button" onClick={add} disabled={rows.length >= MAX_ROWS} data-split-add
         className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 text-[0.8125rem] font-semibold text-slate-600 hover:border-brand-400 hover:text-brand-700 disabled:opacity-40">
-        <Plus className="h-4 w-4" /> Aur tareeqa
+        <Plus className="h-4 w-4" /> Aur tareeqa <kbd className="rounded bg-slate-100 px-1 font-mono text-[0.625rem] text-slate-500">Alt A</kbd>
       </button>
+      <p className="text-center text-[0.6875rem] text-slate-500">F1 Cash · F3 JazzCash · F4 Easypaisa · F5 Card · F7 Bank — chuni hui line ka tareeqa badlein</p>
 
       <dl className="grid grid-cols-3 gap-2 text-center">
         <div className="rounded-xl bg-slate-50 px-2 py-2"><dt className="text-[0.6875rem] text-slate-500">Mila</dt><dd className="font-bold tabular-nums text-slate-900">{formatPKR(s.paid)}</dd></div>

@@ -1,7 +1,8 @@
 /** Bills put on hold, to resume when the customer comes back to the counter. */
 
+import { useEffect } from 'react';
 import { Pause, Play, Trash2 } from 'lucide-react';
-import { Button, EmptyState, IconButton, Modal } from '@/design-system/components';
+import { Button, EmptyState, IconButton, Kbd, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { PosHeldCart } from '../lib/posCart';
 
@@ -16,14 +17,24 @@ export function PosHoldCartsModal({ heldCarts, onResume, onDelete, onClose }: {
   onDelete: (id: string) => void;
   onClose: () => void;
 }) {
+  // 1–9 resumes that bill.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const n = Number(e.key);
+      if (n >= 1 && n <= 9 && heldCarts[n - 1] && !(e.target instanceof HTMLInputElement)) { e.preventDefault(); onResume(heldCarts[n - 1]); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [heldCarts, onResume]);
   return (
-    <Modal open onClose={onClose} size="md" title="Hold kiye hue bill" description="Customer wapas aaye to wahin se shuru karein">
+    <Modal open onClose={onClose} size="md" title="Hold kiye hue bill" description="Customer wapas aaye to wahin se shuru karein — number dabayein">
       {heldCarts.length === 0 ? (
         <EmptyState icon={<Pause className="h-6 w-6" />} title="Koi bill hold par nahi" />
       ) : (
         <ul className="-mx-1 divide-y divide-slate-100">
-          {heldCarts.map((h) => (
+          {heldCarts.map((h, i) => (
             <li key={h.id} className="flex items-center gap-3 px-1 py-3">
+              {i < 9 && <Kbd>{i + 1}</Kbd>}
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[0.875rem] font-medium text-slate-900">{h.lines.slice(0, 3).map((l) => l.name).join(', ')}{h.lines.length > 3 ? ` +${h.lines.length - 3}` : ''}</p>
                 <p className="text-[0.75rem] text-slate-500">{h.lines.length} cheezein · {ago(h.heldAt)}</p>

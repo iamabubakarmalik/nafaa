@@ -14,6 +14,9 @@ import { SettingLink } from '../components/SettingsFrame';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { SaveStatusBar } from './_SaveStatus';
+import { PosCounterSettings } from './_PosCounter';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
 
 const QUICK_LIMITS = [5, 10, 15, 20, 25];
 
@@ -24,10 +27,13 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
   const industry = useCurrentIndustry()?.id;
   const service = Number(draft.serviceChargePct) || 0;
   const exchange = Number(draft.exchangeDays) || 0;
+  const canEdit = usePermission(PERMISSIONS.SETTINGS_EDIT);
 
   return (
     <div className="space-y-4">
       <SaveStatusBar saving={saving} dirty={dirty} />
+
+      <PosCounterSettings canEdit={canEdit} />
 
       <div className="grid gap-4 xl:grid-cols-2">
         <SectionCard title="Payment" desc="Checkout khulte hi yeh tareeqa chuna hota hai" icon={CreditCard} color="emerald">
@@ -127,7 +133,7 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
           <PageLink to="/settings/printing" icon={Printer} title="Printing" desc="A4, thermal, colour" />
           <PageLink to="/settings/hardware" icon={Monitor} title="POS hardware" desc="Printer, drawer, tarazu" />
         </div>
-        <p className="mt-3 text-xs text-slate-500">Tasveerein, auto-print aur shortcuts har counter ke liye alag hain — POS khol kar ⚙️ se badlein.</p>
+        <p className="mt-3 text-xs text-slate-500">Apna layout, auto-print aur printer har counter ke liye alag hain — POS khol kar ⚙️ se badlein. Shortcuts ke liye counter par ? dabayein.</p>
       </SectionCard>
     </div>
   );

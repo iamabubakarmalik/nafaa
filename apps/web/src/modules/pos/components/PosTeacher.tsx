@@ -8,7 +8,7 @@ const TIPS: Array<{ icon: LucideIcon; color: string; title: string; text: string
   { icon: Search, color: '#7c3aed', title: 'Naam se search', text: 'Search mein naam likhein, Enter se pehla result bill mein. Card par − + se ginti.', keys: ['/', 'Enter'] },
   { icon: Pencil, color: '#d97706', title: 'Mol-tol', text: 'Bill ki line par rate par click karein aur naya rate likhein.' },
   { icon: Tag, color: '#db2777', title: 'Discount aur gol karna', text: 'Percent, rupay, ya bill ko 10/50/100 par gol karein.' },
-  { icon: Calculator, color: '#16a34a', title: 'Return khud', text: 'Customer ne jitna diya likhein ya note dabayein — kitna wapas dena hai khud aata hai.', keys: ['F9'] },
+  { icon: Calculator, color: '#16a34a', title: 'Return khud', text: 'Customer ne jitna diya likhein ya note dabayein — kitna wapas dena hai khud aata hai.', keys: ['F8'] },
   { icon: BookOpen, color: '#ea580c', title: 'Udhaar', text: 'Customer chunein, phir Udhaar. Kuch paisa mila to baqi khud udhaar.' },
   { icon: Pause, color: '#0891b2', title: 'Hold', text: 'Customer ruk gaya? Bill hold karein, agla customer lein, baad mein wapas.' },
   { icon: Banknote, color: '#475569', title: 'Offline bhi', text: 'Internet chala jaye to bhi bechte rahein — wapas aate hi sab chala jayega.' },
@@ -17,8 +17,8 @@ const TIPS: Array<{ icon: LucideIcon; color: string; title: string; text: string
 const VOICE = ['2 kilo cheeni', 'sau ka doodh', 'dedh kilo aata', 'ek dozen anday aur ek bread', '5 percent discount', 'udhaar', 'bill saaf karo'];
 
 const KEYS: Array<[string, string]> = [
-  ['/', 'Search'], ['F2', 'Camera scan'], ['F6', 'Awaaz'], ['F9', 'Payment'], ['F12', 'Cash + print'],
-  ['F7', 'Products'], ['F8', 'Combos'], ['F10', 'Quick keys'], ['F1', 'Ye guide'], ['Esc', 'Band'],
+  ['?', 'Sab shortcuts'], ['F2', 'Customer'], ['F3', 'Bill ki lines'], ['F4', 'Discount'], ['F6', 'Hold'],
+  ['F8', 'Payment'], ['F9', 'Aur kaam'], ['F12', 'Cash + print'], ['Ctrl Enter', 'Checkout'], ['Esc', 'Band'],
 ];
 
 export function PosTeacher({ onClose }: { onClose: () => void }) {

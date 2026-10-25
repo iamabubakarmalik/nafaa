@@ -61,6 +61,7 @@ export function Panel({ open, onClose, align = 'right', widthClass = 'sm:w-[360p
 
   return (
     <div
+      data-shell-panel
       role="dialog"
       aria-label={label}
       className={cn(

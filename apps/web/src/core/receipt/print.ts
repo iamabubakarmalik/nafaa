@@ -13,6 +13,7 @@ import type { ReceiptDoc, ReceiptPaper, ReceiptSetup } from './types';
 export function printHtml(html: string): void {
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
+  frame.tabIndex = -1;
   frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
   document.body.appendChild(frame);
   const win = frame.contentWindow;
@@ -25,8 +26,12 @@ export function printHtml(html: string): void {
     const imgs = Array.from(win.document.images);
     Promise.all(imgs.map((i) => (i.complete ? null : new Promise((r) => { i.onload = r; i.onerror = r; }))))
       .then(() => {
+        // The frame takes focus for printing; give it back so keyboard work (the POS) carries on.
+        const back = document.activeElement as HTMLElement | null;
         win.focus();
         win.print();
+        window.focus();
+        if (back && back !== frame && back.isConnected) back.focus({ preventScroll: true });
         window.setTimeout(() => frame.remove(), 60_000);
       });
   };

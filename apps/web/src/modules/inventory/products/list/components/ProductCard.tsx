@@ -104,7 +104,7 @@ export function ProductCard({ item, config, extras, tagNames, money, cost, costH
   const ribbon = stockRibbon(item, extras);
   const marginPct = item.price > 0 && item.costPrice > 0 ? ((item.price - item.costPrice) / item.price) * 100 : null;
   return (
-    <article className={cn('group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-lg',
+    <article data-nav-row className={cn('group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-lg',
       selected ? 'ring-2 ring-brand-500' : 'ring-slate-200/80', !item.isActive && 'opacity-70')}>
       <Link to={config.paths.detail(item.id)} className="relative block aspect-[4/3] overflow-hidden bg-slate-100">
         <ProductThumb name={item.name} category={item.category?.name} url={item.image} size="full" className="transition duration-300 group-hover:scale-[1.03]" />
@@ -166,7 +166,7 @@ export function ProductRow({ item, config, extras, tagNames, money, cost, costHi
   const value = Math.max(0, item.stock) * item.costPrice;
   const ribbon = stockRibbon(item, extras);
   return (
-    <tr className={cn('group transition hover:bg-slate-50/80', selected && 'bg-brand-50/50', !item.isActive && 'opacity-70')}>
+    <tr data-nav-row className={cn('group transition hover:bg-slate-50/80', selected && 'bg-brand-50/50', !item.isActive && 'opacity-70')}>
       <td className="w-10 py-2.5 pl-4"><Select selected={selected} onToggle={onToggle} /></td>
       <td className="py-2.5 pr-3">
         <Link to={config.paths.detail(item.id)} className="flex min-w-0 items-center gap-3">

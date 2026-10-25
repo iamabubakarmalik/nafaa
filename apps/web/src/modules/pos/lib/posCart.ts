@@ -58,6 +58,8 @@ export interface PosCartLine {
 
   lineTotal: number;
   note?: string;
+  /** Note typed by the cashier for this line (printed and saved with the line). */
+  customNote?: string;
 
   comboItems?: any[];
   savings?: number;

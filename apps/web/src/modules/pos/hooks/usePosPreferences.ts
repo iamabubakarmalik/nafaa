@@ -75,7 +75,12 @@ export function usePosPreferences(scope: string, overrides: Partial<PosPreferenc
 
   const [hidePrices, setHidePrices] = useState(() => readBool(k('hide-prices'), defaults.hidePrices));
   const [autoClose, setAutoClose] = useState(() => readBool(k('auto-close-success'), defaults.autoClose));
-  const [autoPrint, setAutoPrint] = useState(() => readBool(k('auto-print'), defaults.autoPrint));
+  // Null until this counter picks for itself; the shop default applies until then.
+  const [autoPrintOwn, setAutoPrintOwn] = useState<boolean | null>(() => {
+    try { const raw = localStorage.getItem(k('auto-print')); return raw === null ? null : raw === 'true'; } catch { return null; }
+  });
+  const autoPrint = autoPrintOwn ?? defaults.autoPrint;
+  const setAutoPrint = useCallback((v: boolean) => { setAutoPrintOwn(v); write(k('auto-print'), v); }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
   const [printerWidth, setPrinterWidth] = useState<PrinterWidth>(
     () => readStr<PrinterWidth>(k('printer-width'), defaults.printerWidth),
   );
@@ -85,7 +90,6 @@ export function usePosPreferences(scope: string, overrides: Partial<PosPreferenc
 
   useEffect(() => { write(k('hide-prices'), hidePrices); }, [hidePrices, scope]);
   useEffect(() => { write(k('auto-close-success'), autoClose); }, [autoClose, scope]);
-  useEffect(() => { write(k('auto-print'), autoPrint); }, [autoPrint, scope]);
   useEffect(() => { write(k('printer-width'), printerWidth); }, [printerWidth, scope]);
   useEffect(() => { write(k('view-mode'), viewMode); }, [viewMode, scope]);
 
@@ -94,7 +98,7 @@ export function usePosPreferences(scope: string, overrides: Partial<PosPreferenc
   return {
     hidePrices, setHidePrices, toggleHidePrices,
     autoClose, setAutoClose,
-    autoPrint, setAutoPrint,
+    autoPrint, autoPrintOwn, setAutoPrint,
     printerWidth, setPrinterWidth,
     viewMode, setViewMode,
   };

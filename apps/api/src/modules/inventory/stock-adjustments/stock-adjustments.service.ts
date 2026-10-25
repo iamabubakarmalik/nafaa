@@ -178,7 +178,7 @@ export class StockAdjustmentsService {
         if (Math.abs(diff) < 0.0001) continue;
         const a = await this.plainLine(tx, user, shopId, {
           productId: it.productId, variantId: it.variantId ?? null, type: diff > 0 ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT', baseQty: Math.abs(diff),
-          reason: 'Stock ginti', note: dto.note ? `Gina ${it.counted}, system ${system} · ${dto.note}` : `Gina ${it.counted}, system ${system}`,
+          reason: dto.reason?.trim() || 'Stock ginti', note: dto.note ? `Gina ${it.counted}, system ${system} · ${dto.note}` : `Gina ${it.counted}, system ${system}`,
           ref: groupRef, groupRef, allowNegative: true, systemQty: system, countedQty: it.counted,
         });
         lines++;

@@ -4,7 +4,8 @@ import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interfac
 import { UpdateReceiptConfigDto } from '../dto/update-receipt-config.dto';
 import { UpdateReportsConfigDto } from '../dto/update-reports-config.dto';
 import { UpdateSettingsDto } from '../dto/update-settings.dto';
-import { DEFAULT_SETTINGS } from '../constants/settings.constants';
+import { UpdatePosCounterDto } from '../dto/update-pos-counter.dto';
+import { DEFAULT_SETTINGS, normalizePosCounter } from '../constants/settings.constants';
 import { TenantTimezoneService } from '../../../../common/helpers/tenant-timezone.service';
 import {
   forgetReportsConfig, hiddenFiguresFor, isOwnerRole, normalizeReportsConfig, readReportsConfig,
@@ -94,12 +95,32 @@ export class SettingsCoreService {
         requirePinForVoid: true, requirePinForDiscount: true, requirePinForRefund: true, managerPin: true,
         enableLoyalty: true, loyaltyPointsPerRupee: true, loyaltyRedemptionRate: true,
         loyaltyMinRedeem: true, loyaltyMaxRedeemPercent: true,
-        serviceChargePct: true, exchangeDays: true,
+        serviceChargePct: true, exchangeDays: true, receiptConfig: true,
       },
     });
     if (!s) return null;
-    const { managerPin, ...rules } = s;
-    return { ...rules, hasManagerPin: !!managerPin };
+    const { managerPin, receiptConfig, ...rules } = s;
+    return { ...rules, hasManagerPin: !!managerPin, posCounter: normalizePosCounter((receiptConfig as Record<string, unknown> | null)?.posCounter) };
+  }
+
+  /** The POS counter screen setup (layout and parts shown), with defaults filled in. */
+  async getPosCounter(user: AuthenticatedUser) {
+    const s = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { receiptConfig: true } });
+    return normalizePosCounter((s?.receiptConfig as Record<string, unknown> | null)?.posCounter);
+  }
+
+  /** Saves part of the POS counter setup inside receiptConfig, leaving the receipt design as it is. */
+  async updatePosCounter(user: AuthenticatedUser, dto: UpdatePosCounterDto) {
+    const s = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { receiptConfig: true } });
+    const stored = (s?.receiptConfig && typeof s.receiptConfig === 'object' ? s.receiptConfig : {}) as Record<string, unknown>;
+    const posCounter = normalizePosCounter({ ...normalizePosCounter(stored.posCounter), ...JSON.parse(JSON.stringify(dto)) });
+    const receiptConfig = JSON.parse(JSON.stringify({ ...stored, posCounter }));
+    await this.prisma.tenantSettings.upsert({
+      where: { tenantId: user.tenantId },
+      create: { tenantId: user.tenantId, receiptConfig },
+      update: { receiptConfig },
+    });
+    return posCounter;
   }
 
   /** Partial update — updates ONLY provided fields, syncs to Tenant model too */
@@ -201,6 +222,10 @@ export class SettingsCoreService {
   async updateReceiptConfig(user: AuthenticatedUser, dto: UpdateReceiptConfigDto) {
     // Plain JSON (class instances from validation are not JSON values for Prisma).
     const next = JSON.parse(JSON.stringify({ ...(await this.getReceiptConfig(user)), ...dto })) as Record<string, any>;
+    // The POS counter setup shares this JSON field; keep it.
+    const prev = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { receiptConfig: true } });
+    const posCounter = (prev?.receiptConfig as Record<string, unknown> | null)?.posCounter;
+    if (posCounter !== undefined) next.posCounter = posCounter;
     const mirror = {
       receiptSize: next.paper === '58' ? 'THERMAL_58MM' : next.paper === 'A4' ? 'A4_BASIC' : 'THERMAL_80MM',
       receiptHeader: next.tagline || null,
@@ -216,7 +241,8 @@ export class SettingsCoreService {
       create: { tenantId: user.tenantId, receiptConfig: next, ...mirror },
       update: { receiptConfig: next, ...mirror },
     });
-    return next;
+    const { posCounter: _kept, ...design } = next;
+    return design;
   }
 
   /** Design plus shop details for printing; readable by every staff member. */

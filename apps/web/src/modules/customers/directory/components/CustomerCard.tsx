@@ -45,7 +45,7 @@ export function CustomerCard({ c, money, shop, selected, selecting, onToggle, ca
   const wa = waFor(c, shop);
   const limitPct = c.creditLimit > 0 ? Math.min(100, (Math.max(0, c.balance) / c.creditLimit) * 100) : null;
   return (
-    <article className={cn('group relative flex flex-col rounded-2xl bg-white p-4 shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-lg',
+    <article data-nav-row className={cn('group relative flex flex-col rounded-2xl bg-white p-4 shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-lg',
       selected ? 'ring-2 ring-brand-500' : c.overLimit ? 'ring-rose-200' : 'ring-slate-200/80', !c.isActive && 'opacity-70')}>
       <Select on={selected} onToggle={onToggle} className={cn('absolute right-3 top-3', !selecting && !selected && 'opacity-0 group-hover:opacity-100 focus:opacity-100')} />
       <Link to={`/customers/${c.id}`} className="flex items-center gap-3 pr-7">
@@ -96,7 +96,7 @@ export function CustomerCard({ c, money, shop, selected, selecting, onToggle, ca
 export function CustomerRow({ c, money, shop, selected, onToggle, canEdit }: Props) {
   const wa = waFor(c, shop);
   return (
-    <tr className={cn('group transition hover:bg-slate-50/80', selected && 'bg-brand-50/50', !c.isActive && 'opacity-70')}>
+    <tr data-nav-row className={cn('group transition hover:bg-slate-50/80', selected && 'bg-brand-50/50', !c.isActive && 'opacity-70')}>
       <td className="w-10 py-2.5 pl-4"><Select on={selected} onToggle={onToggle} /></td>
       <td className="py-2.5 pr-3">
         <Link to={`/customers/${c.id}`} className="flex min-w-0 items-center gap-3">

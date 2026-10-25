@@ -9,6 +9,7 @@ import { forwardRef, type ElementType, type ReactNode } from 'react';
 import { Search, X, type LucideIcon } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { Kbd } from './Kbd';
+import { onTabsKeyDown } from '../keyboard/useMenuKeys';
 
 /** Page container: same rhythm on every page; width follows Settings → Appearance → Page width. */
 export function PageShell({ children, className }: { children: ReactNode; className?: string }) {
@@ -79,7 +80,11 @@ export function FilterChip({ children, onRemove }: { children: ReactNode; onRemo
   );
 }
 
-/** The big search box of the filter bar; shows the "/" hint or a clear button. */
+/**
+ * The big search box of the filter bar; shows the "/" hint or a clear button.
+ * "/" focuses it from anywhere on the page, ↓ moves into the results, Esc
+ * clears it and a second Esc leaves it.
+ */
 export const SearchField = forwardRef<HTMLInputElement, {
   value: string; onChange: (v: string) => void; placeholder: string; label?: string;
   onEnter?: () => void; trailing?: ReactNode;
@@ -88,8 +93,16 @@ export const SearchField = forwardRef<HTMLInputElement, {
     <div className="flex min-w-0 flex-1 gap-2">
       <label className="group relative min-w-0 flex-1">
         <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-        <input ref={ref} value={value} onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && onEnter) onEnter(); }}
-          placeholder={placeholder} aria-label={label ?? placeholder}
+        <input ref={ref} value={value} onChange={(e) => onChange(e.target.value)} data-page-search
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onEnter) onEnter();
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              // First Esc clears (and does not close a surrounding dialog); the next one leaves the box.
+              if (value) { e.stopPropagation(); onChange(''); } else e.currentTarget.blur();
+            }
+          }}
+          placeholder={placeholder} aria-label={label ?? placeholder} aria-keyshortcuts="/"
           className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-16 text-[0.9375rem] outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-2 focus:ring-brand-500" />
         {value
           ? <button type="button" onClick={() => onChange('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
@@ -108,7 +121,7 @@ export function ViewTabs<T extends string>({ tabs, value, onChange, hint, right 
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div role="tablist" className="inline-flex flex-wrap gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80">
+      <div role="tablist" onKeyDown={onTabsKeyDown} className="inline-flex flex-wrap gap-1 rounded-2xl bg-white p-1 shadow-sm ring-1 ring-slate-200/80">
         {tabs.map(({ id, label, icon: Icon, count }) => (
           <button key={id} type="button" role="tab" aria-selected={value === id} onClick={() => onChange(id)}
             className={cn('inline-flex h-9 items-center gap-2 rounded-xl px-4 text-[0.875rem] font-semibold transition', value === id ? 'bg-slate-900 text-white shadow' : 'text-slate-600 hover:bg-slate-100')}>
