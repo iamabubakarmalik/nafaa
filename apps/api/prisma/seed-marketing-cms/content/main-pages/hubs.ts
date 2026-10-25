@@ -95,12 +95,36 @@ const productHub = page({
       ['message-circle', 'WhatsApp built in', 'Receipts and khata reminders go out on WhatsApp.'],
       ['lock', 'Counter rules', 'Manager PIN for refunds and big discounts, with every sensitive action logged.'],
     ]),
+    steps('Start in four steps', [
+      ['Sign up and pick your trade', 'The screens your trade needs switch on over the same core.'],
+      ['Add products', 'By hand, by scanning barcodes, or from Excel with a check before anything is saved.'],
+      ['Make the first bill', 'On the phone or computer you have; a printer and scanner are optional.'],
+      ['Add the rest when you need it', 'Khata, purchasing, staff, branches and online orders are already in the same account.'],
+    ]),
+    table('Which part of Nafaa does what', 'Each part has its own page with real screens. They all read and write the same data.', [
+      { key: 'job', label: 'The job it does', highlight: true },
+      { key: 'who', label: 'Used most by' },
+    ], [
+      ['[POS counter](/product/pos)', 'Bills with barcodes, quick keys, units, returns and split payments, online or offline', 'Cashiers'],
+      ['[Inventory](/product/inventory)', 'Products, units, stock counts, damage, low stock and the stock report', 'Stock staff'],
+      ['[Khata](/product/khata)', 'Udhaar per customer, credit limits, ageing and WhatsApp reminders', 'Owner and collection staff'],
+      ['[Purchasing](/product/purchasing)', 'Purchase orders, purchase bills, suppliers and what you owe them', 'Whoever buys stock'],
+      ['[Reports](/product/reports)', 'Day book, profit by product, P&L, staff, customers and audit', 'Owner and managers'],
+      ['[Staff](/product/staff)', 'Logins, permissions, attendance, payroll and commission', 'Owner'],
+      ['[Branches](/product/multi-shop)', 'Many shops on one account, with transfers and branch P&L', 'Head office'],
+      ['[Online orders](/product/online-store)', 'Website, Shopify, WooCommerce, Daraz and Foodpanda orders on one stock', 'The online team'],
+    ]),
+    prose(`## Why one account beats several apps
+
+Many businesses run billing in one app, udhaar in a notebook, stock in Excel and online orders in WhatsApp chats. Each one is fine on its own, and together they never agree. In Nafaa a sale is written once: the counter takes the payment, stock goes down in the unit sold, the khata moves if it was on credit, the cash register knows what is in the drawer, and the reports change at the same moment. When a branch, an online store or a new staff member is added, they join the same data instead of starting a new copy.
+
+That is also why the [AI assistant](/product/ai-assistant) can answer questions across the whole business: everything it reads lives in the same place. See [pricing](/pricing) for the plans, or [solutions](/solutions) for how different kinds of business put the parts together.`),
     callout('info', 'New: the [Nafaa AI assistant](/product/ai-assistant) answers questions about your own sales, stock and khata in plain English or Roman Urdu.', 'New'),
   ],
-  faqKeys: ['every-business', 'devices', 'offline', 'pricing'],
+  faqKeys: ['every-business', 'hub-product-one-price', 'devices', 'offline', 'pricing'],
   cta: { heading: 'Open your Nafaa account today', body: '7 din Free Trial on the device you already have. No card needed.' },
   sortOrder: 1,
-  evidence: ['apps/web/src/modules', 'apps/web/src/core/lib/offline/offlineSales.ts', 'apps/api/src/integrations/tax-authority/adapters.ts', 'apps/web/src/core/security/ManagerPin.tsx', 'apps/web/src/modules/ai-assistant/index.ts'],
+  evidence: ['apps/web/src/modules', 'apps/web/src/core/lib/offline/offlineSales.ts', 'apps/api/src/integrations/tax-authority/adapters.ts', 'apps/web/src/core/security/ManagerPin.tsx', 'apps/web/src/modules/ai-assistant/index.ts', 'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx', 'apps/web/src/modules/hr'],
 });
 
 // ─── /solutions ───
@@ -162,11 +186,22 @@ const solutionsHub = page({
       url: 'app.nafaa.pk/pos',
       layout: 'split-right',
     }),
+    steps('How to pick your setup', [
+      ['Start from how you sell', 'One counter, several branches, online, food service, trade on credit or production.'],
+      ['Open the matching solution', 'Each page shows the screens, the daily flow and how teams roll it out.'],
+      ['Try it on the free trial', 'Every solution runs on the same account, so nothing is locked in.'],
+      ['Add the next one later', 'A second branch or an online store joins the same data when you grow.'],
+    ]),
+    prose(`## Most businesses use more than one
+
+The solutions are not separate products. A restaurant with delivery also sells online; a wholesaler often has a retail counter at the front; a chain of shops may produce some of what it sells. Because every solution runs on one Nafaa account, you combine them instead of choosing one. A kiryana store can start as a [single shop](/solutions/single-shop), add a second branch as a [retail chain](/solutions/retail-chains), then open an [online store](/solutions/ecommerce), without moving a single record.
+
+If your business does not fit any of these, start from your trade on the [industries](/industries) page, or tell us how you work and our team will suggest the right setup. For anything the app does not cover, the [services](/services) team builds it.`),
   ],
-  faqKeys: ['every-business', 'sell-online', 'mp-branches-transfer', 'mp-enterprise-api'],
+  faqKeys: ['every-business', 'hub-solutions-combine', 'sell-online', 'mp-branches-transfer', 'mp-enterprise-api'],
   cta: { heading: 'Tell us how your business runs', body: 'We will suggest the right setup and show it on a call, or start the 7 din Free Trial now.', primary: { label: 'Book a demo', href: 'demo', trackAs: 'cta_demo' }, secondary: WHATSAPP },
   sortOrder: 2,
-  evidence: ['apps/web/src/modules/multi-branch', 'apps/api/src/integrations/core/integration.service.ts', 'apps/api/src/modules/b2b-wholesale', 'apps/web/src/modules/bookings', 'apps/api/src/integrations/public-api'],
+  evidence: ['apps/web/src/modules/organization/shops', 'apps/api/src/integrations/core/integration.service.ts', 'apps/api/src/modules/b2b-wholesale', 'apps/web/src/modules/bookings', 'apps/api/src/integrations/public-api'],
 });
 
 // ─── /services ───
@@ -212,9 +247,24 @@ const servicesHub = page({
       ['languages', 'English or Urdu', 'Calls, documents and training in the language your team prefers.'],
       ['shield-check', 'Security from day one', 'Roles, audit logs and encrypted secrets, as in Nafaa itself.'],
     ]),
+    table('Build services and setup services', 'Two kinds of work, one process. Every request starts with the same short form.', [
+      { key: 'build', label: 'Build services', highlight: true },
+      { key: 'setup', label: 'Setup services' },
+    ], [
+      ['What', '[Custom software](/services/custom-software), [websites](/services/websites), [e-commerce stores](/services/online-store-setup), [mobile apps](/services/mobile-apps)', '[Data migration](/services/data-migration), [FBR setup](/services/fbr-integration-setup), [hardware](/services/hardware), [training](/services/training)'],
+      ['For', 'Any business, with or without Nafaa', 'Businesses moving to or running on Nafaa'],
+      ['Where', 'Pakistan and worldwide', 'Pakistan'],
+      ['Quote', 'Fixed, in PKR or USD', 'Fixed, in PKR'],
+      ['Ends with', 'Launch, training and support', 'Your team running on Nafaa'],
+    ]),
+    prose(`## What every project includes
+
+Every project, large or small, gets the same basics: a written scope before work starts, one fixed price for that scope, working results at the end of each stage, and a handover to the people who will use what we built. Changes are welcome, and each one is quoted before it starts, so the price never moves without your say.
+
+We do not publish a price list, because the same name can cover very different projects. A short message with a rough idea is enough to get a real number. You do not need a service to use Nafaa itself: the app is self-serve with the [free trial](/pricing), and services are there when you want the work done for you.`),
     leadForm('Quote lein', 'Tell us what you want to build or set up. We reply with questions, a plan and a fixed price in PKR or USD, usually within one working day.', { form: 'quote', formType: 'SALES', subjectPrefix: 'Services' }),
   ],
-  faqKeys: ['mp-services-price', 'services-worldwide', 'mp-migration-what'],
+  faqKeys: ['mp-services-price', 'services-worldwide', 'hub-services-need', 'mp-migration-what'],
   cta: { heading: 'Have a project in mind?', body: 'A rough idea is enough to start. We will help shape it.', primary: QUOTE, secondary: WHATSAPP },
   sortOrder: 3,
   evidence: ['apps/web', 'apps/api', 'apps/mobile/package.json', 'apps/desktop/package.json', 'apps/api/src/integrations'],
@@ -282,11 +332,29 @@ const industriesHub = page({
       url: 'app.nafaa.pk/tables',
       layout: 'split-right',
     }),
+    table('What a few trades add on top of the core', 'Examples of the screens that switch on for a trade. Each trade page lists everything for that trade, with real screens.', [
+      { key: 'stock', label: 'Products and stock', highlight: true },
+      { key: 'service', label: 'Customers and service' },
+    ], [
+      ['[Pharmacy](/industries/pharmacy)', 'Expiring stock, salts and a controlled-medicine log', 'Prescriptions and doctors'],
+      ['[Mobile shop](/industries/mobile-shop)', 'IMEI stock and used phones', 'Repair tickets and instalment plans'],
+      ['[Restaurant](/industries/restaurant)', 'Recipes, add-ons and kitchen stations', 'Tables, kitchen tickets, riders and happy hours'],
+      ['[Garments](/industries/garments)', 'Size charts and collections', 'Tailoring, alterations, exchanges and layaway'],
+      ['[Jewellery](/industries/jewelry)', 'Metal rates and metal stock', 'Karigars, custom orders, repairs and exchanges'],
+      ['[Salon](/industries/salon)', 'Services, packages and memberships', 'Appointments, calendar, gift vouchers and commission'],
+      ['[Clinic](/industries/clinic)', 'Services and panels', 'Patients, queue, prescriptions and lab orders'],
+      ['[Bakery](/industries/bakery)', 'Raw materials, recipe costing and baking plans', 'Cake orders and bulk orders'],
+    ]),
+    prose(`## Why one core matters
+
+Trade software is often built from scratch for one kind of shop, so the khata, the reports and the counter behave differently in each. Nafaa does the opposite. The counter, stock, khata, cash register, staff and reports are the same for every trade and are improved for everyone at once; the trade screens sit on top. A pharmacy and a garments shop close their day with the same day book, and an owner with both kinds of shop reads them in one account.
+
+If you run more than one kind of business, or your trade is not listed, the [general retail](/industries/retail) setup covers any shop that sells products, and [services businesses](/industries/services-biz) covers jobs and appointments. Our team can also [build what is missing](/services/custom-software).`),
   ],
-  faqKeys: ['every-business', 'devices', 'kiryana-import'],
+  faqKeys: ['every-business', 'hub-industries-change', 'devices', 'kiryana-import'],
   cta: { heading: 'Do not see your trade?', body: 'The core works for any business that sells. Tell us how yours works and we will show you the right setup.', primary: { label: 'Start 7 din Free Trial', href: 'signup', trackAs: 'cta_signup' }, secondary: WHATSAPP },
   sortOrder: 4,
-  evidence: ['apps/web/src/modules', 'apps/api/prisma/seed-marketing-cms/content/industries'],
+  evidence: ['apps/web/src/modules', 'apps/web/src/industries/pharmacy/pages', 'apps/web/src/industries/mobile/pages', 'apps/web/src/industries/restaurant/pages', 'apps/web/src/industries/garments/pages', 'apps/web/src/industries/jewelry/pages', 'apps/web/src/industries/salon/pages', 'apps/web/src/industries/clinic/pages', 'apps/web/src/industries/bakery/pages', 'apps/api/prisma/seed-marketing-cms/content/industries'],
 });
 
 // ─── /integrations ───
@@ -370,11 +438,17 @@ const integrationsHub = page({
       layout: 'split-right',
     }),
     diagram('Your systems call the Nafaa API; Nafaa sends signed webhooks when sales, stock or orders change.', { kind: 'api-webhooks' }, 'Build your own connection', 'muted'),
+    steps('Connect a channel in four steps', [
+      ['Open Settings, then Integrations', 'Sales channels, Foodpanda, online payments, couriers, Google, accounting and the API each have their own page.'],
+      ['Connect', 'Approve in WordPress, install the Shopify app, or enter the keys your courier or wallet gives you.'],
+      ['Match products', 'Link the channel\'s products to yours once; new ones follow by themselves.'],
+      ['Watch it run', 'Each connection shows its status, the last sync and anything that needs attention.'],
+    ]),
     prose(`## Need a connection that is not listed?
 
 The [Nafaa developer API](/developers) covers products, stock, customers, sales and orders, with signed webhooks when something changes. If you would rather not build it yourself, our team can build the connection for you as a [custom software project](/services/custom-software) with one fixed quote.`),
   ],
-  faqKeys: ['sell-online', 'mp-online-channels', 'mp-enterprise-api', 'mp-ecommerce-cod'],
+  faqKeys: ['sell-online', 'mp-online-channels', 'hub-integrations-safe', 'mp-enterprise-api', 'mp-ecommerce-cod'],
   cta: { heading: 'Bring all your channels into one place', body: 'Start the 7 din Free Trial and connect your first channel today.', secondary: { label: 'Read the API docs', href: '/developers', trackAs: 'cta_docs' } },
   sortOrder: 5,
   evidence: [
@@ -442,7 +516,7 @@ const roadmapPage = page({
     { type: 'entryGrid', heading: 'Solutions', entryType: 'SOLUTION', filter: { status: ['beta', 'coming'] }, sort: 'order', limit: 60, layout: 'list' } as Block,
     { type: 'entryGrid', heading: 'Integrations', entryType: 'INTEGRATION', filter: { status: ['beta', 'coming'] }, sort: 'order', limit: 60, layout: 'list' } as Block,
   ],
-  faqKeys: ['every-business', 'devices'],
+  faqKeys: ['hub-roadmap-dates', 'every-business', 'devices'],
   cta: { heading: 'Need something that is not here?', body: 'Tell us how your business works today and what you need next.', primary: { label: 'Message us on WhatsApp', href: 'whatsapp', trackAs: 'cta_whatsapp' }, secondary: { label: 'Contact us', href: '/contact', trackAs: 'cta_contact' } },
   sortOrder: 6,
   evidence: ['apps/web/src/modules/ai-assistant/index.ts'],

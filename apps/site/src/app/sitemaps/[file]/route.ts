@@ -3,9 +3,9 @@
  * Only published, indexable, self-canonical entries (the API filters).
  */
 import { SITEMAP_SECTION_KEYS } from '@/lib/cms/contract/cms-contract';
-import { getLayout, getSitemap } from '@/lib/cms/client';
+import { getLayout, getPairedPaths, getSitemap } from '@/lib/cms/client';
 import { DEFAULT_LOCALE } from '@/lib/cms/locale';
-import { XML_HEADERS, parseSitemapFileName, renderUrlset, sitemapFileName } from '@/lib/seo/sitemap';
+import { XML_HEADERS, parseSitemapFileName, renderUrlset, sitemapFileName, withAlternates } from '@/lib/seo/sitemap';
 
 export const revalidate = 86400;
 export const dynamicParams = true;
@@ -21,8 +21,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ fil
     const { site } = await getLayout(DEFAULT_LOCALE);
     if (!site.locales.includes(parsed.locale)) return notFoundResponse();
   }
-  const { items } = await getSitemap(parsed.section, parsed.locale);
-  return new Response(renderUrlset(items), { headers: XML_HEADERS });
+  const [{ items }, paired] = await Promise.all([getSitemap(parsed.section, parsed.locale), getPairedPaths()]);
+  return new Response(renderUrlset(withAlternates(items, parsed.locale, paired)), { headers: XML_HEADERS });
 }
 
 function notFoundResponse() {

@@ -4,10 +4,11 @@
  * through --accent (RGB channels, the only inline style the site allows).
  */
 import { cx } from '@/components/ui/cx';
-import { ENTRY_TYPE_META, type EntryCard } from '@/lib/cms/contract/cms-contract';
+import type { EntryCard } from '@/lib/cms/contract/cms-contract';
 import { CmsIcon } from '@/lib/icons';
 import { CmsImage } from '@/lib/media';
 import { hexToChannels } from '../lib/format';
+import { typeLabel } from '../lib/i18n';
 import { FeatureBadge } from './FeatureBadge';
 import { SmartLink } from './SmartLink';
 import styles from '../blocks.module.css';
@@ -53,13 +54,13 @@ export function EntryCardItem({ card, locale, showType = false, headingAs: H = '
               <CmsIcon name={card.icon} size={20} />
             </span>
           ) : showType ? (
-            <span className="text-eyebrow uppercase text-fg-subtle">{ENTRY_TYPE_META[card.type].label}</span>
+            <span className="text-eyebrow uppercase text-fg-subtle">{typeLabel(card.type, locale)}</span>
           ) : (
             <span />
           )}
           <FeatureBadge status={card.status} locale={locale} />
         </span>
-        {card.icon && showType ? <span className="mt-5 text-eyebrow uppercase text-fg-subtle">{ENTRY_TYPE_META[card.type].label}</span> : null}
+        {card.icon && showType ? <span className="mt-5 text-eyebrow uppercase text-fg-subtle">{typeLabel(card.type, locale)}</span> : null}
         <H className={cx('text-h4 text-fg-strong', card.icon && !showType ? 'mt-5' : 'mt-2')}>{card.shortName || card.title}</H>
         {card.summary ? <span className="mt-2 line-clamp-3 text-small text-fg-muted">{card.summary}</span> : null}
         <span className="mt-auto flex justify-end pt-5 text-link">

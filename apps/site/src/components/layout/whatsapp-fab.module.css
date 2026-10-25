@@ -42,7 +42,7 @@
 .fab:hover,
 .fab:focus-visible {
   gap: 0.7rem;
-  padding-right: 1.1rem;
+  padding-inline-end: 1.1rem;
   border-color: rgb(var(--brand-500) / 0.45);
 }
 

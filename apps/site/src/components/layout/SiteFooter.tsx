@@ -9,8 +9,12 @@
  * - WhatsApp from settings `site.whatsapp`, demo and sign-up links from `site`.
  *
  * Also holds the newsletter form (NewsletterForm island, existing public
- * endpoint), the language switch (English now; Urdu shows as coming until
- * settings `site.locales` lists it) and the theme choice (System/Light/Dark).
+ * endpoint), the language switch (LanguageSwitch: the same page in the
+ * other language, or Urdu as "coming soon" until settings `site.locales`
+ * lists it) and the theme choice (System/Light/Dark).
+ *
+ * `locale` picks the interface words (lib/i18n/shell); the Urdu layout
+ * passes menus already translated and moved under /ur.
  */
 import Link from 'next/link';
 import type { PublicEntity } from '@/lib/cms/contract/cms-contract';
@@ -19,6 +23,8 @@ import { LOGO_WORDMARK } from '@/lib/brand/logo';
 import { CookieSettingsButton } from '@/components/islands/ConsentBanner';
 import { cx } from '@/components/ui/cx';
 import { CmsIcon } from '@/lib/icons';
+import { shellStrings, type SiteLocale } from '@/lib/i18n/shell';
+import { LanguageSwitch } from './LanguageSwitch';
 import { NavLink, StatusBadge } from './NavLink';
 import { NewsletterForm } from './NewsletterForm';
 import { Logo } from './SiteHeader';
@@ -48,37 +54,20 @@ function WhatsAppGlyph({ size = 18 }: { size?: number }) {
   );
 }
 
-function LanguageSwitch({ locales }: { locales: readonly string[] }) {
-  const urdu = locales.includes('ur');
-  return (
-    <div role="group" aria-label="Language" className="inline-flex items-center rounded-md border border-line p-0.5 text-xs">
-      <span aria-current="true" className="inline-flex h-7 items-center gap-1.5 rounded bg-surface-3 px-2 font-medium text-fg-strong">
-        <CmsIcon name="languages" size={14} />
-        English
-      </span>
-      {urdu ? (
-        <Link href="/ur" hrefLang="ur" lang="ur" className="inline-flex h-7 items-center rounded px-2 text-fg-subtle hover:text-fg-strong">
-          اردو
-        </Link>
-      ) : (
-        <span className="inline-flex h-7 items-center gap-1.5 px-2 text-fg-subtle" title="Urdu: jald aa raha hai">
-          <span lang="ur" dir="rtl">اردو</span>
-          <span className="rounded-full bg-amber-500/15 px-1.5 text-[10px] font-semibold leading-4 text-amber-700 ink:text-amber-300">Soon</span>
-        </span>
-      )}
-    </div>
-  );
-}
-
 export function SiteFooter({
   layout,
   entity,
   consentEnabled,
+  locale = 'en',
+  paired,
 }: {
   layout: SiteLayout;
   entity: PublicEntity | null;
   consentEnabled: boolean;
+  locale?: SiteLocale;
+  paired: readonly string[];
 }) {
+  const t = shellStrings(locale);
   const { site, menus } = layout;
   const columns = menus.footer as NavItem[];
   const legal = menus.legal as NavItem[];
@@ -95,8 +84,8 @@ export function SiteFooter({
         <div className="grid gap-8 rounded-2xl border border-line bg-surface p-6 shadow-e1 ink:shadow-none md:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-16">
           <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] md:items-center md:gap-8">
             <div>
-              <p className="text-h4 text-fg-strong">Guides and product news for growing businesses</p>
-              <p className="mt-1 text-small text-fg-muted">Practical tips on stock, khata, tax and selling online. Unsubscribe any time.</p>
+              <p className="text-h4 text-fg-strong">{t.newsletterTitle}</p>
+              <p className="mt-1 text-small text-fg-muted">{t.newsletterBody}</p>
             </div>
             <NewsletterForm />
           </div>
@@ -110,7 +99,7 @@ export function SiteFooter({
                 className="inline-flex h-11 items-center gap-2 rounded-lg bg-[rgb(37_211_102)] px-4 text-small font-semibold text-emerald-950 transition-[filter] hover:brightness-95"
               >
                 <WhatsAppGlyph />
-                WhatsApp us
+                {t.whatsappUs}
               </a>
             ) : null}
             <Link
@@ -121,15 +110,15 @@ export function SiteFooter({
               className="inline-flex h-11 items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 text-small font-semibold text-fg-strong hover:bg-surface-2"
             >
               <CmsIcon name="calendar-check" size={17} />
-              Book a demo
+              {t.bookDemo}
             </Link>
           </div>
         </div>
 
         <div className="mt-14 grid gap-12 xl:grid-cols-[17rem_minmax(0,1fr)] xl:gap-16">
           <div className="space-y-5">
-            <Logo name={site.name} />
-            {entity?.description ? <p className="max-w-sm text-small leading-relaxed text-fg-muted">{entity.description}</p> : null}
+            <Logo name={site.name} locale={locale} />
+            {t.about ?? entity?.description ? <p className="max-w-sm text-small leading-relaxed text-fg-muted">{t.about ?? entity?.description}</p> : null}
             <ul className="space-y-2.5">
               {whatsapp ? (
                 <li>
@@ -159,7 +148,7 @@ export function SiteFooter({
               ) : null}
             </ul>
             {social.length ? (
-              <ul className="flex flex-wrap gap-2" aria-label="Social profiles">
+              <ul className="flex flex-wrap gap-2" aria-label={t.socialProfiles}>
                 {social.map((s) => (
                   <li key={s.url}>
                     <a href={s.url} rel="noopener me" className="inline-flex h-8 items-center rounded-md border border-line px-2.5 text-xs font-medium text-fg-muted hover:border-line-strong hover:text-fg-strong">
@@ -172,7 +161,7 @@ export function SiteFooter({
           </div>
 
           {columns.length ? (
-            <nav aria-label="Footer" className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+            <nav aria-label={t.footerNav} className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
               {columns.map((column) => {
                 const links = children(column);
                 return (
@@ -183,7 +172,7 @@ export function SiteFooter({
                         <li key={link.id}>
                           <NavLink item={link} className={cx(linkClass, 'inline-flex flex-wrap items-center gap-y-1')}>
                             {link.label}
-                            <StatusBadge item={link} />
+                            <StatusBadge item={link} locale={locale} />
                           </NavLink>
                         </li>
                       ))}
@@ -206,7 +195,7 @@ export function SiteFooter({
             {consentEnabled ? <CookieSettingsButton className={linkClass} /> : null}
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <LanguageSwitch locales={site.locales} />
+            <LanguageSwitch paired={paired} />
             <ThemeChoice />
           </div>
         </div>

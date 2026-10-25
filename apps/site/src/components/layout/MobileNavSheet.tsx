@@ -12,7 +12,9 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { cx } from '@/components/ui/cx';
+import { shellStrings } from '@/lib/i18n/shell';
 import { ChevronDownGlyph, CloseGlyph } from './glyphs';
+import { useSiteLocale } from './LocaleGate';
 import { NavLink, StatusBadge } from './NavLink';
 import { ThemeChoice } from './ThemeToggle';
 import { children, hasHref, itemDescription, overviewLabel, type NavItem } from './nav';
@@ -24,20 +26,20 @@ export interface HeaderCta {
   track?: string;
 }
 
-function withOverview(item: NavItem): NavItem[] {
+function withOverview(item: NavItem, locale: string): NavItem[] {
   const kids = children(item);
   if (!hasHref(item)) return kids;
-  return [{ ...item, id: `${item.id}-overview`, label: overviewLabel(item.label), description: undefined, children: undefined }, ...kids];
+  return [{ ...item, id: `${item.id}-overview`, label: overviewLabel(item.label, locale), description: undefined, children: undefined }, ...kids];
 }
 
-function SubLink({ item, close }: { item: NavItem; close: () => void }) {
+function SubLink({ item, close, locale }: { item: NavItem; close: () => void; locale: string }) {
   const description = itemDescription(item);
   return (
     <NavLink item={item} onNavigate={close} className="flex min-h-11 items-start gap-3 rounded-lg px-2 py-2 hover:bg-surface-2">
       <span className="min-w-0">
         <span className="flex items-center text-small font-medium text-fg-strong">
           {item.label}
-          <StatusBadge item={item} />
+          <StatusBadge item={item} locale={locale} />
         </span>
         {description ? <span className="mt-0.5 block text-xs leading-snug text-fg-subtle">{description}</span> : null}
       </span>
@@ -46,19 +48,19 @@ function SubLink({ item, close }: { item: NavItem; close: () => void }) {
 }
 
 /** The inside of an open top-level item: column groups become headed lists. */
-function Panel({ item, close }: { item: NavItem; close: () => void }) {
+function Panel({ item, close, locale }: { item: NavItem; close: () => void; locale: string }) {
   return (
     <div className="mb-3 mt-1 space-y-4 rounded-xl border border-line bg-surface-2/60 p-2">
-      {withOverview(item).map((kid) => {
+      {withOverview(item, locale).map((kid) => {
         const links = children(kid);
-        if (!links.length) return <SubLink key={kid.id} item={kid} close={close} />;
+        if (!links.length) return <SubLink key={kid.id} item={kid} close={close} locale={locale} />;
         return (
           <div key={kid.id}>
             <p className="px-2 pb-1 pt-2 text-eyebrow uppercase text-fg-subtle">{kid.label}</p>
             <ul className="grid gap-0.5 sm:grid-cols-2">
               {links.map((link) => (
                 <li key={link.id}>
-                  <SubLink item={link} close={close} />
+                  <SubLink item={link} close={close} locale={locale} />
                 </li>
               ))}
             </ul>
@@ -69,7 +71,7 @@ function Panel({ item, close }: { item: NavItem; close: () => void }) {
   );
 }
 
-function Items({ items, close }: { items: NavItem[]; close: () => void }) {
+function Items({ items, close, locale }: { items: NavItem[]; close: () => void; locale: string }) {
   return (
     <ul className="divide-y divide-line">
       {items.map((item) => {
@@ -78,7 +80,7 @@ function Items({ items, close }: { items: NavItem[]; close: () => void }) {
             <li key={item.id}>
               <NavLink item={item} onNavigate={close} className="flex min-h-14 items-center px-1 text-body font-semibold text-fg-strong">
                 {item.label}
-                <StatusBadge item={item} />
+                <StatusBadge item={item} locale={locale} />
               </NavLink>
             </li>
           );
@@ -90,7 +92,7 @@ function Items({ items, close }: { items: NavItem[]; close: () => void }) {
                 {item.label}
                 <ChevronDownGlyph size={18} className="text-fg-subtle transition-transform duration-base group-open/d:rotate-180" />
               </summary>
-              <Panel item={item} close={close} />
+              <Panel item={item} close={close} locale={locale} />
             </details>
           </li>
         );
@@ -117,6 +119,8 @@ export default function MobileNavSheet({
   onClose: () => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const locale = useSiteLocale();
+  const t = shellStrings(locale);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -138,24 +142,24 @@ export default function MobileNavSheet({
       id={id}
       role="dialog"
       aria-modal="true"
-      aria-label="Menu"
+      aria-label={t.menu}
       className="fixed inset-0 z-[55] flex flex-col bg-canvas"
       data-track-area="mobile-nav"
     >
       <div className="flex h-[var(--header-h)] shrink-0 items-center justify-between border-b border-line px-gutter">
-        <span className="text-h4 text-fg-strong">Menu</span>
+        <span className="text-h4 text-fg-strong">{t.menu}</span>
         <button
           ref={closeRef}
           type="button"
           onClick={onClose}
           className="inline-flex size-10 items-center justify-center rounded-md text-fg-strong hover:bg-surface-3"
         >
-          <span className="sr-only">Close menu</span>
+          <span className="sr-only">{t.closeMenu}</span>
           <CloseGlyph size={22} />
         </button>
       </div>
-      <nav aria-label="Main" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter py-4">
-        <Items items={items} close={onClose} />
+      <nav aria-label={t.mainNav} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-gutter py-4">
+        <Items items={items} close={onClose} locale={locale} />
       </nav>
       <div className="shrink-0 space-y-3 border-t border-line px-gutter py-4">
         <div className="grid gap-2">

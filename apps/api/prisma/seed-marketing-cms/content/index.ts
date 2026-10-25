@@ -38,15 +38,17 @@ import i_sports from './industries/sports';
 import i_toystore from './industries/toystore';
 import { cities } from './cities';
 import { glossary } from './glossary';
+import { changelogEntries } from './changelog';
 import { compare } from './compare';
 import { blogCategories, blogPosts } from './blog';
 import { mainPageEntries, mainPageFaqs } from './main-pages';
 import { pageEntries } from './pages';
 import { faqs as libraryFaqs } from './faqs';
 import { exportedEntries } from './exported';
+import { urEntries, urFaqs } from './ur';
 
 /** Shared FAQ library plus the main pages' own FAQs. */
-export const faqs = [...libraryFaqs, ...mainPageFaqs];
+export const faqs = [...libraryFaqs, ...mainPageFaqs, ...urFaqs];
 export { settings } from './settings';
 export { menus } from './menus';
 export { redirects, redirectsNeedingOwner } from './redirects';
@@ -90,4 +92,4 @@ const industries: SeedEntry[] = [
  * Entries in apply order: categories before posts, so TAG relations resolve on
  * the same run. Exported admin entries (developer docs) come last, parents first.
  */
-export const entries: SeedEntry[] = [...industries, ...cities, ...glossary, ...compare, ...blogCategories, ...blogPosts, ...mainPageEntries, ...pageEntries, ...exportedEntries];
+export const entries: SeedEntry[] = [...industries, ...cities, ...glossary, ...compare, ...blogCategories, ...blogPosts, ...mainPageEntries, ...changelogEntries, ...pageEntries, ...exportedEntries, ...urEntries];

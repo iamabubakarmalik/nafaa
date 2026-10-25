@@ -11,7 +11,9 @@
 import { useEffect, useState } from 'react';
 import { track } from '@/lib/analytics/track';
 import { cx } from '@/components/ui/cx';
+import { shellStrings } from '@/lib/i18n/shell';
 import { MonitorGlyph, MoonGlyph, SunGlyph } from './glyphs';
+import { useSiteLocale } from './LocaleGate';
 
 type ThemePref = 'system' | 'light' | 'dark';
 
@@ -31,6 +33,7 @@ function setPref(pref: ThemePref) {
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
+  const t = shellStrings(useSiteLocale());
   return (
     <button
       type="button"
@@ -40,21 +43,22 @@ export function ThemeToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className="sr-only">Switch light or dark theme</span>
+      <span className="sr-only">{t.themeSwitch}</span>
       <MoonGlyph size={18} className="theme-icon-light" />
       <SunGlyph size={18} className="theme-icon-dark" />
     </button>
   );
 }
 
-const OPTIONS: { value: ThemePref; label: string; icon: typeof SunGlyph }[] = [
-  { value: 'system', label: 'System', icon: MonitorGlyph },
-  { value: 'light', label: 'Light', icon: SunGlyph },
-  { value: 'dark', label: 'Dark', icon: MoonGlyph },
+const OPTIONS: { value: ThemePref; label: 'themeSystem' | 'themeLight' | 'themeDark'; icon: typeof SunGlyph }[] = [
+  { value: 'system', label: 'themeSystem', icon: MonitorGlyph },
+  { value: 'light', label: 'themeLight', icon: SunGlyph },
+  { value: 'dark', label: 'themeDark', icon: MoonGlyph },
 ];
 
 export function ThemeChoice() {
   const [pref, setState] = useState<ThemePref>('system');
+  const t = shellStrings(useSiteLocale());
 
   useEffect(() => {
     const sync = () => setState(api()?.get() ?? 'system');
@@ -64,7 +68,7 @@ export function ThemeChoice() {
   }, []);
 
   return (
-    <div role="radiogroup" aria-label="Theme" className="inline-flex rounded-md border border-line p-0.5">
+    <div role="radiogroup" aria-label={t.theme} className="inline-flex rounded-md border border-line p-0.5">
       {OPTIONS.map(({ value, label, icon: Glyph }) => (
         <button
           key={value}
@@ -78,7 +82,7 @@ export function ThemeChoice() {
           )}
         >
           <Glyph size={14} />
-          {label}
+          {t[label]}
         </button>
       ))}
     </div>

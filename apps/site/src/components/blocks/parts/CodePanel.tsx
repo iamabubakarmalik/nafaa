@@ -60,7 +60,7 @@ export function CodePanel({
   const first = tabs[0];
   if (!first) return null;
   return (
-    <div className={styles.code} data-code-root="">
+    <div dir="ltr" className={styles.code} data-code-root="">
       <div className={styles.codeBar}>
         {many ? (
           <div role="radiogroup" aria-label={label} className={styles.codeTabs}>

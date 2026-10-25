@@ -55,11 +55,11 @@ export function ComparisonTable({ block, ctx }: BlockProps<'comparisonTable'>) {
         className="mt-8 overflow-x-auto rounded-xl border border-line bg-surface shadow-e1 ink:shadow-none"
         {...reveal(ctx.index)}
       >
-        <table className={cx(styles.compare, 'w-full border-collapse text-left text-small', MIN_WIDTH[Math.min(valueCols.length, 4)] ?? 'min-w-[42rem]')}>
+        <table className={cx(styles.compare, 'w-full border-collapse text-start text-small', MIN_WIDTH[Math.min(valueCols.length, 4)] ?? 'min-w-[42rem]')}>
           <caption className="sr-only">{block.caption}</caption>
           <thead>
             <tr>
-              <th scope="col" className="sticky left-0 z-[1] w-[9.5rem] border-b sm:w-[34%] border-line bg-surface-2 px-5 py-4 font-semibold text-fg-strong">
+              <th scope="col" className="sticky start-0 z-[1] w-[9.5rem] border-b sm:w-[34%] border-line bg-surface-2 px-5 py-4 font-semibold text-fg-strong">
                 <span className="sr-only">{t.compareRow}</span>
               </th>
               {valueCols.map((col) => (

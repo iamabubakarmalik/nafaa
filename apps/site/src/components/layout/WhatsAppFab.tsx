@@ -9,9 +9,19 @@
  */
 import { LOGO_BOWL, LOGO_DOT } from '@/lib/brand/logo';
 import { whatsappHref } from '@/components/blocks/lib/links';
+import { shellStrings } from '@/lib/i18n/shell';
 import styles from './whatsapp-fab.module.css';
 
-export function WhatsAppFab({ whatsapp, phone }: { whatsapp?: { number: string; message: string } | null; phone?: string | null }) {
+export function WhatsAppFab({
+  whatsapp,
+  phone,
+  locale,
+}: {
+  whatsapp?: { number: string; message: string } | null;
+  phone?: string | null;
+  locale?: string;
+}) {
+  const t = shellStrings(locale);
   const digits = phone?.replace(/\D/g, '') ?? '';
   const href = whatsappHref(whatsapp) ?? (digits.length >= 8 ? `https://wa.me/${digits.replace(/^0/, '92')}` : null);
   if (!href) return null;
@@ -23,7 +33,7 @@ export function WhatsAppFab({ whatsapp, phone }: { whatsapp?: { number: string; 
         className={styles.fab}
         data-track="whatsapp_click"
         data-track-label="Floating WhatsApp button"
-        aria-label="Chat with Nafaa on WhatsApp"
+        aria-label={t.whatsappFabLabel}
       >
         <span aria-hidden className={styles.mark}>
           <svg viewBox="112 112 288 288" className={styles.noon}>
@@ -41,8 +51,8 @@ export function WhatsAppFab({ whatsapp, phone }: { whatsapp?: { number: string; 
           <span className={styles.online} />
         </span>
         <span className={styles.label}>
-          <span className={styles.labelTitle}>Chat on WhatsApp</span>
-          <span className={styles.labelNote}>English ya Roman Urdu me</span>
+          <span className={styles.labelTitle}>{t.whatsappFabTitle}</span>
+          <span className={styles.labelNote}>{t.whatsappFabNote}</span>
         </span>
       </a>
       <span aria-hidden className={styles.spacer} />

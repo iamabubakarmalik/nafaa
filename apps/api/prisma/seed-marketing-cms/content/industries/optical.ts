@@ -1,7 +1,8 @@
-/** Industry: Optical & Eyewear (/industries/optical). Imported from apps/marketing and checked against the app. */
+/** Industry: Optical & Eyewear (/industries/optical). Imported from apps/marketing and checked against the optical pack. */
+import { SHOT, pricing, prose, shot, steps, table } from '../main-pages/_build';
 import { industry } from './_industry';
 
-export default industry({
+const entry = industry({
   slug: "optical",
   title: "Optical & Eyewear",
   shortName: "Optical",
@@ -20,14 +21,109 @@ export default industry({
   romanUrdu:
     "Chashmon ki dukaan ke liye: eye test aur nuskha, advance ke saath chashma order, lab aur pickup, repair, aur frames aur lenses ka stock.",
   features: [
-    { icon: "eye", title: "Eye tests", body: "Record eye tests." },
-    { icon: "file-text", title: "Prescriptions", body: "SPH, CYL, axis, ADD and PD." },
-    { icon: "glasses", title: "Glasses orders", body: "Orders with an advance, through the lab to pickup." },
-    { icon: "wrench", title: "Repairs", body: "Take in and return repairs." },
-    { icon: "users", title: "Optometrists", body: "Tests by optometrist." },
+    { icon: "calendar-check", title: "Eye test bookings", body: "Book a test with a doctor in a free slot, take the fee, and see today's queue, follow-ups and no-shows." },
+    { icon: "file-text", title: "Prescriptions (nuskha)", body: "Power for both eyes with SPH, CYL, axis, ADD and PD, fitting height and contact lens fit, checked the way a lab reads it." },
+    { icon: "glasses", title: "Glasses orders", body: "Nuskha, frame from stock or the customer's own, lens type, index and coating, lab, pickup date and the advance." },
+    { icon: "flag", title: "Lab tracking", body: "Send to lab, back from lab, ready, handed over; labs compared on turnaround and late orders." },
+    { icon: "printer", title: "Three printed slips", body: "The customer's nuskha, the order slip given with the advance, and a lab slip with power and lens but no prices." },
+    { icon: "wrench", title: "Repairs", body: "The customer's frame, what is wrong, the charge and the date, on the same order desk." },
+    { icon: "bell", title: "Expiring prescriptions", body: "A call-back list of prescriptions close to their end, with a WhatsApp link to invite the customer for a new test." },
+    { icon: "user-cog", title: "Optometrists", body: "Each doctor's days, hours and fee, with tests done and fees billed per doctor." },
+    { icon: "boxes", title: "Frames and contact lenses", body: "Frames by brand, model, colour and size; contact lenses and solutions in batches, earliest expiry sold first." },
   ],
-  faqKeys: ["offline","pricing"],
-  evidence: ["apps/web/src/industries/optical/OpticalPack.tsx"],
-  dropped: [
+  faqKeys: ["devices", "offline", "khata-reminders", "pricing"],
+  evidence: [
+    "apps/web/src/industries/optical/OpticalPack.tsx",
+    "apps/web/src/industries/optical/pages/EyeTestsPage.tsx",
+    "apps/web/src/industries/optical/pages/EyeTestDetailPage.tsx",
+    "apps/web/src/industries/optical/pages/PrescriptionFormPage.tsx",
+    "apps/web/src/industries/optical/pages/PrescriptionsPage.tsx",
+    "apps/web/src/industries/optical/pages/LensOrderFormPage.tsx",
+    "apps/web/src/industries/optical/pages/LensOrdersPage.tsx",
+    "apps/web/src/industries/optical/components/OrderModals.tsx",
+    "apps/web/src/industries/optical/lib/print.ts",
+    "apps/web/src/industries/optical/pages/OptometristsPage.tsx",
+    "apps/web/src/industries/optical/pos/config.ts",
+    "apps/web/src/industries/optical/pos/CustomerOptical.tsx",
+    "apps/web/src/industries/optical/pages/OpticalProductWizardPage.tsx",
   ],
+  dropped: [],
+  heroOverride: {
+    heading: "Eye tests, prescriptions and glasses orders in one app",
+    sub: "Book eye tests with your optometrist, save every customer's nuskha, send glasses to the lab with a slip that shows no prices, and hand them over with the bill when the advance is already counted.",
+    badges: ["Nuskha with SPH, CYL, axis", "Lab tracking", "Advance on orders"],
+    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+  },
+  deepBlocks: [
+    steps("From eye test to new glasses", [
+      ["Eye test", "Book the customer with the doctor in a free slot. Write the result for both eyes and issue the nuskha in one step."],
+      ["Order", "Turn the new nuskha into a glasses order. Pick a frame from stock or note the customer's own, choose lens type, index and coating, and take the advance."],
+      ["Lab", "Print the lab slip with power and lens only, and mark the order sent. When it comes back, mark it ready and WhatsApp the customer."],
+      ["Hand-over", "At the counter, the customer's ready glasses show under their name. Take what is left; the bill is made at hand-over."],
+    ]),
+    shot({
+      heading: "Tests, lab orders and pickups on one dashboard",
+      body: "The optical dashboard adds today's eye tests, orders at the lab, overdue and ready glasses, expiring prescriptions and money still to collect to the day's sale, profit and cash.",
+      id: SHOT.dashboard,
+      url: "app.nafaa.pk/dashboard",
+      layout: "full",
+      caption: "The shared dashboard, shown with demo data; optical widgets sit on the same page.",
+      callouts: [
+        { x: 28, y: 27, label: "Today's sale and bills" },
+        { x: 24, y: 52, label: "Profit after cost and expenses" },
+        { x: 40, y: 72, label: "What needs you today" },
+      ],
+    }),
+    shot({
+      heading: "Frames and lenses, priced and counted",
+      body: "Frames show brand, model, colour and size on every card; stock lenses their index and coating; contact lenses their fit and nearest expiry. Price, cost and stock sit on each card, with the total stock value on top.",
+      id: SHOT.inventory,
+      url: "app.nafaa.pk/products",
+      layout: "split-right",
+      caption: "The shared products page, shown with demo data.",
+      callouts: [
+        { x: 26, y: 19, label: "Stock value at cost" },
+        { x: 30, y: 80, label: "Price, cost and margin per item" },
+      ],
+    }),
+    table("Card file and order book, or Nafaa?", "How the everyday jobs of an optical shop compare on paper and on Nafaa.", [
+      { key: "paper", label: "Card file and order book" },
+      { key: "nafaa", label: "Nafaa", highlight: true },
+    ], [
+      ["Old prescriptions", "Paper cards, hard to find, easy to misread", "Every nuskha saved per customer and printed clearly"],
+      ["Order at the lab", "A phone call to ask where it is", "Each order's step, with late orders listed by lab"],
+      ["Lab slip", "Copied by hand, sometimes with prices", "Printed with power and lens, no prices"],
+      ["The advance", "A receipt and a note in the book", "In today's drawer, counted against the final bill"],
+      ["Repeat customers", "Wait for them to come back", "Call-back list of prescriptions about to expire"],
+    ]),
+    prose(`## What to look for in optical shop software
+
+An optical shop is part clinic and part workshop. Money is taken in advance, the product is made outside by a lab, and the customer comes back days later. A mistake in a prescription or a lost order costs more than one sale. Before you choose software, check that it can:
+
+- **Store prescriptions properly.** SPH, CYL, axis, ADD and PD for both eyes, with who prescribed it and until when, printed so a lab cannot misread it.
+- **Run the eye-test desk.** Doctors' days and hours, free slots, fees and follow-ups, with tests turning into prescriptions in one step.
+- **Track orders through the lab.** Booked, at the lab, back, ready and handed over, with late orders and lab turnaround visible.
+- **Handle advances correctly.** The advance should count as money received the day it is taken, and the bill should be made only at hand-over.
+- **Keep frames and lenses apart.** Frames by brand, model, colour and size; contact lenses and solutions by batch and expiry.
+- **Bring customers back.** An expiring prescription is a natural reason to call the customer for a new test.
+
+Nafaa covers each of these on the counter computer or a phone, with the same khata and reports as every Nafaa business.`),
+    pricing("Plans for one shop or several"),
+  ],
+  writerNotes: "Screenshots are the shared dashboard and products page with demo data; no optical-specific screenshots exist yet.",
 });
+
+/** Internal links: the products optical shops use, the matching solution and related trades. */
+export default {
+  ...entry,
+  relations: [
+    { ref: 'PRODUCT:pos', kind: 'TAG' },
+    { ref: 'PRODUCT:inventory', kind: 'TAG' },
+    { ref: 'PRODUCT:khata', kind: 'TAG' },
+    { ref: 'PRODUCT:whatsapp-sms', kind: 'TAG' },
+    { ref: 'SOLUTION:single-shop', kind: 'TAG' },
+    { ref: 'INDUSTRY:clinic', kind: 'RELATED' },
+    { ref: 'INDUSTRY:pharmacy', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:batch-tracking', kind: 'RELATED' },
+  ],
+} satisfies typeof entry;

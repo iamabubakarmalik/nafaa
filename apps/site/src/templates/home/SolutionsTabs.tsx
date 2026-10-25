@@ -56,15 +56,19 @@ export function SolutionsTabs({ tabs, label, children }: { tabs: SolutionTab[]; 
 
   const onKey = (event: React.KeyboardEvent) => {
     const last = tabs.length - 1;
+    const forward = active === last ? 0 : active + 1;
+    const back = active === 0 ? last : active - 1;
+    // Right-to-left pages (Urdu): the arrow keys follow the visual order.
+    const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
     const next =
       event.key === 'ArrowRight'
-        ? active === last
-          ? 0
-          : active + 1
+        ? rtl
+          ? back
+          : forward
         : event.key === 'ArrowLeft'
-          ? active === 0
-            ? last
-            : active - 1
+          ? rtl
+            ? forward
+            : back
           : event.key === 'Home'
             ? 0
             : event.key === 'End'

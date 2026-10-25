@@ -19,7 +19,7 @@ export interface FrameProps {
 /** Browser window with traffic lights and an address bar. */
 export function BrowserFrame({ children, className, url = 'app.nafaa.pk' }: FrameProps & { url?: string }) {
   return (
-    <div className={cx(styles.browser, className)}>
+    <div dir="ltr" className={cx(styles.browser, className)}>
       <div className={styles.browserBar} aria-hidden="true">
         <span className={styles.lights}>
           <span />
@@ -43,7 +43,7 @@ export function BrowserFrame({ children, className, url = 'app.nafaa.pk' }: Fram
 /** Neutral Android phone: bezel, punch-hole camera, side keys. */
 export function PhoneFrame({ children, className }: FrameProps) {
   return (
-    <div className={cx(styles.phone, className)}>
+    <div dir="ltr" className={cx(styles.phone, className)}>
       <div className={styles.screen}>{children}</div>
     </div>
   );
@@ -52,7 +52,7 @@ export function PhoneFrame({ children, className }: FrameProps) {
 /** Tablet with an even bezel. */
 export function TabletFrame({ children, className }: FrameProps) {
   return (
-    <div className={cx(styles.tablet, className)}>
+    <div dir="ltr" className={cx(styles.tablet, className)}>
       <div className={styles.screen}>{children}</div>
     </div>
   );
@@ -61,7 +61,7 @@ export function TabletFrame({ children, className }: FrameProps) {
 /** Windows desktop app window: title bar with the Nafaa mark and window controls. */
 export function DesktopFrame({ children, className, title = 'Nafaa' }: FrameProps & { title?: string }) {
   return (
-    <div className={cx(styles.desktop, className)}>
+    <div dir="ltr" className={cx(styles.desktop, className)}>
       <div className={styles.titleBar} aria-hidden="true">
         <svg className={styles.appMark} viewBox="0 0 80 80">
           <rect x="4" y="4" width="72" height="72" rx="18" className={styles.appMarkBox} />
@@ -94,7 +94,7 @@ export function DesktopFrame({ children, className, title = 'Nafaa' }: FrameProp
 /** 80 mm thermal receipt with a torn bottom edge (for the FBR receipt screenshot). */
 export function ReceiptFrame({ children, className }: FrameProps) {
   return (
-    <div className={cx(styles.receipt, className)}>
+    <div dir="ltr" className={cx(styles.receipt, className)}>
       <div className={styles.paper}>
         <div className={styles.screen}>{children}</div>
       </div>
@@ -105,7 +105,7 @@ export function ReceiptFrame({ children, className }: FrameProps) {
 /** No device chrome: rounded corners, hairline border and shadow. */
 export function PlainFrame({ children, className }: FrameProps) {
   return (
-    <div className={cx(styles.plain, className)}>
+    <div dir="ltr" className={cx(styles.plain, className)}>
       <div className={styles.screen}>{children}</div>
     </div>
   );

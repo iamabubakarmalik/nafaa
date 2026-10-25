@@ -180,7 +180,7 @@ export function AiChat({ question, answerText, rows, icons }: { question: string
   const inBox = phase === 'typing' ? current.q.slice(0, typed) : '';
 
   return (
-    <div ref={root} aria-hidden className={s.chat}>
+    <div ref={root} dir="ltr" aria-hidden className={s.chat}>
       <span className={s.glow} />
       <div className="flex items-center gap-3 border-b border-line pb-4">
         <span className={s.avatar}>

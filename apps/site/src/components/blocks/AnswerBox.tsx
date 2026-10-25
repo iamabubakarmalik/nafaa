@@ -17,7 +17,7 @@ export function AnswerBox({ block, ctx }: BlockProps<'answerBox'>) {
   return (
     <Container>
       <div className="relative overflow-hidden rounded-xl border border-line bg-surface shadow-e1 ink:shadow-none">
-        <div aria-hidden className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-brand-500 via-brand-600 to-brand-700" />
+        <div aria-hidden className="absolute inset-y-0 start-0 w-1 bg-gradient-to-b from-brand-500 via-brand-600 to-brand-700" />
         <div className="grid gap-10 p-7 md:p-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-14">
           <div>
             <h2 id={ctx.headingId} className="flex items-center gap-2.5 text-eyebrow uppercase text-link">

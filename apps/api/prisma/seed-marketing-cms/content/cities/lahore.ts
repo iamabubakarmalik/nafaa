@@ -8,7 +8,7 @@
 
 import { withIds } from '../../lib/blocks';
 import type { SeedEntry } from '../../lib/types';
-import { SHOT, features, heroBlock, pricing, prose, shot, steps } from '../main-pages/_build';
+import { SHOT, features, heroBlock, pricing, prose, shot, steps, table } from '../main-pages/_build';
 
 const markets = [
   { name: 'Hall Road', note: 'The city\'s electronics, mobile and accessories market, where wholesale and retail counters sit side by side and serial numbers, warranties and trade credit matter as much as speed.' },
@@ -69,6 +69,21 @@ Lahore's trade runs from wholesale markets in the old city to restaurant strips 
 - **Wholesalers** in Shah Alam and Akbari Mandi keep carton prices, credit limits and supplier accounts.
 - **Pharmacies, salons and bakeries** across the city use their own Nafaa screens on top of the same counter.`),
       { type: 'cityFacts', show: ['markets', 'areas'], heading: 'Markets and areas' },
+      table(
+        'Lahore markets and the Nafaa setup that suits them',
+        'Where to start for common Lahore businesses. Every plan includes the counter, stock and khata.',
+        [
+          { key: 'first', label: 'Set up first' },
+          { key: 'later', label: 'Add later' },
+        ],
+        [
+          ['Hall Road mobile or electronics dealer', 'IMEI and serial stock, warranty', 'Trade buyers on credit, used phones'],
+          ['Shah Alam or Akbari Mandi wholesaler', 'Carton and bag units, wholesale rate', 'Credit limits, supplier bills'],
+          ['Anarkali or Liberty clothing shop', 'Sizes and colours, barcodes', 'Stitching orders, layaway'],
+          ['Gulberg café or restaurant', 'Tables, kitchen tickets, menu', 'Riders, Foodpanda and website orders'],
+          ['DHA or Johar Town pharmacy', 'Salt search, batches and expiry', 'Substitutes, regular customers on khata'],
+        ],
+      ),
       shot({
         heading: 'One dashboard for every Lahore branch',
         body: 'Owners with a shop in the old city and another in a housing society see both branches side by side: sale, profit, cash and stock, live.',
@@ -88,7 +103,7 @@ Lahore's trade runs from wholesale markets in the old city to restaurant strips 
         ['notebook-pen', 'Khata for regulars', 'Udhaar per customer with one-tap WhatsApp reminders.'],
         ['building-2', 'Many branches', 'Old city and society branches in one account.'],
         ['truck', 'Online orders', 'Website, Shopify, WooCommerce and Foodpanda orders next to counter sales.'],
-        ['languages', 'Urdu and English', 'Screens, receipts and support in the language your team reads.'],
+        ['languages', 'Urdu and English', 'Screens and support in the language your team reads.'],
       ]),
       { type: 'cityFacts', show: ['support'], heading: 'Support in Lahore' },
       pricing('Plans for Lahore businesses'),
@@ -110,9 +125,9 @@ Lahore's trade runs from wholesale markets in the old city to restaurant strips 
       { ref: 'SOLUTION:retail-chains', kind: 'RELATED' },
       { ref: 'PRODUCT:fbr', kind: 'RELATED' },
     ],
-    evidence: ['apps/web/src/core/lib/offline/offlineSales.ts', 'apps/api/src/integrations/tax-authority/adapters.ts', 'apps/web/src/modules/multi-branch', 'apps/web/src/industries'],
+    evidence: ['apps/web/src/core/lib/offline/offlineSales.ts', 'apps/api/src/integrations/tax-authority/adapters.ts', 'apps/web/src/modules/organization/shops', 'apps/web/src/industries'],
     factCheck: {
-      checkedOn: '2026-10-20',
+      checkedOn: '2026-10-26',
       note: 'Market and area notes describe what each place is commonly known for (no customer claims). Product claims checked against apps/web and apps/api. No services-tax rate is stated (needs a dated PRA source).',
     },
   };

@@ -12,6 +12,7 @@ import { Container } from '@/components/ui/Container';
 import { cx } from '@/components/ui/cx';
 import type { Block } from '@/lib/cms/contract/cms-contract';
 import { CmsIcon } from '@/lib/icons';
+import { uiStrings } from '@/lib/i18n/ui';
 import { OrbitArt, SectionTitle } from './kit';
 import styles from './showcase.module.css';
 
@@ -70,7 +71,7 @@ export function Bento({ block, headingId, locale, kicker }: { block: FeaturesBlo
               </p>
               {linked ? (
                 <span className="mt-4 inline-flex items-center gap-1.5 text-small font-semibold text-link">
-                  Learn more
+                  {uiStrings(locale).learnMore}
                   <span aria-hidden className="transition-transform duration-fast group-hover:translate-x-0.5">→</span>
                 </span>
               ) : null}

@@ -32,13 +32,13 @@ export const settings: SeedSetting[] = [
       appUrl: 'https://app.nafaa.pk',
       signupUrl: 'https://app.nafaa.pk/register',
       demoPath: '/demo',
-      locales: ['en'],
+      locales: ['en', 'ur'],
       whatsapp: { number: '923241772933', message: 'Assalam-o-Alaikum, mujhe Nafaa ke baare me maloomat chahiye.' },
       social: [],
     },
     needsOwner: [
       'Social and app-store profiles that really exist (O5); none are seeded.',
-      'Add "ur" to locales when the Urdu pages are ready.',
+      'Urdu (ur) is listed in locales: the live site row changes only with --overwrite-settings=site or in Admin → Settings.',
     ],
   },
   {

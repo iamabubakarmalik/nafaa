@@ -121,7 +121,7 @@ function renderBlocks(nodes: BlockNode[], opts: MarkdownOptions & { slugger: Slu
             {node.items.map((item, j) => (
               <li key={`${k}-${j}`} data-checked={item.checked === null ? undefined : String(item.checked)}>
                 {item.checked !== null ? (
-                  <span className={styles.taskBox} aria-label={item.checked ? 'Done' : 'Not done'} role="img">
+                  <span className={styles.taskBox} aria-label={item.checked ? t.taskDone : t.taskNotDone} role="img">
                     {item.checked ? (
                       <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
                         <path d="M4 8.5 6.8 11 12 5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />

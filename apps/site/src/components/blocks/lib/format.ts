@@ -19,17 +19,19 @@ export function formatCount(value: number): string {
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
-/** "12 Oct 2026". Returns the input unchanged when it is not a date. */
+/** "12 Oct 2026" ("12 اکتوبر 2026" in Urdu). Returns the input unchanged when it is not a date. */
 export function formatDate(value: string | null | undefined, locale = 'en'): string {
   if (!value) return '';
   const dateOnly = DATE_ONLY.test(value);
   const date = new Date(dateOnly ? `${value}T00:00:00Z` : value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(locale === 'ur' ? 'en-PK' : 'en-GB', {
+  // Urdu pages: Urdu month names with Western digits ("12 اکتوبر 2026").
+  return new Intl.DateTimeFormat(locale === 'ur' ? 'ur-PK' : 'en-GB', {
     day: 'numeric',
-    month: 'short',
+    month: locale === 'ur' ? 'long' : 'short',
     year: 'numeric',
     timeZone: dateOnly ? 'UTC' : 'Asia/Karachi',
+    ...(locale === 'ur' ? { numberingSystem: 'latn' } : {}),
   }).format(date);
 }
 

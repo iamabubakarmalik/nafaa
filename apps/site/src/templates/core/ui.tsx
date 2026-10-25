@@ -9,14 +9,16 @@ import { FeatureBadge } from '@/components/blocks/parts/FeatureBadge';
 import { formatDate, hexToChannels, isoDate } from '@/components/blocks/lib/format';
 import { cx } from '@/components/ui/cx';
 import type { EntryCard } from '@/lib/cms/contract/cms-contract';
+import { DEFAULT_LOCALE, localizePath } from '@/lib/cms/locale';
+import { uiStrings } from '@/lib/i18n/ui';
 import { CmsIcon } from '@/lib/icons';
 
 /** Visible "Updated {date}" (ARCH 8 freshness rule), in Asia/Karachi. */
-export function Updated({ date, label = 'Updated', className }: { date: string | null | undefined; label?: string; className?: string }) {
+export function Updated({ date, label, locale, className }: { date: string | null | undefined; label?: string; locale?: string; className?: string }) {
   if (!date) return null;
   return (
     <p className={cx('text-small text-fg-subtle', className)}>
-      {label} <time dateTime={isoDate(date)}>{formatDate(date)}</time>
+      {label ?? uiStrings(locale).updated} <time dateTime={isoDate(date)}>{formatDate(date, locale)}</time>
     </p>
   );
 }
@@ -29,6 +31,11 @@ export function FixtureBar() {
       Fixture data (development only): the CMS has no published entry here yet. This page is noindex and never built for production.
     </div>
   );
+}
+
+/** Site-relative link to a card's page, with the locale prefix for non-English cards. */
+export function cardPath(card: Pick<EntryCard, 'locale' | 'path'>): string {
+  return card.locale === DEFAULT_LOCALE ? card.path : localizePath(card.locale, card.path);
 }
 
 /** A small arrow used by link tiles and text links. */
@@ -87,7 +94,7 @@ export function SectionTitle({
 export function EntryTile({ card, headingAs: H = 'h3', compact = false, className }: { card: EntryCard; headingAs?: 'h2' | 'h3' | 'h4'; compact?: boolean; className?: string }) {
   return (
     <Link
-      href={card.path}
+      href={cardPath(card)}
       prefetch={false}
       style={{ '--accent': hexToChannels(card.color) ?? undefined }}
       className={cx(

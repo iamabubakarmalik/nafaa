@@ -3,14 +3,16 @@
  * `/sitemaps/<section>.xml` for English and `/sitemaps/<locale>-<section>.xml`
  * for every other live locale. A section with no indexable URLs is left out.
  * Entries carry <lastmod>, <image:image> and, once a translation exists,
- * xhtml:link alternates. No changefreq or priority.
+ * xhtml:link alternates (en-PK, ur-PK and x-default → English, the same set
+ * as the pages' hreflang). No changefreq or priority.
  */
 import {
   SITEMAP_SECTION_KEYS,
   type SitemapItem,
   type SitemapSection,
 } from '@/lib/cms/contract/cms-contract';
-import { DEFAULT_LOCALE, isKnownLocale } from '@/lib/cms/locale';
+import { absoluteUrl } from '@/lib/cms/env';
+import { DEFAULT_LOCALE, hreflangFor, isKnownLocale, localizePath } from '@/lib/cms/locale';
 
 export function escapeXml(value: string): string {
   return value
@@ -34,6 +36,46 @@ export function parseSitemapFileName(file: string): { section: SitemapSection; l
   if (!(SITEMAP_SECTION_KEYS as string[]).includes(section)) return null;
   if (locale !== DEFAULT_LOCALE && !isKnownLocale(locale)) return null;
   return { section, locale };
+}
+
+/**
+ * hreflang alternates for each item: the API's list (keyed by locale code)
+ * in BCP 47 with x-default on the English URL, or, when the API has not
+ * linked the translations yet, built from `paired` (CMS paths published in
+ * English and Urdu; see getPairedPaths).
+ */
+export function withAlternates(items: SitemapItem[], locale: string, paired: readonly string[]): SitemapItem[] {
+  const pairs = new Set(paired);
+  return items.map((item) => {
+    let alts = item.alternates.filter((alt) => alt.hreflang !== 'x-default').map((alt) => ({ locale: alt.hreflang.replace(/-.*/, ''), url: alt.url }));
+    if (alts.length < 2) {
+      const path = cmsPathOfUrl(item.url, locale);
+      alts = path && pairs.has(path) ? [DEFAULT_LOCALE, 'ur'].map((l) => ({ locale: l, url: absoluteUrl(localizePath(l, path)) })) : [];
+    }
+    if (alts.length < 2) return { ...item, alternates: [] };
+    const english = alts.find((alt) => alt.locale === DEFAULT_LOCALE);
+    return {
+      ...item,
+      alternates: [
+        ...alts.map((alt) => ({ hreflang: hreflangFor(alt.locale), url: alt.url })),
+        ...(english ? [{ hreflang: 'x-default', url: english.url }] : []),
+      ],
+    };
+  });
+}
+
+/** CMS path of a sitemap URL: "https://nafaa.pk/ur/pricing" in ur → "/pricing". */
+function cmsPathOfUrl(url: string, locale: string): string | null {
+  let pathname: string;
+  try {
+    pathname = new URL(url).pathname.replace(/\/+$/, '') || '/';
+  } catch {
+    return null;
+  }
+  if (locale === DEFAULT_LOCALE) return pathname;
+  const prefix = `/${locale}`;
+  if (pathname === prefix) return '/';
+  return pathname.startsWith(`${prefix}/`) ? pathname.slice(prefix.length) : null;
 }
 
 export function renderSitemapIndex(files: { url: string; lastmod: string | null }[]): string {

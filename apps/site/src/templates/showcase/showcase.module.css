@@ -395,9 +395,9 @@
   position: absolute;
   top: 1.25rem;
   bottom: 1.25rem;
-  left: 1.25rem;
+  inset-inline-start: 1.25rem;
   width: 2px;
-  margin-left: -1px;
+  margin-inline-start: -1px;
   border-radius: 2px;
   background: rgb(var(--c-line));
   overflow: hidden;

@@ -6,18 +6,31 @@
 import Link from 'next/link';
 import { PageBreadcrumbs } from '@/components/layout/Breadcrumbs';
 import { cx } from '@/components/ui/cx';
-import { FEATURE_STATUS_BADGES, featureStatusOf, type EntryCard, type PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { FEATURE_STATUS_BADGES, featureStatusOf, type Breadcrumb, type EntryCard, type PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { DEFAULT_LOCALE } from '@/lib/cms/locale';
+import { uiStrings } from '@/lib/i18n/ui';
 import { CmsIcon } from '@/lib/icons';
+import { statusBadge } from '@/components/blocks/lib/i18n';
 import { Arrow, TileSection, Updated, uniqueCards } from './ui';
 
-/** Breadcrumbs on the left, "Updated {date}" on the right (not on PAGE entries other than legal). */
+/**
+ * The visible trail in the page's language: on a non-English page the home
+ * crumb the API names "Home" gets the localized word. English is unchanged.
+ */
+export function localCrumbs(entry: Pick<PublicEntry, 'breadcrumbs' | 'locale'>): readonly Breadcrumb[] {
+  if (entry.locale === DEFAULT_LOCALE) return entry.breadcrumbs;
+  const home = uiStrings(entry.locale).homeCrumb;
+  return entry.breadcrumbs.map((crumb, i) => (i === 0 && crumb.name === 'Home' ? { ...crumb, name: home } : crumb));
+}
+
+/** Breadcrumbs at the start, "Updated {date}" at the end (not on PAGE entries other than legal). */
 export function MetaRow({ entry, showUpdated = true }: { entry: PublicEntry; showUpdated?: boolean }) {
   if (entry.breadcrumbs.length < 2 && !showUpdated) return null;
   return (
     <div className="mx-auto box-content max-w-wide px-gutter pt-6">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
-        <PageBreadcrumbs crumbs={entry.breadcrumbs} />
-        {showUpdated ? <Updated date={entry.dateModified} /> : null}
+        <PageBreadcrumbs crumbs={localCrumbs(entry)} />
+        {showUpdated ? <Updated date={entry.dateModified} locale={entry.locale} /> : null}
       </div>
     </div>
   );
@@ -29,6 +42,8 @@ export function StatusNotice({ entry }: { entry: PublicEntry }) {
   if (!status || status === 'live') return null;
   const coming = status === 'coming';
   const label = FEATURE_STATUS_BADGES[status];
+  const t = uiStrings(entry.locale);
+  const english = entry.locale === DEFAULT_LOCALE;
   return (
     <div className="mx-auto box-content max-w-wide px-gutter pt-4">
       <div
@@ -41,12 +56,16 @@ export function StatusNotice({ entry }: { entry: PublicEntry }) {
         )}
       >
         <CmsIcon name={coming ? 'hourglass' : 'flag'} size={16} />
-        <strong className="font-semibold">
-          {label.en} <span className="font-normal opacity-80">· {label.ur}</span>
-        </strong>
-        <span>{coming ? 'This is planned and not available yet.' : 'This works today and is still being improved with early users.'}</span>
-        <Link href="/roadmap" prefetch={false} className="ml-auto inline-flex items-center gap-1 font-medium underline decoration-current/30 underline-offset-2">
-          See the roadmap <Arrow />
+        {english ? (
+          <strong className="font-semibold">
+            {label.en} <span className="font-normal opacity-80">· {label.ur}</span>
+          </strong>
+        ) : (
+          <strong className="font-semibold">{statusBadge(status, entry.locale)}</strong>
+        )}
+        <span>{coming ? t.comingNote : t.betaNote}</span>
+        <Link href="/roadmap" prefetch={false} className="ms-auto inline-flex items-center gap-1 font-medium underline decoration-current/30 underline-offset-2">
+          {t.seeRoadmap} <Arrow />
         </Link>
       </div>
     </div>
@@ -76,10 +95,10 @@ export function LinkSections({ groups, exceptId }: { groups: LinkGroup[]; except
 }
 
 /** A quiet row of next-step links (pricing, demo, hub) closing a page. */
-export function NextSteps({ links }: { links: { href: string; label: string; icon: string }[] }) {
+export function NextSteps({ links, locale }: { links: { href: string; label: string; icon: string }[]; locale?: string }) {
   if (!links.length) return null;
   return (
-    <nav aria-label="Next steps" className="border-t border-line">
+    <nav aria-label={uiStrings(locale).nextSteps} className="border-t border-line">
       <div className="mx-auto box-content max-w-container px-gutter">
         <ul className="flex flex-wrap gap-x-8 gap-y-3 py-8">
           {links.map((link) => (

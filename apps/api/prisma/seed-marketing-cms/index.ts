@@ -5,6 +5,7 @@
  *   pnpm --filter @nafaa/api seed:cms                      dry run (default)
  *   pnpm --filter @nafaa/api seed:cms -- --apply           write drafts
  *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite=/industries/kiryana,/blog/x
+ *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite=/ur/industries/kiryana,/ur   Urdu rows: name the /ur path
  *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite-settings          every seeded setting
  *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite-settings=site,seo
  *   pnpm --filter @nafaa/api seed:cms -- --apply --overwrite-menus             every seeded menu (was push-menus.ts)
@@ -25,8 +26,14 @@
  * - Entries are created as DRAFT and never published; publishing goes through
  *   the admin so the quality gates and revalidation run.
  * - Idempotent: media by `seed:<key>` tag or checksum, entries by
- *   (locale, path), FAQs by question, settings and menus by key. Anything
- *   that already exists is left alone unless an --overwrite flag names it.
+ *   (locale, path), FAQs by (locale, question), settings and menus by key.
+ *   Anything that already exists is left alone unless an --overwrite flag
+ *   names it. --overwrite takes site paths: `/x` is the English row,
+ *   `/ur/x` (or `/ur` for the home page) the Urdu one.
+ * - Translations: a non-English entry whose English twin (same type and
+ *   slug) has an id is created through POST /entries/:id/translations, so the
+ *   API links both under one translationKey (hreflang, sitemap alternates);
+ *   the fill pass then writes the translated content.
  * - Prod needs the owner's go-ahead (deploy checklist).
  */
 
@@ -70,12 +77,26 @@ function parseArgs(argv: string[]): Args {
 
 const pathOf = (e: SeedEntry): string => seedPath(e, entries);
 
+/** Site path for --overwrite and the plan listing: the CMS path, with the locale prefix for non-English rows. */
+const sitePathOf = (e: SeedEntry, path: string): string => {
+  const locale = e.locale ?? 'en';
+  if (locale === 'en') return path;
+  return path === '/' ? `/${locale}` : `/${locale}${path}`;
+};
+
+/** Seed key of the English entry a translation belongs to (`INDUSTRY:kiryana` for `INDUSTRY:kiryana@ur`). */
+const twinKeyOf = (e: SeedEntry): string | null => ((e.locale ?? 'en') === 'en' ? null : entryKey({ type: e.type, slug: e.slug }));
+
 const SETTING_BUNDLE_KEY: Record<SettingKey, string> = {
   site: 'site', entity: 'entity', pricing: 'pricing', seo: 'seo', analytics: 'analytics', 'industry-groups': 'industryGroups',
 };
 
 type Action = 'create' | 'update' | 'skip';
 interface Planned { key: string; path: string; action: Action; reason: string; id?: string; entry: SeedEntry }
+
+function faqLookupKey(locale: string, question: string): string {
+  return `${locale}:${question.trim().toLowerCase()}`;
+}
 
 function pad(s: string, n: number): string {
   return s.length >= n ? s : s + ' '.repeat(n - s.length);
@@ -129,8 +150,9 @@ async function main(): Promise<void> {
   const existingMenus = new Set<string>();
   if (api) {
     try {
-      for (const item of await api.listAll<AdminEntryListItem>('/entries', { locale: 'en' })) existingByPath.set(`${item.locale}:${item.path}`, item);
-      for (const f of await api.listAll<AdminFaq>('/faqs', { locale: 'en' })) existingFaqs.set(f.question.trim().toLowerCase(), f);
+      // Every locale: Urdu rows from an earlier run must be found too.
+      for (const item of await api.listAll<AdminEntryListItem>('/entries')) existingByPath.set(`${item.locale}:${item.path}`, item);
+      for (const f of await api.listAll<AdminFaq>('/faqs')) existingFaqs.set(faqLookupKey(f.locale, f.question), f);
       bundle = await api.get<Record<string, unknown>>('/settings');
       // GET /menus lists every key, saved or not; a never-saved menu has no updatedAt.
       for (const m of await api.get<{ key: string; locale: string; updatedAt?: string | null }[]>('/menus')) {
@@ -152,12 +174,12 @@ async function main(): Promise<void> {
   const plan: Planned[] = entries.map((e) => {
     const path = pathOf(e);
     const found = existingByPath.get(`${e.locale ?? 'en'}:${path}`);
-    if (!found) return { key: entryKey(e), path, action: 'create', reason: 'new', entry: e };
-    if (args.overwrite.has(path)) return { key: entryKey(e), path, action: 'update', reason: '--overwrite', id: found.id, entry: e };
+    if (!found) return { key: entryKey(e), path, action: 'create', reason: twinKeyOf(e) ? 'new translation' : 'new', entry: e };
+    if (args.overwrite.has(sitePathOf(e, path))) return { key: entryKey(e), path, action: 'update', reason: '--overwrite', id: found.id, entry: e };
     return { key: entryKey(e), path, action: 'skip', reason: `exists (${found.status})`, id: found.id, entry: e };
   });
   const faqPlan = faqs.map((f) => {
-    const found = existingFaqs.get(f.question.trim().toLowerCase());
+    const found = existingFaqs.get(faqLookupKey(f.locale ?? 'en', f.question));
     return { faq: f, action: (found ? 'skip' : 'create') as Action, id: found?.id };
   });
   const overwritesSetting = (key: string): boolean => args.overwriteSettings.all || args.overwriteSettings.values.has(key);
@@ -197,7 +219,7 @@ async function main(): Promise<void> {
   console.log(`  entries   create ${count(plan, 'create')}, update ${count(plan, 'update')}, skip ${count(plan, 'skip')}${off('entries')}`);
   console.log(`  menus     create ${count(menuPlan, 'create')}, update ${count(menuPlan, 'update')}, skip ${count(menuPlan, 'skip')}${off('menus')}`);
   console.log(`  redirects import ${redirects.length} (the API skips or updates existing rules)${off('redirects')}`);
-  if (runs('entries')) for (const p of plan) console.log(`    ${pad(p.action, 6)} ${pad(p.entry.type, 14)} ${pad(p.path, 48)} ${p.reason}`);
+  if (runs('entries')) for (const p of plan) console.log(`    ${pad(p.action, 6)} ${pad(p.entry.type, 14)} ${pad(sitePathOf(p.entry, p.path), 48)} ${p.reason}`);
   const unresolved = new Set<string>();
   if (api) resolveMediaRefs(plan.filter((p) => p.action !== 'skip').map((p) => p.entry), mediaIds, unresolved);
   if (unresolved.size) console.log(`  media refs not on the target yet: ${[...unresolved].join(', ')}${args.apply ? '' : ' (uploaded on --apply)'}`);
@@ -269,14 +291,21 @@ async function applySteps(api: CmsApi, args: Args, ctx: ApplyPlan): Promise<void
       failed.push(`${p.key}: parent ${e.parent} has no id`);
       continue;
     }
-    const created = await api.post<AdminEntry>('/entries', {
-      type: e.type,
-      locale: e.locale ?? 'en',
-      title: e.title,
-      slug: e.slug,
-      ...(parentId ? { parentId } : {}),
-      data: resolveMediaRefs({ type: e.type, ...e.data }, mediaIds),
-    });
+    const twinKey = twinKeyOf(e);
+    const twinId = twinKey ? ids.get(twinKey) : undefined;
+    // A translation of a seeded English entry starts as the API's copy of it (same slug,
+    // shared translationKey); the fill pass below replaces its content.
+    const created = twinId
+      ? await api.post<AdminEntry>(`/entries/${twinId}/translations`, { locale: e.locale })
+      : await api.post<AdminEntry>('/entries', {
+          type: e.type,
+          locale: e.locale ?? 'en',
+          title: e.title,
+          slug: e.slug,
+          ...(parentId ? { parentId } : {}),
+          data: resolveMediaRefs({ type: e.type, ...e.data }, mediaIds),
+        });
+    if (twinKey && !twinId) console.log(`  warn  ${p.key}: no English twin ${twinKey} on the target; created unlinked`);
     p.id = created.id;
     ids.set(p.key, created.id);
     if (created.path !== p.path) console.log(`  warn  ${p.key}: API path ${created.path} differs from expected ${p.path}`);
@@ -290,6 +319,8 @@ async function applySteps(api: CmsApi, args: Args, ctx: ApplyPlan): Promise<void
       const body = {
         version: current.version,
         title: e.title,
+        // Translations are created from the English row; keep the seed's slug.
+        ...(twinKeyOf(e) ? { slug: e.slug } : {}),
         summary: e.summary ?? null,
         ...(e.blocks ? { blocks: resolveMediaRefs(e.blocks, mediaIds) } : {}),
         data: resolveMediaRefs({ type: e.type, ...e.data }, mediaIds),

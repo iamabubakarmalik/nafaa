@@ -58,7 +58,7 @@ function QrGlyph() {
 export function HeroVisual({ appUrl }: { appUrl: string }) {
   const host = appUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
   return (
-    <div className={styles.stage} data-animate="" aria-hidden="true">
+    <div dir="ltr" className={styles.stage} data-animate="" aria-hidden="true">
       <div className={styles.window}>
         <div className={styles.chrome}>
           <span className={styles.lights}>

@@ -18,7 +18,7 @@ import { FinalCta } from './FinalCta';
 import { ShotPanel } from './ShotPanel';
 import { StageHero } from './StageHero';
 import { StoryTimeline } from './StoryTimeline';
-import { DEFAULT_TRUST, ShowcaseSection, type TrustItem } from './kit';
+import { ShowcaseSection, trustItems, type TrustItem } from './kit';
 
 export interface ShowcaseKickers {
   featuresGrid?: string;
@@ -72,7 +72,7 @@ export function ShowcaseBody({
   showUpdated = true,
   kickers = {},
   pill,
-  ctaFacts = DEFAULT_TRUST.slice(0, 3),
+  ctaFacts = trustItems(entry.locale).slice(0, 3),
   companion,
   skip,
   render,

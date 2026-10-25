@@ -22,6 +22,7 @@ import { cx } from '@/components/ui/cx';
 import type { FaqBlock, PricingTableBlock, PublicEntry, PublicPlan, SiteSettings } from '@/lib/cms/contract/cms-contract';
 import { LOGO_BOWL, LOGO_DOT } from '@/lib/brand/logo';
 import { CmsIcon } from '@/lib/icons';
+import { uiStrings } from '@/lib/i18n/ui';
 import blockStyles from '@/components/blocks/blocks.module.css';
 import { Arrow } from '../core/ui';
 import { Backdrop } from './decor';
@@ -52,6 +53,7 @@ export function HomePricing({
   trust,
   note,
   compareLink,
+  locale = 'en',
 }: {
   block: PricingTableBlock;
   plans: PublicPlan[];
@@ -59,10 +61,12 @@ export function HomePricing({
   trust: string[];
   note: string | null;
   compareLink?: string;
+  locale?: string;
 }) {
   const plans = (block.planSlugs?.length ? block.planSlugs.map((slug) => all.find((x) => x.slug === slug)).filter((x): x is PublicPlan => Boolean(x)) : [...all]).sort((a, b) => a.sortOrder - b.sortOrder);
   if (!plans.length) return null;
-  const t = strings('en');
+  const t = strings(locale);
+  const h = uiStrings(locale).home;
   const paid = plans.filter((x) => x.priceMonthly > 0);
   const periods = PERIODS.filter((period) => period === 'monthly' || paid.some((x) => priceOf(x, period) > 0));
   const best = Math.max(0, ...paid.map((x) => savingPercent(x, 'yearly') ?? 0));
@@ -73,7 +77,7 @@ export function HomePricing({
       <Backdrop pattern="dots" />
       <div data-pricing="" data-period="monthly" className={cx(blockStyles.pricing, 'mx-auto box-content max-w-wide px-gutter')}>
         <div className="mx-auto max-w-2xl text-center" data-reveal>
-          <p className="text-eyebrow uppercase text-link">Pricing</p>
+          <p className="text-eyebrow uppercase text-link">{h.pricingEyebrow}</p>
           <h2 id="home-pricing" className="mt-3 text-h2 text-fg-strong">
             {block.heading?.trim() || t.pricingHeading}
           </h2>
@@ -152,7 +156,7 @@ export function HomePricing({
                     <li key={f.key} className={cx('flex gap-2.5', f.included ? 'text-fg' : 'text-fg-subtle')}>
                       <Tick on={f.included} />
                       <span>
-                        {f.included ? null : <span className="sr-only">Not included: </span>}
+                        {f.included ? null : <span className="sr-only">{h.notIncluded}</span>}
                         {f.label}
                       </span>
                     </li>
@@ -172,11 +176,11 @@ export function HomePricing({
           ))}
           <span className={p.trustItem}>
             <CmsIcon name="tag" size={16} />
-            Prices in PKR, from our price list
+            {h.pricesPkr}
           </span>
           {compareLink ? (
             <Link href={compareLink} prefetch={false} className="group inline-flex items-center gap-1.5 text-small font-semibold text-link">
-              Compare all plans
+              {h.comparePlans}
               <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
             </Link>
           ) : null}
@@ -190,15 +194,16 @@ export function HomeFaq({ block, entry, site }: { block: FaqBlock; entry: Public
   const faqs = entry.faqs;
   if (!faqs.length) return null;
   const wa = whatsappHref(site.whatsapp);
+  const h = uiStrings(entry.locale).home;
   return (
     <section aria-labelledby="home-faq" className="relative isolate border-t border-line/70 py-section">
       <div className="mx-auto box-content grid max-w-wide gap-12 px-gutter lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.4fr)] lg:gap-20">
         <div className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start" data-reveal>
-          <p className="text-eyebrow uppercase text-link">FAQ</p>
+          <p className="text-eyebrow uppercase text-link">{h.faqEyebrow}</p>
           <h2 id="home-faq" className="mt-3 text-h2 text-fg-strong">
-            {block.heading?.trim() || 'Questions people ask first'}
+            {block.heading?.trim() || h.faqHeading}
           </h2>
-          <p className="mt-4 text-body-lg text-fg-muted">Short, straight answers. Anything else, ask us directly.</p>
+          <p className="mt-4 text-body-lg text-fg-muted">{h.faqIntro}</p>
           {wa ? (
             <div className={p.ask}>
               <span aria-hidden className={p.askMark}>
@@ -208,13 +213,15 @@ export function HomeFaq({ block, entry, site }: { block: FaqBlock; entry: Public
                 </svg>
               </span>
               <div>
-                <p className="text-body font-semibold text-fg-strong">Still have questions?</p>
+                <p className="text-body font-semibold text-fg-strong">{h.stillQuestions}</p>
                 <p className="mt-1 text-small text-fg-muted">
-                  Message the Nafaa team on WhatsApp, in English or <span lang="ur-Latn">Roman Urdu</span>.
+                  {h.askBefore}
+                  {h.askLang ? <span lang="ur-Latn">{h.askLang}</span> : null}
+                  {h.askAfter}
                 </p>
                 <a href={wa} rel="noopener" data-track="whatsapp_click" data-track-label="Home FAQ: WhatsApp us" className={p.askBtn}>
                   <CmsIcon name="message-circle" size={16} />
-                  WhatsApp us
+                  {h.whatsappUs}
                 </a>
               </div>
             </div>

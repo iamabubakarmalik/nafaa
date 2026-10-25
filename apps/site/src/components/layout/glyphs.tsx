@@ -49,3 +49,4 @@ export const MonitorGlyph = glyph(
     <path d="M8 21h8M12 17v4" />
   </>,
 );
+export const LanguagesGlyph = glyph(<path d="m5 8 6 6m-7 0 6-6 2-3M2 5h12M7 2h1m14 20-5-10-5 10m2-4h6" />);

@@ -15,9 +15,11 @@ function relative(url: string): string {
   }
 }
 
-export function PageBreadcrumbs({ crumbs, className }: { crumbs: readonly Breadcrumb[]; className?: string }) {
+export function PageBreadcrumbs({ crumbs, className, label }: { crumbs: readonly Breadcrumb[]; className?: string; label?: string }) {
   if (crumbs.length < 2) return null;
   // Site-relative links (with the locale prefix from `url`) so next/link prefetches.
   const items = breadcrumbItems(crumbs).map((item) => ({ ...item, href: item.href ? relative(item.href) : undefined }));
-  return <Trail items={items} className={className} />;
+  // Urdu trails (links under /ur) get an Urdu name unless the caller passes one.
+  const urdu = items.some((item) => item.href === '/ur' || item.href?.startsWith('/ur/'));
+  return <Trail items={items} className={className} label={label ?? (urdu ? 'آپ یہاں ہیں' : undefined)} />;
 }

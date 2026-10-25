@@ -5,6 +5,7 @@
  */
 import type { SiteSettings } from '@/lib/cms/contract/cms-contract';
 import type { MenuItemWithStatus } from '@/lib/cms/client';
+import { shellStrings } from '@/lib/i18n/shell';
 
 export type NavItem = MenuItemWithStatus;
 
@@ -20,11 +21,11 @@ export function whatsappHref(site: SiteSettings): string | null {
 }
 
 /** Status shown as a badge next to a menu item (owner rule: unbuilt features are never shown as live). */
-export const STATUS_LABEL: Record<NonNullable<NavItem['status']>, string | null> = {
-  live: null,
-  beta: 'Beta',
-  coming: 'Coming soon',
-};
+export function statusLabel(status: NonNullable<NavItem['status']>, locale?: string): string | null {
+  if (status === 'live') return null;
+  const t = shellStrings(locale);
+  return status === 'beta' ? t.statusBeta : t.statusComing;
+}
 
 export function children(item: NavItem): NavItem[] {
   return (item.children ?? []) as NavItem[];
@@ -52,9 +53,13 @@ export function hasHref(item: NavItem): boolean {
   return Boolean(item.href) && item.href !== '#';
 }
 
-/** Overview link text for a menu item's own page: "Explore all products" for collections, "Go to marketplace" otherwise. */
+/**
+ * Overview link text for a menu item's own page: "Explore all products" for
+ * collections, "Go to marketplace" otherwise. Urdu labels are translated, so
+ * Urdu uses one form ("… دیکھیں") for both.
+ */
 const COLLECTIONS = new Set(['products', 'solutions', 'industries', 'services', 'resources']);
-export function overviewLabel(label: string): string {
-  const l = label.toLowerCase();
-  return COLLECTIONS.has(l) ? `Explore all ${l}` : `Go to ${l}`;
+export function overviewLabel(label: string, locale?: string): string {
+  const t = shellStrings(locale);
+  return locale !== 'ur' && COLLECTIONS.has(label.toLowerCase()) ? t.exploreAll(label) : t.goTo(label);
 }

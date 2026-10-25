@@ -111,6 +111,50 @@
     line-height: 1.9;
   }
 
+  /* Urdu pages: html lang="ur" dir="rtl" (app/ur sets --font-urdu to Noto
+     Nastaliq Urdu). Product mockups and diagrams inside them are marked
+     dir="ltr" and keep the English typography. */
+  html[lang='ur'] body {
+    font-family: var(--font-urdu);
+    font-feature-settings: normal;
+  }
+
+  /* Nastaliq needs tall lines; the type-scale utilities set tight leading,
+     so it is lifted here (this selector outranks a single class). */
+  html[lang='ur'] :is(h1, h2, h3, h4, h5, h6):not([dir='ltr'] *) {
+    line-height: 1.75;
+  }
+
+  html[lang='ur'] :is(p, li, dd, dt, td, th, blockquote, figcaption, label, summary, legend):not([dir='ltr'] *) {
+    line-height: 2;
+  }
+
+  /* Letter-spacing pulls joined Urdu letters apart, and Urdu has no capitals
+     for tracking to balance. */
+  html[lang='ur'] *:not([dir='ltr'] *) {
+    letter-spacing: 0;
+  }
+
+  /* Direction arrows and chevrons point the reading way in RTL. `scale`
+     composes with the hover `translate`, so the nudge follows too. Covers
+     lucide components, CmsIcon and the inline arrow paths used by blocks. */
+  html[dir='rtl']
+    :is(
+      svg.lucide-arrow-right,
+      svg.lucide-arrow-left,
+      svg.lucide-chevron-right,
+      svg.lucide-chevron-left,
+      svg.lucide-arrow-up-right,
+      svg:has(> path[d='M5 12h14']),
+      svg:has(> path[d='M19 12H5']),
+      svg:has(> path[d='M5 12h14M13 6l6 6-6 6']),
+      svg:has(> path[d='m9 18 6-6-6-6']),
+      svg:has(> path[d='m15 18-6-6 6-6']),
+      svg:has(> path[d='M7 7h10v10'])
+    ):not([dir='ltr'] *) {
+    scale: -1 1;
+  }
+
   @media (pointer: coarse) {
     input:not([type='checkbox']):not([type='radio']):not([type='range']),
     select,

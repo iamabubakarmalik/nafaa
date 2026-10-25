@@ -7,9 +7,10 @@
  * - Theme: ThemeScript in <head> applies a stored light/dark choice before
  *   the first paint; with no choice the device setting wins (theme.css).
  *   suppressHydrationWarning on <html> covers the attributes it sets.
- * - Locale: English at the root. /ur pages are served by the catch-all with
- *   lang/dir on their content; when Urdu launches, the shell moves into
- *   per-locale root layouts (see the S1 report).
+ * - Locale: this layout holds the English shell. Under /ur (once settings
+ *   `site.locales` lists "ur") app/ur/layout.tsx renders the Urdu shell and
+ *   the English header, <main> and footer step aside (LocaleGate). <html
+ *   lang dir> follows the path, in the static HTML too.
  * - Kept from the F2 scaffold: globals.css, fontVariables on <html>,
  *   <MotionObserver /> once, and <main id="main"> around the page.
  * - Islands: MotionObserver, Analytics, ConsentBanner (renders nothing until
@@ -28,14 +29,15 @@ import { SiteFooter } from '@/components/layout/SiteFooter';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { WhatsAppFab } from '@/components/layout/WhatsAppFab';
 import { ThemeScript } from '@/components/layout/ThemeScript';
+import { EnglishOnly, LocaleHtml, LocaleMain } from '@/components/layout/LocaleGate';
 import { Analytics } from '@/components/islands/Analytics';
 import { ConsentBanner } from '@/components/islands/ConsentBanner';
 import { MotionObserver } from '@/components/motion/MotionObserver';
 import { bingVerification, googleVerification, hasThirdParty, thirdPartyIdsFromEnv, whatsappFromEnv } from '@/lib/analytics/env';
-import { getEntity, getLayout, getPreviewToken, validatePreviewToken } from '@/lib/cms/client';
+import { getEntity, getLayout, getPairedPaths, getPreviewToken, validatePreviewToken } from '@/lib/cms/client';
 import { siteIndexable, siteUrl } from '@/lib/cms/env';
 import { PREVIEW } from '@/lib/cms/preview';
-import { DEFAULT_LOCALE, OG_LOCALE, dirFor } from '@/lib/cms/locale';
+import { DEFAULT_LOCALE, OG_LOCALE } from '@/lib/cms/locale';
 import { fontVariables } from '@/styles/fonts';
 import '@/styles/globals.css';
 import '@/components/layout/theme.css';
@@ -82,10 +84,11 @@ async function previewState(): Promise<{ expiresAt: string | null } | null> {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const [layout, entity, preview] = await Promise.all([
+  const [layout, entity, preview, paired] = await Promise.all([
     getLayout(DEFAULT_LOCALE),
     getEntity(DEFAULT_LOCALE),
     previewState(),
+    getPairedPaths(),
   ]);
   const analytics = layout.analytics;
   const env = thirdPartyIdsFromEnv();
@@ -94,18 +97,20 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const privacyHref = layout.menus.legal.find((item) => /privacy/.test(item.href))?.href;
 
   return (
-    <html lang={DEFAULT_LOCALE} dir={dirFor(DEFAULT_LOCALE)} className={fontVariables} suppressHydrationWarning>
+    <LocaleHtml urLive={layout.site.locales.includes('ur')} className={fontVariables}>
       <head>
         <ThemeScript />
       </head>
       <body className="flex min-h-dvh flex-col">
         {preview ? <PreviewBar expiresAt={preview.expiresAt} exitPath={PREVIEW.siteExitPath} /> : null}
-        <SiteHeader layout={layout} />
-        <main id="main" tabIndex={-1} className="flex-1 outline-none">
-          {children}
-        </main>
-        <SiteFooter layout={layout} entity={entity} consentEnabled={consentEnabled} />
-        <WhatsAppFab whatsapp={layout.site.whatsapp ?? whatsappFromEnv()} phone={entity?.contact?.phone} />
+        <EnglishOnly>
+          <SiteHeader layout={layout} paired={paired} />
+        </EnglishOnly>
+        <LocaleMain>{children}</LocaleMain>
+        <EnglishOnly>
+          <SiteFooter layout={layout} entity={entity} consentEnabled={consentEnabled} paired={paired} />
+          <WhatsAppFab whatsapp={layout.site.whatsapp ?? whatsappFromEnv()} phone={entity?.contact?.phone} />
+        </EnglishOnly>
         <MotionObserver />
         <Analytics
           signupUrl={layout.site.signupUrl}
@@ -119,6 +124,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         />
         <ConsentBanner enabled={consentEnabled} privacyHref={privacyHref} />
       </body>
-    </html>
+    </LocaleHtml>
   );
 }

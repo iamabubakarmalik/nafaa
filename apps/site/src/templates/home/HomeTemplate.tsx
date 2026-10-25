@@ -28,7 +28,8 @@
  */
 import type { Block, DiagramBlock, EntryCard, FeaturesGridBlock, PublicEntry, ScreenshotBlock } from '@/lib/cms/contract/cms-contract';
 import { Segments, segment } from '../core/Blocks';
-import { livePaths, loadCards, loadPlans, loadSite } from '../core/data';
+import { uiStrings } from '@/lib/i18n/ui';
+import { liveLinks, loadCards, loadPlans, loadSite } from '../core/data';
 import { PageFrame } from '../core/frame';
 import { AiAssistant, Industries, Platform, Services, Solutions, WorksWith } from './showcase';
 import { Closing, HomeAnswer, HomeHero, HomeHowItWorks, planNote } from './sections';
@@ -50,14 +51,18 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
     .slice(0, 6)
     .map((i) => ({ title: i.title, icon: i.icon }));
 
-  const [site, plans, industryCards, live] = await Promise.all([
-    loadSite(entry.locale),
+  const locale = entry.locale;
+  const industryQuery = gridBlock
+    ? { type: 'INDUSTRY' as const, featured: gridBlock.filter?.featured, group: gridBlock.filter?.group, tag: gridBlock.filter?.tagId, sort: gridBlock.sort, limit: gridBlock.limit ?? 40 }
+    : null;
+  const [site, plans, localCards, links] = await Promise.all([
+    loadSite(locale),
     loadPlans(),
-    gridBlock
-      ? loadCards({ type: 'INDUSTRY', featured: gridBlock.filter?.featured, group: gridBlock.filter?.group, tag: gridBlock.filter?.tagId, sort: gridBlock.sort, limit: gridBlock.limit ?? 40 })
-      : Promise.resolve([] as EntryCard[]),
-    livePaths(['/industries', '/pricing', '/product', '/roadmap', '/services', '/solutions', '/integrations', ...DIAGRAM_LINKS]),
+    industryQuery ? loadCards({ ...industryQuery, locale }) : Promise.resolve([] as EntryCard[]),
+    liveLinks(['/industries', '/pricing', '/product', '/roadmap', '/services', '/solutions', '/integrations', ...DIAGRAM_LINKS], locale),
   ]);
+  // A locale without its own industry pages yet shows the English ones.
+  const industryCards = localCards.length || !industryQuery || locale === 'en' ? localCards : await loadCards(industryQuery);
 
   const heroBlock = blocks.find((b): b is Extract<Block, { type: 'hero' }> => b.type === 'hero');
   const phone = blocks.find((b): b is ScreenshotBlock => b.type === 'screenshot' && b.anchor === 'hero-phone');
@@ -85,7 +90,7 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
   const segments = segment(blocks, (block) => {
     switch (block.type) {
       case 'hero':
-        return <HomeHero block={block} entry={entry} site={site} plans={plans} phone={phone} rotator={solutionsBlock?.items.map((i) => i.title)} chips={chips} />;
+        return <HomeHero block={block} entry={entry} site={site} plans={plans} locale={locale} phone={phone} rotator={solutionsBlock?.items.map((i) => i.title)} chips={chips} />;
       case 'answerBox':
         if (answerDone) return undefined;
         answerDone = true;
@@ -93,17 +98,17 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
       case 'featuresGrid':
         switch (block.anchor) {
           case 'works-with':
-            return <WorksWith block={block} link={live.has('/integrations') ? '/integrations' : undefined} />;
+            return <WorksWith block={block} link={links.get('/integrations')} />;
           case 'solutions':
-            return <Solutions block={block} hubLink={live.has('/solutions') ? '/solutions' : undefined} signupUrl={site.signupUrl} />;
+            return <Solutions block={block} hubLink={links.get('/solutions')} signupUrl={site.signupUrl} locale={locale} />;
           case 'services':
-            return <Services block={block} quote={quote} entry={entry} hubLink={live.has('/services') ? '/services' : undefined} />;
+            return <Services block={block} quote={quote} entry={entry} hubLink={links.get('/services')} />;
           case 'ai':
-            return <AiAssistant block={block} link={live.has('/product/ai-assistant') ? '/product/ai-assistant' : undefined} />;
+            return <AiAssistant block={block} link={links.get('/product/ai-assistant')} locale={locale} />;
           default:
             if (platformDone) return undefined;
             platformDone = true;
-            return <Platform block={block} entry={entry} hubLink={live.has('/product') ? '/product' : undefined} />;
+            return <Platform block={block} entry={entry} hubLink={links.get('/product')} />;
         }
       case 'screenshot': {
         if (block === phone) return null;
@@ -113,10 +118,10 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
       }
       case 'entryGrid':
         if (block !== gridBlock) return undefined;
-        return <Industries heading={block.heading ?? 'Industries'} intro={block.intro} cards={industryCards} hubLink={live.has('/industries') ? '/industries' : undefined} />;
+        return <Industries heading={block.heading ?? uiStrings(locale).home.industriesHeading} intro={block.intro} cards={industryCards} hubLink={links.get('/industries')} locale={locale} />;
       case 'diagram': {
         const run = runs.get(block.id);
-        return run ? <HomeHowItWorks blocks={run as DiagramBlock[]} live={live} /> : null;
+        return run ? <HomeHowItWorks blocks={run as DiagramBlock[]} links={links} locale={locale} /> : null;
       }
       case 'pricingTable':
         return (
@@ -124,9 +129,10 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
             block={block}
             plans={plans}
             site={site}
-            note={planNote(plans)}
+            note={planNote(plans, locale)}
             trust={(heroBlock?.badges ?? []).filter(Boolean)}
-            compareLink={live.has('/pricing') ? '/pricing' : undefined}
+            compareLink={links.get('/pricing')}
+            locale={locale}
           />
         );
       case 'faq':

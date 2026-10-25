@@ -11,9 +11,11 @@ import { PageBreadcrumbs } from '@/components/layout/Breadcrumbs';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { Container } from '@/components/ui/Container';
 import { cx } from '@/components/ui/cx';
-import { FEATURE_STATUS_BADGES, type EntryCard, type PublicEntry, type Source } from '@/lib/cms/contract/cms-contract';
+import { statusBadge } from '@/components/blocks/lib/i18n';
+import type { EntryCard, PublicEntry, Source } from '@/lib/cms/contract/cms-contract';
 import { dirFor } from '@/lib/cms/locale';
 import { CmsIcon } from '@/lib/icons';
+import { localCrumbs } from '../../core/parts';
 import { isFixture } from './data';
 import { formatDate, isoDay, outboundRel } from './format';
 import styles from './s4.module.css';
@@ -59,7 +61,7 @@ export function MetaBar({ entry, byline = false, extra }: MetaBarProps) {
   return (
     <Container className="pt-6 md:pt-8">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <PageBreadcrumbs crumbs={entry.breadcrumbs} />
+        <PageBreadcrumbs crumbs={localCrumbs(entry)} />
         <ul className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-small text-fg-subtle">
           {extra}
           {byline && entry.author ? (
@@ -214,7 +216,7 @@ export function CardGrid({ cards, locale, meta, columns = 3, headingAs: H = 'h3'
   return (
     <ul data-reveal="stagger" className={cx('grid gap-4', COLS[columns])}>
       {cards.map((card) => {
-        const badge = card.status && card.status !== 'live' ? FEATURE_STATUS_BADGES[card.status][locale === 'ur' ? 'ur' : 'en'] : null;
+        const badge = statusBadge(card.status, locale);
         return (
           <li key={card.id}>
             <Link

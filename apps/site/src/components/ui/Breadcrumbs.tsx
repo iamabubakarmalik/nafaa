@@ -11,10 +11,11 @@ export interface BreadcrumbItem {
   href?: string;
 }
 
-export function Breadcrumbs({ items, className }: { items: BreadcrumbItem[]; className?: string }) {
+/** `label` names the nav for screen readers (localized by the caller). */
+export function Breadcrumbs({ items, className, label = 'Breadcrumb' }: { items: BreadcrumbItem[]; className?: string; label?: string }) {
   if (items.length === 0) return null;
   return (
-    <nav aria-label="Breadcrumb" className={cx('text-small', className)}>
+    <nav aria-label={label} className={cx('text-small', className)}>
       <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-fg-subtle">
         {items.map((item, index) => {
           const last = index === items.length - 1;

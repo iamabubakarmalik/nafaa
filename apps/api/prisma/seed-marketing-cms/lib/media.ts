@@ -18,7 +18,7 @@
 
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import type { AdminMedia } from '../../../src/admin-marketing/cms/contract/cms-contract';
 import { ApiError, type CmsApi } from './api';
 
@@ -123,7 +123,9 @@ export function sha1(buffer: Buffer): string {
   return createHash('sha1').update(buffer).digest('hex');
 }
 
+/** Reads an asset from a URL, or from a path relative to the manifest (new captures before their first upload). */
 export async function download(url: string): Promise<Buffer> {
+  if (!/^https?:\/\//i.test(url)) return readFileSync(join(dirname(MANIFEST_PATH), url));
   const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
   if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
   return Buffer.from(await res.arrayBuffer());

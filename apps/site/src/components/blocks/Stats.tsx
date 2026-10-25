@@ -38,7 +38,7 @@ export async function Stats({ block, ctx }: BlockProps<'stats'>) {
         </h2>
       ) : null}
       <dl
-        className={cx('grid divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface shadow-e1 ink:shadow-none sm:divide-y-0', cols, block.heading && 'mt-10', 'sm:[&>div+div]:border-l sm:[&>div+div]:border-line')}
+        className={cx('grid divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface shadow-e1 ink:shadow-none sm:divide-y-0', cols, block.heading && 'mt-10', 'sm:[&>div+div]:border-s sm:[&>div+div]:border-line')}
         {...reveal(ctx.index, 'stagger')}
       >
         {items.map((item) => (
@@ -46,7 +46,7 @@ export async function Stats({ block, ctx }: BlockProps<'stats'>) {
             <dt className="text-small font-medium text-fg-muted">{item.label}</dt>
             <dd className={cx(styles.statValue, 'text-[clamp(2.25rem,1.8rem+1.6vw,3.25rem)] font-650 leading-none text-fg-strong')}>
               {item.stat?.formatted}
-              {item.suffix ? <span className="ml-0.5 text-link">{item.suffix}</span> : null}
+              {item.suffix ? <span className="ms-0.5 text-link">{item.suffix}</span> : null}
             </dd>
           </div>
         ))}

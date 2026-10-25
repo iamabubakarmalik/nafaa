@@ -18,41 +18,47 @@
  */
 import { hexToChannels } from '@/components/blocks/lib/format';
 import type { CmsEntryType, EntryCard, PublicEntry } from '@/lib/cms/contract/cms-contract';
-import { livePaths, loadCards, loadPlans } from '../core/data';
+import { uiStrings, type UiStrings } from '@/lib/i18n/ui';
+import { liveLinks, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
 import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { TrustRibbon } from '../showcase/kit';
 
-const TAG_GROUPS: { type: CmsEntryType; id: string; title: (noun: string) => string }[] = [
-  { type: 'PRODUCT', id: 'products', title: (noun) => `Products ${noun} use` },
-  { type: 'SOLUTION', id: 'solutions', title: () => 'Solutions' },
-  { type: 'COMPLIANCE', id: 'compliance', title: () => 'Tax and compliance' },
-  { type: 'CITY', id: 'cities', title: () => 'In your city' },
-  { type: 'GUIDE', id: 'guides', title: () => 'Guides' },
-  { type: 'BLOG_POST', id: 'posts', title: () => 'From the blog' },
-  { type: 'COMPARE', id: 'compare', title: () => 'Compare' },
-  { type: 'BEST_OF', id: 'best', title: () => 'Best software lists' },
+type IndustryWords = UiStrings['industry'];
+
+const TAG_GROUPS: { type: CmsEntryType; id: string; title: (t: IndustryWords, noun: string) => string }[] = [
+  { type: 'PRODUCT', id: 'products', title: (t, noun) => t.productsFor(noun) },
+  { type: 'SOLUTION', id: 'solutions', title: (t) => t.solutions },
+  { type: 'COMPLIANCE', id: 'compliance', title: (t) => t.compliance },
+  { type: 'CITY', id: 'cities', title: (t) => t.cities },
+  { type: 'GUIDE', id: 'guides', title: (t) => t.guides },
+  { type: 'BLOG_POST', id: 'posts', title: (t) => t.posts },
+  { type: 'COMPARE', id: 'compare', title: (t) => t.compare },
+  { type: 'BEST_OF', id: 'best', title: (t) => t.best },
 ];
 
 export async function IndustryTemplate({ entry }: { entry: PublicEntry }) {
   const data = entry.data.type === 'INDUSTRY' ? entry.data : null;
-  const noun = data?.shopNoun ?? 'shops';
+  const ui = uiStrings(entry.locale);
+  const t = ui.industry;
+  const noun = data?.shopNoun ?? t.defaultNoun;
   const relatedIndustries = entry.related.filter((c) => c.type === 'INDUSTRY');
-  const [plans, live, sameGroup] = await Promise.all([
+  const [plans, links, sameGroup] = await Promise.all([
     loadPlans(),
-    livePaths(['/industries', '/pricing', '/demo']),
-    relatedIndustries.length < 2 && data?.group ? loadCards({ type: 'INDUSTRY', group: data.group, limit: 4 }) : Promise.resolve([] as EntryCard[]),
+    liveLinks(['/industries', '/pricing', '/demo'], entry.locale),
+    relatedIndustries.length < 2 && data?.group ? loadCards({ type: 'INDUSTRY', locale: entry.locale, group: data.group, limit: 4 }) : Promise.resolve([] as EntryCard[]),
   ]);
+  const industriesHref = links.get('/industries');
 
   const byType = (type: CmsEntryType): EntryCard[] => [...(entry.tags[type] ?? []), ...entry.related.filter((c) => c.type === type)];
   const groups: LinkGroup[] = [
-    ...TAG_GROUPS.map((g) => ({ id: g.id, title: g.title(noun), cards: byType(g.type), columns: (g.type === 'CITY' ? 4 : 3) as 3 | 4 })),
+    ...TAG_GROUPS.map((g) => ({ id: g.id, title: g.title(t, noun), cards: byType(g.type), columns: (g.type === 'CITY' ? 4 : 3) as 3 | 4 })),
     {
       id: 'more-industries',
-      title: 'Related industries',
+      title: t.related,
       cards: [...relatedIndustries, ...sameGroup].slice(0, 3),
-      link: live.has('/industries') ? { href: '/industries', label: 'All industries' } : undefined,
+      link: industriesHref ? { href: industriesHref, label: ui.allIndustries } : undefined,
     },
   ];
 
@@ -61,17 +67,21 @@ export async function IndustryTemplate({ entry }: { entry: PublicEntry }) {
       <div style={{ '--accent': hexToChannels(data?.color) ?? undefined }}>
         <ShowcaseBody
           entry={entry}
-          afterHero={<TrustRibbon className="mb-4" />}
+          afterHero={<TrustRibbon locale={entry.locale} className="mb-4" />}
           beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />}
-          kickers={{ featuresGrid: `For ${noun}`, steps: 'A day at the counter', screenshot: 'Inside the app' }}
-          pill="Industry"
+          kickers={{ featuresGrid: t.forNoun(noun), steps: t.dayAtCounter, screenshot: ui.insideTheApp }}
+          pill={t.pill}
         />
         <NextSteps
+          locale={entry.locale}
           links={[
-            { href: '/pricing', label: 'See pricing', icon: 'tag' },
-            { href: '/demo', label: 'Book a demo', icon: 'calendar' },
-            { href: '/industries', label: 'All industries', icon: 'layout-grid' },
-          ].filter((link) => live.has(link.href))}
+            { path: '/pricing', label: ui.seePricing, icon: 'tag' },
+            { path: '/demo', label: ui.bookDemo, icon: 'calendar' },
+            { path: '/industries', label: ui.allIndustries, icon: 'layout-grid' },
+          ].flatMap(({ path, ...link }) => {
+            const href = links.get(path);
+            return href ? [{ href, ...link }] : [];
+          })}
         />
       </div>
     </PageFrame>

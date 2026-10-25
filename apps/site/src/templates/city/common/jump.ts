@@ -10,19 +10,21 @@ import { createSlugger } from '@/components/blocks/rich-text/slug';
 import type { Block } from '@/lib/cms/contract/cms-contract';
 import { truncate } from '@/lib/seo/text';
 import { blockTargetId } from './blocks';
+import { stringsFor } from './strings';
 import type { JumpItem } from './ui';
 
-const CITY_FACT_LABEL: Record<string, string> = {
-  tax: 'Tax rules',
-  markets: 'Markets',
-  areas: 'Areas',
-  support: 'Support',
-  nearby: 'Nearby cities',
-};
 
 const SKIP = new Set<Block['type']>(['hero', 'answerBox', 'cta', 'callout', 'leadForm', 'tool', 'stats', 'logoCloud', 'testimonial']);
 
-export function jumpItemsFromBlocks(blocks: readonly Block[]): JumpItem[] {
+export function jumpItemsFromBlocks(blocks: readonly Block[], locale = 'en'): JumpItem[] {
+  const t = stringsFor(locale);
+  const CITY_FACT_LABEL: Record<string, string> = {
+    tax: t.jumpTax,
+    markets: t.jumpMarkets,
+    areas: t.jumpAreas,
+    support: t.jumpSupport,
+    nearby: t.jumpNearby,
+  };
   const visible = blocks.filter((block) => block.hidden !== true);
   const slugger = createSlugger();
   for (const block of visible) {
@@ -46,10 +48,10 @@ export function jumpItemsFromBlocks(blocks: readonly Block[]): JumpItem[] {
         else push(`${blockTargetId(block)}-${block.show[0]}`, CITY_FACT_LABEL[block.show[0]!] ?? block.show[0]!);
         break;
       case 'faq':
-        push(blockTargetId(block), 'FAQ');
+        push(blockTargetId(block), t.jumpFaq);
         break;
       case 'sources':
-        push(blockTargetId(block), block.heading ?? 'Sources');
+        push(blockTargetId(block), block.heading ?? t.sources);
         break;
       default:
         if ('heading' in block && typeof block.heading === 'string' && block.heading.trim()) push(blockTargetId(block), block.heading);

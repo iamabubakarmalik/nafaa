@@ -17,7 +17,7 @@ function Bar({ w, tone = 'muted', className }: { w: string; tone?: 'muted' | 'st
 
 export function BuildArt({ variant = 'web' }: { variant?: 'web' | 'app' }) {
   return (
-    <div aria-hidden className={styles.wrap}>
+    <div aria-hidden dir="ltr" className={styles.wrap}>
       <div className={styles.glow} />
       <div className={cx(styles.browser, variant === 'app' && styles.browserBack)}>
         <BrowserFrame url="your-business.com">

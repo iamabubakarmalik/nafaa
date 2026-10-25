@@ -58,7 +58,7 @@ export function ShotPanel({ block, entry, headingId, kicker }: { block: ShotBloc
     </div>
   ) : split ? (
     bleed ? (
-      <div className={cx(styles.panel, 'pl-6 pt-6 md:pl-10 md:pt-10')} data-reveal="scale">
+      <div className={cx(styles.panel, 'ps-6 pt-6 md:ps-10 md:pt-10')} data-reveal="scale">
         <div className="-mb-px w-[118%] max-w-none">{shot}</div>
       </div>
     ) : (

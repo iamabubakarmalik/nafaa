@@ -36,7 +36,7 @@ import type {
   PublicPlan,
   SiteSettings,
 } from '@/lib/cms/contract/cms-contract';
-import { DEFAULT_LOCALE } from '@/lib/cms/locale';
+import { DEFAULT_LOCALE, localizePath } from '@/lib/cms/locale';
 
 type Fixtures = typeof import('./fixtures');
 
@@ -176,4 +176,19 @@ export async function loadIndustryGroups(locale: string = DEFAULT_LOCALE): Promi
 export async function livePaths(paths: readonly string[], locale: string = DEFAULT_LOCALE): Promise<Set<string>> {
   const found = await Promise.all(paths.map(async (path) => ((await loadEntry(path, locale)) ? path : null)));
   return new Set(found.filter((p): p is string => p !== null));
+}
+
+/**
+ * Links to fixed site pages from a page in `locale`, keyed by CMS path: the
+ * page in that locale when it is published (`/ur/pricing`), else the English
+ * page, else no entry. On English pages this is exactly `livePaths`.
+ */
+export async function liveLinks(paths: readonly string[], locale: string = DEFAULT_LOCALE): Promise<Map<string, string>> {
+  const [base, local] = await Promise.all([livePaths(paths), locale === DEFAULT_LOCALE ? Promise.resolve(null) : livePaths(paths, locale)]);
+  const links = new Map<string, string>();
+  for (const path of paths) {
+    if (local?.has(path)) links.set(path, localizePath(locale, path));
+    else if (base.has(path)) links.set(path, path);
+  }
+  return links;
 }

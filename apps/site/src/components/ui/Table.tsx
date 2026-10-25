@@ -26,10 +26,10 @@ export function Table({ caption, label, showCaption = false, minWidth = 'md', cl
       tabIndex={0}
       className={cx('overflow-x-auto rounded-lg border border-line bg-surface shadow-e1 ink:shadow-none', className)}
     >
-      <table className={cx('w-full border-collapse text-left text-small', MIN_WIDTH[minWidth])}>
+      <table className={cx('w-full border-collapse text-start text-small', MIN_WIDTH[minWidth])}>
         <caption
           className={cx(
-            showCaption ? 'border-b border-line px-4 py-3 text-left font-medium text-fg-strong' : 'sr-only',
+            showCaption ? 'border-b border-line px-4 py-3 text-start font-medium text-fg-strong' : 'sr-only',
           )}
         >
           {caption}

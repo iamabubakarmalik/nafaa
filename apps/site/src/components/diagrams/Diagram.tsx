@@ -48,7 +48,7 @@ export function Diagram({ spec, caption, showCaption = true, tone = 'default', b
       data-animate={animate ? '' : undefined}
       data-diagram={spec.kind}
     >
-      <div className={styles.panel}>
+      <div dir="ltr" className={styles.panel}>
         <SceneSvg scene={built.h} uid={`${uid}h`} className={styles.svgH} {...shared} />
         <SceneSvg scene={built.v} uid={`${uid}v`} className={styles.svgV} {...shared} />
       </div>

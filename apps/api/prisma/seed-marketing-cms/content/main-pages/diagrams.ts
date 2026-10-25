@@ -178,8 +178,37 @@ const QUOTE_FLOW = block(
 
 export const PAGE_DIAGRAMS: Record<string, Block[]> = {
   // Products
-  'PRODUCT:pos': [SALE_FLOW, OFFLINE],
-  'PRODUCT:inventory': [PURCHASE_FLOW, STORE_SYNC],
+  'PRODUCT:pos': [
+    SALE_FLOW,
+    block(
+      'A whole sale from the keyboard',
+      'Fast hands never touch the mouse: the search box takes quantities and phone numbers, and the F keys open each step of the bill.',
+      flow([
+        ['find', 'Type or scan', 'scan-barcode', '3*rice adds three'],
+        ['customer', 'F2 customer', 'user-check', 'Or type the phone number'],
+        ['lines', 'F3 bill lines', 'list', 'Qty, rate, note, delete'],
+        ['pay', 'F8 payment', 'wallet', 'Keys 1 to 6 pick the method'],
+        ['done', 'F12 cash and print', 'printer', 'Bill saved, receipt out'],
+      ]),
+      'muted',
+    ),
+    OFFLINE,
+  ],
+  'PRODUCT:inventory': [
+    PURCHASE_FLOW,
+    block(
+      'From an Excel sheet to live stock',
+      'Columns are matched for you, every line is checked before anything is saved, and failed lines come back to fix and import again.',
+      flow([
+        ['file', 'File or paste', 'file-spreadsheet', 'Excel, CSV or copied cells'],
+        ['columns', 'Columns matched', 'table', 'English, Roman Urdu or Urdu headers'],
+        ['sheet', 'Checked in a sheet', 'list-checks', 'Errors shown in their cells'],
+        ['import', 'Import', 'upload', 'In chunks, with pause and resume'],
+        ['stock', 'Live stock', 'boxes', 'Counter, reports and channels'],
+      ]),
+    ),
+    STORE_SYNC,
+  ],
   'PRODUCT:khata': [
     KHATA_CYCLE,
     block(
@@ -239,6 +268,18 @@ export const PAGE_DIAGRAMS: Record<string, Block[]> = {
         ['ship', 'Dispatch', 'truck'],
       ]),
     ),
+    block(
+      'A galla that balances every night',
+      'Each shift opens with a float, records every rupee taken out or put in, and closes with a note-by-note count against what Nafaa expects.',
+      flow([
+        ['open', 'Open the shift', 'banknote', 'Opening float'],
+        ['sell', 'Cash sales', 'scan-barcode', 'Counted automatically'],
+        ['inout', 'Cash in and out', 'arrow-left-right', 'Expenses, change, safe'],
+        ['count', 'Close with a count', 'calculator', 'Note by note'],
+        ['report', 'Short or over', 'file-text', 'On the X/Z report'],
+      ]),
+      'muted',
+    ),
   ],
   'PRODUCT:offline-pos': [
     OFFLINE,
@@ -254,7 +295,21 @@ export const PAGE_DIAGRAMS: Record<string, Block[]> = {
       ]),
     ),
   ],
-  'PRODUCT:purchasing': [PURCHASE_FLOW],
+  'PRODUCT:purchasing': [
+    PURCHASE_FLOW,
+    block(
+      'From the low-stock list to the shelf',
+      'The reorder list groups what is running out by supplier and branch; each card becomes a purchase order, and stock moves only when the goods are received.',
+      flow([
+        ['low', 'Running low', 'triangle-alert', 'Days of stock left'],
+        ['reorder', 'Reorder list', 'clipboard-list', 'One card per supplier'],
+        ['order', 'Purchase order', 'send', 'Or a WhatsApp message'],
+        ['receive', 'Received', 'package-check', 'All or part'],
+        ['shelf', 'Stock and cost', 'boxes', 'Average cost updated'],
+      ]),
+      'muted',
+    ),
+  ],
   'PRODUCT:staff': [
     block(
       'Everything about your team in one place',
@@ -273,7 +328,7 @@ export const PAGE_DIAGRAMS: Record<string, Block[]> = {
       'Trust the counter when you are away',
       'Sensitive actions need the manager PIN and every one of them is logged with a name and a time.',
       flow([
-        ['login', 'Staff sign in', 'user-check', 'Own login or PIN'],
+        ['login', 'Staff sign in', 'user-check', 'Their own login'],
         ['role', 'Role decides screens', 'user-cog'],
         ['pin', 'Manager PIN', 'key-round', 'Refunds, big discounts'],
         ['log', 'Activity log', 'activity', 'Name and time'],
@@ -306,21 +361,70 @@ export const PAGE_DIAGRAMS: Record<string, Block[]> = {
   'PRODUCT:loyalty': [
     block(
       'Bring customers back',
-      'Every sale earns points, tiers reward regulars and the reward is taken at the counter on the next visit.',
+      'Every sale to a known customer earns points, member levels show who your regulars are, and points come off a later bill at the counter.',
       flow([
-        ['sale', 'Sale', 'scan-barcode'],
-        ['points', 'Points earned', 'star', 'On the customer'],
-        ['tier', 'Tier and reward', 'award', 'Regulars move up'],
-        ['back', 'Next visit', 'repeat'],
-        ['redeem', 'Redeem at counter', 'gift'],
+        ['sale', 'Sale', 'scan-barcode', 'Customer picked on the bill'],
+        ['points', 'Points earned', 'star', 'At your rate per rupee'],
+        ['tier', 'Member level', 'award', 'Starter up to Diamond'],
+        ['back', 'Next visit', 'repeat', 'Or a WhatsApp nudge'],
+        ['redeem', 'Redeem at counter', 'gift', 'Within your limits'],
       ]),
+    ),
+    block(
+      'Every way to give a customer something back',
+      'Points, discount codes, deals and messages all run from the same customer record, so the counter applies them and the reports count them.',
+      hub(['Your customer', 'users'], [
+        ['Loyalty points', 'star'],
+        ['Member levels', 'award'],
+        ['Discount codes', 'ticket'],
+        ['Combos and deals', 'gift'],
+        ['Birthday wishes', 'message-circle'],
+        ['Points expiry', 'calendar-clock'],
+      ]),
+      'muted',
     ),
   ],
 
   // Solutions
   'SOLUTION:single-shop': [SALE_FLOW, OFFLINE],
-  'SOLUTION:retail-chains': [TRANSFER_FLOW],
-  'SOLUTION:ecommerce': [ECOMMERCE_FLOW],
+  'SOLUTION:retail-chains': [
+    TRANSFER_FLOW,
+    block(
+      'How every branch closes its day',
+      'Each branch counts its own drawer and closes its own day book; head office reads them side by side the same evening.',
+      flow([
+        ['open', 'Open shift', 'banknote', 'Float counted per branch'],
+        ['sell', 'Sell all day', 'scan-barcode', 'Bills, returns, khata'],
+        ['count', 'Close with a count', 'calculator', 'Short or over recorded'],
+        ['daybook', 'Branch day book', 'book-open', 'Thermal Z or A4'],
+        ['hq', 'Head office', 'building-2', 'All branches compared'],
+      ]),
+      'muted',
+    ),
+  ],
+  'SOLUTION:ecommerce': [
+    ECOMMERCE_FLOW,
+    block(
+      'Where the COD money is',
+      'Every COD parcel is followed from booking until the courier pays in, and returned parcels are kept apart so the numbers stay honest.',
+      flow(
+        [
+          ['book', 'Courier booked', 'truck'],
+          ['road', 'On the road', 'map-pin'],
+          ['collected', 'Collected by courier', 'hand-coins', 'Not yet paid to you'],
+          ['settled', 'Settled', 'banknote', 'Marked from the settlement sheet'],
+          ['rto', 'Returned (RTO)', 'rotate-ccw', 'Counted per courier'],
+        ],
+        [
+          ['book', 'road'],
+          ['road', 'collected', 'Delivered'],
+          ['collected', 'settled'],
+          ['road', 'rto', 'Refused'],
+        ],
+      ),
+      'muted',
+    ),
+  ],
   'SOLUTION:restaurants': [
     RESTAURANT_FLOW,
     block(
@@ -418,6 +522,8 @@ export const PAGE_DIAGRAMS: Record<string, Block[]> = {
         ['Receipt printer', 'printer'],
         ['Cash drawer', 'banknote'],
         ['Barcode labels', 'barcode'],
+        ['Weighing scale', 'gauge'],
+        ['Customer display', 'monitor'],
         ['Tablet or phone', 'tablet'],
       ]),
       'muted',
@@ -450,7 +556,17 @@ export const PAGE_DIAGRAMS: Record<string, Block[]> = {
       ] },
       'muted',
     ),
-    SALE_FLOW,
+    block(
+      'Choose with your own numbers',
+      'Bill for real during the trial, then read your usage against each plan limit before you choose.',
+      flow([
+        ['products', 'Add your products', 'boxes'],
+        ['team', 'Add your team', 'users'],
+        ['bill', 'Bill for a few days', 'receipt'],
+        ['usage', 'Check usage', 'gauge', 'Products, users, shops, sales'],
+        ['plan', 'Pick the plan that fits', 'circle-check'],
+      ]),
+    ),
   ],
   'PAGE:marketplace': [
     STORE_SYNC,

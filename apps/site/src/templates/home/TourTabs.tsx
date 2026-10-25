@@ -47,7 +47,11 @@ export function TourTabs({ tabs, label, children }: { tabs: { id: string; label:
 
   const onKey = (event: React.KeyboardEvent) => {
     const last = tabs.length - 1;
-    const map: Record<string, number> = { ArrowRight: active === last ? 0 : active + 1, ArrowLeft: active === 0 ? last : active - 1, Home: 0, End: last };
+    const forward = active === last ? 0 : active + 1;
+    const back = active === 0 ? last : active - 1;
+    // Right-to-left pages (Urdu): the arrow keys follow the visual order.
+    const rtl = getComputedStyle(event.currentTarget).direction === 'rtl';
+    const map: Record<string, number> = { ArrowRight: rtl ? back : forward, ArrowLeft: rtl ? forward : back, Home: 0, End: last };
     const next = map[event.key];
     if (next === undefined) return;
     event.preventDefault();

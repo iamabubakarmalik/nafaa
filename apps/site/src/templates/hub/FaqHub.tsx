@@ -1,8 +1,8 @@
 /**
  * FAQ hub (/faq): the PAGE entry's own blocks (hero, intro), then every
  * published FAQ grouped by topic (GET /public/site/faqs, tag `faq:<locale>`)
- * in one section: a sticky topic index on the left and one H2 group per
- * topic on the right. General topics come first, then trade topics. A
+ * in one section: a sticky topic index at the start and one H2 group per
+ * topic beside it. Topic labels are localized by key (lib/i18n/ui). General topics come first, then trade topics. A
  * closing cta block, when it is the entry's last block, follows the
  * questions.
  *
@@ -15,6 +15,7 @@ import { InlineMarkdown, Markdown } from '@/components/blocks/rich-text/Markdown
 import { scopedSlugger } from '@/components/blocks/rich-text/slug';
 import blockStyles from '@/components/blocks/blocks.module.css';
 import type { PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { uiStrings } from '@/lib/i18n/ui';
 import { Blocks } from '../core/Blocks';
 import { loadFaqs } from '../core/data';
 import { PageFrame, faqPageNode } from '../core/frame';
@@ -29,7 +30,9 @@ function rank(key: string): number {
 }
 
 export async function FaqHub({ entry }: { entry: PublicEntry }) {
-  const { topics: raw } = await loadFaqs(entry.locale);
+  const t = uiStrings(entry.locale).faqHub;
+  const { topics: loaded } = await loadFaqs(entry.locale);
+  const raw = loaded.map((topic) => (t.topicLabels[topic.key] ? { ...topic, label: t.topicLabels[topic.key] as string } : topic));
   const topics = [...raw].sort((a, b) => rank(a.key) - rank(b.key) || a.label.localeCompare(b.label));
   const all = topics.flatMap((t) => t.faqs);
   const node = faqPageNode(entry.url, all);
@@ -43,11 +46,11 @@ export async function FaqHub({ entry }: { entry: PublicEntry }) {
       <MetaRow entry={entry} showUpdated={false} />
       <Blocks entry={entry} blocks={lead} />
       {topics.length ? (
-        <section aria-label="Questions by topic" className="pb-section">
+        <section aria-label={t.region} className="pb-section">
           <Container>
             <div className="grid gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-16">
-              <nav aria-label="FAQ topics" className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
-                <p className="text-eyebrow uppercase text-fg-subtle">Topics</p>
+              <nav aria-label={t.nav} className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
+                <p className="text-eyebrow uppercase text-fg-subtle">{t.topics}</p>
                 <ul className="mt-3 flex flex-wrap gap-2 lg:flex-col lg:gap-0.5">
                   {topics.map((t) => (
                     <li key={t.key}>

@@ -13,6 +13,8 @@ import { Container } from '@/components/ui/Container';
 import { cx } from '@/components/ui/cx';
 import type { EntryCard } from '@/lib/cms/contract/cms-contract';
 import { CmsIcon } from '@/lib/icons';
+import { uiStrings } from '@/lib/i18n/ui';
+import { cardPath } from '../core/ui';
 import styles from './showcase.module.css';
 
 export { styles as showcaseStyles };
@@ -100,16 +102,23 @@ export interface TrustItem {
  * Tax wording stays off this list on purpose (owner, 21 Oct): FBR and PRA are
  * named only on the tax pages.
  */
-export const DEFAULT_TRUST: TrustItem[] = [
-  { icon: 'gift', label: '7 din Free Trial' },
-  { icon: 'wifi-off', label: 'Keeps billing offline' },
-  { icon: 'message-circle', label: 'Help on WhatsApp' },
-  { icon: 'languages', label: 'English and Roman Urdu' },
-  { icon: 'smartphone', label: 'Phone, tablet or computer' },
-];
+export function trustItems(locale?: string): TrustItem[] {
+  const t = uiStrings(locale).trust;
+  return [
+    { icon: 'gift', label: t.trial },
+    { icon: 'wifi-off', label: t.offline },
+    { icon: 'message-circle', label: t.whatsapp },
+    { icon: 'languages', label: t.languages },
+    { icon: 'smartphone', label: t.devices },
+  ];
+}
+
+/** The English trust facts (pages without a locale). */
+export const DEFAULT_TRUST: TrustItem[] = trustItems('en');
 
 /** A quiet row of facts with icons, separated by hairlines. */
-export function TrustRibbon({ items = DEFAULT_TRUST, className }: { items?: TrustItem[]; className?: string }) {
+export function TrustRibbon({ items: given, locale, className }: { items?: TrustItem[]; locale?: string; className?: string }) {
+  const items = given ?? trustItems(locale);
   if (!items.length) return null;
   return (
     <Container className={className}>
@@ -146,7 +155,7 @@ export function IndustryMarquee({ cards, title, link }: { cards: readonly EntryC
       {cards.map((card) => (
         <Link
           key={card.id}
-          href={card.path}
+          href={cardPath(card)}
           prefetch={false}
           tabIndex={hidden ? -1 : undefined}
           className={styles.marqueeChip}

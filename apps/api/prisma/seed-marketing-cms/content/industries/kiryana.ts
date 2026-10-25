@@ -30,7 +30,7 @@ const entry = industry({
     { icon: "triangle-alert", title: "Damage and low stock", body: "Record broken or expired stock and see what is running low." },
   ],
   faqKeys: ["devices","kiryana-units","kiryana-import","khata-reminders","offline","pricing"],
-  evidence: ["apps/web/src/industries/retail/RetailPack.tsx","apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx","apps/web/src/modules/pos/quick-keys"],
+  evidence: ["apps/web/src/industries/retail/RetailPack.tsx","apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx","apps/web/src/modules/pos/quick-keys","apps/api/src/modules/inventory/products/import/product-import.service.ts"],
   dropped: [
     "\"95% udhaar recovery\" and other uncounted results.",
     "\"#1 kiryana store software in Pakistan\" claim.",
@@ -92,6 +92,16 @@ A kiryana store sells hundreds of small items to the same neighbourhood every da
 - **Grow with you.** A second counter or a second branch should not mean new software.
 
 Nafaa does all of this on the phone or computer you already have, in English or Roman Urdu.`),
+    prose(`## Moving your store onto Nafaa
+
+Most stores make the switch over a quiet afternoon, without closing the counter.
+
+1. **Products first.** Download the Excel template, paste your item list with cost, sale price and opening stock, and run the dry run. Before anything is saved it flags rows with no price or a price below cost, and matches items already in the shop by SKU or barcode so they are not added twice.
+2. **Units next.** For items you sell loose or in bulk, add the extra units: a carton of 12 oil bottles, a dozen eggs, a sack of rice. Each unit keeps its own price.
+3. **Old udhaar.** Add each regular customer once with the balance from the paper register. From then on every udhaar bill and payment updates that balance by itself.
+4. **Quick keys.** Put the loose items you sell all day, like eggs, bread and loose sugar, on quick keys so they take one tap at the counter.
+
+Keep the paper register for a week if it makes you comfortable. Once the khata balances match, it can go on the shelf.`),
     pricing("Plans for one counter or many"),
   ],
   writerNotes: "Owner decision O11 (pending): slug stays /industries/kiryana; use \"grocery\" in the copy.",

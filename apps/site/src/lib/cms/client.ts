@@ -43,7 +43,8 @@ import {
   type SitemapSection,
   type StatMetric,
 } from './contract/cms-contract';
-import { cmsApiUrl, isProduction } from './env';
+import { absoluteUrl, cmsApiUrl, isProduction } from './env';
+import { localizePath } from './locale';
 
 export class CmsError extends Error {
   constructor(
@@ -144,14 +145,30 @@ export const getEntry = cache(async (path: string, locale: string = DEFAULT_LOCA
     try {
       // `locale` is not in the preview query schema yet; see the S1 report.
       const draft = await request<PublicEntry>('preview', { token, path, locale }, { allow404: true, noStore: true });
-      if (draft) return draft;
+      if (draft) return withPairedAlternates(draft);
     } catch (error) {
       // An expired token falls back to the published page.
       if (!(error instanceof CmsError && error.status === 401)) throw error;
     }
   }
-  return request<PublicEntry>('entry', { path, locale }, { allow404: true, tagParams: { locale, path } });
+  const entry = await request<PublicEntry>('entry', { path, locale }, { allow404: true, tagParams: { locale, path } });
+  return entry ? withPairedAlternates(entry) : null;
 });
+
+/**
+ * Adds the other language to `alternates` when the API did not link the two
+ * entries (no shared translationKey yet, e.g. seeded separately) but the
+ * same path is published in English and in Urdu. Entries the API already
+ * links are returned unchanged.
+ */
+async function withPairedAlternates(entry: PublicEntry): Promise<PublicEntry> {
+  if (entry.alternates.length > 1 || (entry.locale !== DEFAULT_LOCALE && entry.locale !== 'ur')) return entry;
+  const paired = await getPairedPaths();
+  if (!paired.includes(entry.path)) return entry;
+  const other = entry.locale === 'ur' ? DEFAULT_LOCALE : 'ur';
+  const self = entry.alternates.length ? entry.alternates : [{ locale: entry.locale, path: entry.path, url: entry.url }];
+  return { ...entry, alternates: [...self, { locale: other, path: entry.path, url: absoluteUrl(localizePath(other, entry.path)) }] };
+}
 
 export interface EntriesQuery {
   type: CmsEntryType;
@@ -220,6 +237,25 @@ export const getLayout = cache(async (locale: string = DEFAULT_LOCALE): Promise<
     if (isProduction) throw error;
     console.warn(`[cms] layout unavailable, using the empty dev shell: ${(error as Error).message}`);
     return devFallbackLayout(locale);
+  }
+});
+
+/**
+ * CMS paths published in both English and Urdu, while Urdu is live
+ * (settings `site.locales`). Drives the language switch, hreflang and the
+ * sitemap alternates. Empty before Urdu launches, and in development when
+ * the API cannot list paths.
+ */
+export const getPairedPaths = cache(async (): Promise<string[]> => {
+  const { site } = await getLayout(DEFAULT_LOCALE);
+  if (!site.locales.includes('ur')) return [];
+  try {
+    const [en, ur] = await Promise.all([getPaths(undefined, DEFAULT_LOCALE), getPaths(undefined, 'ur')]);
+    const english = new Set(en.map((item) => item.path));
+    return [...new Set(ur.map((item) => item.path))].filter((path) => english.has(path)).sort();
+  } catch (error) {
+    if (isProduction) throw error;
+    return [];
   }
 });
 

@@ -22,22 +22,23 @@ import type { PublicEntry, ScreenshotBlock } from '@/lib/cms/contract/cms-contra
 import { cx } from '@/components/ui/cx';
 import { CmsIcon } from '@/lib/icons';
 import { mediaById } from '@/lib/media';
+import { uiStrings } from '@/lib/i18n/ui';
 import { ThemedShot } from './sections';
 import { TourTabs } from './TourTabs';
 import fx from './fx.module.css';
 
-/** Tab icons by the words editors use in screenshot headings. */
+/** Tab icons by the words editors use in screenshot headings (English and Urdu). */
 const ICONS: [RegExp, string][] = [
-  [/dashboard|overview/i, 'layout-dashboard'],
-  [/inventory|stock|product/i, 'boxes'],
-  [/khata|udhaar|credit/i, 'notebook-pen'],
-  [/online|order|store/i, 'shopping-bag'],
-  [/restaurant|table|kitchen/i, 'utensils-crossed'],
-  [/branch/i, 'building-2'],
-  [/profit|report/i, 'chart-line'],
-  [/tax|fbr|pra/i, 'shield-check'],
-  [/pos|counter|bill/i, 'scan-barcode'],
-  [/staff|payroll/i, 'users'],
+  [/dashboard|overview|ڈیش بورڈ/i, 'layout-dashboard'],
+  [/inventory|stock|product|اسٹاک|پروڈکٹ/i, 'boxes'],
+  [/khata|udhaar|credit|کھاتہ|ادھار/i, 'notebook-pen'],
+  [/online|order|store|آن لائن|آرڈر/i, 'shopping-bag'],
+  [/restaurant|table|kitchen|ریسٹورنٹ|ٹیبل|کچن/i, 'utensils-crossed'],
+  [/branch|برانچ/i, 'building-2'],
+  [/profit|report|پرافٹ|رپورٹ/i, 'chart-line'],
+  [/tax|fbr|pra|ٹیکس/i, 'shield-check'],
+  [/pos|counter|bill|کاؤنٹر|بل/i, 'scan-barcode'],
+  [/staff|payroll|اسٹاف|تنخواہ/i, 'users'],
 ];
 
 type Box = [x: number, y: number, w: number, h: number];
@@ -100,8 +101,9 @@ export function Tour({ blocks, entry }: { blocks: ScreenshotBlock[]; entry: Publ
     .map((block) => ({ block, light: mediaById(entry.media, block.mediaId), dark: mediaById(entry.media, block.darkMediaId) }))
     .filter((s) => s.light);
   if (!shots.length) return null;
+  const t = uiStrings(entry.locale).home;
 
-  const tabs = shots.map(({ block }, i) => ({ id: block.id, label: block.heading?.trim() || `Screen ${i + 1}`, icon: <CmsIcon name={iconFor(block.heading ?? '')} size={16} /> }));
+  const tabs = shots.map(({ block }, i) => ({ id: block.id, label: block.heading?.trim() || t.screen(i + 1), icon: <CmsIcon name={iconFor(block.heading ?? '')} size={16} /> }));
   const panels = shots.map(({ block, light, dark }, i) => {
     const notes = block.callouts ?? [];
     // Three layouts take turns so each screen reads differently.
@@ -170,12 +172,12 @@ export function Tour({ blocks, entry }: { blocks: ScreenshotBlock[]; entry: Publ
     <section aria-labelledby="home-tour" className="relative isolate overflow-hidden pb-section">
       <div className="mx-auto box-content max-w-wide px-gutter">
         <div className="mx-auto max-w-2xl text-center" data-reveal>
-          <p className="text-eyebrow uppercase text-link">Product tour</p>
+          <p className="text-eyebrow uppercase text-link">{t.tourEyebrow}</p>
           <h2 id="home-tour" className="mt-3 text-h2 text-fg-strong">
-            See the real app, not a mock-up
+            {t.tourTitle}
           </h2>
         </div>
-        <TourTabs tabs={tabs} label="Product tour">
+        <TourTabs tabs={tabs} label={t.tourEyebrow}>
           {panels}
         </TourTabs>
       </div>

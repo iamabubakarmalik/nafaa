@@ -661,7 +661,7 @@ export function Globe() {
   }, []);
 
   return (
-    <div ref={wrap} className={fx.globeWrap} aria-hidden>
+    <div ref={wrap} dir="ltr" className={fx.globeWrap} aria-hidden>
       <canvas ref={canvasRef} className={fx.globeCanvas} />
       <span className={fx.globeHint}>
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">

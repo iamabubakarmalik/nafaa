@@ -165,9 +165,11 @@ export function validateContent(content: SeedContent): ValidationResult {
       const color = String(e.data.color ?? '');
       const ratio = contrastRatioWithWhite(color);
       if (ratio < MIN_CONTRAST_WITH_WHITE) errors.push(`${key}: colour ${color} is ${ratio.toFixed(2)}:1 with white (needs ${MIN_CONTRAST_WITH_WHITE})`);
-      const other = industryColors.get(color.toLowerCase());
+      // Colours are unique per locale: a translation keeps the colour of its English page.
+      const colorKey = `${e.locale ?? 'en'}:${color.toLowerCase()}`;
+      const other = industryColors.get(colorKey);
       if (other) errors.push(`${key}: colour ${color} already used by ${other}`);
-      industryColors.set(color.toLowerCase(), key);
+      industryColors.set(colorKey, key);
       if (!groups.has(String(e.data.group))) errors.push(`${key}: group "${String(e.data.group)}" is not in industry-groups`);
     }
 

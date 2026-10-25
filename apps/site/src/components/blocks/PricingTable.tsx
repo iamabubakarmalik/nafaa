@@ -186,7 +186,7 @@ export async function PricingTable({ block, ctx }: BlockProps<'pricingTable'>) {
                           <li key={feature.key} className={cx('flex gap-2.5', feature.included ? 'text-fg' : 'text-fg-subtle')}>
                             <Check on={feature.included} />
                             <span>
-                              {feature.included ? null : <span className="sr-only">Not included: </span>}
+                              {feature.included ? null : <span className="sr-only">{t.notIncluded}</span>}
                               {feature.label}
                             </span>
                           </li>

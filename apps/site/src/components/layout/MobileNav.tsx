@@ -10,7 +10,9 @@
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { shellStrings } from '@/lib/i18n/shell';
 import { MenuGlyph } from './glyphs';
+import { useSiteLocale } from './LocaleGate';
 import type { HeaderCta } from './MobileNavSheet';
 import type { NavItem } from './nav';
 
@@ -24,6 +26,7 @@ export function MobileNav({ items, ctas }: { items: NavItem[]; ctas: HeaderCta[]
   const pathname = usePathname();
   const sheetId = useId();
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const t = shellStrings(useSiteLocale());
   const wasOpen = useRef(false);
 
   useEffect(() => setOpen(false), [pathname]);
@@ -49,7 +52,7 @@ export function MobileNav({ items, ctas }: { items: NavItem[]; ctas: HeaderCta[]
         onClick={() => setOpen(true)}
         className="inline-flex size-10 items-center justify-center rounded-md text-fg-strong hover:bg-surface-3"
       >
-        <span className="sr-only">Open menu</span>
+        <span className="sr-only">{t.openMenu}</span>
         <MenuGlyph size={22} />
       </button>
       {open ? <Sheet id={sheetId} items={items} ctas={ctas} onClose={close} /> : null}

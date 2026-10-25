@@ -30,6 +30,8 @@ import type {
 import { LOGO_BOWL, LOGO_DOT } from '@/lib/brand/logo';
 import { CmsIcon } from '@/lib/icons';
 import { CmsImage, mediaById } from '@/lib/media';
+import { dirFor } from '@/lib/cms/locale';
+import { uiStrings } from '@/lib/i18n/ui';
 import { Arrow } from '../core/ui';
 import { HeroVisual } from './HeroVisual';
 import { Backdrop } from './decor';
@@ -37,12 +39,13 @@ import fx from './fx.module.css';
 import hub from './hub.module.css';
 
 /** "7-day free trial · paid plans from Rs 1,500 a month", from the Plan table only. */
-export function planNote(plans: readonly PublicPlan[]): string | null {
+export function planNote(plans: readonly PublicPlan[], locale?: string): string | null {
+  const t = uiStrings(locale).home;
   const trial = plans.find((p) => p.priceMonthly === 0 && p.trialDays > 0);
   const paid = plans.map((p) => p.priceMonthly).filter((n) => n > 0);
   const parts = [
-    trial ? `${trial.trialDays}-day free trial` : null,
-    paid.length ? `paid plans from ${formatPkr(Math.min(...paid))} a month` : null,
+    trial ? t.trialNote(trial.trialDays) : null,
+    paid.length ? t.paidFrom(formatPkr(Math.min(...paid))) : null,
   ].filter(Boolean) as string[];
   if (!parts.length) return null;
   const text = parts.join(' · ');
@@ -98,16 +101,16 @@ function rotatorCss(n: number): string {
   return `@keyframes home-rotator-${n}{0%{opacity:0;transform:translateY(60%)}${p(fade)}{opacity:1;transform:none}${p(slot - fade)}{opacity:1;transform:none}${p(slot)}{opacity:0;transform:translateY(-60%)}100%{opacity:0;transform:translateY(-60%)}}`;
 }
 
-function Rotator({ words }: { words: string[] }) {
+function Rotator({ words, label }: { words: string[]; label: string }) {
   const n = words.length;
   const step = 2.6;
   return (
     <p className="mt-7 flex justify-center">
       <style>{rotatorCss(n)}</style>
-      <span className={cx('inline-flex items-center gap-2.5 rounded-full border border-line bg-surface/80 py-1.5 pl-2 pr-1.5 text-small shadow-e1 backdrop-blur ink:shadow-none')}>
-        <span className="inline-flex items-center gap-1.5 pl-1.5 font-medium text-fg-subtle">
+      <span className={cx('inline-flex items-center gap-2.5 rounded-full border border-line bg-surface/80 py-1.5 ps-2 pe-1.5 text-small shadow-e1 backdrop-blur ink:shadow-none')}>
+        <span className="inline-flex items-center gap-1.5 ps-1.5 font-medium text-fg-subtle">
           <span aria-hidden className={cx(fx.liveDot, 'size-1.5 rounded-full bg-brand-500')} />
-          Built for
+          {label}
         </span>
         <span className="sr-only">{words.join(', ')}</span>
         <span aria-hidden className={cx(fx.rotatorWords, 'grid rounded-full bg-surface-2 px-3 py-0.5 font-semibold text-fg-strong ring-1 ring-inset ring-line')} data-animate="once">
@@ -150,7 +153,7 @@ function HeroChips({ lead, chips }: { lead?: string; chips: HeroChip[] }) {
     <div className={fx.chipBar}>
       {lead ? (
         <p className="flex shrink-0 justify-center">
-          <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-brand-600/20 bg-surface py-1 pl-1 pr-3.5 text-small text-brand-900 shadow-e1 ink:border-brand-400/25 ink:bg-brand-400/10 ink:text-brand-200 ink:shadow-none">
+          <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-brand-600/20 bg-surface py-1 ps-1 pe-3.5 text-small text-brand-900 shadow-e1 ink:border-brand-400/25 ink:bg-brand-400/10 ink:text-brand-200 ink:shadow-none">
             <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-700 text-white">
               <CmsIcon name="shield-check" size={14} />
             </span>
@@ -228,11 +231,13 @@ export function HomeHero({
   phone,
   rotator,
   chips = [],
+  locale,
 }: {
   block: HeroBlock;
   entry: PublicEntry;
   site: SiteSettings;
   plans: PublicPlan[];
+  locale?: string;
   phone?: ScreenshotBlock;
   rotator?: string[];
   chips?: HeroChip[];
@@ -240,7 +245,7 @@ export function HomeHero({
   const heading = block.heading?.trim() || entry.title;
   const [head, tail] = emphasise(heading);
   const [lead, ...badges] = (block.badges ?? []).filter(Boolean);
-  const note = planNote(plans);
+  const note = planNote(plans, locale);
   const media = block.media;
   const shot = media && media.kind !== 'diagram' ? mediaById(entry.media, media.mediaId) : null;
   const shotDark = media?.kind === 'screenshot' ? mediaById(entry.media, media.darkMediaId) : null;
@@ -267,7 +272,7 @@ export function HomeHero({
             </>
           ) : null}
         </h1>
-        {words.length > 1 ? <Rotator words={words} /> : block.eyebrow ? <p className="mt-6 text-eyebrow uppercase text-link">{block.eyebrow}</p> : null}
+        {words.length > 1 ? <Rotator words={words} label={uiStrings(locale).home.builtFor} /> : block.eyebrow ? <p className="mt-6 text-eyebrow uppercase text-link">{block.eyebrow}</p> : null}
         <p className="mx-auto mt-6 max-w-[46rem] text-body-lg text-fg-muted">
           <InlineMarkdown text={block.sub} />
         </p>
@@ -334,13 +339,17 @@ function factIcon(label: string): string {
   if (/internet|offline/.test(l)) return 'wifi-off';
   if (/tax/.test(l)) return 'receipt-text';
   if (/price|cost|plan/.test(l)) return 'tag';
+  // Urdu labels (the English patterns never match Urdu text).
+  if (/کون|کس کے لیے/.test(l)) return 'users';
+  if (/انٹرنیٹ|آف لائن/.test(l)) return 'wifi-off';
+  if (/ٹیکس|FBR/i.test(l)) return 'receipt-text';
+  if (/قیمت|پلان|خرچ/.test(l)) return 'tag';
+  if (/فون|ڈیوائس|کمپیوٹر|چلتا/.test(l)) return 'smartphone';
+  if (/کیا/.test(l)) return 'layout-grid';
   return 'circle-check';
 }
 
-/** Modules named on the decorative core of the hub (aria-hidden). */
-const CORE_CHIPS = ['POS', 'Stock', 'Khata', 'Online store', 'Staff', 'Reports'];
-
-function FactCard({ label, value, side, i }: { label: string; value: string; side: 'l' | 'r'; i: number }) {
+function FactCard({ label, value, side, i, rtl }: { label: string; value: string; side: 'l' | 'r'; i: number; rtl?: boolean }) {
   return (
     <div className={cx(hub.fact, side === 'l' ? hub.factL : hub.factR)} style={{ '--i': i }}>
       <span aria-hidden className={hub.link}>
@@ -349,7 +358,7 @@ function FactCard({ label, value, side, i }: { label: string; value: string; sid
       <span aria-hidden className={hub.factIcon}>
         <CmsIcon name={factIcon(label)} size={18} />
       </span>
-      <div className="min-w-0">
+      <div className="min-w-0" dir={rtl ? 'rtl' : undefined}>
         <dt className="text-eyebrow uppercase text-fg-subtle">{label}</dt>
         <dd className="mt-1.5 text-body font-medium leading-snug text-fg-strong">
           <InlineMarkdown text={value} />
@@ -360,6 +369,9 @@ function FactCard({ label, value, side, i }: { label: string; value: string; sid
 }
 
 export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: PublicEntry }) {
+  const t = uiStrings(entry.locale).home;
+  // The hub drawing (cards wired to a core) keeps its left-to-right geometry; card text keeps the page direction.
+  const rtl = dirFor(entry.locale) === 'rtl';
   const answer = block.answer?.trim() || entry.summary;
   const facts = block.facts;
   const half = Math.ceil(facts.length / 2);
@@ -370,9 +382,9 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
       <Backdrop pattern="dots" noon="right" />
       <div className="mx-auto box-content max-w-wide px-gutter">
         <div className="mx-auto max-w-[50rem] text-center" data-reveal>
-          <p className="text-eyebrow uppercase text-link">Short answer</p>
+          <p className="text-eyebrow uppercase text-link">{t.shortAnswer}</p>
           <h2 id="home-answer" className="mt-3 text-h2 text-fg-strong">
-            {block.heading?.trim() || `What is ${entry.title}?`}
+            {block.heading?.trim() || t.whatIs(entry.title)}
           </h2>
           {answer ? (
             <p className="mt-5 text-body-lg text-fg">
@@ -381,10 +393,10 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
           ) : null}
         </div>
 
-        <div className={hub.hub} data-animate="">
+        <div className={hub.hub} data-animate="" dir={rtl ? 'ltr' : undefined}>
           <dl className={hub.col}>
             {left.map((f, i) => (
-              <FactCard key={f.label} label={f.label} value={f.value} side="l" i={i} />
+              <FactCard key={f.label} label={f.label} value={f.value} side="l" i={i} rtl={rtl} />
             ))}
           </dl>
           <div aria-hidden className={hub.core}>
@@ -409,9 +421,9 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
               </span>
             </span>
             <span className={hub.coreName}>Nafaa</span>
-            <span className={hub.coreTag}>One account for the whole business</span>
+            <span className={hub.coreTag}>{t.coreTag}</span>
             <span className={hub.chips}>
-              {CORE_CHIPS.map((c) => (
+              {t.coreChips.map((c) => (
                 <span key={c} className={hub.chip}>
                   {c}
                 </span>
@@ -420,7 +432,7 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
           </div>
           <dl className={hub.col}>
             {right.map((f, i) => (
-              <FactCard key={f.label} label={f.label} value={f.value} side="r" i={i + half} />
+              <FactCard key={f.label} label={f.label} value={f.value} side="r" i={i + half} rtl={rtl} />
             ))}
           </dl>
         </div>
@@ -431,7 +443,7 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
               <CmsIcon name="languages" size={18} />
             </span>
             <div>
-              <p className="text-eyebrow uppercase text-link">Roman Urdu mein</p>
+              <p className="text-eyebrow uppercase text-link">{t.romanUrdu}</p>
               <p lang="ur-Latn" className="mt-1.5 text-body text-fg-muted">
                 {block.romanUrdu}
               </p>
@@ -445,32 +457,37 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
 
 // ─── How it works (consecutive diagram blocks, one light band) ───
 
-const DIAGRAM_LINKS: Record<string, { href: string; label: string }[]> = {
+type DiagramLinkKey = keyof ReturnType<typeof uiStrings>['home']['diagramLinks'];
+
+const DIAGRAM_LINKS: Record<string, { href: string; label: DiagramLinkKey }[]> = {
   'offline-sync': [
-    { href: '/product/offline-pos', label: 'How offline billing works' },
-    { href: '/product/pos', label: 'See the POS' },
+    { href: '/product/offline-pos', label: 'offlineHow' },
+    { href: '/product/pos', label: 'seePos' },
   ],
-  'store-sync': [{ href: '/product/online-store', label: 'See online selling' }],
-  'fbr-invoice': [{ href: '/product/fbr', label: 'See FBR & PRA invoicing' }],
-  'khata-cycle': [{ href: '/product/khata', label: 'See the digital khata' }],
-  'multi-branch': [{ href: '/product/multi-shop', label: 'Run more than one branch' }],
+  'store-sync': [{ href: '/product/online-store', label: 'seeOnline' }],
+  'fbr-invoice': [{ href: '/product/fbr', label: 'seeFbr' }],
+  'khata-cycle': [{ href: '/product/khata', label: 'seeKhata' }],
+  'multi-branch': [{ href: '/product/multi-shop', label: 'multiBranch' }],
 };
 
-export function HomeHowItWorks({ blocks, live }: { blocks: DiagramBlock[]; live: Set<string> }) {
+/** `links` maps a CMS path to the site link for this page's locale (core/data liveLinks). */
+export function HomeHowItWorks({ blocks, links, locale }: { blocks: DiagramBlock[]; links: Map<string, string>; locale?: string }) {
   if (!blocks.length) return null;
+  const t = uiStrings(locale);
   return (
     <section aria-labelledby="home-how" className="relative isolate overflow-hidden py-section">
       <Backdrop tint="slate" pattern="grid" />
       <div className="mx-auto box-content max-w-wide px-gutter">
         <div className="mx-auto max-w-2xl text-center" data-reveal>
-          <p className="text-eyebrow uppercase text-link">How it works</p>
+          <p className="text-eyebrow uppercase text-link">{t.howItWorks}</p>
           <h2 id="home-how" className="mt-3 text-h2 text-fg-strong">
-            Built for power cuts, tax rules and busy counters
+            {t.home.howTitle}
           </h2>
         </div>
         <ol className={cx(fx.steps, 'mt-12 md:mt-16')}>
           {blocks.map((block, i) => {
-            const link = (DIAGRAM_LINKS[block.diagram.kind] ?? []).find((l) => live.has(l.href));
+            const known = (DIAGRAM_LINKS[block.diagram.kind] ?? []).find((l) => links.has(l.href));
+            const link = known ? { href: links.get(known.href) as string, label: t.home.diagramLinks[known.label] } : undefined;
             return (
               <li key={block.id} className={cx(fx.step, 'grid items-center gap-8 lg:gap-14', i % 2 === 1 ? 'lg:grid-cols-[minmax(0,1.28fr)_minmax(0,0.72fr)] lg:[&>*:first-child]:order-2' : 'lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]')}>
                 <div data-reveal>

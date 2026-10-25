@@ -88,7 +88,7 @@ export const mainPageFaqs: SeedFaq[] = [
       'Yes. Create a stock transfer from one branch, and the receiving branch confirms what arrived. Stock leaves one shop and lands in the other with a record of who sent and received it. Head office sees every branch\'s stock, sales and profit and loss side by side.',
     sourceNote: 'inventory/transfers; multi-branch center, pnl and day-book pages.',
     origin: NEW,
-    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/multi-branch/pages'],
+    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/multi-branch'],
   },
   {
     key: 'mp-reports-export',
@@ -173,6 +173,148 @@ export const mainPageFaqs: SeedFaq[] = [
     evidence: ['apps/web/src/industries/restaurant/pages/KotDisplayPage.tsx', 'apps/web/src/industries/restaurant/pages/StationsPage.tsx'],
   },
 
+  // ─── Solution pages (one page each) ───
+  {
+    key: 'sol-shop-first-bill',
+    topic: 'solutions',
+    question: 'How soon can a shop make its first bill?',
+    answer:
+      'As soon as one product is in. Sign up, pick your trade, then add products by hand, scan their barcodes or import your list from Excel. The Excel import shows every row before anything is saved, so mistakes are fixed first. You can keep adding products while the counter is already in use.',
+    sourceNote: 'Onboarding steps; ProductBulkImportPage (dry run); POS works with any saved product.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/onboarding', 'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx', 'apps/web/src/modules/pos'],
+  },
+  {
+    key: 'sol-shop-cashier-control',
+    topic: 'solutions',
+    question: 'Can I stop a cashier from giving refunds or big discounts?',
+    answer:
+      'Yes. Refunds need a manager PIN by default, and you set the largest discount a cashier may give in the counter settings; anything above it needs the PIN. Each person gets their own login with only the permissions you tick, and the activity log shows who did what and when.',
+    sourceNote: 'ManagerPin; POSSection maxDiscountPercent; PermissionPicker; ActivityLogPage.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/core/security/ManagerPin.tsx', 'apps/web/src/modules/organization/settings/sections/POSSection.tsx', 'apps/web/src/modules/hr/staff/components/PermissionPicker.tsx', 'apps/web/src/modules/reports/activity-log/pages/ActivityLogPage.tsx'],
+  },
+  {
+    key: 'sol-chain-day-close',
+    topic: 'solutions',
+    question: 'Does each branch close its own day?',
+    answer:
+      'Yes. Each branch opens and closes its own cash shift with a note-by-note count, and the day book can be read for one branch or for all of them together. It covers sales, payment methods, drawers, expenses, purchases, khata, returns and discounts, and prints as a thermal Z report or a full A4 day book.',
+    sourceNote: 'CashRegisterPage (shift per branch); DayBookPage (per branch or all branches, Z report / A4).',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/finance/cash-register/pages/CashRegisterPage.tsx', 'apps/web/src/modules/reports/day-book/DayBookPage.tsx'],
+  },
+  {
+    key: 'sol-chain-shared-list',
+    topic: 'solutions',
+    question: 'Do we have to add products separately for every branch?',
+    answer:
+      'No. The product list belongs to the account, so a product is added once and every branch can sell it. Stock is kept per branch, and the stock report shows what each branch holds, what it is worth and what is slow or dead there. Stock moves between branches through transfers that are checked on arrival.',
+    sourceNote: 'Products are account-level; StockReportPage branch view; TransfersPage and ReceiveModal.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/inventory/products', 'apps/web/src/modules/inventory/stock-report/pages/StockReportPage.tsx', 'apps/web/src/modules/inventory/transfers/pages/TransfersPage.tsx'],
+  },
+  {
+    key: 'sol-ecom-no-website',
+    topic: 'solutions',
+    question: 'I sell on Instagram and WhatsApp. Do I need a website?',
+    answer:
+      'No. Nafaa gives your shop an order page with your products, prices and stock straight from Nafaa. Share its link on Instagram, WhatsApp or anywhere else, or add it to a site as an "Order" button. Orders from it land in the same online orders list as every other channel.',
+    sourceNote: 'PublicOrderPage: customer-facing order form fed from the shop catalogue; orders go to Online orders.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/integrations/online-orders/public/PublicOrderPage.tsx', 'apps/web/src/integrations/online-orders/pages/OnlineOrdersPage.tsx'],
+  },
+  {
+    key: 'sol-ecom-courier-money',
+    topic: 'solutions',
+    question: 'How do I know which courier still owes me COD money?',
+    answer:
+      'The COD screen shows parcels still on the road, money a courier has collected but not paid in, settlements received, and parcels that came back. When the courier pays, mark the orders paid from its settlement sheet, by hand or by pasting the consignment numbers.',
+    sourceNote: 'CodPage: on the road, collected not paid, settlements, RTO, per-courier numbers; settle by pasting CNs.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/integrations/online-orders/pages/CodPage.tsx'],
+  },
+  {
+    key: 'sol-rest-happy-hours',
+    topic: 'solutions',
+    question: 'Can prices change by themselves at certain hours?',
+    answer:
+      'Yes. Happy hours apply a price cut in a time window, such as cheaper tea in the afternoon or a deal on Friday night. A rule can be limited to days, dates, categories, dishes, order types and a minimum bill, with a cap per bill, and it stays within the discount limit set for your counter.',
+    sourceNote: 'HappyHoursPage: time window in shop time, filters, cap, held to the shop discount limit.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/industries/restaurant/pages/HappyHoursPage.tsx'],
+  },
+  {
+    key: 'sol-rest-rider-cash',
+    topic: 'solutions',
+    question: 'How do I keep track of the cash delivery riders carry?',
+    answer:
+      'The delivery board shows each order waiting for a rider, assigned, on the way or delivered with cash still with the rider. When the rider hands the cash over at the counter, each order becomes a cash bill, so the drawer and the day book match what is in hand. The riders screen shows how much each rider still has to hand over.',
+    sourceNote: 'DeliveryTrackingPage ("Cash lein"); RidersPage (cash still to hand over).',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/industries/restaurant/pages/DeliveryTrackingPage.tsx', 'apps/web/src/industries/restaurant/pages/RidersPage.tsx'],
+  },
+  {
+    key: 'sol-wholesale-price-list',
+    topic: 'solutions',
+    question: 'Can I send my price list to shopkeepers?',
+    answer:
+      'Yes. The catalog screen prints a price list or a photo catalog and shares it on WhatsApp. It only ever shows sale prices, never your cost. A customer can also pick items from a shared list and send the pick list back to you.',
+    sourceNote: 'CatalogPage: price list and photo catalog print, WhatsApp sharing, pick list; sale prices only.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/catalog/pages/CatalogPage.tsx', 'apps/web/src/modules/catalog/catalogPrint.ts'],
+  },
+  {
+    key: 'sol-wholesale-supplier-rates',
+    topic: 'solutions',
+    question: 'Can I see how a supplier\'s rates have changed?',
+    answer:
+      'Yes. Each supplier\'s page shows what you owe and since when, the khata statement for any period, their bills, and how their rates moved over time. From the same page you can pay them, raise a purchase order or send a message.',
+    sourceNote: 'SupplierDetailPage: dues by age, statement, bills, rate history, pay/buy/order/message.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/purchasing/suppliers/pages/SupplierDetailPage.tsx'],
+  },
+  {
+    key: 'sol-mfg-dairy',
+    topic: 'solutions',
+    question: 'Can a dairy record dahi and makhan made from milk?',
+    answer:
+      'Yes. The dairy production screen takes milk out of stock and puts the dahi, makhan, lassi or khoya made from it into stock at the milk\'s cost. At day end, spoiled goods are recorded as a stock adjustment, so the profit report shows the loss instead of a quiet gap in stock.',
+    sourceNote: 'industries/dairy ProductionPage.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/industries/dairy/pages/ProductionPage.tsx'],
+  },
+  {
+    key: 'sol-mfg-made-to-order',
+    topic: 'solutions',
+    question: 'Does Nafaa handle made-to-order work?',
+    answer:
+      'For furniture, yes. A custom order moves from quotation to advance, to the karigar, to ready and delivery. The advance goes on the customer\'s khata the day it is paid, and the bill is made when the piece leaves the shop. Karigar pay from the drawer is saved as an expense, so the day book and profit see it.',
+    sourceNote: 'industries/furniture CustomOrdersPage and CarpentersPage.',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/industries/furniture/pages/CustomOrdersPage.tsx', 'apps/web/src/industries/furniture/pages/CarpentersPage.tsx'],
+  },
+  {
+    key: 'sol-ent-data-out',
+    topic: 'solutions',
+    question: 'Can we take our data out of Nafaa?',
+    answer:
+      'Yes. Exports give Excel files of the business records for any period and branch, with a history of who downloaded which file. The owner can also download a backup of all records as one file. Exports and backups are plan features; the pricing page shows which plans include them.',
+    sourceNote: 'ExportsPage (Excel, download history); BackupPage (owner-only JSON backup).',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/reports/exports/pages/ExportsPage.tsx', 'apps/web/src/modules/backup/pages/BackupPage.tsx'],
+  },
+  {
+    key: 'sol-ent-accounting',
+    topic: 'solutions',
+    question: 'How does Nafaa send figures to our accounting software?',
+    answer:
+      'Nafaa posts one summary journal per day to Zoho Books, QuickBooks or Xero: sales, discounts, udhaar, refunds and expenses, mapped to your own accounts, with each payment method going to the account you choose. For Tally, Nafaa makes a file of each day\'s sales, receipt and payment vouchers to import.',
+    sourceNote: 'AccountingPage (daily summary journal, payment-method mapping); TallyCard (voucher file).',
+    origin: 'new (solutions pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/integrations/accounting/AccountingPage.tsx', 'apps/web/src/integrations/accounting/TallyCard.tsx', 'apps/api/src/integrations/accounting'],
+  },
+
   // ─── Services ───
   {
     key: 'mp-services-price',
@@ -189,10 +331,172 @@ export const mainPageFaqs: SeedFaq[] = [
     topic: 'services',
     question: 'What can you move into Nafaa from my old system?',
     answer:
-      'Products with prices, cost, barcodes and stock, customers with their khata balances, and suppliers with what you owe them. We take Excel or CSV files or an export from your old software, check them with you, and import them with the same tools the app uses, so nothing is typed by hand.',
-    sourceNote: 'Product bulk import; customers directory; suppliers.',
+      'Products with prices, cost, barcodes and stock, customers with their old udhaar, and suppliers with what you owe them. We take Excel or CSV files, an export from your old software or photos of the register. Products go in through the app\'s own import with a dry run, balances go in as opening khata and supplier balances, and we check the totals with you before go-live.',
+    sourceNote: 'Product bulk import (dry run); customer opening balance (Purana khata); supplier opening balance.',
     origin: NEW,
     evidence: ['apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx', 'apps/web/src/modules/customers', 'apps/web/src/modules/purchasing/suppliers'],
+  },
+
+  // ─── Service pages (one page each) ───
+  {
+    key: 'svc-custom-existing',
+    topic: 'services',
+    question: 'Can you work with the system we already have?',
+    answer:
+      'Usually, yes. If your current system has an API, a database we can read or even regular Excel exports, we can connect to it, move data out of it or build alongside it. The written plan says exactly which systems are touched and how, before any work starts.',
+    sourceNote: "Integration work is the team's daily work in Nafaa (apps/api/src/integrations).",
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/api/src/integrations'],
+  },
+  {
+    key: 'svc-custom-first-stage',
+    topic: 'services',
+    question: 'Can we start with a small first stage?',
+    answer:
+      'Yes. The plan splits the work into stages, and the first one can be the smallest part that is useful on its own. You use it, tell us what to change, and the next stage builds on what you learned.',
+    sourceNote: 'Owner decision: projects delivered in visible stages.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/site/src/components/islands/LeadForm.tsx'],
+  },
+  {
+    key: 'svc-web-edit',
+    topic: 'services',
+    question: 'Can my team update the website after launch?',
+    answer:
+      'Yes. Every site comes with a content editor, so your team can change text, images and posts without a developer. At launch we walk the people who will use it through the editor, and new pages built from the same blocks keep the design consistent.',
+    sourceNote: 'Service scope; this site runs on the Nafaa CMS (apps/api/src/admin-marketing/cms).',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/api/src/admin-marketing/cms', 'apps/site'],
+  },
+  {
+    key: 'svc-web-domain',
+    topic: 'services',
+    question: 'Do you handle the domain and hosting?',
+    answer:
+      'We connect your domain and put the site live as part of the launch stage. If you do not have a domain yet, we help you register one in your own name. The quote shows any costs that are paid to third parties, such as the domain name.',
+    sourceNote: 'Service scope (launch stage).',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/site'],
+  },
+  {
+    key: 'svc-store-existing',
+    topic: 'services',
+    question: 'I already have a Shopify or WooCommerce store. Can you connect it?',
+    answer:
+      'Yes. Shopify connects through its app install and WooCommerce through an approval in WordPress, both started from inside Nafaa. We match your existing products to Nafaa once; after that stock and orders flow by themselves, and the store keeps its design.',
+    sourceNote: 'ShopifyAppPage; useWooConnect; MatchItemsModal.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/integrations/online-orders/pages/ShopifyAppPage.tsx', 'apps/web/src/integrations/online-orders/hooks/useWooConnect.ts', 'apps/web/src/integrations/online-orders/components/MatchItemsModal.tsx'],
+  },
+  {
+    key: 'svc-store-outside-pk',
+    topic: 'services',
+    question: 'Do you build stores for businesses outside Pakistan?',
+    answer:
+      'Yes. We build custom, Shopify and WooCommerce stores for clients anywhere. Couriers such as TCS and PostEx and wallets such as JazzCash only apply in Pakistan; elsewhere we set up the payment and shipping options your platform and country offer. Connecting to Nafaa is optional.',
+    sourceNote: 'Owner decision: build services are worldwide; Nafaa courier and wallet connections are Pakistan-specific.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/api/src/integrations/online-orders/courier-api', 'apps/api/src/integrations/payments'],
+  },
+  {
+    key: 'svc-app-offline',
+    topic: 'services',
+    question: 'Can the app work without internet?',
+    answer:
+      'Yes, if the work needs it. Screens for riders and field staff can save data on the phone and send it when the signal returns, the same way the Nafaa counter keeps billing offline. We decide which screens need this during scoping.',
+    sourceNote: 'Offline pattern used in Nafaa (core/lib/offline).',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/core/lib/offline'],
+  },
+  {
+    key: 'svc-app-both-stores',
+    topic: 'services',
+    question: 'Do we get Android and iOS, or only one?',
+    answer:
+      'Both, from one React Native codebase, unless you only need one. One codebase keeps the two apps in step when features change. We prepare the store listings and publish under your own Google Play and App Store accounts, set up with you.',
+    sourceNote: 'apps/mobile uses Expo / React Native.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/mobile/package.json'],
+  },
+  {
+    key: 'svc-migration-old-pos',
+    topic: 'services',
+    question: 'Which old software can you move data from?',
+    answer:
+      'Any system that can export to Excel or CSV, which most POS and accounting software can. If yours cannot, we work from printed reports or photos of the register. Send a sample first and we will tell you what can come across.',
+    sourceNote: 'Product import takes Excel/CSV; balances entered as opening balances.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx'],
+  },
+  {
+    key: 'svc-migration-keep-selling',
+    topic: 'services',
+    question: 'Do I have to stop selling during the migration?',
+    answer:
+      'No. Keep using your old system while we prepare the data. You choose the go-live day, and the first bill in Nafaa follows on from the last one in the old system. A stock count after go-live corrects anything that sold in between.',
+    sourceNote: 'Stock adjustments / counts after go-live.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/inventory/stock-adjustments/pages/StockAdjustmentsPage.tsx'],
+  },
+  {
+    key: 'svc-fbr-ready',
+    topic: 'services',
+    question: 'What should I have ready for the FBR or PRA setup?',
+    answer:
+      'Your NTN, your registration with the provincial authority if you sell services, the POS ID issued for each counter or branch, and a list of branches with addresses. If you do not have a POS ID yet, we explain where it comes from before we start.',
+    sourceNote: 'Tax settings fields (NTN, POS ID per authority).',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/integrations/fbr', 'apps/api/src/integrations/tax-authority/adapters.ts'],
+  },
+  {
+    key: 'svc-fbr-branches',
+    topic: 'services',
+    question: 'Can different branches report to different authorities?',
+    answer:
+      'Yes. Each branch is set up with its own authority and POS ID, so a Lahore branch can report to PRA while a Karachi branch reports to SRB. Every receipt carries the fiscal number from the authority of the branch that made it.',
+    sourceNote: 'Tax-authority POS settings are per shop (FbrModeIndicator uses the active shop).',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/integrations/fbr/components/FbrModeIndicator.tsx', 'apps/api/src/integrations/tax-authority/adapters.ts'],
+  },
+  {
+    key: 'svc-hw-phone-print',
+    topic: 'services',
+    question: 'Can I print receipts from an Android phone?',
+    answer:
+      'Yes. Small 58 mm Bluetooth printers connect straight from the browser on Android, and USB or serial printers work from a computer. The Windows desktop app adds silent printing on network and USB printers. Each device has a test button in the hardware settings.',
+    sourceNote: 'core/hardware: WebUSB, Web Serial, BLE transports; desktop printer mode.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/core/hardware/devices.ts', 'apps/web/src/core/hardware/settings.ts'],
+  },
+  {
+    key: 'svc-hw-scale',
+    topic: 'services',
+    question: 'Does Nafaa work with a weighing scale?',
+    answer:
+      'Yes. A scale connected to the counter computer sends the weight straight into the bill, so items sold by the kilo are priced without typing. It suits meat, sabzi, sweets, dry fruit and other loose goods. The scale is set up and tested from the hardware settings of that counter.',
+    sourceNote: 'core/hardware ScaleChip; POS PosWeighModal.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/core/hardware/ScaleChip.tsx', 'apps/web/src/modules/pos/components/PosWeighModal.tsx'],
+  },
+  {
+    key: 'svc-train-online',
+    topic: 'services',
+    question: 'Is online training as good as on site?',
+    answer:
+      'For most teams, yes. Sessions run over video call with the trainee using Nafaa on their own device, so they practise on the same screen they will use every day. On-site training is available by arrangement where a team prefers it.',
+    sourceNote: 'Service scope.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules'],
+  },
+  {
+    key: 'svc-train-new-staff',
+    topic: 'services',
+    question: 'How do new staff learn after the training?',
+    answer:
+      'Every screen has a built-in guide that opens with the G key and explains it in plain words, and the help center covers common tasks. Many owners also ask a trained cashier to show new staff the counter, with the guide to fall back on.',
+    sourceNote: 'PageGuide on every page (G key); modules/help.',
+    origin: 'new (services pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/core/components/PageGuide.tsx', 'apps/web/src/modules/help'],
   },
 
   // ─── Pricing and marketplace ───
@@ -225,5 +529,107 @@ export const mainPageFaqs: SeedFaq[] = [
     sourceNote: 'apps/marketplace (buyer app); apps/api/src/marketplace (publishing, orders); apps/web/src/marketplace (seller screens).',
     origin: NEW,
     evidence: ['apps/marketplace', 'apps/api/src/marketplace/publishing', 'apps/api/src/marketplace/orders', 'apps/web/src/marketplace/products/MarketplaceProductsPage.tsx'],
+  },
+
+  // ─── Hub pages (one page each) ───
+  {
+    key: 'hub-product-one-price',
+    topic: 'product',
+    question: 'Do I pay separately for each part of Nafaa?',
+    answer:
+      'No. Nafaa is one account with one plan. The plan sets your limits for products, users, shops and monthly sales, and the plan table on the pricing page shows which features each plan includes. There is no separate bill for the counter, the khata or the reports.',
+    sourceNote: 'Plan table: limits and feature flags per plan (billing/plans).',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/billing/plans/api', 'apps/api/src/modules/feature-gating/feature-gating.service.ts'],
+  },
+  {
+    key: 'hub-solutions-combine',
+    topic: 'solutions',
+    question: 'Can one business use more than one solution?',
+    answer:
+      'Yes. Solutions are ways of setting up the same Nafaa account, not separate products. A restaurant can also sell online, a wholesaler can run a retail counter, and a shop can add branches, all on one account with one stock and one set of reports.',
+    sourceNote: 'Single account model; channels, branches and industry packs on one tenant.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/organization/shops', 'apps/web/src/integrations/online-orders', 'apps/web/src/industries'],
+  },
+  {
+    key: 'hub-services-need',
+    topic: 'services',
+    question: 'Do I need a service to start using Nafaa?',
+    answer:
+      'No. Nafaa is self-serve: sign up for the free trial, add your products and start billing. Services are for when you want our team to do the work, such as moving your data in, setting up hardware or tax invoices, training staff, or building something custom.',
+    sourceNote: 'Self-serve signup and onboarding; services optional.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/onboarding', 'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx'],
+  },
+  {
+    key: 'hub-industries-change',
+    topic: 'industries',
+    question: 'Can I change my trade after signing up?',
+    answer:
+      'Yes. The business type can be changed later in Settings, and the screens for the new trade switch on over the same products, customers and sales. Nothing in your records is lost when you switch, and the counter, stock and khata keep working the same way.',
+    sourceNote: 'BusinessConfigSection changeType.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/organization/settings/sections/BusinessConfigSection.tsx'],
+  },
+  {
+    key: 'hub-integrations-safe',
+    topic: 'integrations',
+    question: 'Are the keys I enter for channels and couriers kept safe?',
+    answer:
+      'Yes. Keys and passwords you enter for WooCommerce, wallets, couriers and accounting are stored encrypted, and Nafaa uses them only to talk to that service for your account. Secret fields are typed like passwords, and you can replace a key at any time from the same settings page.',
+    sourceNote: 'core/lib/crypto encrypt() in woocommerce.service, payment-links.service, accounting and courier credential storage.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/api/src/integrations/online-orders/woocommerce.service.ts', 'apps/api/src/integrations/online-orders/payment-links.service.ts', 'apps/api/src/integrations/accounting/accounting.service.ts'],
+  },
+  {
+    key: 'hub-roadmap-dates',
+    topic: 'roadmap',
+    question: 'When will coming-soon features be ready?',
+    answer:
+      'We give a date only when a feature is close to shipping, and the roadmap shows it as soon as it is live. Until then a coming-soon feature is never sold as available. If you need something now, our team can often build it as a custom project.',
+    sourceNote: 'Roadmap policy; status badges on product, solution and integration entries.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/site/src/templates/roadmap'],
+  },
+  {
+    key: 'hub-pricing-pay',
+    topic: 'pricing',
+    question: 'How do I pay for my Nafaa plan?',
+    answer:
+      'From the billing page in the app. Each Nafaa bill can be paid by bank transfer, JazzCash or Easypaisa, and the page keeps a record of your bills and the payments you sent, with a print option for your own files. Prices are in Pakistani rupees.',
+    sourceNote: 'PayInvoicePage providerOptions (MANUAL_BANK, JAZZCASH, EASYPAISA); BillingPage bills and payments tabs.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/billing/billing/pages/PayInvoicePage.tsx', 'apps/web/src/modules/billing/billing/pages/BillingPage.tsx'],
+  },
+  {
+    key: 'hub-pricing-usage',
+    topic: 'pricing',
+    question: 'How do I know when I need a bigger plan?',
+    answer:
+      'The billing page shows your usage against each limit of your plan: products, users, shops and sales this month. When you get close, compare plans on the same page and move up. Your data and settings stay as they are.',
+    sourceNote: 'BillingPage usage tab (UsageMeters) and plan comparison; feature-gating usage endpoint.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/billing/billing/components/UsageMeters.tsx', 'apps/web/src/modules/billing/billing/components/PlanCompare.tsx', 'apps/api/src/modules/feature-gating/feature-gating.service.ts'],
+  },
+  {
+    key: 'hub-bazaar-delivery',
+    topic: 'marketplace',
+    question: 'Who delivers Nafaa Bazaar orders?',
+    answer:
+      'You do, with your own riders. Add riders in Nafaa, see who is available or out on a delivery, assign orders and follow them on the way. The order and its money stay in the same app as your counter sales.',
+    sourceNote: 'MarketplaceDeliveryPage (riders and statuses); RiderTrackingPage.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/marketplace/delivery/MarketplaceDeliveryPage.tsx', 'apps/web/src/marketplace/rider-tracking/RiderTrackingPage.tsx'],
+  },
+  {
+    key: 'hub-bazaar-who',
+    topic: 'marketplace',
+    question: 'Can any shop sell on Nafaa Bazaar?',
+    answer:
+      'Nafaa Bazaar is for shops that run on Nafaa, because listings, prices and stock come from your Nafaa account. Start the free trial, add your products, fill in your shop profile and choose what to list. Products you do not list stay private to your counter.',
+    sourceNote: 'Marketplace publishing reads the tenant catalogue.',
+    origin: 'new (hubs pass, 26 Oct 2026)',
+    evidence: ['apps/api/src/marketplace/publishing', 'apps/web/src/marketplace/shop-profile/ShopProfilePage.tsx'],
   },
 ];

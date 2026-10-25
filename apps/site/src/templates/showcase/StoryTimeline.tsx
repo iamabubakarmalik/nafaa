@@ -1,7 +1,7 @@
 /**
  * StoryTimeline: a `steps` block as a two-column story. The title and intro
- * stay pinned on the left on large screens; the steps run down a rail on the
- * right that fills with colour as it scrolls past (scroll-driven, CSS only).
+ * stay pinned at the start on large screens; the steps run down a rail at the
+ * end that fills with colour as it scrolls past (scroll-driven, CSS only).
  * A step with a screenshot (`mediaId`) shows it framed under its text.
  */
 import { Markdown, InlineMarkdown } from '@/components/blocks/rich-text/Markdown';
@@ -11,12 +11,13 @@ import { Prose } from '@/components/ui/Prose';
 import { cx } from '@/components/ui/cx';
 import type { Block, PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { CmsImage, mediaById } from '@/lib/media';
+import { uiStrings } from '@/lib/i18n/ui';
 import { Kicker } from './kit';
 import styles from './showcase.module.css';
 
 type StepsBlock = Extract<Block, { type: 'steps' }>;
 
-export function StoryTimeline({ block, entry, headingId, kicker = 'How it works' }: { block: StepsBlock; entry: PublicEntry; headingId: string; kicker?: string }) {
+export function StoryTimeline({ block, entry, headingId, kicker = uiStrings(entry.locale).howItWorks }: { block: StepsBlock; entry: PublicEntry; headingId: string; kicker?: string }) {
   return (
     <Container>
       <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-20">

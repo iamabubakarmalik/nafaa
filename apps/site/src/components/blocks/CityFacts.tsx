@@ -64,13 +64,13 @@ export async function CityFacts({ block, ctx }: BlockProps<'cityFacts'>) {
                 </div>
                 <div className="flex justify-between gap-6 py-4">
                   <dt className="text-small text-fg-muted">{t.province}</dt>
-                  <dd className="text-right text-small font-semibold text-fg-strong">{city.province}</dd>
+                  <dd className="text-end text-small font-semibold text-fg-strong">{city.province}</dd>
                 </div>
                 {city.servicesTax ? (
                   <>
                     <div className="flex justify-between gap-6 py-4">
                       <dt className="text-small text-fg-muted">{t.servicesTax}</dt>
-                      <dd className="text-right text-small font-semibold text-fg-strong">{city.servicesTax.rate}</dd>
+                      <dd className="text-end text-small font-semibold text-fg-strong">{city.servicesTax.rate}</dd>
                     </div>
                     <div className="py-4">
                       <dt className="text-small text-fg-muted">{t.appliesTo}</dt>
@@ -135,7 +135,7 @@ export async function CityFacts({ block, ctx }: BlockProps<'cityFacts'>) {
             </H>
             <div className="mt-8 grid gap-x-10 gap-y-8 md:grid-cols-2">
               {city.areas.map((area, i) => (
-                <div key={i} className="border-l-2 border-brand-500/40 pl-5">
+                <div key={i} className="border-s-2 border-brand-500/40 ps-5">
                   <Sub className="text-h4 text-fg-strong">{area.name}</Sub>
                   <p className="mt-1.5 text-small text-fg-muted">{area.note}</p>
                 </div>

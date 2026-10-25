@@ -49,6 +49,20 @@ export const SHOT = {
   kotDark: 'media_restaurant-kot-dark',
   restaurantDashboard: 'media_restaurant-dashboard',
   restaurantMenu: 'media_restaurant-menu',
+  // Industry demo shops (files in media/files, see media/manifest.json).
+  pharmacyExpiry: 'media_pharmacy-expiry',
+  pharmacyLowStock: 'media_pharmacy-low-stock',
+  pharmacyKhata: 'media_pharmacy-khata',
+  mobileImei: 'media_mobile-imei-stock',
+  mobileKhata: 'media_mobile-khata',
+  mobileProfit: 'media_mobile-profit-report',
+  garmentsProducts: 'media_garments-products',
+  garmentsProfit: 'media_garments-profit-report',
+  bakeryCakeOrders: 'media_bakery-cake-orders',
+  bakeryKhata: 'media_bakery-khata',
+  bakeryProfit: 'media_bakery-profit-report',
+  salonCounter: 'media_salon-counter',
+  salonStaff: 'media_salon-staff',
 } as const;
 
 export type Frame = 'browser' | 'phone' | 'tablet' | 'desktop' | 'receipt' | 'none';

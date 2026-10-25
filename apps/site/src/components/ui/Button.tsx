@@ -61,14 +61,14 @@ function Content({ icon: Glyph, arrow, size = 'md', children }: Pick<SharedProps
   const px = ICON_SIZE[size];
   return (
     <>
-      {Glyph ? <Glyph aria-hidden size={px} strokeWidth={1.75} className="-ml-0.5 shrink-0" /> : null}
+      {Glyph ? <Glyph aria-hidden size={px} strokeWidth={1.75} className="-ms-0.5 shrink-0" /> : null}
       <span>{children}</span>
       {arrow ? (
         <ArrowRight
           aria-hidden
           size={px - 2}
           strokeWidth={2}
-          className="-mr-1 shrink-0 transition-transform duration-fast ease-out group-hover/btn:translate-x-0.5"
+          className="-me-1 shrink-0 transition-transform duration-fast ease-out group-hover/btn:translate-x-0.5"
         />
       ) : null}
     </>

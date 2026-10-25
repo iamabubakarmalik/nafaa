@@ -22,6 +22,7 @@ import { isAllowedIcon } from '@/lib/cms/contract/cms-contract';
 import { cx } from '@/components/ui/cx';
 import { ChevronDownGlyph } from './glyphs';
 import { NavLink, StatusBadge } from './NavLink';
+import { shellStrings } from '@/lib/i18n/shell';
 import { children, hasHref, itemDescription, overviewLabel, type NavItem } from './nav';
 
 function Tile({ icon, className }: { icon: string | undefined; className?: string }) {
@@ -40,7 +41,7 @@ function Tile({ icon, className }: { icon: string | undefined; className?: strin
   );
 }
 
-function PanelLink({ item }: { item: NavItem }) {
+function PanelLink({ item, locale }: { item: NavItem; locale?: string }) {
   const description = itemDescription(item);
   return (
     <NavLink
@@ -51,7 +52,7 @@ function PanelLink({ item }: { item: NavItem }) {
       <span className="min-w-0 pt-px">
         <span className="flex items-center text-small font-medium text-fg-strong">
           {item.label}
-          <StatusBadge item={item} />
+          <StatusBadge item={item} locale={locale} />
         </span>
         {description ? <span className="mt-0.5 block text-[0.8125rem] leading-snug text-fg-subtle">{description}</span> : null}
       </span>
@@ -59,7 +60,7 @@ function PanelLink({ item }: { item: NavItem }) {
   );
 }
 
-function CompactLink({ item }: { item: NavItem }) {
+function CompactLink({ item, locale }: { item: NavItem; locale?: string }) {
   return (
     <NavLink
       item={item}
@@ -69,12 +70,12 @@ function CompactLink({ item }: { item: NavItem }) {
         <CmsIcon name={item.icon} size={15} className="shrink-0 text-fg-subtle transition-colors group-hover/ml:text-link" />
       ) : null}
       <span className="truncate">{item.label}</span>
-      <StatusBadge item={item} />
+      <StatusBadge item={item} locale={locale} />
     </NavLink>
   );
 }
 
-function RailCard({ item, index }: { item: NavItem; index: number }) {
+function RailCard({ item, index, locale }: { item: NavItem; index: number; locale?: string }) {
   const description = itemDescription(item);
   return (
     <NavLink
@@ -92,7 +93,7 @@ function RailCard({ item, index }: { item: NavItem; index: number }) {
       <span className="mt-3 text-small font-semibold text-fg-strong">{item.label}</span>
       {description ? <span className="mt-1 text-[0.8125rem] leading-snug text-fg-muted">{description}</span> : null}
       <span aria-hidden className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-link">
-        Learn more
+        {shellStrings(locale).learnMore}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-fast group-hover/ml:translate-x-0.5">
           <path d="M5 12h14M13 6l6 6-6 6" />
         </svg>
@@ -101,7 +102,7 @@ function RailCard({ item, index }: { item: NavItem; index: number }) {
   );
 }
 
-function Panel({ item, panelId }: { item: NavItem; panelId: string }) {
+function Panel({ item, panelId, locale }: { item: NavItem; panelId: string; locale?: string }) {
   const kids = children(item);
   const groups = kids.filter((kid) => children(kid).length > 0);
   const rail = groups.length ? kids.filter((kid) => children(kid).length === 0) : [];
@@ -141,16 +142,16 @@ function Panel({ item, panelId }: { item: NavItem; panelId: string }) {
                   </p>
                   <ul className={compact ? 'space-y-px' : 'space-y-0.5'}>
                     {children(group).map((link) => (
-                      <li key={link.id}>{compact ? <CompactLink item={link} /> : <PanelLink item={link} />}</li>
+                      <li key={link.id}>{compact ? <CompactLink item={link} locale={locale} /> : <PanelLink item={link} locale={locale} />}</li>
                     ))}
                   </ul>
                 </div>
               ))}
             </div>
             {rail.length ? (
-              <div className="flex flex-col gap-3 border-l border-line bg-surface-2/70 p-4">
+              <div className="flex flex-col gap-3 border-s border-line bg-surface-2/70 p-4">
                 {rail.map((link, i) => (
-                  <RailCard key={link.id} item={link} index={i} />
+                  <RailCard key={link.id} item={link} index={i} locale={locale} />
                 ))}
               </div>
             ) : null}
@@ -159,7 +160,7 @@ function Panel({ item, panelId }: { item: NavItem; panelId: string }) {
           <ul className="grid grid-cols-2 gap-1 p-3">
             {kids.map((link) => (
               <li key={link.id}>
-                <PanelLink item={link} />
+                <PanelLink item={link} locale={locale} />
               </li>
             ))}
           </ul>
@@ -167,7 +168,7 @@ function Panel({ item, panelId }: { item: NavItem; panelId: string }) {
         {hasHref(item) ? (
           <div className="flex items-center justify-between gap-4 border-t border-line bg-surface-2/60 px-5 py-3">
             <NavLink item={item} className="group/ov inline-flex items-center gap-1.5 text-small font-medium text-fg-strong hover:text-link">
-              {overviewLabel(item.label)}
+              {overviewLabel(item.label, locale)}
               <svg aria-hidden width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-fast group-hover/ov:translate-x-0.5">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
@@ -180,10 +181,10 @@ function Panel({ item, panelId }: { item: NavItem; panelId: string }) {
   );
 }
 
-export function MegaMenu({ items }: { items: NavItem[] }) {
+export function MegaMenu({ items, locale }: { items: NavItem[]; locale?: string }) {
   if (items.length === 0) return null;
   return (
-    <nav aria-label="Main" className="hidden lg:block" data-mega-root>
+    <nav aria-label={shellStrings(locale).mainNav} className="hidden lg:block" data-mega-root>
       <ul className="flex items-center">
         {items.map((item) => {
           const kids = children(item);
@@ -194,7 +195,7 @@ export function MegaMenu({ items }: { items: NavItem[] }) {
               <li key={item.id}>
                 <NavLink item={item} className={cx(trigger, 'hover:bg-surface-3')} prefetch>
                   {item.label}
-                  <StatusBadge item={item} />
+                  <StatusBadge item={item} locale={locale} />
                 </NavLink>
               </li>
             );
@@ -206,7 +207,7 @@ export function MegaMenu({ items }: { items: NavItem[] }) {
                 {item.label}
                 <ChevronDownGlyph size={13} strokeWidth={2} className="mega-chevron text-fg-subtle transition-transform duration-base" />
               </button>
-              <Panel item={item} panelId={panelId} />
+              <Panel item={item} panelId={panelId} locale={locale} />
             </li>
           );
         })}

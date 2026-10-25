@@ -74,7 +74,7 @@ export async function CityTemplate({ entry }: { entry: PublicEntry }) {
   // Template sections go before the FAQ when there is one, else at the end.
   const faqBlock = entry.blocks.find((block) => block.type === 'faq');
 
-  let jump = jumpItemsFromBlocks(entry.blocks);
+  let jump = jumpItemsFromBlocks(entry.blocks, entry.locale);
   if (pairs.length) jump = insertJumpItem(jump, { id: PAIRS_ID, label: t.industryGuidesShort }, faqBlock ? blockTargetId(faqBlock) : undefined);
 
   const pairSection = pairs.length ? (
@@ -117,7 +117,7 @@ export async function CityTemplate({ entry }: { entry: PublicEntry }) {
         pill={city?.authority}
         afterHero={
           <>
-            {!isPair ? <TrustRibbon className="mb-4" /> : null}
+            {!isPair ? <TrustRibbon locale={entry.locale} className="mb-4" /> : null}
             <JumpNav items={jump} locale={entry.locale} />
           </>
         }
@@ -130,7 +130,7 @@ export async function CityTemplate({ entry }: { entry: PublicEntry }) {
             </>
           ) : undefined
         }
-        kickers={{ featuresGrid: cityName, steps: 'Getting started', screenshot: 'Inside the app' }}
+        kickers={{ featuresGrid: cityName, steps: t.cityKickerSteps, screenshot: t.cityKickerShot }}
       />
     </TemplateFrame>
   );

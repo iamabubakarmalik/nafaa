@@ -12,7 +12,8 @@ import { hexToChannels } from '@/components/blocks/lib/format';
 import { cx } from '@/components/ui/cx';
 import type { CtaBlock, EntryCard, FeaturesGridBlock, PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { CmsIcon } from '@/lib/icons';
-import { Arrow } from '../core/ui';
+import { uiStrings } from '@/lib/i18n/ui';
+import { Arrow, cardPath } from '../core/ui';
 import { AiChat } from './AiChat';
 import { SolutionScene } from './solutionScenes';
 import { SolutionsTabs } from './SolutionsTabs';
@@ -88,7 +89,7 @@ export function WorksWith({ block, link }: { block: FeaturesGridBlock; link?: st
   return (
     <section aria-labelledby="home-works" className="border-y border-line/70 py-8">
       <div className="mx-auto box-content flex max-w-wide flex-col items-center gap-5 px-gutter lg:flex-row lg:gap-10">
-        <h2 id="home-works" className="shrink-0 text-center text-small font-medium text-fg-subtle lg:max-w-[14rem] lg:text-left">
+        <h2 id="home-works" className="shrink-0 text-center text-small font-medium text-fg-subtle lg:max-w-[14rem] lg:text-start">
           {link ? (
             <Link href={link} prefetch={false} className="hover:text-fg-strong">
               {block.heading}
@@ -127,13 +128,15 @@ function spans(count: number): number[] {
   return out;
 }
 
-export function Platform({ block, hubLink }: { block: FeaturesGridBlock; entry: PublicEntry; hubLink?: string }) {
+export function Platform({ block, entry, hubLink }: { block: FeaturesGridBlock; entry: PublicEntry; hubLink?: string }) {
+  const locale = entry.locale;
+  const t = uiStrings(locale);
   const layout = spans(block.items.length);
   return (
     <section aria-labelledby="home-platform" className="relative isolate py-section">
       <div aria-hidden className={fx.softWash} />
       <div className="mx-auto box-content max-w-wide px-gutter">
-        <SectionHead id="home-platform" eyebrow="The platform" title={block.heading} intro={block.intro} link={hubLink} linkLabel="All products" />
+        <SectionHead id="home-platform" eyebrow={t.home.platformEyebrow} title={block.heading} intro={block.intro} link={hubLink} linkLabel={t.home.allProducts} />
         <ul className={cx(fx.bento, RAIL_LIST, 'mt-12 md:grid-cols-2 md:gap-4 lg:grid-cols-12')} data-animate="once">
           {block.items.map((item, i) => {
             const span = layout[i] ?? 4;
@@ -142,7 +145,7 @@ export function Platform({ block, hubLink }: { block: FeaturesGridBlock; entry: 
             const body = (
               <>
                 {visual ? (
-                  <div aria-hidden className={cx(fx.visual, 'relative h-44 overflow-hidden border-b border-line')}>
+                  <div aria-hidden dir="ltr" className={cx(fx.visual, 'relative h-44 overflow-hidden border-b border-line')}>
                     <PlatformVisual icon={item.icon} />
                   </div>
                 ) : null}
@@ -152,14 +155,14 @@ export function Platform({ block, hubLink }: { block: FeaturesGridBlock; entry: 
                       <CmsIcon name={item.icon} size={16} />
                     </span>
                     <h3 className="text-h4 text-fg-strong">{item.title}</h3>
-                    <FeatureBadge status={item.status} locale="en" />
+                    <FeatureBadge status={item.status} locale={locale} />
                   </div>
                   <p className="mt-3 text-body text-fg-muted">
                     <InlineMarkdown text={item.body} />
                   </p>
                   {href ? (
                     <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-small font-medium text-link">
-                      {item.status === 'coming' ? 'See the roadmap' : 'Learn more'}
+                      {item.status === 'coming' ? t.seeRoadmap : t.learnMore}
                       <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
                     </span>
                   ) : null}
@@ -193,23 +196,14 @@ export function Platform({ block, hubLink }: { block: FeaturesGridBlock; entry: 
 
 const SOLUTION_TONES = ['#059669', '#2563eb', '#7c3aed', '#ea580c', '#0891b2', '#475569', '#db2777', '#0f766e'];
 
-/**
- * Key points per solution, keyed by the item link. Each line restates what the
- * item's own CMS text and the product pages already say (checked 21 Oct 2026);
- * an item without an entry simply shows its body text.
- */
-const SOLUTION_POINTS: Record<string, string[]> = {
-  '/solutions/single-shop': ['Barcode, quick keys and units', 'Stock in every unit, low-stock alerts', 'Digital khata with WhatsApp reminders', 'Keeps billing without internet'],
-  '/solutions/retail-chains': ['Branch-wise stock and sales', 'Stock transfers between branches', 'Staff roles and permissions', 'One view of every branch'],
-  '/solutions/ecommerce': ['Your own online store', 'Listing on Nafaa Bazaar', 'Shopify and WooCommerce orders', 'Courier and cash-on-delivery tracking'],
-  '/solutions/restaurants': ['Tables by section', 'Kitchen tickets per station', 'Dine-in, takeaway and delivery', 'Split bills'],
-  '/solutions/wholesale-distribution': ['Carton and piece prices', 'Supplier purchases', 'Customer credit limits', 'Khata and recovery'],
-  '/solutions/manufacturing': ['Raw and finished stock', 'Purchasing from suppliers', 'Stock and profit reports', 'Modules built around your process'],
-  '/industries/services-biz': ['Bookings', 'Memberships', 'Staff commission', 'Invoices and receipts'],
-  '/solutions/enterprise': ['Many branches in one account', 'Roles and permissions', 'Accounting export and API access', 'A team that sets it up with you'],
-};
+/** The CMS path of a site link ("/ur/solutions/x" → "/solutions/x"), for keyed lookups. */
+function cmsPath(href: string, locale: string): string {
+  const prefix = `/${locale}/`;
+  return locale !== 'en' && href.startsWith(prefix) ? href.slice(prefix.length - 1) : href;
+}
 
-export function Solutions({ block, hubLink, signupUrl }: { block: FeaturesGridBlock; hubLink?: string; signupUrl?: string }) {
+export function Solutions({ block, hubLink, signupUrl, locale = 'en' }: { block: FeaturesGridBlock; hubLink?: string; signupUrl?: string; locale?: string }) {
+  const t = uiStrings(locale).home;
   const tabs = block.items.map((item, i) => ({
     id: `sol-${i}`,
     label: item.title,
@@ -220,11 +214,11 @@ export function Solutions({ block, hubLink, signupUrl }: { block: FeaturesGridBl
     <section aria-labelledby="home-solutions" className="relative isolate overflow-hidden border-y border-line/70 py-section">
       <Backdrop tint="slate" pattern="dots" />
       <div className="mx-auto box-content max-w-wide px-gutter">
-        <SectionHead id="home-solutions" eyebrow="Solutions" title={block.heading} intro={block.intro} link={hubLink} linkLabel="All solutions" center />
-        <SolutionsTabs tabs={tabs} label="Business types">
+        <SectionHead id="home-solutions" eyebrow={t.solutionsEyebrow} title={block.heading} intro={block.intro} link={hubLink} linkLabel={t.allSolutions} center />
+        <SolutionsTabs tabs={tabs} label={t.businessTypes}>
           {block.items.map((item, i) => {
             const href = cardHref(item.href);
-            const points = (item.href && SOLUTION_POINTS[item.href]) || [];
+            const points = (item.href && t.solutionPoints[cmsPath(item.href, locale)]) || [];
             return (
               <article key={`${item.title}-${i}`} className={fx.solPanel} style={{ '--accent': tabs[i]?.accent }}>
                 <div className={fx.solText}>
@@ -232,7 +226,7 @@ export function Solutions({ block, hubLink, signupUrl }: { block: FeaturesGridBl
                     <CmsIcon name={item.icon} size={21} />
                   </span>
                   <h3 className="mt-5 text-h3 text-fg-strong">
-                    {item.title} <FeatureBadge status={item.status} locale="en" />
+                    {item.title} <FeatureBadge status={item.status} locale={locale} />
                   </h3>
                   <p className="mt-3 text-body text-fg-muted">
                     <InlineMarkdown text={item.body} />
@@ -252,18 +246,20 @@ export function Solutions({ block, hubLink, signupUrl }: { block: FeaturesGridBl
                   <div className="mt-7 flex flex-wrap items-center gap-3">
                     {href ? (
                       <Link href={href} prefetch={false} className={fx.solCta}>
-                        Explore {item.title}
+                        {t.explorePrefix}
+                        {item.title}
+                        {t.exploreSuffix}
                         <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
                       </Link>
                     ) : null}
                     {signupUrl ? (
                       <a href={signupUrl} data-track="cta_click" data-track-label={`Solutions: start trial (${item.title})`} className="text-small font-semibold text-fg-strong underline-offset-4 hover:underline">
-                        Start free trial
+                        {t.startTrial}
                       </a>
                     ) : null}
                   </div>
                 </div>
-                <div aria-hidden className={fx.solScene} data-animate="">
+                <div aria-hidden dir="ltr" className={fx.solScene} data-animate="">
                   <SolutionScene icon={item.icon} />
                 </div>
               </article>
@@ -281,11 +277,11 @@ function IndustryChip({ card, hidden }: { card: EntryCard; hidden?: boolean }) {
   return (
     <li className="shrink-0 px-1.5">
       <Link
-        href={card.path}
+        href={cardPath(card)}
         prefetch={false}
         tabIndex={hidden ? -1 : undefined}
         style={{ '--accent': hexToChannels(card.color) ?? undefined }}
-        className="group flex items-center gap-3 rounded-full border border-line bg-surface py-2 pl-2 pr-5 shadow-e1 transition-[border-color,box-shadow,transform] duration-base hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-e2 ink:shadow-none"
+        className="group flex items-center gap-3 rounded-full border border-line bg-surface py-2 ps-2 pe-5 shadow-e1 transition-[border-color,box-shadow,transform] duration-base hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-e2 ink:shadow-none"
       >
         <span aria-hidden className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-white">
           <CmsIcon name={card.icon ?? 'store'} size={17} />
@@ -296,14 +292,15 @@ function IndustryChip({ card, hidden }: { card: EntryCard; hidden?: boolean }) {
   );
 }
 
-export function Industries({ heading, intro, cards, hubLink }: { heading: string; intro?: string; cards: EntryCard[]; hubLink?: string }) {
+export function Industries({ heading, intro, cards, hubLink, locale }: { heading: string; intro?: string; cards: EntryCard[]; hubLink?: string; locale?: string }) {
   if (!cards.length) return null;
+  const t = uiStrings(locale);
   const rows: EntryCard[][] = [[], [], []];
   cards.forEach((card, i) => rows[i % 3]?.push(card));
   return (
     <section aria-labelledby="home-industries" className="overflow-hidden py-section">
       <div className="mx-auto box-content max-w-wide px-gutter">
-        <SectionHead id="home-industries" eyebrow={`${cards.length} industries`} title={heading} intro={intro} link={hubLink} linkLabel="All industries" />
+        <SectionHead id="home-industries" eyebrow={t.home.industriesCount(cards.length)} title={heading} intro={intro} link={hubLink} linkLabel={t.allIndustries} />
       </div>
       <div className="mt-12 space-y-3" data-animate="once">
         {rows
@@ -331,13 +328,14 @@ export function Industries({ heading, intro, cards, hubLink }: { heading: string
 
 // ─── Services worldwide ───
 
-export function Services({ block, quote, hubLink }: { block: FeaturesGridBlock; quote?: CtaBlock; entry: PublicEntry; hubLink?: string }) {
+export function Services({ block, quote, entry, hubLink }: { block: FeaturesGridBlock; quote?: CtaBlock; entry: PublicEntry; hubLink?: string }) {
+  const t = uiStrings(entry.locale).home;
   return (
     <section aria-labelledby="home-services" className="relative isolate overflow-hidden py-section">
       <Backdrop pattern="dots" />
       <div className="mx-auto box-content grid max-w-wide items-center gap-12 px-gutter lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
         <div>
-          <SectionHead id="home-services" eyebrow="Services · Worldwide" title={block.heading} intro={block.intro} link={hubLink} linkLabel="All services" />
+          <SectionHead id="home-services" eyebrow={t.servicesEyebrow} title={block.heading} intro={block.intro} link={hubLink} linkLabel={t.allServices} />
           <ul className="mt-10 grid gap-3 sm:grid-cols-2" data-reveal="stagger">
             {block.items.map((item, i) => {
               const href = cardHref(item.href);
@@ -403,19 +401,20 @@ const AI_ANSWER = [
   { name: 'Black Tea 950g', w: 58 },
 ];
 
-export function AiAssistant({ block, link }: { block: FeaturesGridBlock; link?: string }) {
+export function AiAssistant({ block, link, locale }: { block: FeaturesGridBlock; link?: string; locale?: string }) {
+  const t = uiStrings(locale);
   const question = block.items.find((it) => /[“"]/.test(it.body))?.body.replace(/[“”"]/g, '');
   return (
     <section aria-labelledby="home-ai" className="relative isolate overflow-hidden py-section">
       <Backdrop pattern="grid" noon="right" />
       <div className="mx-auto box-content grid max-w-wide items-center gap-12 px-gutter lg:grid-cols-2 lg:gap-20">
         <div data-reveal>
-          <p className="inline-flex items-center gap-2 rounded-full border border-brand-600/20 bg-brand-50 py-1 pl-1 pr-3 text-xs font-semibold text-brand-800 ink:border-brand-400/25 ink:bg-brand-400/10 ink:text-brand-200">
+          <p className="inline-flex items-center gap-2 rounded-full border border-brand-600/20 bg-brand-50 py-1 ps-1 pe-3 text-xs font-semibold text-brand-800 ink:border-brand-400/25 ink:bg-brand-400/10 ink:text-brand-200">
             <span className="inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
               <CmsIcon name="sparkles" size={12} />
-              New
+              {t.home.aiNew}
             </span>
-            Ask in English or Roman Urdu
+            {t.home.aiAsk}
           </p>
           <h2 id="home-ai" className="mt-5 text-h2 text-fg-strong">
             {block.heading}
@@ -434,7 +433,7 @@ export function AiAssistant({ block, link }: { block: FeaturesGridBlock; link?: 
                 <span>
                   <span className="flex items-center gap-2 text-body font-semibold text-fg-strong">
                     {item.title}
-                    <FeatureBadge status={item.status} locale="en" />
+                    <FeatureBadge status={item.status} locale={locale ?? 'en'} />
                   </span>
                   <span className="mt-0.5 block text-small text-fg-muted">
                     <InlineMarkdown text={item.body} />
@@ -445,7 +444,7 @@ export function AiAssistant({ block, link }: { block: FeaturesGridBlock; link?: 
           </ul>
           {link ? (
             <Link href={link} prefetch={false} className="group mt-8 inline-flex items-center gap-1.5 text-small font-medium text-link">
-              See the AI assistant
+              {t.home.seeAi}
               <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
             </Link>
           ) : null}

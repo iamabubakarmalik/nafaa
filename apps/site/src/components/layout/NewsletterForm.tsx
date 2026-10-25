@@ -10,6 +10,8 @@ import { useId, useState, type FormEvent } from 'react';
 import { track, utmParams } from '@/lib/analytics/track';
 import { PUBLIC_API_URL } from '@/lib/cms/env';
 import { cx } from '@/components/ui/cx';
+import { shellStrings } from '@/lib/i18n/shell';
+import { useSiteLocale } from './LocaleGate';
 
 type State = 'idle' | 'sending' | 'done' | 'error';
 
@@ -20,6 +22,7 @@ export function NewsletterForm({ className }: { className?: string }) {
   const [state, setState] = useState<State>('idle');
   const [error, setError] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
+  const t = shellStrings(useSiteLocale());
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,7 +30,7 @@ export function NewsletterForm({ className }: { className?: string }) {
     if (form.get('company')) return;
     const email = String(form.get('email') ?? '').trim();
     if (!EMAIL.test(email)) {
-      setError('Please enter a valid email address.');
+      setError(t.emailInvalid);
       return;
     }
     setError(null);
@@ -52,14 +55,14 @@ export function NewsletterForm({ className }: { className?: string }) {
       setState('done');
     } catch {
       setState('error');
-      setError('That did not go through. Please try again in a moment.');
+      setError(t.sendFailed);
     }
   }
 
   if (state === 'done') {
     return (
       <p role="status" className={cx('rounded-lg border border-brand-500/30 bg-brand-500/10 px-4 py-3 text-small font-medium text-fg-strong', className)}>
-        Shukriya! You are on the list. We write rarely and only when it is useful.
+        {t.subscribed}
       </p>
     );
   }
@@ -67,7 +70,7 @@ export function NewsletterForm({ className }: { className?: string }) {
   return (
     <form onSubmit={onSubmit} noValidate className={className} aria-describedby={error ? `${id}-err` : undefined}>
       <label htmlFor={`${id}-email`} className="sr-only">
-        Email address
+        {t.emailLabel}
       </label>
       <div className="flex gap-2 rounded-xl border border-line-strong bg-surface p-1.5 shadow-e1 focus-within:border-brand-500 ink:shadow-none">
         <input
@@ -77,7 +80,7 @@ export function NewsletterForm({ className }: { className?: string }) {
           autoComplete="email"
           inputMode="email"
           required
-          placeholder="you@business.com"
+          placeholder={t.emailPlaceholder}
           onInput={() => {
             if (!started) {
               setStarted(true);
@@ -92,7 +95,7 @@ export function NewsletterForm({ className }: { className?: string }) {
           disabled={state === 'sending'}
           className="inline-flex h-9 shrink-0 items-center rounded-lg bg-brand-700 px-4 text-small font-medium text-white transition-colors hover:bg-brand-800 disabled:opacity-60"
         >
-          {state === 'sending' ? 'Sending…' : 'Subscribe'}
+          {state === 'sending' ? t.sending : t.subscribe}
         </button>
       </div>
       {error ? (

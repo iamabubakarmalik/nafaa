@@ -15,7 +15,7 @@ export function formatDate(value: string | null | undefined, locale = 'en'): str
   // so no time zone moves it to the previous or next day.
   const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00Z` : value);
   if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat(hreflangFor(locale), { day: 'numeric', month: 'short', year: 'numeric', timeZone: TIME_ZONE }).format(date);
+  return new Intl.DateTimeFormat(hreflangFor(locale), { day: 'numeric', month: locale === 'ur' ? 'long' : 'short', year: 'numeric', timeZone: TIME_ZONE, numberingSystem: 'latn' }).format(date);
 }
 
 /** Machine value for <time dateTime>. */
