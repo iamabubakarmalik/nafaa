@@ -467,7 +467,7 @@ export const REQUIRED_DATA_FIELDS: Record<CmsEntryType, readonly string[]> = {
   INTEGRATION: ['status', 'category'], // + verifiedAt when status is "live"
   COMPLIANCE: ['authority'],
   CITY: ['name', 'province', 'authority', 'wikidataId'],
-  CITY_INDUSTRY: ['industryId', 'evidence'],
+  CITY_INDUSTRY: ['industryId'],
   BEST_OF: ['category', 'methodology', 'items'],
   COMPARE: ['competitorName', 'competitorUrl', 'verdict'],
   ALTERNATIVE: ['competitorName', 'competitorUrl', 'verdict'],
@@ -1414,8 +1414,8 @@ const cityIndustryDataShape = z.object({
   type: z.literal('CITY_INDUSTRY'),
   /** INDUSTRY entry id. The parent (entry.parentId) is the CITY. */
   industryId: idSchema,
-  /** Case study id or a "5+ real customers" note. */
-  evidence: shortText(1000),
+  /** Optional case study id or real-customers note. The page publishes on its own local content (word and similarity gates). */
+  evidence: shortText(1000).optional(),
 });
 const bestOfItemSchema = z.object({
   name: shortText(80),

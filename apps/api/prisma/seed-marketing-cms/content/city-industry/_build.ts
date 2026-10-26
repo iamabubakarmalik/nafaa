@@ -9,8 +9,8 @@
  *
  * Market notes describe what each place is publicly known for, with the
  * source in `sources`. Nothing here claims Nafaa customers, offices or staff
- * in a city. `data.evidence` (real customers in the city and trade) is left
- * for the owner, so these pages stay drafts until it is filled.
+ * in a city. `data.evidence` (real customers) is optional: the pages publish
+ * on their own local content, checked by the word and similarity gates.
  */
 
 import { withIds } from '../../lib/blocks';
