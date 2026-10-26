@@ -14,14 +14,14 @@
 
 import { useEffect, useState } from 'react';
 import {
-  Accessibility, Building2, GraduationCap, LayoutGrid, Monitor, Moon, MoveHorizontal, Palette, PanelLeft, PanelLeftClose,
+  Accessibility, Building2, GraduationCap, LayoutGrid, LayoutTemplate, Monitor, Moon, MoveHorizontal, Palette, PanelLeft, PanelLeftClose,
   PanelLeftOpen, RotateCcw, Rows3, SquareRoundCorner, Sun, Type, User,
 } from 'lucide-react';
 import { Button, IconButton, confirmDialog } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
-import { Toggle } from '@modules/organization/settings/components/UI';
+import { Toggle } from '@modules/organization/settings/components/SettingsBlocks';
 import { SaveStatusBar } from '@modules/organization/settings/sections/_SaveStatus';
 import {
   CANVAS_TONES, industryIdentity, LATIN_FONTS, TEXT_SCALES, URDU_FONTS,
@@ -35,6 +35,9 @@ import { ChoiceGrid } from '../components/ChoiceGrid';
 import { AccentPicker } from '../components/AccentPicker';
 import { FontPicker } from '../components/FontPicker';
 import { AppearancePreview } from '../components/AppearancePreview';
+import { HeroSettings } from '../components/HeroSettings';
+
+const HERO_KEYS = ['heroStyle', 'heroPattern', 'heroSize', 'heroStats'] as const;
 
 /* ─── Small visuals for the option cards ─── */
 
@@ -228,6 +231,12 @@ export default function AppearancePage() {
             </div>
           </SettingCard>
 
+          <SettingCard id="header" title="Header" description="Har page ke upar wala rangeen dabba — style, pattern, size aur numbers" icon={LayoutTemplate} color="emerald"
+            source={ed.sourceOf('heroStyle')}
+            onReset={HERO_KEYS.some((k) => ed.isSet(k)) ? () => ed.resetMany(HERO_KEYS) : undefined}>
+            <HeroSettings ed={ed} />
+          </SettingCard>
+
           <SettingCard title="Font" description="Poori app ka font — har ek apne asal andaaz me dikh raha hai" icon={Type} color="violet"
             source={ed.sourceOf('latinFont')} onReset={resetFor('latinFont')}>
             <FontPicker kind="latin" label="Font" fonts={LATIN_FONTS} value={a.latinFont} sample="Nafaa POS · Rs 12,450" onChange={(v) => ed.set('latinFont', v)} />
@@ -273,7 +282,7 @@ export default function AppearancePage() {
           </div>
 
           <SettingCard title="Accessibility" description="Aankhon aur aaram ke liye" icon={Accessibility} color="emerald"
-            onReset={ed.isSet('contrast') || ed.isSet('reduceMotion') ? () => { ed.reset('contrast'); ed.reset('reduceMotion'); } : undefined}>
+            onReset={ed.isSet('contrast') || ed.isSet('reduceMotion') ? () => ed.resetMany(['contrast', 'reduceMotion']) : undefined}>
             <Toggle label="High contrast" desc="Halka grey text aur lines gehre — dhoop me ya kamzor nazar ke liye"
               checked={a.contrast === 'high'} onChange={(v) => ed.set('contrast', v ? 'high' : 'normal')} />
             <Toggle label="Reduce motion" desc="Animations aur hilti cheezein band — tez aur aaram se"
@@ -302,6 +311,7 @@ export default function AppearancePage() {
             { icon: Building2, color: '#7c3aed', title: 'Business default', text: 'Malik ya settings wala sab staff ka default look set kar sakta hai; har koi phir apna badal sakta hai.' },
             { icon: Moon, color: '#0f172a', title: 'Dark mode', text: 'Raat ko ya kam roshni me aankhon ko aaram. "System" chunein to computer ke saath badalta hai.' },
             { icon: Palette, color: '#e11d48', title: 'Rang aur font', text: 'Brand color buttons aur menu par lagta hai; font aur text size poori app me.' },
+            { icon: LayoutTemplate, color: '#059669', title: 'Header', text: 'Har page ke upar wale dabbe ka style chunein — Modern, Simple, Halka, Dark, Aurora ya Outline. Neeche preview foran badalta hai.' },
             { icon: Accessibility, color: '#16a34a', title: 'Aasani', text: 'High contrast dhoop me parhne ke liye, reduce motion animations band karne ke liye.' },
             { icon: RotateCcw, color: '#d97706', title: 'Reset', text: 'Har dabbe me Reset us ek cheez ko wapas karta hai; upar "Reset all" sab ko.' },
           ]}

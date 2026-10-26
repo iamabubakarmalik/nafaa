@@ -10,7 +10,7 @@ import {
   Bar, BarChart, CartesianGrid, Cell, LabelList, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Crown, Star } from 'lucide-react';
-import { Card } from '@/design-system/components';
+import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { axisMoney, hourLabel, hourTick } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
@@ -106,7 +106,7 @@ export function CompareView({ data, metric, hue, fmt, live }: {
           )}
           {live && (
             <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" />Aaj tawajjo chahiye</span>}>
-              {live.needsAttention.length === 0 ? <p className="text-[0.8125rem] text-emerald-700">Sab branches theek chal rahi hain.</p> : (
+              {live.needsAttention.length === 0 ? <p className="text-[0.8125rem] text-success-700">Sab branches theek chal rahi hain.</p> : (
                 <ul className="space-y-2">
                   {live.needsAttention.map((n) => (
                     <li key={n.shopId} className="flex items-start gap-2">
@@ -188,42 +188,40 @@ export function FiguresTable({ data, hue, fmt }: { data: BranchComparison; hue: 
   const head = ['Branch', 'Bill', 'Sale', 'Return', 'Discount', 'Haath aaya', 'Udhaar', 'Ausat bill', 'Profit', 'Expenses', 'Nuqsan', 'Net profit', 'Hissa', 'Pichhli se'];
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[64rem] text-[0.8125rem]">
-          <thead className="bg-slate-50/70 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-            <tr>{head.map((h, i) => <th key={h} className={cn('px-3 py-2.5', i === 0 ? 'pl-5 text-left' : 'text-right')}>{h}</th>)}</tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {data.shops.map((s) => {
-              const T = SHOP_TYPES[s.type];
-              return (
-                <tr key={s.id} className="hover:bg-slate-50/60">
-                  <td className="py-2.5 pl-5 pr-3">
-                    <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-900">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: hue(s.id) }} />
-                      <T.icon className="h-3.5 w-3.5 shrink-0 text-slate-400" /><span className="truncate">{s.name}</span>
-                      {s.isMain && <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />}
-                    </span>
-                  </td>
-                  <N>{s.bills}</N><N strong>{fmt.money(s.net)}</N><N>{fmt.money(s.refunds)}</N><N>{fmt.money(s.discount)}</N>
-                  <N>{fmt.money(s.cashIn)}</N><N>{fmt.money(s.credit)}</N><N>{fmt.money(s.avgBill)}</N>
-                  <N>{fmt.cost(s.grossProfit)}</N><N>{fmt.money(s.expenses)}</N><N>{fmt.cost(s.writeOff)}</N><N strong>{fmt.cost(s.netProfit)}</N>
-                  <N>{s.share.toFixed(1)}%</N><N><Growth v={s.growth} /></N>
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot className="border-t-2 border-slate-200 bg-slate-50/70 font-semibold text-slate-900">
-            <tr>
-              <td className="py-2.5 pl-5 pr-3">Kul</td>
-              <N>{t.bills}</N><N strong>{fmt.money(t.net)}</N><N>{fmt.money(t.refunds)}</N><N>{fmt.money(t.discount)}</N>
-              <N>{fmt.money(t.cashIn)}</N><N>{fmt.money(t.credit)}</N><N>{fmt.money(t.bills ? t.net / t.bills : 0)}</N>
-              <N>{fmt.cost(t.grossProfit)}</N><N>{fmt.money(t.expenses)}</N><N>{fmt.cost(t.writeOff)}</N><N strong>{fmt.cost(t.netProfit)}</N>
-              <N>100%</N><N><Growth v={t.prevNet > 0 ? ((t.net - t.prevNet) / t.prevNet) * 100 : t.net > 0 ? 100 : 0} /></N>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+      <Table minWidth="64rem" className="[&_table]:text-[0.8125rem]">
+        <THead>
+          <Tr>{head.map((h, i) => <Th key={h} className={cn('px-3 py-2.5', i === 0 ? 'pl-5 text-left' : 'text-right')}>{h}</Th>)}</Tr>
+        </THead>
+        <TBody>
+          {data.shops.map((s) => {
+            const T = SHOP_TYPES[s.type];
+            return (
+              <Tr key={s.id} className="hover:bg-slate-50/60">
+                <Td className="py-2.5 pl-5 pr-3">
+                  <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-900">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: hue(s.id) }} />
+                    <T.icon className="h-3.5 w-3.5 shrink-0 text-slate-400" /><span className="truncate">{s.name}</span>
+                    {s.isMain && <Star className="h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-400" />}
+                  </span>
+                </Td>
+                <N>{s.bills}</N><N strong>{fmt.money(s.net)}</N><N>{fmt.money(s.refunds)}</N><N>{fmt.money(s.discount)}</N>
+                <N>{fmt.money(s.cashIn)}</N><N>{fmt.money(s.credit)}</N><N>{fmt.money(s.avgBill)}</N>
+                <N>{fmt.cost(s.grossProfit)}</N><N>{fmt.money(s.expenses)}</N><N>{fmt.cost(s.writeOff)}</N><N strong>{fmt.cost(s.netProfit)}</N>
+                <N>{s.share.toFixed(1)}%</N><N><Growth v={s.growth} /></N>
+              </Tr>
+            );
+          })}
+        </TBody>
+        <tfoot className="border-t-2 border-slate-200 bg-slate-50/70 font-semibold text-slate-900">
+          <Tr>
+            <Td className="py-2.5 pl-5 pr-3 text-slate-900">Kul</Td>
+            <N>{t.bills}</N><N strong>{fmt.money(t.net)}</N><N>{fmt.money(t.refunds)}</N><N>{fmt.money(t.discount)}</N>
+            <N>{fmt.money(t.cashIn)}</N><N>{fmt.money(t.credit)}</N><N>{fmt.money(t.bills ? t.net / t.bills : 0)}</N>
+            <N>{fmt.cost(t.grossProfit)}</N><N>{fmt.money(t.expenses)}</N><N>{fmt.cost(t.writeOff)}</N><N strong>{fmt.cost(t.netProfit)}</N>
+            <N>100%</N><N><Growth v={t.prevNet > 0 ? ((t.net - t.prevNet) / t.prevNet) * 100 : t.net > 0 ? 100 : 0} /></N>
+          </Tr>
+        </tfoot>
+      </Table>
       <p className="border-t border-slate-100 px-5 py-2.5 text-[0.75rem] text-slate-500">
         Sale = bill − return. Net profit = sale − cost − expenses − nuqsan (kharab/gum maal). Wohi hisaab jo <Link to="/reports" className="font-semibold text-brand-700 hover:underline">Reports</Link> me hai.
       </p>
@@ -232,14 +230,14 @@ export function FiguresTable({ data, hue, fmt }: { data: BranchComparison; hue: 
 }
 
 function N({ children, strong }: { children: ReactNode; strong?: boolean }) {
-  return <td className={cn('whitespace-nowrap px-3 py-2.5 text-right tabular-nums', strong ? 'font-semibold text-slate-900' : 'text-slate-600')}>{children}</td>;
+  return <Td className={cn('whitespace-nowrap px-3 py-2.5 text-right tabular-nums', strong ? 'font-semibold text-slate-900' : 'text-slate-600')}>{children}</Td>;
 }
 
 export function Growth({ v }: { v: number }) {
   if (!Number.isFinite(v) || v === 0) return <span className="text-slate-400">—</span>;
   const up = v > 0;
   const Icon = up ? ArrowUpRight : ArrowDownRight;
-  return <span className={cn('inline-flex items-center gap-0.5 font-semibold', up ? 'text-emerald-600' : 'text-rose-600')}><Icon className="h-3.5 w-3.5" />{Math.abs(v).toFixed(0)}%</span>;
+  return <span className={cn('inline-flex items-center gap-0.5 font-semibold', up ? 'text-success-600' : 'text-rose-600')}><Icon className="h-3.5 w-3.5" />{Math.abs(v).toFixed(0)}%</span>;
 }
 
 function Note({ text }: { text: string }) {

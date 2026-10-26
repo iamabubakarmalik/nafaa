@@ -29,6 +29,10 @@ const OPTIONS: { key: Field; label: string; help: string; values: [string, strin
   { key: 'density', label: 'Density', help: 'Spacing between elements', values: [['comfortable', 'Comfortable'], ['compact', 'Compact']] },
   { key: 'radius', label: 'Corners', help: 'Button and card corners', values: [['default', 'Rounded'], ['sharp', 'Sharp'], ['round', 'Extra round']] },
   { key: 'contrast', label: 'Contrast', help: 'High darkens secondary text and lines', values: [['normal', 'Normal'], ['high', 'High']] },
+  { key: 'heroStyle', label: 'Header style', help: 'The colored box at the top of every page', values: [['modern', 'Modern (gradient, glow)'], ['simple', 'Simple (flat accent)'], ['soft', 'Soft (light tint, dark text)'], ['dark', 'Dark (ink with accent glow)'], ['aurora', 'Aurora (accent mesh)'], ['outline', 'Outline (border only)']] },
+  { key: 'heroPattern', label: 'Header pattern', help: 'Background texture of the page header', values: [['dots', 'Dots'], ['grid', 'Grid'], ['lines', 'Lines'], ['none', 'None']] },
+  { key: 'heroSize', label: 'Header size', help: 'Compact uses less padding and a smaller first number', values: [['comfortable', 'Comfortable'], ['compact', 'Compact']] },
+  { key: 'heroStats', label: 'Header numbers', help: 'Numbers in one row, or each in its own tile', values: [['inline', 'Inline'], ['cards', 'Cards']] },
 ];
 
 /** Any Google Font is stored as "gf:<Family Name>" (same format as the web app). */

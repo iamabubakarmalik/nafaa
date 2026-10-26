@@ -11,8 +11,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Ban, CreditCard, HandCoins, History, MessageCircle, Receipt, UserRound, XCircle } from 'lucide-react';
-import { Button, Card, Modal, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { Ban, CreditCard, HandCoins, History, MessageCircle, Receipt, UserRound, XCircle } from 'lucide-react';
+import { Button, Card, Modal, PageHero, PageShell, Skeleton, Textarea, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { PrintButton, type PrintDoc } from '@core/print';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -84,29 +84,26 @@ export default function EmiPlanDetailPage() {
 
   return (
     <PageShell>
-      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <div className="flex flex-wrap items-start gap-3">
-          <button type="button" onClick={() => navigate('/emi-plans')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold">{p.customerName}</h1>
-              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[0.75rem] font-medium ring-1 ring-white/25">{st.label}</span>
-            </div>
-            <p className="mt-0.5 text-[0.8125rem] text-white/80"><span className="font-mono">{p.planNumber}</span>{p.customerPhone ? ` · ${p.customerPhone}` : ''} · {p.installmentCount} qist × {formatPKR(p.installmentAmount)}</p>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
+      <PageHero
+        title={p.customerName}
+        chip={st.label}
+        subtitle={<><span className="font-mono">{p.planNumber}</span>{p.customerPhone ? ` · ${p.customerPhone}` : ''} · {p.installmentCount} qist × {formatPKR(p.installmentAmount)}</>}
+        back="/emi-plans"
+        backLabel="Wapas (Esc)"
+        actions={(
+          <>
             <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} label="Schedule" /></span>
-            {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />Yaad dilayein</a>}
-            {canManage && active && <button type="button" onClick={() => setCollect(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-bold text-brand-800 shadow-sm hover:bg-brand-50"><HandCoins className="h-4 w-4" />Qist lein (Q)</button>}
-          </div>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label="Qiston me" value={sales(p.financedAmount)} hint={`down ${formatPKR(p.downPayment)}`} />
-          <Stat label="Mila" value={sales(collected)} hint={`${p.paidInstallmentCount}/${p.installmentCount} qist`} />
-          <Stat label="Baqi" value={sales(p.remainingAmount)} />
-          <Stat label={p.overdueAmount > 0 ? 'Late' : 'Agli qist'} value={p.overdueAmount > 0 ? sales(p.overdueAmount) : p.nextDueDate ? dayOnly(p.nextDueDate) : '—'} hint={p.overdueAmount > 0 ? `${p.overdueCount} qist` : p.nextDueDate ? formatPKR(p.nextDueAmount) : undefined} />
-        </div>
-      </div>
+            {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />Yaad dilayein</a>}
+            {canManage && active && <button type="button" onClick={() => setCollect(true)} className={heroPrimaryButton}><HandCoins className="h-4 w-4" />Qist lein (Q)</button>}
+          </>
+        )}
+        stats={[
+          { label: 'Qiston me', value: sales(p.financedAmount), hint: `down ${formatPKR(p.downPayment)}` },
+          { label: 'Mila', value: sales(collected), hint: `${p.paidInstallmentCount}/${p.installmentCount} qist` },
+          { label: 'Baqi', value: sales(p.remainingAmount) },
+          { label: p.overdueAmount > 0 ? 'Late' : 'Agli qist', value: p.overdueAmount > 0 ? sales(p.overdueAmount) : p.nextDueDate ? dayOnly(p.nextDueDate) : '—', hint: p.overdueAmount > 0 ? `${p.overdueCount} qist` : p.nextDueDate ? formatPKR(p.nextDueAmount) : undefined },
+        ]}
+      />
 
       {p.customer && Math.abs(Number(p.customer.balance) - Number(p.remainingAmount)) > 1 && active && (
         <p className="rounded-2xl bg-sky-50 px-4 py-3 text-[0.8125rem] text-sky-900 ring-1 ring-sky-200">
@@ -149,7 +146,7 @@ export default function EmiPlanDetailPage() {
                 {p.payments.map((x) => (
                   <li key={x.id} className="flex justify-between gap-3">
                     <span className="text-slate-600">{dateTime(x.createdAt)} · {x.type === 'ADJUSTMENT' ? 'Maaf' : methodLabel(x.paymentMethod ?? 'CASH')}{x.note ? ` · ${x.note}` : ''}</span>
-                    <span className={cn('font-semibold tabular-nums', x.type === 'ADJUSTMENT' ? 'text-slate-500' : 'text-emerald-700')}>{formatPKR(Math.abs(Number(x.amount)))}</span>
+                    <span className={cn('font-semibold tabular-nums', x.type === 'ADJUSTMENT' ? 'text-slate-500' : 'text-success-700')}>{formatPKR(Math.abs(Number(x.amount)))}</span>
                   </li>
                 ))}
               </ul>
@@ -203,16 +200,6 @@ export default function EmiPlanDetailPage() {
         </Modal>
       )}
     </PageShell>
-  );
-}
-
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/15">
-      <p className="text-[0.75rem] text-white/70">{label}</p>
-      <p className="text-lg font-bold tabular-nums">{value}</p>
-      {hint && <p className="truncate text-[0.6875rem] text-white/60">{hint}</p>}
-    </div>
   );
 }
 

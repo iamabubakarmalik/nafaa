@@ -11,8 +11,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { BadgeCheck, Download, FileText, GraduationCap, Pencil, Phone, Plus, Power, Stethoscope, Trophy, UserPlus } from 'lucide-react';
 import {
-  Button, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Textarea, ViewTabs,
-  heroButton, heroIconButton, heroPrimaryButton,
+  Button, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td,
+  Textarea, Th, THead, Tr, ViewTabs, heroButton, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { downloadCsv } from '@core/lib/csv';
@@ -191,38 +191,36 @@ export default function PharmacyDoctorsPage() {
               {canAdd && <Button className="mt-4" onClick={() => setEditing('new')} leftIcon={<Plus className="h-4 w-4" />}>Naya doctor</Button>}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[52rem] text-[0.875rem]">
-                <thead><tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="px-5 py-2.5">Doctor</th><th className="px-3 py-2.5">Clinic / hospital</th><th className="px-3 py-2.5 text-right">Nuskhe</th><th className="px-3 py-2.5 text-right">Dawai ki value</th><th className="px-3 py-2.5">Aakhri</th><th className="px-5 py-2.5" />
-                </tr></thead>
-                <tbody className="divide-y divide-slate-100">
-                  {rows.map((d) => (
-                    <tr key={d.id} className={cn(!d.isActive && 'opacity-60')}>
-                      <td className="px-5 py-2.5">
-                        <p className="flex items-center gap-1.5 font-semibold text-slate-900">{drName(d.name)}{d.isVerified && <BadgeCheck className="h-4 w-4 text-emerald-600" />}</p>
-                        <p className="text-[0.75rem] text-slate-500">PMDC {d.registrationNumber}{d.specialization && ` · ${d.specialization}`}{d.qualification && ` · ${d.qualification}`}</p>
-                      </td>
-                      <td className="px-3 py-2.5 text-slate-600">
-                        <p>{d.clinicName || d.hospitalAffiliation || '—'}</p>
-                        {d.phone && <a href={`tel:${d.phone}`} className="inline-flex items-center gap-1 text-[0.75rem] text-brand-700"><Phone className="h-3 w-3" />{d.phone}</a>}
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{d.totalPrescriptions}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">{money(d.totalBusiness)}</td>
-                      <td className="px-3 py-2.5 text-slate-600">{d.lastPrescriptionAt ? shortDate(d.lastPrescriptionAt) : '—'}</td>
-                      <td className="px-5 py-2.5">
-                        <div className="flex justify-end gap-1">
-                          {canAdd && <button type="button" onClick={() => setEditing(d)} title="Badlein" aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>}
-                          {canManage && d.isActive && <button type="button" onClick={() => verify.mutate(d.id)} title={d.isVerified ? 'Verified hatayein' : 'Verify karein'} className={cn('flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100', d.isVerified ? 'text-emerald-600' : 'text-slate-400')}><BadgeCheck className="h-4 w-4" /></button>}
-                          {canManage && <button type="button" onClick={() => toggle.mutate(d)} title={d.isActive ? 'Band karein' : 'Chalu karein'} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>}
-                          <Link to={`/pharmacy/prescriptions?doctor=${d.id}`} title="Nuskhe" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><FileText className="h-4 w-4" /></Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table minWidth="52rem">
+              <THead><Tr>
+                <Th className="px-5 py-2.5">Doctor</Th><Th className="px-3 py-2.5">Clinic / hospital</Th><Th align="right" className="px-3 py-2.5">Nuskhe</Th><Th align="right" className="px-3 py-2.5">Dawai ki value</Th><Th className="px-3 py-2.5">Aakhri</Th><Th className="px-5 py-2.5"/>
+              </Tr></THead>
+              <TBody>
+                {rows.map((d) => (
+                  <Tr key={d.id} className={cn(!d.isActive && 'opacity-60')}>
+                    <Td className="px-5 py-2.5">
+                      <p className="flex items-center gap-1.5 font-semibold text-slate-900">{drName(d.name)}{d.isVerified && <BadgeCheck className="h-4 w-4 text-emerald-600" />}</p>
+                      <p className="text-[0.75rem] text-slate-500">PMDC {d.registrationNumber}{d.specialization && ` · ${d.specialization}`}{d.qualification && ` · ${d.qualification}`}</p>
+                    </Td>
+                    <Td className="px-3 py-2.5 text-slate-600">
+                      <p>{d.clinicName || d.hospitalAffiliation || '—'}</p>
+                      {d.phone && <a href={`tel:${d.phone}`} className="inline-flex items-center gap-1 text-[0.75rem] text-brand-700"><Phone className="h-3 w-3" />{d.phone}</a>}
+                    </Td>
+                    <Td align="right" className="px-3 py-2.5 font-semibold tabular-nums">{d.totalPrescriptions}</Td>
+                    <Td align="right" className="px-3 py-2.5 tabular-nums">{money(d.totalBusiness)}</Td>
+                    <Td className="px-3 py-2.5 text-slate-600">{d.lastPrescriptionAt ? shortDate(d.lastPrescriptionAt) : '—'}</Td>
+                    <Td className="px-5 py-2.5">
+                      <div className="flex justify-end gap-1">
+                        {canAdd && <button type="button" onClick={() => setEditing(d)} title="Badlein" aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>}
+                        {canManage && d.isActive && <button type="button" onClick={() => verify.mutate(d.id)} title={d.isVerified ? 'Verified hatayein' : 'Verify karein'} className={cn('flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-100', d.isVerified ? 'text-emerald-600' : 'text-slate-400')}><BadgeCheck className="h-4 w-4" /></button>}
+                        {canManage && <button type="button" onClick={() => toggle.mutate(d)} title={d.isActive ? 'Band karein' : 'Chalu karein'} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>}
+                        <Link to={`/pharmacy/prescriptions?doctor=${d.id}`} title="Nuskhe" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><FileText className="h-4 w-4" /></Link>
+                      </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
           )}
       </section>
     </PageShell>

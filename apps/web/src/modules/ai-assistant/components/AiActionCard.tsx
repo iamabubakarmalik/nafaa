@@ -14,15 +14,16 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock, Loader2, WifiOff, XCircle } from 'lucide-react';
-import { Button } from '@/design-system/components';
+import { Button, Table, TBody, THead, Td, Th, Tr, controlClass } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { aiApi, type AiActionProposal, type AiLink } from '../api';
+import { COMPACT_CELL, COMPACT_HEAD } from './AiChartView';
 import { isPushLayout, useAiStore, type ActionOutcome } from '../store';
 
 const money = (n: number) => formatPKR(n, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const qtyText = (n: number) => Number(n.toFixed(3)).toLocaleString('en-PK');
-const input = 'h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 disabled:bg-slate-50 disabled:text-slate-500';
+const input = cn(controlClass(), 'h-8 px-2 text-[0.8125rem]');
 
 function useOnline() {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
@@ -60,7 +61,7 @@ export function useOpenLink() {
 
 function Outcome({ outcome, onLink }: { outcome: ActionOutcome; onLink: (l: AiLink) => void }) {
   const icon = outcome.status === 'done'
-    ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
+    ? <CheckCircle2 className="h-4 w-4 shrink-0 text-success-600" />
     : outcome.status === 'cancelled'
       ? <XCircle className="h-4 w-4 shrink-0 text-slate-400" />
       : <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />;
@@ -169,7 +170,7 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
       onSubmit={confirm}
       aria-label={action.title}
       className={cn('rounded-xl border bg-white p-3 transition focus-within:ring-2 focus-within:ring-brand-500/20',
-        final?.status === 'done' ? 'border-emerald-200' : final ? 'border-slate-200' : 'border-brand-200')}
+        final?.status === 'done' ? 'border-success-200' : final ? 'border-slate-200' : 'border-brand-200')}
       tabIndex={final ? -1 : 0}
       onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) { e.preventDefault(); void confirm(); } }}
     >
@@ -223,35 +224,33 @@ export function AiActionCard({ action }: { action: AiActionProposal }) {
           )}
 
           {lines.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-[0.75rem]">
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-slate-500">
-                    <th className="py-1 pr-2 font-medium">Cheez</th>
-                    <th className="w-20 py-1 pr-2 text-right font-medium">Qty</th>
-                    <th className="py-1 pr-2 text-right font-medium">Rate</th>
-                    <th className="py-1 text-right font-medium">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lines.map((l) => (
-                    <tr key={l.productId} className="border-b border-slate-100 last:border-0">
-                      <td className="py-1 pr-2 text-slate-800">
-                        {l.name}
-                        {l.stock != null && <span className={cn('block text-[0.6875rem]', l.qty > l.stock ? 'text-amber-700' : 'text-slate-400')}>Stock {qtyText(l.stock)} {l.unit}</span>}
-                      </td>
-                      <td className="py-1 pr-2">
-                        <input aria-label={`${l.name} qty`} className={cn(input, 'h-7 text-right tabular-nums')} disabled={readOnly}
-                          type="number" step="any" min={0} inputMode="decimal" value={qty[l.productId] ?? ''}
-                          onChange={(e) => setQty((q) => ({ ...q, [l.productId]: e.target.value }))} />
-                      </td>
-                      <td className="py-1 pr-2 text-right tabular-nums text-slate-600">{money(l.price)}</td>
-                      <td className="py-1 text-right font-medium tabular-nums text-slate-900">{money(l.total)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <THead className={COMPACT_HEAD}>
+                <Tr>
+                  <Th className={COMPACT_CELL}>Cheez</Th>
+                  <Th align="right" className={cn(COMPACT_CELL, 'w-20')}>Qty</Th>
+                  <Th align="right" className={COMPACT_CELL}>Rate</Th>
+                  <Th align="right" className={COMPACT_CELL}>Total</Th>
+                </Tr>
+              </THead>
+              <TBody>
+                {lines.map((l) => (
+                  <Tr key={l.productId}>
+                    <Td className={cn(COMPACT_CELL, 'text-slate-800')}>
+                      {l.name}
+                      {l.stock != null && <span className={cn('block text-[0.6875rem]', l.qty > l.stock ? 'text-amber-700' : 'text-slate-400')}>Stock {qtyText(l.stock)} {l.unit}</span>}
+                    </Td>
+                    <Td className={COMPACT_CELL}>
+                      <input aria-label={`${l.name} qty`} className={cn(input, 'h-7 text-right tabular-nums')} disabled={readOnly}
+                        type="number" step="any" min={0} inputMode="decimal" value={qty[l.productId] ?? ''}
+                        onChange={(e) => setQty((q) => ({ ...q, [l.productId]: e.target.value }))} />
+                    </Td>
+                    <Td align="right" className={cn(COMPACT_CELL, 'text-slate-600')}>{money(l.price)}</Td>
+                    <Td align="right" className={cn(COMPACT_CELL, 'font-medium text-slate-900')}>{money(l.total)}</Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
           )}
 
           {totals && (

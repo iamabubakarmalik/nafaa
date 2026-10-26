@@ -1,11 +1,10 @@
-import { confirmDialog } from '@/design-system/components';
+import { Alert, Badge, Button, Card, confirmDialog, controlClass, EmptyState, Field, Input, PageHero, PageShell, Select, Switch } from '@/design-system/components';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, Copy, ExternalLink, MapPin, RefreshCw, ShoppingBag, Star } from 'lucide-react';
 import { apiErrorMessage } from '@integrations/online-orders/api/online-orders.api';
-import { Badge, Banner, Btn, Card, EmptyState, Field, Page, SettingRow, Toggle, inputCls } from '@integrations/online-orders/components/ui/kit';
 import { cn } from '@core/lib/cn';
 import { googleApi, type GoogleOverview } from './google.api';
 
@@ -21,10 +20,11 @@ const copy = (s: string) => navigator.clipboard.writeText(s).then(() => toast.su
 export default function GooglePage() {
   const { data, isLoading, error } = useQuery({ queryKey: KEY, queryFn: googleApi.overview });
   return (
-    <Page back={{ to: '/settings', label: 'Settings' }} title="Google"
-      subtitle="Aap ke products Google Shopping aur Maps par — log search to aap ki dukaan nazar aaye.">
+    <PageShell>
+      <PageHero back="/settings" backLabel="Settings" title="Google"
+        subtitle="Aap ke products Google Shopping aur Maps par — log search to aap ki dukaan nazar aaye." />
       {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
-        : error || !data ? <Card><EmptyState title="Safha nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
+        : error || !data ? <Card><EmptyState title="Safha nahi khula" description={apiErrorMessage(error)} /></Card>
         : (
           <>
             <MerchantCard data={data} />
@@ -32,7 +32,7 @@ export default function GooglePage() {
             <ReviewCard data={data} />
           </>
         )}
-    </Page>
+    </PageShell>
   );
 }
 
@@ -48,10 +48,10 @@ function useSave() {
 function UrlBox({ label, url }: { label: string; url: string }) {
   return (
     <Field label={label}>
-      <div className="flex gap-2">
-        <input readOnly value={url} onFocus={(e) => e.target.select()} className={cn(inputCls, 'font-mono text-[0.75rem]')} />
-        <Btn icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(url)}>Copy</Btn>
-      </div>
+      {(id) => (<div className="flex gap-2">
+        <input id={id} readOnly value={url} onFocus={(e) => e.target.select()} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] font-mono text-[0.75rem]')} />
+        <Button size="sm" leftIcon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(url)}>Copy</Button>
+      </div>)}
     </Field>
   );
 }
@@ -64,13 +64,13 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
 
   return (
     <Card title={<span className="flex items-center gap-2"><ShoppingBag className="h-4 w-4 text-blue-600" /> Google Shopping (Merchant Center)
-      {data.enabled ? <Badge tone="success" dot>Feed chalu</Badge> : <Badge tone="neutral">Band</Badge>}</span>}
+      {data.enabled ? <Badge size="xs" variant="success" dot>Feed chalu</Badge> : <Badge size="xs" variant="default">Band</Badge>}</span>}
       description="Har product naam, tasveer, qeemat aur stock ke saath Google par. Stock / qeemat badle to Google khud roz update kar leta hai."
-      actions={data.enabled ? <Toggle checked onChange={async () => { if ((await confirmDialog({ title: 'Feed band karein?', text: 'Google par products hat jayenge.', danger: true }))) save.mutate({ enable: false }); }} /> : undefined}>
+      actions={data.enabled ? <Switch size="sm" checked onChange={async () => { if ((await confirmDialog({ title: 'Feed band karein?', text: 'Google par products hat jayenge.', danger: true }))) save.mutate({ enable: false }); }} /> : undefined}>
       {data.channels.length === 0 ? (
-        <Banner tone="warning" title="Pehle product ka safha chahiye">
+        <Alert tone="warning" title="Pehle product ka safha chahiye">
           Google har product ka link maangta hai. <Link to="/online-store/channels" className="font-semibold underline">Online store</Link> me apni website jorein ya <b>order form</b> chalu karein (muft, 1 minute).
-        </Banner>
+        </Alert>
       ) : !data.enabled ? (
         <div className="space-y-3">
           <ol className="list-decimal space-y-1 pl-5 text-[0.8125rem] text-slate-700 dark:text-ink-200">
@@ -78,7 +78,7 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
             <li><a href="https://merchants.google.com" target="_blank" rel="noreferrer" className="font-semibold text-blue-700 underline">Google Merchant Center</a> me muft account (country: Pakistan, currency: PKR)</li>
             <li>Products → Add products → <b>File</b> → "Add file from link" → link paste → roz (daily) fetch</li>
           </ol>
-          <Btn variant="primary" loading={save.isPending} onClick={() => save.mutate({ enable: true })}>Feed chalu karein</Btn>
+          <Button size="sm" variant="primary" loading={save.isPending} onClick={() => save.mutate({ enable: true })}>Feed chalu karein</Button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -87,28 +87,25 @@ function MerchantCard({ data }: { data: GoogleOverview }) {
             <div className="space-y-2">
               <p className="text-[0.8125rem] text-slate-700 dark:text-ink-200"><b>{data.stats.items}</b> product Google ko ja rahe hain.</p>
               {data.stats.warnings.map((w) => (
-                <p key={w.code} className="flex items-start gap-1.5 text-[0.78125rem] text-amber-700 dark:text-amber-300"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {w.message}</p>
+                <p key={w.code} className="flex items-start gap-1.5 text-[0.78125rem] text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {w.message}</p>
               ))}
             </div>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Product ka safha kahan se" help="Customer Google par click kare to yahan pohanche">
-              <select value={s.channelId ?? ''} onChange={(e) => save.mutate({ channelId: e.target.value || null })} className={inputCls}>
+            <Select size="sm" label="Product ka safha kahan se" hint="Customer Google par click kare to yahan pohanche" value={s.channelId ?? ''} onChange={(e) => save.mutate({ channelId: e.target.value || null })}>
                 <option value="">Khud chunein (order form pehle)</option>
                 {data.channels.map((c) => <option key={c.id} value={c.id}>{c.name} {c.hasForm ? '— order form' : c.siteUrl ? `— ${c.siteUrl}` : ''}</option>)}
-              </select>
-            </Field>
-            <Field label="Brand (jab product ka brand na ho)" help="Khali = dukaan ka naam">
-              <div className="flex gap-2">
-                <input value={brand} onChange={(e) => setBrand(e.target.value)} className={inputCls} />
-                {brand !== s.defaultBrand && <Btn onClick={() => save.mutate({ defaultBrand: brand })}>Save</Btn>}
-              </div>
+              </Select>
+            <Field label="Brand (jab product ka brand na ho)" hint="Khali = dukaan ka naam">
+              {(id) => (<div className="flex gap-2">
+                <input id={id} value={brand} onChange={(e) => setBrand(e.target.value)} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
+                {brand !== s.defaultBrand && <Button size="sm" onClick={() => save.mutate({ defaultBrand: brand })}>Save</Button>}
+              </div>)}
             </Field>
           </div>
-          <SettingRow title="Khatam stock wale bhi dikhayein" help="'Out of stock' likh kar — order form me stock na ho to ye kaam nahi karta"
-            control={<Toggle checked={s.includeOutOfStock} onChange={(v) => save.mutate({ includeOutOfStock: v })} />} />
-          <Btn size="sm" variant="plain" icon={<RefreshCw className="h-3.5 w-3.5" />}
-            onClick={async () => { if ((await confirmDialog({ title: 'Naya link banayein?', text: 'Purana link band ho jayega — Merchant Center me naya daalna hoga.', danger: true }))) save.mutate({ rotate: true }); }}>Naya link</Btn>
+          <Switch size="sm" checked={s.includeOutOfStock} onChange={(e) => save.mutate({ includeOutOfStock: e.target.checked })} label="Khatam stock wale bhi dikhayein" description="'Out of stock' likh kar — order form me stock na ho to ye kaam nahi karta" className="py-3 first:pt-0 last:pb-0" />
+          <Button size="xs" variant="ghost" leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+            onClick={async () => { if ((await confirmDialog({ title: 'Naya link banayein?', text: 'Purana link band ho jayega — Merchant Center me naya daalna hoga.', danger: true }))) save.mutate({ rotate: true }); }}>Naya link</Button>
         </div>
       )}
     </Card>
@@ -122,7 +119,7 @@ function LocalCard({ data }: { data: GoogleOverview }) {
   const dirty = JSON.stringify(codes) !== JSON.stringify(data.settings.storeCodes);
   if (!data.enabled) return null;
   return (
-    <Card title={<span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-emerald-600" /> Dukaan me maujood (Google Maps)</span>}
+    <Card title={<span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-brand-600" /> Dukaan me maujood (Google Maps)</span>}
       description="Log Google Maps par dukaan dekhein to 'In stock' products bhi dikhein — har branch ka apna stock.">
       <div className="space-y-3">
         <ol className="list-decimal space-y-1 pl-5 text-[0.8125rem] text-slate-700 dark:text-ink-200">
@@ -131,11 +128,9 @@ function LocalCard({ data }: { data: GoogleOverview }) {
           <li>Merchant Center → Products → Add → File → <b>Local inventory</b> → neeche wala link, roz</li>
         </ol>
         {data.shops.map((sh) => (
-          <Field key={sh.id} label={sh.name} help={sh.address ?? undefined}>
-            <input value={codes[sh.id] ?? ''} onChange={(e) => setCodes({ ...codes, [sh.id]: e.target.value })} placeholder="Store code (jaise LHR-01)" className={cn(inputCls, 'w-56')} />
-          </Field>
+          <Input size="sm" key={sh.id} label={sh.name} hint={sh.address ?? undefined} value={codes[sh.id] ?? ''} onChange={(e) => setCodes({ ...codes, [sh.id]: e.target.value })} placeholder="Store code (jaise LHR-01)" className="w-56" />
         ))}
-        {dirty && <Btn variant="primary" loading={save.isPending} onClick={() => save.mutate({ storeCodes: codes })}>Store codes mehfooz</Btn>}
+        {dirty && <Button size="sm" variant="primary" loading={save.isPending} onClick={() => save.mutate({ storeCodes: codes })}>Store codes mehfooz</Button>}
         {data.localInventoryUrl && Object.keys(data.settings.storeCodes).length > 0 && <UrlBox label="Local inventory link" url={data.localInventoryUrl} />}
       </div>
     </Card>
@@ -150,20 +145,19 @@ function ReviewCard({ data }: { data: GoogleOverview }) {
     <Card title={<span className="flex items-center gap-2"><Star className="h-4 w-4 text-amber-500" /> Google reviews</span>}
       description="Zyada reviews = Google Maps par upar. Bill par QR — customer scan kare aur seedha review likhe.">
       <div className="space-y-3">
-        <Field label="Google Place ID" help={<>Apni dukaan <a className="font-semibold text-blue-700 underline" href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id" target="_blank" rel="noreferrer">yahan search</a> → "ChIJ…" copy karein</>}>
-          <div className="flex gap-2">
-            <input value={placeId} onChange={(e) => setPlaceId(e.target.value)} placeholder="ChIJ…" className={cn(inputCls, 'font-mono')} />
-            {placeId !== data.settings.placeId && <Btn variant="primary" loading={save.isPending} onClick={() => save.mutate({ placeId })}>Save</Btn>}
-          </div>
+        <Field label="Google Place ID" hint={<>Apni dukaan <a className="font-semibold text-blue-700 underline" href="https://developers.google.com/maps/documentation/places/web-service/place-id#find-id" target="_blank" rel="noreferrer">yahan search</a> → "ChIJ…" copy karein</>}>
+          {(id) => (<div className="flex gap-2">
+            <input id={id} value={placeId} onChange={(e) => setPlaceId(e.target.value)} placeholder="ChIJ…" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] font-mono')} />
+            {placeId !== data.settings.placeId && <Button size="sm" variant="primary" loading={save.isPending} onClick={() => save.mutate({ placeId })}>Save</Button>}
+          </div>)}
         </Field>
         {data.reviewUrl && (
           <>
             <div className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
               <a href={data.reviewUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-blue-700 hover:underline">Review link kholein <ExternalLink className="h-3.5 w-3.5" /></a>
-              <Btn size="sm" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(data.reviewUrl!)}>Copy (WhatsApp ke liye)</Btn>
+              <Button size="xs" leftIcon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(data.reviewUrl!)}>Copy (WhatsApp ke liye)</Button>
             </div>
-            <SettingRow title="Har bill par review QR" help="Bill ke neeche chhota QR: 'Google par review dein'"
-              control={<Toggle checked={data.settings.reviewOnBill} onChange={(v) => save.mutate({ reviewOnBill: v })} />} />
+            <Switch size="sm" checked={data.settings.reviewOnBill} onChange={(e) => save.mutate({ reviewOnBill: e.target.checked })} label="Har bill par review QR" description="Bill ke neeche chhota QR: 'Google par review dein'" className="py-3 first:pt-0 last:pb-0" />
           </>
         )}
       </div>

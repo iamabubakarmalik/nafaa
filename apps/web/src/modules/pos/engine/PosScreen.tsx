@@ -37,6 +37,7 @@ import {
 } from '../components';
 import { PosSellerPicker } from '../components/PosSellerPicker';
 import { PosBatchChip } from '../components/PosBatchPicker';
+import { PosLineTier, PosTierBar } from '../components/PosTierBar';
 import { PosShortcutsOverlay } from '../components/PosShortcutsOverlay';
 import { PosPayPicker, type PosPayChoice } from '../components/PosPayPicker';
 import { PosMoreMenu, type PosMoreAction } from '../components/PosMoreMenu';
@@ -315,6 +316,14 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       }
       case 'Enter': ev.preventDefault(); if (!line?.lockQty) setQtyEditId(targetId); setSelectedId(targetId); break;
       case 'r': case 'R': ev.preventDefault(); if (e.canEditPrice) e.setPriceEditId(targetId); else toast.error('Rate badalne ki ijazat nahi'); setSelectedId(targetId); break;
+      case 't': case 'T': {
+        if (!e.lineTierOverride || !line || line.fixedPrice || !line.tierSrc) break;
+        ev.preventDefault();
+        const open = e.tierChoices.filter(e.canPickTier);
+        if (open.length > 1) e.setLineTier(targetId, open[(open.indexOf(line.priceTier ?? 'RETAIL') + 1) % open.length]);
+        else toast.error('Price tier badalne ki permission nahi');
+        break;
+      }
       case 'n': case 'N': if (c.lineNotes) { ev.preventDefault(); setNoteEditId(targetId); setSelectedId(targetId); } break;
       case 'Escape': ev.preventDefault(); focusSearch(); break;
       // Any other letter or digit (a barcode scan, a new name) goes to the search box.
@@ -338,6 +347,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       if (ev.code === 'KeyR') { ev.preventDefault(); e.repeatLast(); return; }
       if (ev.code === 'KeyL') { ev.preventDefault(); if (c.showReceiver && e.customerId) setReceiverOpenKey((n) => n + 1); else toast.info('Pehle customer chunein (F2)'); return; }
       if (ev.code === 'KeyD') { ev.preventDefault(); toggleDelivery(); return; }
+      if (ev.code === 'KeyT' && e.tiersOn) { ev.preventDefault(); e.cycleTier(); return; }
     }
     const fkeys: Record<string, () => void> = {
       F1: () => setTeacher(true),
@@ -372,7 +382,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   const showTabs = !!config.useBundles || showQuick;
   const CartExtra = config.CartExtra;
   const tileProps = (it: PosItem, i: number) => ({
-    name: it.name, image: c.showImages ? it.image : undefined, price: it.price, unit: it.unit,
+    name: it.name, image: c.showImages ? it.image : undefined, price: e.shownPrice(it), unit: it.unit,
     stock: it.meta?.service || !c.showStock ? undefined : it.stock,
     lowStock: it.lowStock, inCart: e.inCartBy.get(it.id) ?? 0, featured: it.featured, badges: it.badges,
     subline: it.subline, dim: it.dim, hidePrices, active: i === activeIdx, noImage: !c.showImages,
@@ -613,6 +623,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       onAddCustomer={openNewCustomer} customerOpenKey={mobile ? undefined : customerOpenKey} onCustomerClosed={focusSearch}
       receiver={c.showReceiver ? e.receiver : undefined} onReceiverChange={c.showReceiver ? e.setReceiver : undefined} receiverOpenKey={receiverOpenKey}
       customerExtra={<>{CartExtra && <CartExtra customerId={e.customerId} />}<PosSellerPicker value={e.soldById} onChange={e.setSoldById} compact /></>}
+      tierBar={e.tiersOn ? <PosTierBar tier={e.billTier} choices={e.tierChoices} canPick={e.canPickTier} onPick={e.pickTier} udhaar={e.udhaarTier} udhaarExtra={e.udhaarExtra} hidePrices={hidePrices} /> : undefined}
       onHold={() => { e.hold(); focusSearch(); }} onClear={async () => { if ((await confirmDialog({ title: 'Bill khaali karein?' }))) e.clearCart(); }}
       heldCount={e.heldCarts.length} onOpenHeld={() => setHeldOpen(true)}
       onChangeQty={e.changeQty} onSetQty={e.setQty} onRemove={e.removeLine}
@@ -627,7 +638,15 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       lastBill={c.changeDue ? e.lastBill : null} onReprint={e.reprintLast} onRepeat={e.repeatLast}
       lineExtra={(l) => {
         const info = e.batchOf(l);
-        return info && <PosBatchChip info={info} baseQuantity={l.baseQuantity} unit={l.baseUnit} onPick={(b) => e.setLineBatch(l.id, b)} />;
+        const batch = info && <PosBatchChip info={info} baseQuantity={l.baseQuantity} unit={l.baseUnit} onPick={(b) => e.setLineBatch(l.id, b)} />;
+        // The line's tier shows when it differs from the bill, or on the selected line where it can be changed.
+        const showTier = e.tiersOn && l.type === 'product' && !!l.productId
+          && ((l.priceTier ?? 'RETAIL') !== e.activeTier || (e.lineTierOverride && targetId === l.id && !!l.tierSrc && !l.fixedPrice));
+        const tier = showTier && (
+          <PosLineTier line={l} billTier={e.activeTier} choices={e.tierChoices} canPick={e.canPickTier} onPick={(t) => e.setLineTier(l.id, t)}
+            editable={e.lineTierOverride && !l.fixedPrice} hidePrices={hidePrices} />
+        );
+        return batch || tier ? <div className="flex flex-wrap items-center gap-1.5">{batch}{tier}</div> : null;
       }} />
   );
 
@@ -738,7 +757,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
           onSelect={(v) => {
             const vp = e.variantPicker!;
             e.setVariantPicker(null);
-            e.addItem(vp.item, { ...vp.opts, variant: { id: v.id, name: v.name, price: v.price, stock: freeVariantStock(v), reserved: v.reserved ?? null } });
+            e.addItem(vp.item, { ...vp.opts, variant: { id: v.id, name: v.name, price: v.price, wholesalePrice: v.wholesalePrice ?? null, creditPrice: v.creditPrice ?? null, stock: freeVariantStock(v), reserved: v.reserved ?? null } });
           }}
           onClose={() => e.setVariantPicker(null)} />
       )}
@@ -748,6 +767,8 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
         <PosCheckoutModal total={e.total} itemCount={e.cart.length} loading={e.checkoutMutation.isPending} initMethod={e.checkout.method} initSplit={checkoutSplit}
           customerName={e.selectedCustomer?.name} customerBalance={Number(e.selectedCustomer?.balance || 0)} hasCustomer={!!e.customerId}
           initMode={e.checkout.mode} receiver={e.receiver} allowCredit={e.rules.allowCredit} tradeIns={e.tradeIns}
+          onCreditChange={e.udhaarCredit}
+          notice={e.udhaarTier && e.billTier !== 'CREDIT' ? `Udhaar bill: Credit price lag gayi${e.udhaarExtra > 0.005 ? ` (+${formatPKR(e.udhaarExtra)})` : ''}` : undefined}
           onConfirm={(d) => e.checkoutMutation.mutate(d)} onClose={() => e.setCheckout(null)} />
       )}
       {e.lastSale && (

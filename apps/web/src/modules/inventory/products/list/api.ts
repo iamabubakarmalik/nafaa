@@ -40,7 +40,7 @@ export interface BakeryFacts {
 
 export interface CatalogItem {
   id: string; name: string; sku: string | null; barcode: string | null; unit: string; productType: string | null;
-  price: number; costPrice: number; wholesalePrice: number | null; taxRate: number;
+  price: number; costPrice: number; wholesalePrice: number | null; creditPrice: number | null; taxRate: number;
   stock: number; lowStockAlert: number; isActive: boolean; isFeatured: boolean;
   hasVariants: boolean; expiryTracked: boolean; createdAt: string;
   category: { id: string; name: string; color: string } | null;
@@ -145,7 +145,7 @@ async function localCatalog(f: CatalogFilters, page: number, limit: number): Pro
   const live = all.filter((p) => p.isActive);
   const items: CatalogItem[] = rows.slice((page - 1) * limit, page * limit).map((p) => ({
     id: p.id, name: p.name, sku: p.sku ?? null, barcode: p.barcode ?? null, unit: p.unit ?? 'pcs', productType: p.productType ?? null,
-    price: Number(p.price ?? 0), costPrice: Number(p.costPrice ?? 0), wholesalePrice: p.wholesalePrice ?? null, taxRate: Number(p.taxRate ?? 0),
+    price: Number(p.price ?? 0), costPrice: Number(p.costPrice ?? 0), wholesalePrice: p.wholesalePrice ?? null, creditPrice: p.creditPrice ?? null, taxRate: Number(p.taxRate ?? 0),
     stock: stockOf(p), lowStockAlert: alertOf(p), isActive: !!p.isActive, isFeatured: !!p.isFeatured,
     hasVariants: !!p.hasVariants, expiryTracked: !!p.expiryTracked, createdAt: p.createdAt ?? '',
     category: p.category ? { id: p.category.id, name: p.category.name, color: p.category.color ?? '#94a3b8' } : null,

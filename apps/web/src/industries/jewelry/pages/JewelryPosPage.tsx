@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import {
   BadgePercent, Coins, Gem, GraduationCap, Plus, Receipt, Repeat, Scale, Search, Sparkles, Trash2, TrendingUp, Wallet, X,
 } from 'lucide-react';
-import { Button, Input, Kbd, Modal, Select } from '@/design-system/components';
+import { Button, Input, Kbd, Modal, Select, controlClass } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -85,7 +85,7 @@ function NumBox({ label, value, onChange, suffix, className }: { label: string; 
       <span className="relative block">
         <input inputMode="decimal" value={text ?? (value ? String(value) : '')} placeholder="0"
           onChange={(e) => { setText(e.target.value); onChange(num(e.target.value)); }} onBlur={() => setText(null)}
-          className="h-8 w-full rounded-lg border border-slate-200 bg-white px-2 pr-7 text-[0.8125rem] tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+          className={cn(controlClass(), 'h-8 px-2 pr-7 text-[0.8125rem] tabular-nums')} />
         {suffix && <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[0.6875rem] text-slate-400">{suffix}</span>}
       </span>
     </label>
@@ -290,7 +290,7 @@ function JewelryCounter() {
             <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam, design number, hallmark, barcode…" aria-label="Zewar dhoondein"
               onKeyDown={(e) => { if (e.key === 'Enter' && shown[0]) { add(shown[0].it.id); setSearch(''); } }}
-              className="h-11 w-full rounded-2xl bg-slate-100/80 pl-12 pr-10 text-[0.9375rem] outline-none ring-1 ring-transparent focus:bg-white focus:ring-2 focus:ring-brand-500" />
+              className={cn(controlClass(), 'h-11 pl-12 pr-10 text-[0.9375rem]')} />
             {search ? <button type="button" aria-label="Saaf" onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
               : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
           </label>
@@ -300,7 +300,7 @@ function JewelryCounter() {
                 className={cn('h-8 rounded-full px-3 text-[0.75rem] font-semibold ring-1', karat === o.v ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>{o.l}</button>
             ))}
             <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Zewar ki type"
-              className="h-8 rounded-full bg-white px-3 text-[0.75rem] font-semibold text-slate-600 ring-1 ring-slate-200">
+              className={cn(controlClass(), 'h-8 w-auto rounded-full px-3 text-[0.75rem] font-semibold')}>
               <option value="">Har type</option>
               <option value="bridal">Bridal collection</option>
               {MAIN_CATEGORIES.map((c) => <option key={c} value={c}>{CATEGORY_LABEL[c]}</option>)}
@@ -431,7 +431,7 @@ function JewelryCounter() {
           </div>
           {oldValue > 0 && <div className="flex justify-between text-[0.875rem]"><span className="text-yellow-800">Purana sona {grams(oldGrams)}</span><span className="font-semibold tabular-nums text-yellow-800">− {formatPKR(oldValue)}</span></div>}
           <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Bill par note (ikhtiyari)" maxLength={200}
-            className="h-9 w-full rounded-xl border border-slate-200 px-3 text-[0.8125rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+            className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
           <div className="flex items-end justify-between border-t border-slate-100 pt-2">
             <span className="text-[0.875rem] font-semibold text-slate-700">Customer dega</span>
             <span className="text-[1.5rem] font-bold tabular-nums text-slate-900">{formatPKR(total)}</span>

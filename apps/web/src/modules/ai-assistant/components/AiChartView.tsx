@@ -8,7 +8,12 @@ import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Too
 import { formatPKR } from '@core/lib/format';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { axisMoney } from '@modules/dashboard/engine/parts';
+import { Table, TBody, THead, Td, Th, Tr } from '@/design-system/components';
 import type { AiChart } from '../api';
+
+/** Compact table styling for the narrow chat column. */
+export const COMPACT_HEAD = 'border-slate-200 bg-transparent text-[0.75rem] font-medium normal-case tracking-normal';
+export const COMPACT_CELL = 'px-0 py-1 pr-2 text-[0.75rem] last:pr-0';
 
 const EXTRA = ['#2563eb', '#ea580c', '#7c3aed', '#0891b2', '#e11d48'];
 
@@ -67,22 +72,20 @@ export function AiChartView({ chart }: { chart: AiChart }) {
         </div>
       )}
       {chart.table && chart.table.rows.length > 0 && (
-        <div className="mt-2 overflow-x-auto">
-          <table className="w-full text-[0.75rem]">
-            <thead>
-              <tr className="border-b border-slate-200 text-left text-slate-500">
-                {chart.table.columns.map((c, i) => <th key={i} className={`py-1 pr-2 font-medium ${i > 0 ? 'text-right' : ''}`}>{c}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {chart.table.rows.map((r, i) => (
-                <tr key={i} className="border-b border-slate-100 last:border-0">
-                  {r.map((cell, j) => <td key={j} className={`py-1 pr-2 text-slate-700 ${j > 0 ? 'text-right tabular-nums' : ''}`}>{String(cell)}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table className="mt-2">
+          <THead className={COMPACT_HEAD}>
+            <Tr>
+              {chart.table.columns.map((c, i) => <Th key={i} align={i > 0 ? 'right' : 'left'} className={COMPACT_CELL}>{c}</Th>)}
+            </Tr>
+          </THead>
+          <TBody>
+            {chart.table.rows.map((r, i) => (
+              <Tr key={i}>
+                {r.map((cell, j) => <Td key={j} align={j > 0 ? 'right' : 'left'} className={COMPACT_CELL}>{String(cell)}</Td>)}
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
       )}
     </figure>
   );

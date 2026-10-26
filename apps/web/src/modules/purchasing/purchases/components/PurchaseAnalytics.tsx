@@ -11,7 +11,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Boxes, CalendarClock, ClipboardList, Layers, PackageSearch, RotateCcw, TrendingUp, Truck, Wallet } from 'lucide-react';
-import { Card, Segmented, Skeleton } from '@/design-system/components';
+import { Card, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -140,23 +140,23 @@ export function PurchaseAnalytics({ range, money }: { range: { from: string; to:
       <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada khareeda maal</span>} description="Amount, quantity aur ausat cost (fi base unit)">
         {!d.items.length ? <Empty text="Koi purchase nahi" /> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[34rem] text-sm">
-              <thead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-                <tr><th className="py-2">#</th><th className="py-2">Cheez</th><th className="py-2 text-right">Quantity</th><th className="py-2 text-right">Ausat cost</th><th className="py-2 text-right">Bill</th><th className="py-2 text-right">Amount</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table minWidth="34rem" className="[&>table]:text-sm">
+              <THead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-0 py-2">#</Th><Th className="px-0 py-2">Cheez</Th><Th className="px-0 py-2 text-right">Quantity</Th><Th className="px-0 py-2 text-right">Ausat cost</Th><Th className="px-0 py-2 text-right">Bill</Th><Th className="px-0 py-2 text-right">Amount</Th></Tr>
+              </THead>
+              <TBody className="divide-y divide-slate-100">
                 {d.items.map((i, n) => (
-                  <tr key={`${i.name}${n}`}>
-                    <td className="py-2 text-slate-400">{n + 1}</td>
-                    <td className="py-2 font-medium text-slate-900">{i.name}{i.raw && <span className="ml-1.5 rounded bg-amber-100 px-1 text-[0.625rem] font-semibold text-amber-800">RAW</span>}</td>
-                    <td className="py-2 text-right tabular-nums">{q(i.qty)} {i.unit}</td>
-                    <td className="py-2 text-right tabular-nums">{money(i.avgCost)}</td>
-                    <td className="py-2 text-right tabular-nums">{i.bills}</td>
-                    <td className="py-2 text-right font-semibold tabular-nums">{money(i.value)}</td>
-                  </tr>
+                  <Tr key={`${i.name}${n}`}>
+                    <Td className="px-0 py-2 text-slate-400">{n + 1}</Td>
+                    <Td className="px-0 py-2 font-medium text-slate-900">{i.name}{i.raw && <span className="ml-1.5 rounded bg-amber-100 px-1 text-[0.625rem] font-semibold text-amber-800">RAW</span>}</Td>
+                    <Td className="px-0 text-inherit py-2 text-right tabular-nums">{q(i.qty)} {i.unit}</Td>
+                    <Td className="px-0 text-inherit py-2 text-right tabular-nums">{money(i.avgCost)}</Td>
+                    <Td className="px-0 text-inherit py-2 text-right tabular-nums">{i.bills}</Td>
+                    <Td className="px-0 text-inherit py-2 text-right font-semibold tabular-nums">{money(i.value)}</Td>
+                  </Tr>
                 ))}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         )}
       </Card>

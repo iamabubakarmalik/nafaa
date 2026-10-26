@@ -28,7 +28,7 @@ import { sampleDueReceipt } from '@core/receipt/sample';
 import { getReceiptSetup, useReceiptSetup } from '@core/receipt/setup';
 import type { ReceiptPaper } from '@core/receipt/types';
 import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
-import { Field, SectionCard, TextInput, Toggle } from '@modules/organization/settings/components/UI';
+import { SectionCard, Toggle } from '@modules/organization/settings/components/SettingsBlocks';
 import { qrWithAmount, readPaymentQr } from './emvQr';
 import { PAY_QR_KEY, payQrApi, payQrQuery, rememberPayQrs, type PayQr, type QrMethod } from './payQr';
 import { qrSvg } from './qrSvg';
@@ -234,9 +234,7 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
               </div>
             )}
             <div className="max-w-xs">
-              <Field label="POS par naam" hint="Checkout aur bill par yahi naam">
-                <TextInput value={draft.label} onChange={(v) => onChange({ ...draft, label: v })} maxLength={40} />
-              </Field>
+              <Input label="POS par naam" hint="Checkout aur bill par yahi naam" value={draft.label ?? ''} onChange={(e) => onChange({ ...draft, label: e.target.value })} maxLength={40} />
             </div>
             <div>
               <Toggle label="Amount QR me daalein" desc="Customer ko amount likhni na pare. Kisi app me QR na chale to band kar dein."

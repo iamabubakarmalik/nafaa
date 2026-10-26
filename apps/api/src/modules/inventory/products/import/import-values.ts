@@ -27,6 +27,7 @@ export interface ParsedRow {
   price: number | null;
   costPrice: number | null;
   wholesalePrice: number | null;
+  creditPrice: number | null;
   taxRate: number | null;
   stock: number | null;
   lowStockAlert: number | null;
@@ -205,6 +206,7 @@ export function parseRow(input: ImportRowDto): ParsedRow {
   const price = amount(input.price, 'Price', 'price');
   const costPrice = amount(input.costPrice, 'Cost price', 'costPrice');
   const wholesalePrice = amount(input.wholesalePrice, 'Wholesale price', 'wholesalePrice');
+  const creditPrice = amount(input.creditPrice, 'Credit price', 'creditPrice');
   const taxRate = amount(input.taxRate, 'Tax', 'taxRate', 100);
   const stock = amount(input.stock, 'Stock', 'stock', 10_000_000);
   const lowStockAlert = amount(input.lowStockAlert, 'Low stock alert', 'lowStockAlert', 10_000_000);
@@ -250,7 +252,7 @@ export function parseRow(input: ImportRowDto): ParsedRow {
     category: text(input.category, 'Category', 100, 'category'),
     brand: text(input.brand, 'Brand', 100, 'brand'),
     description: text(input.description, 'Description', 2000, 'description'),
-    price, costPrice, wholesalePrice, taxRate,
+    price, costPrice, wholesalePrice, creditPrice, taxRate,
     stock: imeis.length ? imeis.length : stock,
     lowStockAlert,
     variants, size, color, pack, batchNumber, expiry, imeis, errors, warnings, fieldErrors,

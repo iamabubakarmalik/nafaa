@@ -27,6 +27,7 @@ export class ImportRowDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) price?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) costPrice?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) wholesalePrice?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) creditPrice?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) taxRate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) stock?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) lowStockAlert?: string;

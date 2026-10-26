@@ -9,8 +9,8 @@ import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Ban, BookOpen, GraduationCap, MessageCircle, PackageCheck, Phone, Printer, RotateCcw, Wheat } from 'lucide-react';
-import { Button, Modal, PageShell } from '@/design-system/components';
+import { Ban, BookOpen, GraduationCap, MessageCircle, PackageCheck, Phone, Printer, RotateCcw, Wheat } from 'lucide-react';
+import { Button, Card, Modal, PageHero, controlClass, PageShell, Table, TBody, THead, Td, Th, Tr, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { usePermission } from '@core/hooks/usePermission';
@@ -74,56 +74,55 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-2">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="mr-auto min-w-0">
-          <h1 className="flex flex-wrap items-center gap-2 text-lg font-semibold text-slate-900">
-            {p.purchaseNumber}<span className={cn('rounded-full px-2 py-0.5 text-[0.75rem] font-medium ring-1', st.tone)}>{st.label}</span>
-          </h1>
-          <p className="text-[0.8125rem] text-slate-500">{day(p.purchasedAt)}{p.shop?.name ? ` · ${p.shop.name}` : ''}{p.createdBy?.fullName ? ` · ${p.createdBy.fullName}` : ''}</p>
-        </div>
-        <Button variant="ghost" onClick={guide.open} aria-label="Guide (G)" leftIcon={<GraduationCap className="h-4 w-4" />}><span className="hidden sm:inline">Guide</span></Button>
-        <Button variant="secondary" onClick={() => setPrinting(true)} leftIcon={<Printer className="h-4 w-4" />}>Print / invoice</Button>
-        {open && <Button variant="secondary" onClick={whatsapp} leftIcon={<MessageCircle className="h-4 w-4 text-emerald-600" />}>Order bhejein</Button>}
-        {canEdit && open && <Button onClick={() => setModal('receive')} leftIcon={<PackageCheck className="h-4 w-4" />}>Maal aaya</Button>}
-      </div>
+      <PageHero
+        back={() => navigate(-1)}
+        title={p.purchaseNumber}
+        chip={st.label}
+        subtitle={`${day(p.purchasedAt)}${p.shop?.name ? ` · ${p.shop.name}` : ''}${p.createdBy?.fullName ? ` · ${p.createdBy.fullName}` : ''}`}
+        actions={<>
+          <button type="button" onClick={guide.open} aria-label="Guide (G)" title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <button type="button" onClick={() => setPrinting(true)} className={heroButton}><Printer className="h-4 w-4" />Print / invoice</button>
+          {open && <button type="button" onClick={whatsapp} className={heroButton}><MessageCircle className="h-4 w-4" />Order bhejein</button>}
+          {canEdit && open && <button type="button" onClick={() => setModal('receive')} className={heroPrimaryButton}><PackageCheck className="h-4 w-4" />Maal aaya</button>}
+        </>}
+      />
 
       {p.status === 'CANCELLED' && <p className="rounded-xl bg-slate-100 px-3 py-2 text-sm text-slate-700">Cancel {day(p.cancelledAt)}{p.cancelReason ? ` — ${p.cancelReason}` : ''}</p>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="min-w-0 overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-          <table className="w-full min-w-[42rem] text-sm">
-            <thead className="bg-slate-50 text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-              <tr><th className="px-3 py-2">Cheez</th><th className="px-3 py-2 text-right">Quantity</th><th className="px-3 py-2 text-right">Rate</th><th className="px-3 py-2 text-right">Amount</th><th className="px-3 py-2 text-right">Halat</th></tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+        <Card flush className="min-w-0 overflow-hidden rounded-2xl">
+          <Table minWidth="42rem">
+            <THead>
+              <Tr><Th className="px-3 py-2">Cheez</Th><Th align="right" className="px-3 py-2">Quantity</Th><Th align="right" className="px-3 py-2">Rate</Th><Th align="right" className="px-3 py-2">Amount</Th><Th align="right" className="px-3 py-2">Halat</Th></Tr>
+            </THead>
+            <TBody>
               {p.items.map((i) => {
                 const r = rate(i);
                 const got = (i.receivedQty ?? 0) / r;
                 const back = (i.returnedQty ?? 0) / r;
                 return (
-                  <tr key={i.id} className="align-top">
-                    <td className="px-3 py-2.5">
+                  <Tr key={i.id} className="align-top">
+                    <Td className="px-3 py-2.5">
                       <p className="flex items-center gap-1.5 font-medium text-slate-900">{i.ingredientId && <Wheat className="h-3.5 w-3.5 text-amber-600" />}{nameOf(i)}</p>
                       <p className="text-[0.75rem] text-slate-500">
                         {r !== 1 && `1 ${i.unitName} = ${q3(r)} ${baseUnit(i)} · `}{i.batchNo && `Batch ${i.batchNo} · `}{i.expiryDate && `Expiry ${day(i.expiryDate)}`}
                       </p>
                       {config.itemExtra?.({ item: i, purchase: p })}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{q3(i.quantity)} {i.unitName}{r !== 1 && <span className="block text-[0.75rem] text-slate-500">{q3(i.baseQuantity ?? i.quantity * r)} {baseUnit(i)}</span>}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{money(i.costPrice)}</td>
-                    <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{money(i.total)}</td>
-                    <td className="px-3 py-2.5 text-right text-[0.75rem]">
+                    </Td>
+                    <Td align="right" className="px-3 py-2.5">{q3(i.quantity)} {i.unitName}{r !== 1 && <span className="block text-[0.75rem] text-slate-500">{q3(i.baseQuantity ?? i.quantity * r)} {baseUnit(i)}</span>}</Td>
+                    <Td align="right" className="px-3 py-2.5">{money(i.costPrice)}</Td>
+                    <Td align="right" className="px-3 py-2.5 font-semibold">{money(i.total)}</Td>
+                    <Td align="right" className="px-3 py-2.5 text-[0.75rem]">
                       {p.status !== 'RECEIVED' && p.status !== 'CANCELLED' && <span className="block text-slate-600">Aaya {q3(got)} / {q3(i.quantity)}</span>}
                       {back > 0 && <span className="block text-amber-700">Wapas {q3(back)}</span>}
-                      {p.status === 'RECEIVED' && !back && <span className="text-emerald-600">Poora aaya</span>}
-                    </td>
-                  </tr>
+                      {p.status === 'RECEIVED' && !back && <span className="text-success-700">Poora aaya</span>}
+                    </Td>
+                  </Tr>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </TBody>
+          </Table>
+        </Card>
 
         <aside className="space-y-3">
           <Link to={`/suppliers/${p.supplier.id}`} className="block rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-300">
@@ -223,7 +222,7 @@ function QtyLines({ p, max, qty, setQty }: { p: Purchase; max: (i: PurchaseItem)
             </div>
             <input type="number" min={0} max={m} step="any" value={qty[i.id] ?? ''} placeholder="0" aria-label={`${nameOf(i)} quantity`}
               onChange={(e) => setQty({ ...qty, [i.id]: Math.min(Math.max(Number(e.target.value) || 0, 0), m) })}
-              className="h-9 w-24 rounded-lg border border-slate-200 px-2 text-right text-sm font-semibold tabular-nums outline-none focus:border-brand-500" />
+              className={cn(controlClass(), 'h-9 w-24 px-2 text-right text-sm font-semibold tabular-nums')} />
             <span className="w-12 text-[0.75rem] text-slate-500">{i.unitName}</span>
           </li>
         );
@@ -256,12 +255,12 @@ function ReceiveModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void
         <div>
           <label className="text-[0.75rem] text-slate-500">Abhi kitne diye (is maal ke)
             <input type="number" min={0} value={paid} onChange={(e) => setPaid(e.target.value)} placeholder="0 = sab udhaar"
-              className="mt-1 h-9 w-full rounded-lg border border-slate-200 px-2.5 text-right text-sm outline-none focus:border-brand-500" />
+              className={cn(controlClass(), 'mt-1 h-9 px-2.5 text-right text-sm')} />
           </label>
           <div className="mt-2 flex flex-wrap gap-1">
             {POS_PAYMENT_METHODS.map((m) => (
               <button key={m.id} type="button" onClick={() => setMethod(m.id)} aria-pressed={method === m.id}
-                className={cn('rounded-lg px-2 py-1 text-[0.75rem] ring-1', method === m.id ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-600 ring-slate-200')}>{m.label}</button>
+                className={cn('rounded-lg px-2 py-1 text-[0.75rem] ring-1', method === m.id ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'text-slate-600 ring-slate-200')}>{m.label}</button>
             ))}
           </div>
         </div>
@@ -289,11 +288,11 @@ function ReturnModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void;
       <QtyLines p={p} max={canReturn} qty={qty} setQty={setQty} />
       <div className="mt-3 flex flex-wrap gap-1.5">
         {['Kharab maal', 'Ghalat maal aaya', 'Expiry qareeb', 'Zyada aa gaya'].map((r) => (
-          <button key={r} type="button" onClick={() => setReason(r)} className={cn('rounded-full px-3 py-1 text-[0.8125rem] ring-1', reason === r ? 'bg-amber-600 text-white ring-amber-600' : 'text-slate-600 ring-slate-200')}>{r}</button>
+          <button key={r} type="button" onClick={() => setReason(r)} className={cn('rounded-full px-3 py-1 text-[0.8125rem] ring-1', reason === r ? 'bg-brand-50 font-semibold text-brand-700 ring-brand-300' : 'text-slate-600 ring-slate-200 hover:bg-slate-50')}>{r}</button>
         ))}
       </div>
       <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah — misaal: 5 packet phate hue the" aria-label="Wajah" maxLength={200}
-        className="mt-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-amber-500" />
+        className={cn(controlClass(), 'mt-2 h-10 px-3 text-sm')} />
     </Modal>
   );
 }
@@ -311,7 +310,7 @@ function CancelModal({ p, onClose, onDone }: { p: Purchase; onClose: () => void;
       description={isOrder ? 'Stock par koi asar nahi.' : `Aaya hua maal stock se nikal jayega aur supplier ka khata ulat jayega.${p.paidAmount > 0 ? ` Diye hue ${money(p.paidAmount)} supplier se wapas lene honge.` : ''}`}
       footer={<><Button variant="secondary" onClick={onClose}>Rehne dein</Button><Button variant="danger" loading={mut.isPending} disabled={!reason.trim()} onClick={() => mut.mutate()}>Cancel karein</Button></>}>
       <input data-autofocus value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah — misaal: ghalat supplier chuna tha" aria-label="Wajah" maxLength={200}
-        className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-rose-500" />
+        className={cn(controlClass(), 'h-10 px-3 text-sm')} />
     </Modal>
   );
 }

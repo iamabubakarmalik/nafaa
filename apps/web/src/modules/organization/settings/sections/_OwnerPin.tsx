@@ -11,11 +11,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, CheckCircle2, KeyRound, Lock, Plus, Search, ShieldCheck, Smartphone, Unlock, X } from 'lucide-react';
 import { cn } from '@core/lib/cn';
-import { Button } from '@/design-system/components';
+import { Alert, Badge, Button, IconButton, Input } from '@/design-system/components';
 import { usePrivacyStore } from '@core/stores/privacy.store';
 import { securityApi } from '@core/security/security.api';
 import { PinSetupModal, PinPromptModal } from '@core/security/HiddenValue';
-import { Alert, Field, SectionCard, StatPill } from '../components/UI';
+import { Field, SectionCard } from '../components/SettingsBlocks';
 
 /** Pages that can be locked — where money or private figures are. */
 const LOCKABLE: Array<{ group: string; items: Array<{ path: string; label: string; hint: string }> }> = [
@@ -103,12 +103,12 @@ export function OwnerPinCard() {
 
       <SectionCard title="Malik ka PIN" desc="Ek hi PIN — cost chhupane, khata aur locked pages ke liye" icon={KeyRound} color="sky"
         badge={hasPin
-          ? <StatPill label="" value={unlocked ? 'Abhi khula hai' : 'Lock hai'} tone={unlocked ? 'emerald' : 'slate'} />
-          : <StatPill label="" value="Nahi laga" tone="amber" />}>
+          ? <Badge size="xs" variant={unlocked ? 'success' : 'default'}>{unlocked ? 'Abhi khula hai' : 'Lock hai'}</Badge>
+          : <Badge size="xs" variant="warning">Nahi laga</Badge>}>
         {hasPin ? (
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
-              <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white', unlocked ? 'bg-emerald-600' : 'bg-slate-700')}>
+            <div className="flex flex-wrap items-center gap-3 rounded-lg bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
+              <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white', unlocked ? 'bg-success-600' : 'bg-slate-700')}>
                 {unlocked ? <Unlock className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
               </span>
               <div className="min-w-0 flex-1">
@@ -126,7 +126,7 @@ export function OwnerPinCard() {
               <div className="flex flex-wrap items-center gap-2">
                 {UNLOCK_MINUTES.map((m) => (
                   <button key={m} type="button" onClick={() => setMins(m)} aria-pressed={mins === m}
-                    className={cn('h-9 rounded-xl px-3.5 text-xs font-semibold ring-1 transition',
+                    className={cn('h-9 rounded-lg px-3.5 text-xs font-semibold ring-1 ring-inset transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
                       mins === m ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-300')}>
                     {m < 60 ? `${m} min` : `${m / 60} ghanta`}
                   </button>
@@ -141,14 +141,14 @@ export function OwnerPinCard() {
           </div>
         ) : (
           <div className="space-y-3">
-            <Alert tone="amber" icon={AlertTriangle} title="PIN lagana behtar hai">
+            <Alert className="mt-3" tone="warning" title="PIN lagana behtar hai" icon={<AlertTriangle className="h-4 w-4" />}>
               PIN ke bagair maal ki Cost aur Profit har us bande ko dikhta hai jo app khol le. PIN lagate hi Cost chhup jati hai — aur jo pages aap chunein woh bhi band ho jate hain.
             </Alert>
             <Button onClick={() => setSetupOpen(true)} leftIcon={<KeyRound className="h-4 w-4" />}>PIN lagayein</Button>
           </div>
         )}
 
-        <Alert tone="emerald" icon={Smartphone} title="Har device par wohi PIN">
+        <Alert className="mt-3" tone="success" title="Har device par wohi PIN" icon={<Smartphone className="h-4 w-4" />}>
           PIN aap ke <strong>account ke saath</strong> mehfooz hai, kisi ek phone ya computer ke saath nahi. Store ka laptop ho ya ghar ka phone — wohi PIN chalta hai.
         </Alert>
       </SectionCard>
@@ -218,7 +218,7 @@ export function PageLocksCard() {
 
   return (
     <SectionCard title="Locked pages" desc="Jo page aap chunein woh PIN ke bagair nahi khulega" icon={Lock} color="violet"
-      badge={picked.length > 0 ? <StatPill label="" value={`${picked.length} lock`} tone="blue" /> : undefined}
+      badge={picked.length > 0 ? <Badge size="xs" variant="info">{`${picked.length} lock`}</Badge> : undefined}
       action={dirty ? (
         <div className="flex gap-2">
           <Button size="sm" variant="secondary" onClick={() => { setPicked(status?.lockedRoutes ?? []); setDirty(false); }}>Cancel</Button>
@@ -226,7 +226,7 @@ export function PageLocksCard() {
         </div>
       ) : undefined}>
       {!store.hasPin ? (
-        <Alert tone="amber" icon={AlertTriangle} title="Pehle PIN lagayein">
+        <Alert className="mt-3" tone="warning" title="Pehle PIN lagayein" icon={<AlertTriangle className="h-4 w-4" />}>
           Bina PIN ke page lock karne ka matlab hai khud ko bahar band kar lena — koi khol hi nahi sakega. Upar se pehle PIN lagayein.
         </Alert>
       ) : (
@@ -239,17 +239,13 @@ export function PageLocksCard() {
             </span>
           </p>
 
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Page search karein…" aria-label="Page search karein"
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-            {search && (
-              <button type="button" onClick={() => setSearch('')} aria-label="Search saaf karein"
-                className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Page search karein…" aria-label="Page search karein"
+            leftIcon={<Search className="h-4 w-4" />}
+            rightIcon={search ? (
+              <IconButton label="Search saaf karein" size="sm" onClick={() => setSearch('')} className="-mr-2 h-7 w-7">
                 <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
+              </IconButton>
+            ) : undefined} />
 
           {groups.map((g) => (
             <div key={g.group}>
@@ -259,9 +255,9 @@ export function PageLocksCard() {
                   const on = picked.includes(i.path);
                   return (
                     <button key={i.path} type="button" onClick={() => toggle(i.path)} aria-pressed={on}
-                      className={cn('flex items-start gap-2.5 rounded-xl border p-3 text-left transition',
-                        on ? 'border-violet-400 bg-violet-50/60 ring-1 ring-violet-400' : 'border-slate-200 bg-white hover:border-slate-300')}>
-                      <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', on ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-400')}>
+                      className={cn('flex items-start gap-2.5 rounded-lg border p-3 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+                        on ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50')}>
+                      <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', on ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-500')}>
                         {on ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                       </span>
                       <span className="min-w-0">
@@ -277,9 +273,8 @@ export function PageLocksCard() {
 
           <Field label="Koi aur page" hint="Apni industry ka page, jaise /appliances/reports — Enter dabayein ya Add">
             <div className="flex gap-2">
-              <input value={custom} onChange={(e) => setCustom(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
-                placeholder="/appliances/profit-report" aria-label="Page ka raasta"
-                className="h-10 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 font-mono text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
+              <Input value={custom} onChange={(e) => setCustom(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
+                placeholder="/appliances/profit-report" aria-label="Page ka raasta" className="font-mono" wrapperClassName="min-w-0 flex-1" />
               <Button variant="secondary" onClick={addCustom} leftIcon={<Plus className="h-4 w-4" />}>Add</Button>
             </div>
           </Field>
@@ -288,7 +283,7 @@ export function PageLocksCard() {
             <div className="flex flex-wrap gap-1.5">
               {extra.map((p) => (
                 <button key={p} type="button" onClick={() => toggle(p)} aria-label={`${p} ka lock hatayein`}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-violet-50 px-2.5 py-1.5 font-mono text-xs font-medium text-violet-700 ring-1 ring-violet-200">
+                  className="inline-flex items-center gap-1.5 rounded-md bg-brand-50 px-2.5 py-1.5 font-mono text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-200 transition hover:bg-brand-100">
                   {p} <X className="h-3 w-3" />
                 </button>
               ))}
@@ -296,10 +291,9 @@ export function PageLocksCard() {
           )}
 
           {dirty && (
-            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900 ring-1 ring-amber-100">
+            <Alert tone="warning" action={<Button size="sm" loading={saving} onClick={save}>{picked.length} pages lock karein</Button>}>
               Tabdeeli abhi save nahi hui.
-              <Button size="sm" className="ml-auto" loading={saving} onClick={save}>{picked.length} pages lock karein</Button>
-            </div>
+            </Alert>
           )}
         </div>
       )}

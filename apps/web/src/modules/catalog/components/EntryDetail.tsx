@@ -91,10 +91,10 @@ export function EntryDetail({ entry, shop, showStock, onPick, onClose }: {
               <>
                 <button type="button" onClick={() => step(-1)} aria-label="Pichli photo" className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow"><ChevronLeft className="h-5 w-5" /></button>
                 <button type="button" onClick={() => step(1)} aria-label="Agli photo" className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow"><ChevronRight className="h-5 w-5" /></button>
-                <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-slate-900/70 px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums text-white">{index + 1} / {images.length}</span>
+                <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums text-white">{index + 1} / {images.length}</span>
               </>
             )}
-            {out && <span className="absolute inset-x-0 bottom-0 bg-rose-600 py-1 text-center text-[0.75rem] font-bold text-white">Abhi khatam</span>}
+            {out && <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[0.75rem] font-bold text-white backdrop-blur-sm">Abhi khatam</span>}
           </div>
           {images.length > 1 && (
             <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
@@ -111,7 +111,7 @@ export function EntryDetail({ entry, shop, showStock, onPick, onClose }: {
           <div className="rounded-2xl bg-brand-50 p-4 ring-1 ring-brand-100">
             <PriceTag entry={shown} big />
             {variant && <p className="mt-1 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-800"><Check className="h-3.5 w-3.5" />{variant.name}</p>}
-            {showStock && entry.stockNote && !out && <p className="mt-1 text-[0.8125rem] font-medium text-emerald-700">{entry.stockNote}</p>}
+            {showStock && entry.stockNote && !out && <p className="mt-1 text-[0.8125rem] font-medium text-success-700">{entry.stockNote}</p>}
           </div>
           {!!(entry.badges?.length || entry.chips?.length) && (
             <div className="flex flex-wrap gap-1.5">{[...(entry.badges ?? []), ...(entry.chips ?? [])].map((c) => <Chip key={c.label} chip={c} className="max-w-none text-[0.75rem]" />)}</div>
@@ -157,14 +157,14 @@ export function EntryDetail({ entry, shop, showStock, onPick, onClose }: {
           )}
           {!!entry.includes?.length && (
             <ul className="space-y-1.5">
-              {entry.includes.map((x) => <li key={x} className="flex gap-2 text-[0.8125rem] text-slate-700"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />{x}</li>)}
+              {entry.includes.map((x) => <li key={x} className="flex gap-2 text-[0.8125rem] text-slate-700"><Check className="mt-0.5 h-4 w-4 shrink-0 text-success-600" />{x}</li>)}
             </ul>
           )}
         </div>
       </div>
 
       {zoom && images[index] && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => setZoom(false)}>
+        <div role="dialog" aria-modal="true" aria-label={entry.name} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => setZoom(false)}>
           <img src={images[index]} alt={entry.name} className="max-h-full max-w-full object-contain" />
           <button type="button" onClick={() => setZoom(false)} aria-label="Band karein" className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white"><X className="h-5 w-5" /></button>
         </div>,

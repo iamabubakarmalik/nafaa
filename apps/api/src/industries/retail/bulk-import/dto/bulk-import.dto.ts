@@ -47,6 +47,10 @@ export class BulkImportRowDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  creditPrice?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   stock?: number;
 
   @ApiPropertyOptional()

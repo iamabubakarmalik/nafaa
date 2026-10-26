@@ -7,6 +7,7 @@ import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { QueryCustomersDto } from './dto/query-customers.dto';
+import { isPriceTier } from '../../../common/helpers/price-tier.helper';
 
 @Injectable()
 export class CustomersService {
@@ -44,6 +45,7 @@ export class CustomersService {
         isRegistered: dto.isRegistered ?? false,
         isVip: dto.isVip ?? false,
         isActive: dto.isActive ?? true,
+        priceTier: isPriceTier(dto.priceTier) ? dto.priceTier : null,
       },
     });
   }

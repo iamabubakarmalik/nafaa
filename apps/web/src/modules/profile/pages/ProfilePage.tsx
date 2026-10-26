@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BadgeCheck, Building2, GraduationCap, KeyRound, LogOut, Mail, MonitorSmartphone, Pencil, Settings2, Shield, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
-import { Avatar, Button, Kbd, Modal, PageShell, Skeleton, ViewTabs } from '@/design-system/components';
+import { Avatar, Button, Kbd, Modal, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { useAuthStore } from '@core/stores/auth.store';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
@@ -73,28 +73,30 @@ export default function ProfilePage() {
         </Modal>
       )}
 
-      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-6">
-        <div className="flex flex-wrap items-center gap-4">
-          <Avatar name={user.fullName} url={user.avatarUrl} size={64} className="ring-2 ring-white/40" />
-          <div className="min-w-0 flex-1">
-            <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold">
-              {user.fullName}
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.75rem] font-semibold"><role.icon className="h-3.5 w-3.5" />{role.label}</span>
-            </h1>
-            <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[0.8125rem] text-white/80">
-              <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{user.email}{user.emailVerified && <BadgeCheck className="h-3.5 w-3.5 text-emerald-200" aria-label="Verified" />}</span>
-              {tenant?.name && <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" />{tenant.name}{user.assignedShop?.name ? ` · ${user.assignedShop.name}` : ''}</span>}
-              <span>Kab se: {day(user.createdAt)}</span>
-            </p>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          <button type="button" onClick={edit} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-bold text-brand-800 shadow-sm hover:bg-brand-50"><Pencil className="h-4 w-4" /> Badlein</button>
-          <button type="button" onClick={() => setTab('security')} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><KeyRound className="h-4 w-4" /> Password</button>
-          <button type="button" onClick={() => setConfirmLogout(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><LogOut className="h-4 w-4" /> Logout</button>
-          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-        </div>
-      </div>
+      <PageHero
+        title={(
+          <span className="flex min-w-0 items-center gap-3">
+            <Avatar name={user.fullName} url={user.avatarUrl} size={48} className="shrink-0 ring-2 ring-white/40" />
+            <span className="truncate">{user.fullName}</span>
+          </span>
+        )}
+        chip={<><role.icon />{role.label}</>}
+        subtitle={(
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+            <span className="inline-flex min-w-0 items-center gap-1"><Mail className="h-3.5 w-3.5 shrink-0" aria-hidden /><span className="truncate">{user.email}</span>{user.emailVerified && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-white" aria-label="Verified" />}</span>
+            {tenant?.name && <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" aria-hidden />{tenant.name}{user.assignedShop?.name ? ` · ${user.assignedShop.name}` : ''}</span>}
+            <span>Kab se: {day(user.createdAt)}</span>
+          </span>
+        )}
+        actions={(
+          <>
+            <button type="button" onClick={edit} title="Badlein (E)" className={heroPrimaryButton}><Pencil className="h-4 w-4" /> Badlein</button>
+            <button type="button" onClick={() => setTab('security')} className={heroButton}><KeyRound className="h-4 w-4" /> Password</button>
+            <button type="button" onClick={() => setConfirmLogout(true)} className={heroButton}><LogOut className="h-4 w-4" /> Logout</button>
+            <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          </>
+        )}
+      />
 
       <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>4</Kbd> se badlein</>}
         tabs={[

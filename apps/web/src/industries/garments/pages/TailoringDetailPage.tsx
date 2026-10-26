@@ -11,9 +11,9 @@ import { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  ArrowLeft, Ban, Check, GraduationCap, MessageCircle, Pause, Pencil, Phone, Printer, Receipt, Ruler, Scissors, Shirt, Undo2, UserRound, Wallet,
+  Ban, Check, GraduationCap, MessageCircle, Pause, Pencil, Phone, Printer, Receipt, Ruler, Scissors, Shirt, Undo2, UserRound, Wallet,
 } from 'lucide-react';
-import { Button, Card, Kbd, PageShell, Skeleton, heroButton, heroIconButton } from '@/design-system/components';
+import { Button, Card, Kbd, PageHero, PageShell, Skeleton, heroButton, heroIconButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -70,33 +70,29 @@ export default function TailoringDetailPage() {
 
   return (
     <PageShell>
-      <div className="relative rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={() => navigate('/garments/tailoring')} aria-label="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-xl font-bold">{o.customerName || 'Customer'}</h1>
-              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1 ring-white/25">{st.label}</span>
-              {(o.priority === 'HIGH' || o.priority === 'URGENT') && !closed && <span className="rounded-full bg-rose-500/90 px-2.5 py-0.5 text-[0.75rem] font-semibold">{priorityOf(o.priority).label}</span>}
-            </div>
-            <p className="text-[0.8125rem] text-white/75">{o.orderNumber} · book {dayFull(o.orderDate)}{o.tailorName ? ` · karigar ${o.tailorName}` : ''}</p>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <button type="button" onClick={() => printTailoringSlip(o, shopName)} className={heroButton}><Printer className="h-4 w-4" />Parchi</button>
-            <button type="button" onClick={() => printTailoringSlip(o, shopName, true)} className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">Karigar parchi</span></button>
-            {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">WhatsApp</span></a>}
-            {manage && !closed && <Link to={`/garments/tailoring/new?edit=${o.id}`} title="Badlein (E)" className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">Badlein</span></Link>}
-            <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          </div>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div><p className="text-[0.75rem] text-white/70">Kul</p><p className="text-2xl font-bold tabular-nums">{formatPKR(o.total)}</p></div>
-          <div className="border-l border-white/20 pl-4"><p className="text-[0.75rem] text-white/70">Mila</p><p className="text-lg font-bold tabular-nums">{formatPKR(o.paidAmount)}</p></div>
-          <div className="border-l border-white/20 pl-4"><p className="text-[0.75rem] text-white/70">{o.orderStatus === 'DELIVERED' ? 'Khate me' : 'Baqi'}</p><p className="text-lg font-bold tabular-nums">{formatPKR(due)}</p></div>
-          <div className="border-l border-white/20 pl-4"><p className="text-[0.75rem] text-white/70">{closed ? (o.orderStatus === 'DELIVERED' ? 'Diya' : 'Cancel') : 'Dena hai'}</p>
-            <p className="text-lg font-bold">{closed ? dayFull(o.deliveredAt ?? o.cancelledAt) : o.promisedDate ? `${whenText(o.promisedDate)} · ${dayFull(o.promisedDate)}` : '—'}</p></div>
-        </div>
-      </div>
+      <PageHero
+        back="/garments/tailoring"
+        backLabel="Wapas (Esc)"
+        title={o.customerName || 'Customer'}
+        chip={<>{st.label}{(o.priority === 'HIGH' || o.priority === 'URGENT') && !closed && <span className="ml-1 rounded-full bg-rose-500/90 px-2 text-white">{priorityOf(o.priority).label}</span>}</>}
+        subtitle={<>{o.orderNumber} · book {dayFull(o.orderDate)}{o.tailorName ? ` · karigar ${o.tailorName}` : ''}</>}
+        actions={<>
+          <button type="button" onClick={() => printTailoringSlip(o, shopName)} className={heroButton}><Printer className="h-4 w-4" />Parchi</button>
+          <button type="button" onClick={() => printTailoringSlip(o, shopName, true)} className={heroButton}><Scissors className="h-4 w-4" /><span className="hidden sm:inline">Karigar parchi</span></button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /><span className="hidden sm:inline">WhatsApp</span></a>}
+          {manage && !closed && <Link to={`/garments/tailoring/new?edit=${o.id}`} title="Badlein (E)" className={heroButton}><Pencil className="h-4 w-4" /><span className="hidden sm:inline">Badlein</span></Link>}
+          <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+        </>}
+        stats={[
+          { label: 'Kul', value: formatPKR(o.total) },
+          { label: 'Mila', value: formatPKR(o.paidAmount) },
+          { label: o.orderStatus === 'DELIVERED' ? 'Khate me' : 'Baqi', value: formatPKR(due) },
+          {
+            label: closed ? (o.orderStatus === 'DELIVERED' ? 'Diya' : 'Cancel') : 'Dena hai',
+            value: closed ? dayFull(o.deliveredAt ?? o.cancelledAt) : o.promisedDate ? `${whenText(o.promisedDate)} · ${dayFull(o.promisedDate)}` : '—',
+          },
+        ]}
+      />
 
       {o.orderStatus !== 'CANCELLED' && (
         <Card className="rounded-2xl">

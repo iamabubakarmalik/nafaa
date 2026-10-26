@@ -3,6 +3,8 @@ export const PERMISSIONS = {
   POS_USE: 'pos.use',
   /** Hand discount above the shop's limit without the owner's PIN. Given per person. */
   POS_DISCOUNT_OVERRIDE: 'pos.discount_override',
+  /** Switch the counter (or a bill line) away from the shop's default price tier. Automatic tiers set by the owner's rules do not need it. */
+  POS_PRICE_TIER: 'pos.price_tier',
   SALES_VIEW: 'sales.view',
   SALES_VOID: 'sales.void',
   RETURNS_VIEW: 'returns.view',
@@ -185,6 +187,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
     PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
     PERMISSIONS.POS_USE,
+    PERMISSIONS.POS_PRICE_TIER,
     PERMISSIONS.SALES_VIEW,
     PERMISSIONS.SALES_VOID,
     PERMISSIONS.RETURNS_VIEW,

@@ -51,7 +51,7 @@ const NOTES = [
 
 export function PosCheckoutModal({
   total, itemCount, loading, customerName, customerBalance = 0, hasCustomer,
-  initMode, initAmount, initMethod = 'CASH', initSplit, receiver, allowCredit = true, allowSplit = true, tradeIns, onConfirm, onClose,
+  initMode, initAmount, initMethod = 'CASH', initSplit, receiver, allowCredit = true, allowSplit = true, tradeIns, onCreditChange, notice, onConfirm, onClose,
 }: {
   total: number;
   itemCount: number;
@@ -74,6 +74,10 @@ export function PosCheckoutModal({
   /** False where the bill is saved by an endpoint that keeps one method only. */
   allowSplit?: boolean;
   onReceiverChange?: (v: PosReceiverValue) => void;
+  /** Told whether part of the bill goes on udhaar, so the counter can switch to the credit price. */
+  onCreditChange?: (onCredit: boolean) => void;
+  /** Short message at the top (e.g. the credit price was applied). */
+  notice?: string;
   onConfirm: (d: PosCheckoutResult) => void;
   onClose: () => void;
 }) {
@@ -97,6 +101,9 @@ export function PosCheckoutModal({
   // A split in full mode must cover the bill; what is left is asked for, not put on credit.
   const short = splitting && mode === 'full' && credit > 0.005;
   const blocked = isCredit && !short && (!hasCustomer || !allowCredit);
+  // Credit is judged on the choice the cashier made (udhaar or part payment), not the moving total.
+  const onUdhaar = mode === 'credit' || (mode === 'partial' && isCredit);
+  useEffect(() => { onCreditChange?.(onUdhaar && !blocked); }, [onUdhaar, blocked]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startSplit = () => {
     // With an amount typed, it becomes the first part and the rest goes to the second;
@@ -229,6 +236,11 @@ export function PosCheckoutModal({
                 );
               })}
             </div>
+            {notice && (
+              <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.8125rem] font-medium text-amber-900 ring-1 ring-amber-200">
+                <BookOpen className="h-4 w-4 shrink-0" /> {notice}
+              </p>
+            )}
           </section>
 
           {mode !== 'credit' && (

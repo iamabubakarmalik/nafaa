@@ -8,7 +8,7 @@
 import { useMemo, useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Clock, Hourglass, Search, ShieldAlert, Smartphone } from 'lucide-react';
-import { Card, KpiCard, KpiRow, Skeleton } from '@/design-system/components';
+import { Card, KpiCard, KpiRow, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -118,24 +118,24 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
         </header>
         {!units.length ? <p className="py-12 text-center text-[0.875rem] text-slate-500">Is filter me koi unit nahi</p> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[40rem] text-[0.8125rem]">
-              <thead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">{data.unitLabel}</th><th className="px-2 py-2">Cheez</th><th className="px-2 py-2">Halat</th><th className="px-2 py-2 text-right">Umar</th><th className="px-2 py-2 text-right">Warranty</th><th className="px-2 py-2 text-right">Cost</th><th className="px-4 py-2 text-right">Rate</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table minWidth="40rem" className="[&>table]:text-[0.8125rem]">
+              <THead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-4 py-2">{data.unitLabel}</Th><Th className="px-2 py-2">Cheez</Th><Th className="px-2 py-2">Halat</Th><Th className="px-2 py-2 text-right">Umar</Th><Th className="px-2 py-2 text-right">Warranty</Th><Th className="px-2 py-2 text-right">Cost</Th><Th className="px-4 py-2 text-right">Rate</Th></Tr>
+              </THead>
+              <TBody className="divide-y divide-slate-100">
                 {units.slice(0, more ? units.length : SHOW).map((u) => (
-                  <tr key={u.id}>
-                    <td className="px-4 py-2 font-mono text-[0.75rem] text-slate-700">{u.ref}</td>
-                    <td className="px-2 py-2"><span className="font-medium text-slate-900">{u.name}</span>{u.brand && <span className="text-slate-500"> · {u.brand}</span>}</td>
-                    <td className="px-2 py-2 text-slate-600">{u.tag ?? '—'}</td>
-                    <td className={cn('px-2 py-2 text-right tabular-nums', u.ageDays > 90 ? 'font-semibold text-rose-700' : 'text-slate-700')}>{ageText(u.ageDays)}</td>
-                    <td className="px-2 py-2 text-right tabular-nums text-slate-600">{u.warrantyDaysLeft === null ? '—' : u.warrantyDaysLeft < 0 ? 'khatam' : `${u.warrantyDaysLeft} din`}</td>
-                    <td className="px-2 py-2 text-right tabular-nums">{cost(u.cost)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums">{money(u.price)}</td>
-                  </tr>
+                  <Tr key={u.id}>
+                    <Td className="px-4 py-2 font-mono text-[0.75rem] text-slate-700">{u.ref}</Td>
+                    <Td className="text-inherit px-2 py-2"><span className="font-medium text-slate-900">{u.name}</span>{u.brand && <span className="text-slate-500"> · {u.brand}</span>}</Td>
+                    <Td className="px-2 py-2 text-slate-600">{u.tag ?? '—'}</Td>
+                    <Td className={cn('px-2 py-2 text-right tabular-nums', u.ageDays > 90 ? 'font-semibold text-rose-700' : 'text-slate-700')}>{ageText(u.ageDays)}</Td>
+                    <Td className="px-2 py-2 text-right tabular-nums text-slate-600">{u.warrantyDaysLeft === null ? '—' : u.warrantyDaysLeft < 0 ? 'khatam' : `${u.warrantyDaysLeft} din`}</Td>
+                    <Td className="text-inherit px-2 py-2 text-right tabular-nums">{cost(u.cost)}</Td>
+                    <Td className="text-inherit px-4 py-2 text-right tabular-nums">{money(u.price)}</Td>
+                  </Tr>
                 ))}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         )}
         {units.length > SHOW && !more && (

@@ -7,7 +7,8 @@
 
 import { Award, BookOpen, CreditCard, Hourglass, Sparkles, Users } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
-import { Divider, Field, NumberInput, PageLink, SectionCard, StatPill, Toggle } from '../components/UI';
+import { Divider, Field, NumberInput, PageLink, SectionCard, Toggle } from '../components/SettingsBlocks';
+import { Alert, Badge } from '@/design-system/components';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { SaveStatusBar } from './_SaveStatus';
@@ -17,7 +18,7 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
   const perRupee = Number(draft.loyaltyPointsPerRupee) || 0;
   const rate = Number(draft.loyaltyRedemptionRate) || 0;
   const earned = Math.floor(1000 * perRupee);
-  const onOff = (on: boolean) => <StatPill label="" value={on ? 'Chalu' : 'Band'} tone={on ? 'emerald' : 'slate'} />;
+  const onOff = (on: boolean) => <Badge size="xs" variant={on ? 'success' : 'default'}>{on ? 'Chalu' : 'Band'}</Badge>;
   const limit = Number(draft.defaultCreditLimit) || 0;
 
   return (
@@ -35,11 +36,11 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
               <Field label="Naye customer ki credit limit" hint="0 = koi had nahi. Har customer ki apni limit us ke profile me badal sakte hain.">
                 <NumberInput value={draft.defaultCreditLimit} onChange={(v) => set('defaultCreditLimit', v)} min={0} step={500} prefix="Rs" />
               </Field>
-              <p className="rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-900 ring-1 ring-amber-100">
+              <Alert tone={limit > 0 ? 'info' : 'warning'}>
                 {limit > 0
                   ? <>Naya customer {formatPKR(limit)} tak udhaar le sakta hai. Is se zyada sirf malik ke PIN se.</>
                   : <>Naye customer par udhaar ki koi had nahi. Had rakhna behtar hai — paisa phansta nahi.</>}
-              </p>
+              </Alert>
             </div>
           </>
         )}
@@ -71,13 +72,10 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
                 <NumberInput value={draft.loyaltyExpiryDays ?? 0} onChange={(v) => set('loyaltyExpiryDays', v)} min={0} max={3650} suffix="din" />
               </Field>
             </div>
-            <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-rose-50 p-3 text-xs leading-relaxed text-rose-900 ring-1 ring-rose-100">
-              <Hourglass className="mt-0.5 h-4 w-4 shrink-0 opacity-70" />
-              <p>
-                {formatPKR(1000)} ki khareedari par <b>{earned} points</b> milenge, jin ki qeemat <b>{formatPKR(earned * rate)}</b> hai
-                {(draft.loyaltyExpiryDays ?? 0) > 0 ? `, aur ${draft.loyaltyExpiryDays} din me khatam ho jayenge` : ''}.
-              </p>
-            </div>
+            <Alert className="mt-4" tone="info" title="Misaal" icon={<Hourglass className="h-4 w-4 text-blue-600" />}>
+              {formatPKR(1000)} ki khareedari par <b>{earned} points</b> milenge, jin ki qeemat <b>{formatPKR(earned * rate)}</b> hai
+              {(draft.loyaltyExpiryDays ?? 0) > 0 ? `, aur ${draft.loyaltyExpiryDays} din me khatam ho jayenge` : ''}.
+            </Alert>
           </>
         )}
       </SectionCard>

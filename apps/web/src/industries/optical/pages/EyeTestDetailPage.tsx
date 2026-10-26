@@ -9,8 +9,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, CalendarClock, ClipboardCheck, FileText, Glasses, Play, Printer, Save, Stethoscope, Wallet } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { CalendarClock, ClipboardCheck, FileText, Glasses, Play, Printer, Save, Stethoscope, Wallet } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Skeleton, Switch, Textarea, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
 import { usePrinter } from '@core/print';
@@ -89,17 +89,17 @@ export default function EyeTestDetailPage() {
   return (
     <PageShell>
       <TestDialogs dialog={dialog} close={() => setDialog(null)} actions={actions} />
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2"><h1 className="text-xl font-bold">{t.customerName}</h1><Pill meta={testStatusOf(t.status)} className="bg-white/90" /></div>
-          <p className="text-[0.8125rem] text-white/75">{t.testNumber} · {dayOnly(t.appointmentDate)}{t.scheduledSlot ? ` ${t.scheduledSlot}` : ''} · {t.customerPhone}{t.customerAge ? ` · ${t.customerAge} saal` : ''}{t.optometristName ? ` · ${t.optometristName}` : ''}</p>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {t.status === 'COMPLETED' && <button type="button" onClick={() => void print(testDoc(t))} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Printer className="h-4 w-4" />Report</button>}
-          {t.prescriptionId && <Link to={`/optical/lens-orders/new?rx=${t.prescriptionId}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-bold text-brand-800 shadow-sm hover:bg-brand-50"><Glasses className="h-4 w-4" />Chashma order</Link>}
-        </div>
-      </div>
+      <PageHero
+        title={<span className="inline-flex items-center gap-2">{t.customerName}<Pill meta={testStatusOf(t.status)} className="bg-white/90" /></span>}
+        subtitle={<>{t.testNumber} · {dayOnly(t.appointmentDate)}{t.scheduledSlot ? ` ${t.scheduledSlot}` : ''} · {t.customerPhone}{t.customerAge ? ` · ${t.customerAge} saal` : ''}{t.optometristName ? ` · ${t.optometristName}` : ''}</>}
+        back={() => navigate(-1)}
+        actions={(t.status === 'COMPLETED' || t.prescriptionId) ? (
+          <>
+            {t.status === 'COMPLETED' && <button type="button" onClick={() => void print(testDoc(t))} className={heroButton}><Printer className="h-4 w-4" />Report</button>}
+            {t.prescriptionId && <Link to={`/optical/lens-orders/new?rx=${t.prescriptionId}`} className={heroPrimaryButton}><Glasses className="h-4 w-4" />Chashma order</Link>}
+          </>
+        ) : undefined}
+      />
 
       <div className="flex flex-wrap gap-2">
         {['SCHEDULED', 'CONFIRMED', 'RESCHEDULED'].includes(t.status) && <Button leftIcon={<Play className="h-4 w-4" />} loading={actions.start.isPending} onClick={() => actions.start.mutate(t)}>Test shuru</Button>}
@@ -177,7 +177,7 @@ export default function EyeTestDetailPage() {
           <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Fees</span>}>
             <dl className="grid grid-cols-3 gap-2">
               <Box label="Fees" value={money(t.testFee)} />
-              <Box label="Mili" value={money(t.paidAmount)} tone="text-emerald-700" />
+              <Box label="Mili" value={money(t.paidAmount)} tone="text-success-700" />
               <Box label="Baqi" value={t.isWaivedOff ? 'Maaf' : money(due)} tone={due > 0 ? 'text-amber-700' : 'text-slate-900'} />
             </dl>
           </Card>

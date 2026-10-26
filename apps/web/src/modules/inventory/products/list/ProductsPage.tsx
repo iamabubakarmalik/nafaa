@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import {
   AlertTriangle, ArrowDownWideNarrow, BarChart3, Boxes, CalendarClock, Check, CloudOff, Download, FileUp, Filter, GraduationCap,
   LayoutGrid, Layers, ListChecks, MousePointerClick, Package, Plus, RefreshCw, ScanLine, Search, Snowflake, Sparkles, Star,
-  Table2, Tag, ToggleRight, Wallet, X, type LucideIcon,
+  Columns3, Square, SquareCheck, Table2, Tag, ToggleRight, Wallet, X, type LucideIcon,
   Wheat,
 } from 'lucide-react';
 import { Button, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
@@ -27,7 +27,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { catalogApi, type CatalogFilters, type CatalogItem, type CatalogSort, type CatalogStock } from './api';
-import { useCatalog, useCatalogAnalytics } from './useCatalog';
+import { useCatalog, useCatalogAnalytics, type OptionalColumn } from './useCatalog';
 import { fetchAllProducts, productsCsv, productsDoc } from './exportProducts';
 import { BulkBar } from './components/BulkBar';
 import { CatalogAnalytics } from './components/CatalogAnalytics';
@@ -86,7 +86,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
     stock: useAnyPermission(useMemo(() => [PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, PERMISSIONS.PRODUCTS_EDIT], [])),
   };
   const searchRef = useRef<HTMLInputElement>(null);
-  const [tab, setTab] = useState<string>('products');
+  const [tab, setTab] = useState<string>(() => (config.extraTab?.initial ? config.extraTab.id : 'products'));
   const [stockItem, setStockItemRaw] = useState<CatalogItem | null>(null);
   // Products whose stock comes from elsewhere (carpet rolls) never open the stock dialog.
   const setStockItem = (i: CatalogItem | null) => {
@@ -175,10 +175,14 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
     return () => io.disconnect();
   }, [c, c.hasMore, c.loadingMore]);
 
+  const shownCols = { wholesale: c.cols.includes('wholesale'), credit: c.cols.includes('credit') };
+  const colOptions: Array<FilterOption<OptionalColumn | 'none'>> = ([['wholesale', 'Wholesale price'], ['credit', 'Credit price']] as const)
+    .map(([value, label]) => ({ value, label, icon: c.cols.includes(value) ? SquareCheck : Square, hint: c.cols.includes(value) ? 'Dikh raha hai' : 'Chhupa hai' }));
   const cardProps = (i: CatalogItem) => ({
     item: i, config, extras: extrasFor(i), tagNames: d?.tagNames ?? {}, money, cost, costHidden, days: st?.windowDays ?? 30,
     selected: c.selected.has(i.id), selecting: c.selected.size > 0, onToggle: () => c.toggle(i.id),
     onStock: () => setStockItem(i), onDeleted: () => void c.refresh(), can: config.stockLocked?.(i) ? { ...can, stock: false } : can,
+    cols: shownCols,
   });
 
   const filterChips: Array<[string, () => void]> = [];
@@ -195,6 +199,8 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   if (c.search.trim()) filterChips.push([`"${c.search.trim()}"`, () => c.setSearch('')]);
 
   const ExtraTab = config.extraTab?.Component;
+  // A standalone extra tab brings its own search and filters, so the catalog controls step aside.
+  const catalogControls = !(config.extraTab?.standalone && tab === config.extraTab.id);
   const Banners = config.Banners;
   const HeroExtra = config.HeroExtra;
 
@@ -237,6 +243,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         </p>
       )}
 
+      {catalogControls && <>
       {/* Stock tabs with counts */}
       <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]">
         {tabs.map((t) => {
@@ -321,6 +328,10 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
               className={cn('flex h-11 w-11 items-center justify-center rounded-2xl transition', c.f.featured ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-200' : 'bg-slate-100/80 text-slate-500 hover:bg-slate-200/70')}>
               <Star className={cn('h-4 w-4', c.f.featured && 'fill-current')} />
             </button>
+            {c.view === 'table' && (
+              <FilterMenu<OptionalColumn | 'none'> icon={Columns3} label="Columns" value="none" align="right" active={c.cols.length > 0}
+                options={colOptions} onChange={(v) => { if (v !== 'none') c.toggleCol(v); }} />
+            )}
             <div className="inline-flex rounded-2xl bg-slate-100/80 p-1" role="radiogroup" aria-label="Dikhane ka tareeqa">
               {([['grid', LayoutGrid, 'Cards'], ['table', Table2, 'Table']] as const).map(([v, Icon, label]) => (
                 <button key={v} type="button" role="radio" aria-checked={c.view === v} onClick={() => c.setView(v)} title={`${label} (V)`}
@@ -339,6 +350,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
           </div>
         )}
       </div>
+      </>}
 
       {/* Tabs */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -411,6 +423,8 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
                 <th className="px-3 py-2.5">Category</th>
                 {!costHidden && <th className="px-3 py-2.5 text-right">Cost</th>}
                 <th className="px-3 py-2.5 text-right">Rate</th>
+                {shownCols.wholesale && <th className="px-3 py-2.5 text-right">Wholesale</th>}
+                {shownCols.credit && <th className="px-3 py-2.5 text-right">Credit</th>}
                 <th className="px-3 py-2.5 text-right">Stock</th>
                 <th className="px-3 py-2.5">{st?.windowDays ?? 30} din</th>
                 {!costHidden && <th className="px-3 py-2.5 text-right">Qeemat</th>}

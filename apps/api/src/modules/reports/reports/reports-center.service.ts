@@ -19,6 +19,7 @@ import {
   billMathCte, emptySaleFigures, foldWriteOffs, netProfit, paidExpenseSql, paidExpenseWhere, saleFiguresBy, writeOffRows,
   type SaleFigures,
 } from '../../../common/helpers/business-math.helper';
+import { foldTierSplit, tierSplitRowsSafe, type TierSplitRow } from '../../../common/helpers/price-tier-split.helper';
 import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import {
@@ -48,6 +49,22 @@ export class ReportsCenterService {
     const net = num(t.gross) - num(t.refunds);
     const cost = num(t.cost);
     return { net: r2(net), cost: r2(cost), profit: r2(net - cost) };
+  }
+
+  /**
+   * Retail / Wholesale / Credit split of the period's bills, on the sales
+   * footing (after returns), matched to the headline net and cost. The bill
+   * discount is spread over lines by line totals, and anything else a bill
+   * holds beyond its lines is shared by tier line totals (price-tier-split.helper).
+   * Null when the split could not be read.
+   */
+  private static priceTiers(rows: TierSplitRow[] | null, headline: { net: number; cost: number }) {
+    if (!rows) return null;
+    const split = foldTierSplit(rows, headline);
+    return {
+      mixed: split.mixed,
+      tiers: split.tiers.map(({ tier, label, bills, qty, net, cost, profit, margin }) => ({ tier, label, bills, qty, net, cost, profit, margin })),
+    };
   }
 
   private meta(r: ReportRange, first?: string | null) {
@@ -99,7 +116,7 @@ export class ReportsCenterService {
       FROM shares sh JOIN "Sale" s ON s.id = sh.id JOIN bm ON bm.id = s.id
       GROUP BY 1`;
 
-    const [totals, prev, grid, payments, staff, channels, shops, voided, items, customers, first] = await Promise.all([
+    const [totals, prev, grid, payments, staff, channels, shops, voided, items, customers, first, tierRows] = await Promise.all([
       this.saleTotals(user, scope, r),
       r.prev ? this.saleTotals(user, scope, r.prev) : Promise.resolve(null),
       this.prisma.$queryRaw<Grid[]>`
@@ -122,6 +139,7 @@ export class ReportsCenterService {
         SELECT COUNT(*) FILTER (WHERE s."customerId" IS NOT NULL)::int AS named, COUNT(DISTINCT s."customerId")::int AS customers
         FROM "Sale" s WHERE ${where}`,
       this.firstSaleKey(user, scope, r),
+      tierSplitRowsSafe(this.prisma, where),
     ]);
 
     // Buckets, hours, weekdays and the busy-time grid from one pass over the day × hour rows.
@@ -155,6 +173,7 @@ export class ReportsCenterService {
 
     const t = ReportsCenterService.net(totals);
     const p = prev ? ReportsCenterService.net(prev) : null;
+    const priceTiers = ReportsCenterService.priceTiers(tierRows, { net: t.net, cost: t.cost });
     return {
       ...this.meta(r, first),
       totals: {
@@ -176,6 +195,7 @@ export class ReportsCenterService {
       staff: staff.map((g) => ({ id: g.id, name: (g.id && userName.get(g.id)) || 'Na-maloom', ...groupRow(g) })).sort((a, b) => b.net - a.net),
       channels: channels.map((g) => ({ source: g.id ?? 'POS', ...groupRow(g) })).sort((a, b) => b.net - a.net),
       shops: shops.map((g) => ({ id: g.id, name: (g.id && shopName.get(g.id)) || 'Baghair branch', ...groupRow(g) })).sort((a, b) => b.net - a.net),
+      priceTiers,
     };
   }
 
@@ -520,7 +540,7 @@ export class ReportsCenterService {
     const mathScope = { tenantId: user.tenantId, shopId: scope.shopId };
     const dayKey = (at: Prisma.Sql) => Prisma.sql`to_char(${bizTime(at, r)}, 'YYYY-MM-DD')`;
 
-    const [cur, prev, exp, prevExp, losses, prevLosses, saleDays, expDays, first] = await Promise.all([
+    const [cur, prev, exp, prevExp, losses, prevLosses, saleDays, expDays, first, tierRows] = await Promise.all([
       this.saleTotals(user, scope, r),
       r.prev ? this.saleTotals(user, scope, r.prev) : Promise.resolve(null),
       this.prisma.expense.aggregate({ where: paidExpenseWhere(mathScope, r), _sum: { amount: true } }),
@@ -532,6 +552,7 @@ export class ReportsCenterService {
         SELECT ${dayKey(Prisma.sql`e."expenseDate"`)} AS day, SUM(e.amount)::float AS amount
         FROM "Expense" e WHERE ${paidExpenseSql(mathScope, r)} GROUP BY 1`,
       this.firstSaleKey(user, scope, r),
+      tierSplitRowsSafe(this.prisma, where),
     ]);
 
     const rows = new Map(bucketKeys(r, first).map((k) => [k, { key: k, sales: 0, cost: 0, expenses: 0, damage: 0 }]));
@@ -555,6 +576,7 @@ export class ReportsCenterService {
       };
     };
     const w = foldWriteOffs(losses);
+    const priceTiers = ReportsCenterService.priceTiers(tierRows, { net: cur.net, cost: cur.cost });
     return {
       ...this.meta(r, first),
       totals: {
@@ -566,6 +588,7 @@ export class ReportsCenterService {
         key: b.key, sales: r2(b.sales), cost: r2(b.cost), grossProfit: r2(b.sales - b.cost), expenses: r2(b.expenses),
         damage: r2(b.damage), netProfit: r2(b.sales - b.cost - b.expenses - b.damage),
       })),
+      priceTiers,
     };
   }
 

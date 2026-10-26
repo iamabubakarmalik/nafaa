@@ -1,2 +1,0 @@
-// 🎓 learn module
-export {};

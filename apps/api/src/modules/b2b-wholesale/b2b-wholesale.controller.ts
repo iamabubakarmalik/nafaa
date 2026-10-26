@@ -2,12 +2,18 @@ import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@ne
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { B2BAccountTier, B2BOrderStatus } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { SuperAdminGuard } from '../../admin/common/super-admin.guard';
 import { B2BWholesaleService } from './b2b-wholesale.service';
 import { CreateB2BOrderDto } from './dto/create-b2b-order.dto';
 
 @ApiTags('B2B Wholesale')
+/**
+ * Not tenant-scoped yet: every route reads and writes across shops by id.
+ * Locked to super admins until the wholesale rebuild adds tenant scope and
+ * permissions; no web or POS screen calls it and prod has no B2B rows.
+ */
 @Controller('b2b-wholesale')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, SuperAdminGuard)
 @ApiBearerAuth()
 export class B2BWholesaleController {
   constructor(private readonly svc: B2BWholesaleService) {}

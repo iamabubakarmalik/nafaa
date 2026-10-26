@@ -32,6 +32,7 @@ export function paymentParts(
   });
   return { lines, label: `Paid (${[...new Set(parts.map((p) => PAYMENT_LABELS[p.method] ?? p.method))].join(' + ')})` };
 }
+import { isPriceTier, PRICE_TIER_FIELD, type PriceTier } from '@core/lib/priceTiers';
 
 const PTA: Record<string, string> = { APPROVED: 'PTA approved', NON_PTA: 'Non-PTA', PATCH: 'PTA patched', PENDING: 'PTA pending' };
 const n = (v: unknown) => Number(v ?? 0) || 0;
@@ -75,6 +76,26 @@ function lineName(it: any) {
   const base = it.product?.name ?? it.productName ?? it.name ?? 'Cheez';
   const v = it.variantLink?.variant?.name;
   return v ? `${base} (${v})` : base;
+}
+
+/**
+ * Prints how the bill was priced (Settings → POS counter → tier on receipt):
+ * one "Rate" row when every line used the same tier, otherwise the tier under
+ * each line. Lines without a stored tier (older bills) add nothing.
+ */
+export function addTierToReceipt(doc: ReceiptDoc, tiers: Array<string | null | undefined>) {
+  const known = tiers.map((t) => (isPriceTier(t) ? t : null));
+  const used = [...new Set(known.filter(Boolean))] as PriceTier[];
+  if (!used.length) return doc;
+  if (used.length === 1 && known.every(Boolean)) {
+    doc.infoRows = [...(doc.infoRows ?? []), { label: 'Rate', value: PRICE_TIER_FIELD[used[0]] }];
+    return doc;
+  }
+  doc.lines = doc.lines.map((l, i) => {
+    const t = known[i];
+    return t ? { ...l, details: [...(l.details ?? []), PRICE_TIER_FIELD[t]] } : l;
+  });
+  return doc;
 }
 
 export function saleToReceipt(sale: any): ReceiptDoc {

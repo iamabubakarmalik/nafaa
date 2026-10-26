@@ -11,7 +11,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Clock, Percent, Scissors, Sparkles, Wallet } from 'lucide-react';
-import { HeroBack } from '@core/components/HeroBack';
 import { Button, Card, Checkbox, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -115,9 +114,11 @@ export default function SalonServiceWizardPage() {
   return (
     <PageShell>
       <PageHero
-        title={<HeroBack to="/salon/services" label="Services">{editing ? `${q.data?.name ?? 'Service'} — badlein` : 'Nayi service'}</HeroBack>}
-        meta="Rate, waqt aur commission — counter aur booking yahin se lete hain"
-        actions={<span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+        back="/salon/services"
+        backLabel="Services par wapas"
+        title={editing ? `${q.data?.name ?? 'Service'} — badlein` : 'Nayi service'}
+        subtitle="Rate, waqt aur commission — counter aur booking yahin se lete hain"
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
         stats={[
           { label: 'Customer dega', value: formatPKR(Number.isFinite(charged) ? charged : 0) },
           { label: 'Waqt', value: minutes(Number(d.durationMinutes) || 0) },

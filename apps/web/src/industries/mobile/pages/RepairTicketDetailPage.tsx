@@ -11,11 +11,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  ArrowLeft, Ban, CheckCircle2, ClipboardList, Hammer, History, KeyRound, MessageCircle, Package, Pencil, Play, Plus, Printer, Receipt,
-  ShieldCheck, Smartphone, Trash2, UserRound, Wallet, Wrench, XCircle,
-} from 'lucide-react';
-import { Button, Card, Modal, PageShell, Skeleton, Textarea, confirmDialog } from '@/design-system/components';
+import { Ban, CheckCircle2, ClipboardList, Hammer, History, KeyRound, MessageCircle, Package, Pencil, Play, Plus, Printer, Receipt, ShieldCheck, Smartphone, Trash2, UserRound, Wallet, Wrench, XCircle } from 'lucide-react';
+import { Button, Card, Modal, PageHero, PageShell, Skeleton, Textarea, confirmDialog, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -113,33 +110,29 @@ export default function RepairTicketDetailPage() {
 
   return (
     <PageShell>
-      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <div className="flex flex-wrap items-start gap-3">
-          <button type="button" onClick={() => navigate('/repair-tickets')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold">{t.deviceBrand} {t.deviceModel}</h1>
-              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[0.75rem] font-medium ring-1 ring-white/25">{st.label}</span>
-              <RepairPriorityBadge priority={t.priority} />
-            </div>
-            <p className="mt-0.5 text-[0.8125rem] text-white/80"><span className="font-mono">{t.ticketNumber}</span> · {t.customerName} · {t.customerPhone}{t.imei1 ? ` · IMEI ${t.imei1}` : ''}</p>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <HeroBtn onClick={() => printJobCard(t, shopName)} icon={Printer}>Parchi</HeroBtn>
-            {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-            {canManage && claimable && <Link to={`/repair-tickets/new?warrantyOf=${t.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-2.5 text-[0.8125rem] font-semibold text-brand-800 hover:bg-white/90"><ShieldCheck className="h-4 w-4" />Warranty claim</Link>}
-            {canManage && <Link to={`/repair-tickets/${t.id}/edit`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Pencil className="h-4 w-4" />Badlein</Link>}
-          </div>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label={Number(t.totalCost) > 0 ? 'Bill' : 'Andaza'} value={sales(bill)} hint={Number(t.discount) ? `discount ${formatPKR(t.discount)}` : undefined} />
-          <Stat label="Mila" value={sales(t.paidAmount)} />
-          <Stat label="Baqi" value={sales(due)} hint={t.saleId ? 'khata me' : undefined} />
-          {t.status === 'DELIVERED'
-            ? <Stat label="Repair warranty" value={warrantyLeft !== null && warrantyLeft >= 0 ? `${warrantyLeft} din` : 'Khatam'} hint={t.warrantyEnds ? `${dayOnly(t.warrantyEnds)} tak` : 'Nahi thi'} />
-            : <Stat label={late ? 'Late' : 'Tayyar hoga'} value={t.estimatedReadyAt ? (left === 0 ? 'Aaj' : left! < 0 ? `${-left!} din late` : `${left} din`) : '—'} hint={t.estimatedReadyAt ? dateTime(t.estimatedReadyAt) : undefined} />}
-        </div>
-      </div>
+      <PageHero
+        title={<span className="inline-flex items-center gap-2">{t.deviceBrand} {t.deviceModel}<RepairPriorityBadge priority={t.priority} /></span>}
+        chip={st.label}
+        subtitle={<><span className="font-mono">{t.ticketNumber}</span> · {t.customerName} · {t.customerPhone}{t.imei1 ? ` · IMEI ${t.imei1}` : ''}</>}
+        back="/repair-tickets"
+        backLabel="Wapas (Esc)"
+        actions={(
+          <>
+            <button type="button" onClick={() => printJobCard(t, shopName)} className={heroButton}><Printer className="h-4 w-4" />Parchi</button>
+            {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+            {canManage && claimable && <Link to={`/repair-tickets/new?warrantyOf=${t.id}`} className={heroPrimaryButton}><ShieldCheck className="h-4 w-4" />Warranty claim</Link>}
+            {canManage && <Link to={`/repair-tickets/${t.id}/edit`} className={heroButton}><Pencil className="h-4 w-4" />Badlein</Link>}
+          </>
+        )}
+        stats={[
+          { label: Number(t.totalCost) > 0 ? 'Bill' : 'Andaza', value: sales(bill), hint: Number(t.discount) ? `discount ${formatPKR(t.discount)}` : undefined },
+          { label: 'Mila', value: sales(t.paidAmount) },
+          { label: 'Baqi', value: sales(due), hint: t.saleId ? 'khata me' : undefined },
+          t.status === 'DELIVERED'
+            ? { label: 'Repair warranty', value: warrantyLeft !== null && warrantyLeft >= 0 ? `${warrantyLeft} din` : 'Khatam', hint: t.warrantyEnds ? `${dayOnly(t.warrantyEnds)} tak` : 'Nahi thi' }
+            : { label: late ? 'Late' : 'Tayyar hoga', value: t.estimatedReadyAt ? (left === 0 ? 'Aaj' : left! < 0 ? `${-left!} din late` : `${left} din`) : '—', hint: t.estimatedReadyAt ? dateTime(t.estimatedReadyAt) : undefined },
+        ]}
+      />
 
       {(t.warrantyOf || (t.warrantyRepairs ?? []).length > 0) && (
         <div className="space-y-1 rounded-2xl bg-cyan-50 px-4 py-3 text-[0.8125rem] text-cyan-900 ring-1 ring-cyan-200">
@@ -161,7 +154,7 @@ export default function RepairTicketDetailPage() {
       {t.status !== 'CANCELLED' && (
         <ol className="grid grid-cols-5 gap-1 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-slate-200/80">
           {REPAIR_FLOW.map((s, i) => (
-            <li key={s} className={cn('rounded-xl px-2 py-1.5 text-center text-[0.75rem] font-medium', i < flowAt ? 'bg-emerald-50 text-emerald-700' : i === flowAt ? 'bg-slate-900 text-white' : 'text-slate-400')}>{repairStatusOf(s).label}</li>
+            <li key={s} className={cn('rounded-xl px-2 py-1.5 text-center text-[0.75rem] font-medium', i < flowAt ? 'bg-success-50 text-success-700' : i === flowAt ? 'bg-slate-900 text-white' : 'text-slate-400')}>{repairStatusOf(s).label}</li>
           ))}
         </ol>
       )}
@@ -286,20 +279,6 @@ function ReasonModal({ ticket, kind, note, setNote, busy, onClose, onConfirm }: 
         <Textarea label="Wajah" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder={kind === 'cancel' ? 'Customer ne mana kar diya' : 'Board dead hai'} />
       </div>
     </Modal>
-  );
-}
-
-function HeroBtn({ onClick, icon: Icon, children }: { onClick: () => void; icon: typeof Printer; children: ReactNode }) {
-  return <button type="button" onClick={onClick} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Icon className="h-4 w-4" />{children}</button>;
-}
-
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/15">
-      <p className="text-[0.75rem] text-white/70">{label}</p>
-      <p className="text-lg font-bold tabular-nums">{value}</p>
-      {hint && <p className="truncate text-[0.6875rem] text-white/60">{hint}</p>}
-    </div>
   );
 }
 

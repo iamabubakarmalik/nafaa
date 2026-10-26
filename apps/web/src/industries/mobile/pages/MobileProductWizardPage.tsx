@@ -17,6 +17,7 @@ import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { imeiApi, type PtaStatus } from '../api/imei.api';
 import { PTA_HINT, PTA_LIST, isLuhnValid, ptaOf } from '../components/meta';
+import { TBody, THead, Table, Td, Th, Tr } from '@/design-system/components';
 
 interface ImeiLine { imei1: string; imei2: string; variant: string; pta: PtaStatus }
 
@@ -107,42 +108,42 @@ function Imeis({ ctx }: { ctx: StepContext<MobileExtra> }) {
           )}
         </details>
         {x.imeis.length > 0 && (
-          <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200">
-            <table className="w-full min-w-[40rem] text-[0.8125rem]">
-              <thead>
-                <tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="px-3 py-2">IMEI 1</th><th className="px-2 py-2">IMEI 2</th>{variants.length > 0 && <th className="px-2 py-2">Variant</th>}<th className="px-2 py-2">PTA</th><th />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+          <div className="overflow-hidden rounded-xl ring-1 ring-slate-200">
+            <Table minWidth="40rem">
+              <THead>
+                <Tr>
+                  <Th className="px-3 py-2">IMEI 1</Th><Th className="px-2 py-2">IMEI 2</Th>{variants.length > 0 && <Th className="px-2 py-2">Variant</Th>}<Th className="px-2 py-2">PTA</Th><Th />
+                </Tr>
+              </THead>
+              <TBody>
                 {x.imeis.map((l, i) => {
                   const bad = l.imei1.length === 15 && !isLuhnValid(l.imei1);
                   return (
-                    <tr key={i}>
-                      <td className="px-3 py-1.5">
+                    <Tr key={i}>
+                      <Td className="px-3 py-1.5">
                         <input inputMode="numeric" maxLength={15} value={l.imei1} onChange={(e) => update(i, { imei1: e.target.value.replace(/\D/g, '') })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]', bad && 'border-amber-400')} />
                         {bad && <span className="text-[0.6875rem] text-amber-700">Check digit nahi milta — dobara dekhein</span>}
-                      </td>
-                      <td className="px-2 py-1.5"><input inputMode="numeric" maxLength={15} value={l.imei2} onChange={(e) => update(i, { imei2: e.target.value.replace(/\D/g, '') })} placeholder="Dual SIM" className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></td>
+                      </Td>
+                      <Td className="px-2 py-1.5"><input inputMode="numeric" maxLength={15} value={l.imei2} onChange={(e) => update(i, { imei2: e.target.value.replace(/\D/g, '') })} placeholder="Dual SIM" className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></Td>
                       {variants.length > 0 && (
-                        <td className="px-2 py-1.5">
+                        <Td className="px-2 py-1.5">
                           <select value={l.variant} onChange={(e) => update(i, { variant: e.target.value })} className={cn(inputClass, 'h-9 text-[0.8125rem]')}>
                             <option value="">Chunein…</option>
                             {variants.map((v) => <option key={v} value={v}>{v}</option>)}
                           </select>
-                        </td>
+                        </Td>
                       )}
-                      <td className="px-2 py-1.5">
+                      <Td className="px-2 py-1.5">
                         <select value={l.pta} onChange={(e) => update(i, { pta: e.target.value as PtaStatus })} className={cn(inputClass, 'h-9 text-[0.8125rem]')}>
                           {PTA_LIST.map((p) => <option key={p} value={p}>{ptaOf(p).label}</option>)}
                         </select>
-                      </td>
-                      <td className="px-2 py-1.5"><button type="button" onClick={() => ctx.setExtra({ imeis: x.imeis.filter((_, j) => j !== i) })} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button></td>
-                    </tr>
+                      </Td>
+                      <Td className="px-2 py-1.5"><button type="button" onClick={() => ctx.setExtra({ imeis: x.imeis.filter((_, j) => j !== i) })} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button></Td>
+                    </Tr>
                   );
                 })}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         )}
         {ctx.errors.imeis && <p className="text-[0.8125rem] font-medium text-rose-600">{ctx.errors.imeis}</p>}
@@ -248,7 +249,7 @@ const config: EditorConfig<MobileExtra> = {
   summary: (d) => (
     <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
       <p className="text-slate-600">{d.extra.phone ? '📱 Phone / tablet' : '🔌 Accessory'}{d.extra.model ? ` · ${d.extra.model}` : ''}</p>
-      {d.extra.phone && d.extra.warrantyMonths > 0 && <p className="inline-flex items-center gap-1 text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" />Warranty {d.extra.warrantyMonths} mahine</p>}
+      {d.extra.phone && d.extra.warrantyMonths > 0 && <p className="inline-flex items-center gap-1 text-success-700"><ShieldCheck className="h-3.5 w-3.5" />Warranty {d.extra.warrantyMonths} mahine</p>}
       {d.extra.phone && <p className="text-violet-700">{d.extra.imeis.length} naye IMEI{d.extra.imeis.length ? '' : ' — baad me bhi daal sakte hain'}</p>}
     </div>
   ),

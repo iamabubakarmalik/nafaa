@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Check, CheckCircle2, Clock, Crown, Minus, RefreshCw, Rocket, Sparkles, Zap } from 'lucide-react';
 import { toast } from 'sonner';
-import { Alert, Badge, Button, Card, Modal, Segmented, Skeleton } from '@/design-system/components';
+import { Alert, Badge, Button, Card, Modal, Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import type { Plan } from '@modules/billing/plans/api/plans.api';
@@ -94,7 +94,7 @@ export function PlanCompare({ b, interval, setInterval }: { b: BillingData; inte
                 {plan.priceMonthly === 0 ? 'Free' : formatPKR(price)}
                 {plan.priceMonthly > 0 && <span className="text-[0.8125rem] font-medium text-slate-500"> / {INTERVAL[interval].per}</span>}
               </p>
-              <p className="h-5 text-[0.75rem] font-semibold text-emerald-700">{saving ? `${formatPKR(saving.amount)} bachat (${saving.percent}%)` : plan.trialDays ? `${plan.trialDays} din free` : ''}</p>
+              <p className="h-5 text-[0.75rem] font-semibold text-success-700">{saving ? `${formatPKR(saving.amount)} bachat (${saving.percent}%)` : plan.trialDays ? `${plan.trialDays} din free` : ''}</p>
 
               <ul className="mt-3 space-y-1.5 text-[0.8125rem]">
                 {PLAN_LIMITS.map((l) => (
@@ -103,7 +103,7 @@ export function PlanCompare({ b, interval, setInterval }: { b: BillingData; inte
               </ul>
               <ul className="mt-3 flex-1 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
                 {PLAN_FEATURES.filter((f) => plan[f.planKey]).slice(0, 8).map((f) => (
-                  <li key={f.key} className="flex items-center gap-2 text-slate-700"><Check className="h-3.5 w-3.5 text-emerald-600" />{f.label}</li>
+                  <li key={f.key} className="flex items-center gap-2 text-slate-700"><Check className="h-3.5 w-3.5 text-success-600" />{f.label}</li>
                 ))}
                 {PLAN_FEATURES.filter((f) => plan[f.planKey]).length > 8 && <li className="text-[0.75rem] text-slate-500">+{PLAN_FEATURES.filter((f) => plan[f.planKey]).length - 8} aur — neeche table dekhein</li>}
               </ul>
@@ -120,38 +120,36 @@ export function PlanCompare({ b, interval, setInterval }: { b: BillingData; inte
 
       {plans.length > 0 && (
         <Card className="rounded-3xl" flush title="Saare plans aamne saamne" description="Har plan me kya milta hai">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[40rem] text-[0.8125rem]">
-              <thead>
-                <tr className="border-b border-slate-100 text-left text-[0.75rem] text-slate-500">
-                  <th className="px-4 py-2 font-semibold sm:px-5">Cheez</th>
-                  {plans.map((p) => <th key={p.id} className="px-3 py-2 text-center font-semibold text-slate-900">{p.name}</th>)}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr>
-                  <td className="px-4 py-2 text-slate-600 sm:px-5">Qeemat / {INTERVAL[interval].per}</td>
-                  {plans.map((p) => <td key={p.id} className="px-3 py-2 text-center font-semibold tabular-nums">{p.priceMonthly === 0 ? 'Free' : formatPKR(priceFor(p, interval))}</td>)}
-                </tr>
-                {PLAN_LIMITS.map((l) => (
-                  <tr key={l.key}>
-                    <td className="px-4 py-2 text-slate-600 sm:px-5">{l.label}</td>
-                    {plans.map((p) => <td key={p.id} className="px-3 py-2 text-center tabular-nums">{limitText(p[l.planKey], l.unlimitedAt)}</td>)}
-                  </tr>
-                ))}
-                {PLAN_FEATURES.map((f) => (
-                  <tr key={f.key}>
-                    <td className="px-4 py-2 text-slate-600 sm:px-5">{f.label}</td>
-                    {plans.map((p) => (
-                      <td key={p.id} className="px-3 py-2 text-center">
-                        {p[f.planKey] ? <Check className="mx-auto h-4 w-4 text-emerald-600" aria-label="Haan" /> : <Minus className="mx-auto h-4 w-4 text-slate-300" aria-label="Nahi" />}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table minWidth="40rem" className="[&_table]:text-[0.8125rem]">
+            <THead>
+              <Tr>
+                <Th className="px-4 py-2 font-semibold sm:px-5">Cheez</Th>
+                {plans.map((p) => <Th key={p.id} className="px-3 py-2 text-center font-semibold text-slate-900">{p.name}</Th>)}
+              </Tr>
+            </THead>
+            <TBody>
+              <Tr>
+                <Td className="px-4 py-2 text-slate-600 sm:px-5">Qeemat / {INTERVAL[interval].per}</Td>
+                {plans.map((p) => <Td key={p.id} className="px-3 py-2 text-center font-semibold tabular-nums">{p.priceMonthly === 0 ? 'Free' : formatPKR(priceFor(p, interval))}</Td>)}
+              </Tr>
+              {PLAN_LIMITS.map((l) => (
+                <Tr key={l.key}>
+                  <Td className="px-4 py-2 text-slate-600 sm:px-5">{l.label}</Td>
+                  {plans.map((p) => <Td key={p.id} className="px-3 py-2 text-center tabular-nums">{limitText(p[l.planKey], l.unlimitedAt)}</Td>)}
+                </Tr>
+              ))}
+              {PLAN_FEATURES.map((f) => (
+                <Tr key={f.key}>
+                  <Td className="px-4 py-2 text-slate-600 sm:px-5">{f.label}</Td>
+                  {plans.map((p) => (
+                    <Td key={p.id} className="px-3 py-2 text-center">
+                      {p[f.planKey] ? <Check className="mx-auto h-4 w-4 text-success-600" aria-label="Haan" /> : <Minus className="mx-auto h-4 w-4 text-slate-300" aria-label="Nahi" />}
+                    </Td>
+                  ))}
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
         </Card>
       )}
     </div>
@@ -184,7 +182,7 @@ function ConfirmPlan({ plan, interval, b, onConfirm, onClose }: { plan: Plan; in
         <Alert tone="success" title="Bill banega" icon={<CheckCircle2 className="h-4 w-4" />}>Bill banega aur aap payment ke safhe par chale jayenge. Payment approve hone tak maujooda trial/plan chalta rahega.</Alert>
       )}
       <ul className="mt-3 space-y-1.5 text-[0.8125rem] text-slate-700">
-        {PLAN_LIMITS.map((l) => <li key={l.key} className="flex items-center gap-2"><Check className="h-4 w-4 text-emerald-600" /><b>{limitText(plan[l.planKey], l.unlimitedAt)}</b> {l.label.toLowerCase()}</li>)}
+        {PLAN_LIMITS.map((l) => <li key={l.key} className="flex items-center gap-2"><Check className="h-4 w-4 text-success-600" /><b>{limitText(plan[l.planKey], l.unlimitedAt)}</b> {l.label.toLowerCase()}</li>)}
       </ul>
     </Modal>
   );

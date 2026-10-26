@@ -3,6 +3,7 @@
  * day or month, each row against the previous period.
  */
 
+import { Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import type { ElementType } from 'react';
 import { cn } from '@core/lib/cn';
 import type { ProfitDim, ProfitOverview } from '../api';
@@ -76,34 +77,34 @@ export function DayTable({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
   return (
     <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[40rem] text-[0.875rem]">
-          <thead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-            <tr>
-              <th className="px-4 py-2.5">{data.range.byMonth ? 'Mahina' : 'Din'}</th>
-              <th className="px-3 py-2.5 text-right">Bill</th>
-              <th className="px-3 py-2.5 text-right">Sale</th>
-              <th className="px-3 py-2.5 text-right">Discount</th>
-              <th className="px-3 py-2.5 text-right">Return</th>
-              <th className="px-3 py-2.5 text-right">Cost</th>
-              <th className="px-3 py-2.5 text-right">Profit</th>
-              <th className="px-4 py-2.5 text-right">Margin</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+        <Table minWidth="40rem" className="[&>table]:text-[0.875rem]">
+          <THead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+            <Tr>
+              <Th className="px-4 py-2.5">{data.range.byMonth ? 'Mahina' : 'Din'}</Th>
+              <Th className="px-3 py-2.5 text-right">Bill</Th>
+              <Th className="px-3 py-2.5 text-right">Sale</Th>
+              <Th className="px-3 py-2.5 text-right">Discount</Th>
+              <Th className="px-3 py-2.5 text-right">Return</Th>
+              <Th className="px-3 py-2.5 text-right">Cost</Th>
+              <Th className="px-3 py-2.5 text-right">Profit</Th>
+              <Th className="px-4 py-2.5 text-right">Margin</Th>
+            </Tr>
+          </THead>
+          <TBody className="divide-y divide-slate-100">
             {rows.map((d) => (
-              <tr key={d.key}>
-                <td className="px-4 py-2.5 font-medium text-slate-900">{dayLabel(d.key)}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{d.bills}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-900">{fmt.money(d.revenue)}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-pink-700">{d.discount ? fmt.money(d.discount) : '—'}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-orange-700">{d.refund ? fmt.money(d.refund) : '—'}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{fmt.cost(d.cost ?? 0)}</td>
-                <td className={cn('px-3 py-2.5 text-right font-semibold tabular-nums', (d.profit ?? 0) < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(d.profit ?? 0)}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{fmt.costHidden ? '••' : `${(d.margin ?? 0).toFixed(1)}%`}</td>
-              </tr>
+              <Tr key={d.key}>
+                <Td className="px-4 py-2.5 font-medium text-slate-900">{dayLabel(d.key)}</Td>
+                <Td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{d.bills}</Td>
+                <Td className="px-3 py-2.5 text-right tabular-nums text-slate-900">{fmt.money(d.revenue)}</Td>
+                <Td className="px-3 py-2.5 text-right tabular-nums text-pink-700">{d.discount ? fmt.money(d.discount) : '—'}</Td>
+                <Td className="px-3 py-2.5 text-right tabular-nums text-orange-700">{d.refund ? fmt.money(d.refund) : '—'}</Td>
+                <Td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{fmt.cost(d.cost ?? 0)}</Td>
+                <Td className={cn('px-3 py-2.5 text-right font-semibold tabular-nums', (d.profit ?? 0) < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(d.profit ?? 0)}</Td>
+                <Td className="px-4 py-2.5 text-right tabular-nums text-slate-600">{fmt.costHidden ? '••' : `${(d.margin ?? 0).toFixed(1)}%`}</Td>
+              </Tr>
             ))}
-          </tbody>
-        </table>
+          </TBody>
+        </Table>
       </div>
     </section>
   );

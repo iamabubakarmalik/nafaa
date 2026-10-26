@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { HandCoins, Printer, ReceiptText, RotateCcw, Target, Undo2, X } from 'lucide-react';
-import { Avatar, Button, IconButton, Segmented, Skeleton } from '@/design-system/components';
+import { Avatar, Button, IconButton, Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { PrintButton } from '@core/print';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -168,9 +168,9 @@ function Working({ d, showCost }: { d: CommissionDetail; showCost: boolean }) {
           <div key={t.ruleId} className="rounded-2xl px-4 py-3 ring-1 ring-slate-200">
             <div className="flex items-center justify-between gap-2 text-sm">
               <span className="inline-flex items-center gap-1.5 text-slate-700"><Target className="h-4 w-4 text-brand-600" />{formatPKR(t.amount)} → bonus {formatPKR(t.bonus)}</span>
-              <span className={cn('font-semibold tabular-nums', t.reached ? 'text-emerald-700' : 'text-slate-900')}>{Math.round(t.pct)}%</span>
+              <span className={cn('font-semibold tabular-nums', t.reached ? 'text-success-700' : 'text-slate-900')}>{Math.round(t.pct)}%</span>
             </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', t.reached ? 'bg-emerald-500' : 'bg-brand-500')} style={{ width: `${Math.min(100, t.pct)}%` }} /></div>
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"><div className={cn('h-full rounded-full', t.reached ? 'bg-success-500' : 'bg-brand-500')} style={{ width: `${Math.min(100, t.pct)}%` }} /></div>
             {!t.reached && <p className="mt-1 text-[0.6875rem] text-slate-500">{formatPKR(Math.max(0, t.amount - d.sale))} aur sale chahiye</p>}
           </div>
         ))}
@@ -210,36 +210,34 @@ function Goods({ d }: { d: CommissionDetail }) {
   if (!d.byProduct.length) return <Empty text="Is mahine koi cheez nahi biki" />;
   return (<>
     <Segmented label="Kis tarah" value={view} onChange={(v) => setView(v as 'product' | 'category')} items={[{ value: 'product', label: 'Cheez' }, { value: 'category', label: 'Category' }]} />
-    <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200">
-      <table className="w-full min-w-[32rem] text-[0.8125rem]">
-        <thead><tr className="border-b border-slate-100 text-left text-[0.75rem] text-slate-500">
-          <th className="px-3 py-2 font-medium">{view === 'product' ? 'Cheez' : 'Category'}</th>
-          <th className="px-3 py-2 text-right font-medium">Quantity</th>
-          <th className="px-3 py-2 text-right font-medium">Sale</th>
-          <th className="px-3 py-2 text-right font-medium">Wapas</th>
-          <th className="px-3 py-2 text-right font-medium">Commission</th>
-        </tr></thead>
-        <tbody className="divide-y divide-slate-50">
-          {view === 'product' ? d.byProduct.map((p) => (
-            <tr key={p.productId}>
-              <td className="max-w-[14rem] px-3 py-2"><p className="truncate font-medium text-slate-900">{p.name}</p><p className="truncate text-[0.6875rem] text-slate-500">{p.categoryName ?? 'Bina category'}</p></td>
-              <td className="px-3 py-2 text-right tabular-nums">{qtyText(p.qty)} {p.unit}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{formatPKR(p.sale)}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-rose-700">{p.returnedSale ? `−${formatPKR(p.returnedSale)}` : '—'}</td>
-              <td className="px-3 py-2 text-right font-semibold tabular-nums">{signed(p.commission)}</td>
-            </tr>
-          )) : d.byCategory.map((c) => (
-            <tr key={c.categoryId ?? 'none'}>
-              <td className="px-3 py-2 font-medium text-slate-900">{c.name} <span className="text-[0.6875rem] font-normal text-slate-500">{c.items} cheezein</span></td>
-              <td className="px-3 py-2 text-right tabular-nums">{qtyText(c.qty)}</td>
-              <td className="px-3 py-2 text-right tabular-nums">{formatPKR(c.sale)}</td>
-              <td className="px-3 py-2 text-right tabular-nums text-rose-700">{c.returnedSale ? `−${formatPKR(c.returnedSale)}` : '—'}</td>
-              <td className="px-3 py-2 text-right font-semibold tabular-nums">{signed(c.commission)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table minWidth="32rem" className="rounded-2xl ring-1 ring-slate-200 [&_table]:text-[0.8125rem]">
+      <THead><Tr>
+        <Th className="px-3 py-2">{view === 'product' ? 'Cheez' : 'Category'}</Th>
+        <Th className="px-3 py-2 text-right">Quantity</Th>
+        <Th className="px-3 py-2 text-right">Sale</Th>
+        <Th className="px-3 py-2 text-right">Wapas</Th>
+        <Th className="px-3 py-2 text-right">Commission</Th>
+      </Tr></THead>
+      <TBody>
+        {view === 'product' ? d.byProduct.map((p) => (
+          <Tr key={p.productId}>
+            <Td className="max-w-[14rem] px-3 py-2"><p className="truncate font-medium text-slate-900">{p.name}</p><p className="truncate text-[0.6875rem] text-slate-500">{p.categoryName ?? 'Bina category'}</p></Td>
+            <Td className="px-3 py-2 text-right tabular-nums">{qtyText(p.qty)} {p.unit}</Td>
+            <Td className="px-3 py-2 text-right tabular-nums">{formatPKR(p.sale)}</Td>
+            <Td className="px-3 py-2 text-right tabular-nums text-rose-700">{p.returnedSale ? `−${formatPKR(p.returnedSale)}` : '—'}</Td>
+            <Td className="px-3 py-2 text-right font-semibold tabular-nums">{signed(p.commission)}</Td>
+          </Tr>
+        )) : d.byCategory.map((c) => (
+          <Tr key={c.categoryId ?? 'none'}>
+            <Td className="px-3 py-2 font-medium text-slate-900">{c.name} <span className="text-[0.6875rem] font-normal text-slate-500">{c.items} cheezein</span></Td>
+            <Td className="px-3 py-2 text-right tabular-nums">{qtyText(c.qty)}</Td>
+            <Td className="px-3 py-2 text-right tabular-nums">{formatPKR(c.sale)}</Td>
+            <Td className="px-3 py-2 text-right tabular-nums text-rose-700">{c.returnedSale ? `−${formatPKR(c.returnedSale)}` : '—'}</Td>
+            <Td className="px-3 py-2 text-right font-semibold tabular-nums">{signed(c.commission)}</Td>
+          </Tr>
+        ))}
+      </TBody>
+    </Table>
     <p className="text-[0.6875rem] text-slate-500">Har bill aur target wali amount kisi ek cheez par nahi lagti, is liye yahan shamil nahi.</p>
   </>);
 }

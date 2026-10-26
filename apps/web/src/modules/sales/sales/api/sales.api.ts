@@ -54,6 +54,8 @@ export interface CreateSaleItem {
   priceOverride?: number;
   lineDiscount?: number;
   useWholesale?: boolean;
+  /** Price tier of the line; the server prices it from the tier when no priceOverride is sent. */
+  priceTier?: 'RETAIL' | 'WHOLESALE' | 'CREDIT';
   note?: string;
   internalNote?: string;
 }

@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import type { PriceTier } from '@core/lib/priceTiers';
 
 export type CustomerGender = 'MALE' | 'FEMALE' | 'OTHER';
 
@@ -32,6 +33,8 @@ export interface Customer {
   shopBalance?: number;
   /** Sab branches milakar kul baqi */
   totalBalance?: number;
+  /** Default counter price for this customer; null = shop default. */
+  priceTier?: PriceTier | null;
 }
 
 export interface CustomerSale {
@@ -99,6 +102,8 @@ export interface UpsertCustomerPayload {
   creditLimit?: number;
   isVip?: boolean;
   isActive?: boolean;
+  /** null clears it back to the shop default. */
+  priceTier?: PriceTier | null;
 }
 
 export interface CustomersListParams {
@@ -206,6 +211,7 @@ async function localCreate(payload: UpsertCustomerPayload): Promise<Customer> {
     totalSpent: 0,
     isActive: payload.isActive !== false,
     isVip: !!payload.isVip,
+    priceTier: payload.priceTier ?? null,
     createdAt: now,
     updatedAt: now,
     _syncedAt: 0,

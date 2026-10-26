@@ -11,8 +11,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, Camera, ClipboardList, FilePlus, GraduationCap, Pill, Plus, Repeat, Search, Stethoscope, Trash2, UserRound, X } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Select, Textarea } from '@/design-system/components';
+import { AlertTriangle, Camera, ClipboardList, FilePlus, GraduationCap, Loader2, Pill, Plus, Repeat, Search, Stethoscope, Trash2, UserRound, X } from 'lucide-react';
+import { Button, Card, Checkbox, Input, Kbd, PageHero, PageShell, Select, Textarea, controlClass, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
@@ -70,7 +70,7 @@ function MedicinePicker({ items, facts, onPick, onClose }: { items: PosItem[]; f
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Escape') onClose(); if (e.key === 'Enter' && list[0]) onPick(list[0]); }}
-          placeholder="Dawai ya formula likhein…" className="h-10 w-full rounded-lg bg-slate-100 pl-9 pr-9 text-[0.875rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500" />
+          placeholder="Dawai ya formula likhein…" className={cn(controlClass(), 'h-10 pl-9 pr-9 text-[0.875rem]')} />
         <button type="button" onClick={onClose} aria-label="Band" className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
       </div>
       <ul className="mt-1 max-h-72 overflow-y-auto">
@@ -215,19 +215,18 @@ export default function NewPrescriptionPage() {
           shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link to="/pharmacy/prescriptions" aria-label="Wapas" className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"><ArrowLeft className="h-5 w-5" /></Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Naya nuskha</h1>
-            <p className="text-[0.8125rem] text-slate-500">Check ke baad dawai di jati hai aur bill banta hai</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={guide.open} leftIcon={<GraduationCap className="h-4 w-4" />}>Guide</Button>
-          <Button onClick={submit} loading={save.isPending} leftIcon={<FilePlus className="h-4 w-4" />}>Save <Kbd className="ml-1 hidden bg-white/20 text-white sm:inline-flex">Ctrl S</Kbd></Button>
-        </div>
-      </div>
+      <PageHero
+        back="/pharmacy/prescriptions"
+        backLabel="Wapas (Esc)"
+        title="Naya nuskha"
+        subtitle="Check ke baad dawai di jati hai aur bill banta hai"
+        actions={<>
+          <button type="button" onClick={guide.open} className={heroButton}><GraduationCap className="h-4 w-4" />Guide</button>
+          <button type="button" onClick={submit} disabled={save.isPending} className={heroPrimaryButton}>
+            {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FilePlus className="h-4 w-4" />}Save <Kbd className="ml-1 hidden sm:inline-flex">Ctrl S</Kbd>
+          </button>
+        </>}
+      />
 
       {tried && problems.length > 0 && (
         <div className="rounded-2xl bg-rose-50 px-4 py-3 text-[0.8125rem] text-rose-800 ring-1 ring-rose-200">
@@ -301,8 +300,8 @@ export default function NewPrescriptionPage() {
                 <div className="relative min-w-0 flex-1">
                   <div className="flex gap-2">
                     <input value={l.medicineName} onChange={(e) => setLine(l.key, { medicineName: e.target.value, productId: '', price: 0 })} placeholder="Dawai ka naam"
-                      className={cn('h-11 min-w-0 flex-1 rounded-xl border bg-white px-3.5 text-[0.9375rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20', tried && !l.medicineName.trim() && l.qty ? 'border-rose-400' : 'border-slate-200')} />
-                    <button type="button" onClick={() => setPicker(picker === l.key ? null : l.key)} className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-slate-900 px-3 text-[0.8125rem] font-semibold text-white"><Search className="h-4 w-4" /><span className="hidden sm:inline">Stock se</span></button>
+                      className={cn(controlClass(Boolean(tried && !l.medicineName.trim() && l.qty)), 'h-11 min-w-0 flex-1 px-3.5 text-[0.9375rem]')} />
+                    <button type="button" onClick={() => setPicker(picker === l.key ? null : l.key)} className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-slate-900 px-3 text-[0.8125rem] font-semibold text-white hover:bg-slate-800"><Search className="h-4 w-4" /><span className="hidden sm:inline">Stock se</span></button>
                   </div>
                   {picker === l.key && <MedicinePicker items={items} facts={facts} onPick={(p) => pickMedicine(l.key, p)} onClose={() => setPicker(null)} />}
                   <p className="mt-1 text-[0.75rem] text-slate-500">{l.productId ? <>Stock wali · {formatPKR(l.price)} / {l.unit}{l.strength && ` · ${l.strength}`}</> : 'Stock se nahi jori — dawai dete waqt jor sakte hain'}</p>
@@ -346,10 +345,7 @@ export default function NewPrescriptionPage() {
           </div>
         </Card>
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Repeat className="h-4 w-4 text-brand-600" />Refill</span>} description="Har mahine wali dawai — agli dafa ek click me naya nuskha">
-          <label className="flex items-center gap-3 rounded-xl p-3 ring-1 ring-slate-200">
-            <input type="checkbox" checked={f.isRefillable} onChange={(e) => set('isRefillable', e.target.checked)} className="h-5 w-5 rounded" />
-            <span className="text-[0.875rem] font-semibold text-slate-900">Ye nuskha dobara bhara ja sakta hai</span>
-          </label>
+          <Checkbox className="rounded-xl p-3 ring-1 ring-slate-200" checked={f.isRefillable} onChange={(e) => set('isRefillable', e.target.checked)} label="Ye nuskha dobara bhara ja sakta hai" />
           {f.isRefillable && (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <Input label="Kitni dafa" inputMode="numeric" value={f.refillsAllowed} onChange={(e) => set('refillsAllowed', e.target.value.replace(/\D/g, '').slice(0, 2))} />

@@ -26,7 +26,7 @@ export interface LabelConfig {
   showCode: boolean;
   showExpiry: boolean;
   border: boolean;
-  priceSource: 'retail' | 'wholesale' | 'cost-code';
+  priceSource: 'retail' | 'wholesale' | 'credit' | 'cost-code';
   align: 'left' | 'center';
   fontScale: number;
   barHeight: number;

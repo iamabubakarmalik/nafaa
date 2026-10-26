@@ -4,6 +4,7 @@
  * into label data with the latest product and unit prices when printing.
  * The queue stays on this device between visits.
  */
+import { tierPrice } from '@core/lib/priceTiers';
 
 import type { Product } from '@modules/inventory/products/api/products.api';
 import type { ProductVariant } from '@modules/inventory/products/api/product-variants.api';
@@ -82,14 +83,20 @@ export function resolveLine(line: QueueLine, product: Product | undefined, units
   const unit = line.unitId ? units?.find((u) => u.id === line.unitId) : undefined;
   const v = line.variant;
   const rate = unit?.conversionRate || 1;
-  const wholesale = c.priceSource === 'wholesale';
+  const tier = c.priceSource === 'wholesale' ? 'WHOLESALE' : c.priceSource === 'credit' ? 'CREDIT' : 'RETAIL';
 
+  // Same tier rule as the counter: a variant's own tier price, then the product's, else retail.
   const baseRetail = v?.price ?? product.price;
-  const baseWholesale = v?.wholesalePrice ?? product.wholesalePrice ?? baseRetail;
-  let price = wholesale ? baseWholesale : baseRetail;
+  const pv = v as { wholesalePrice?: number | null; creditPrice?: number | null } | undefined;
+  let price = tierPrice({
+    price: baseRetail,
+    wholesalePrice: pv?.wholesalePrice ?? product.wholesalePrice,
+    creditPrice: pv?.creditPrice ?? product.creditPrice,
+  }, tier);
   if (unit) {
     // A unit saved with price 0 means "not set": fall back to base price × units in the pack.
-    const own = wholesale ? unit.wholesalePrice : unit.price;
+    const u = unit as { price: number; wholesalePrice?: number | null; creditPrice?: number | null };
+    const own = tier === 'WHOLESALE' ? u.wholesalePrice : tier === 'CREDIT' ? u.creditPrice : u.price;
     price = own && own > 0 ? own : price * rate;
   }
   const mrpUnit = unit ?? units?.find((u) => u.isBase && (!u.variantId || u.variantId === v?.id));

@@ -11,10 +11,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  ArrowLeft, CalendarClock, CheckCircle2, ClipboardList, GraduationCap, Hammer, Palette, Pencil, Phone, Receipt, Ruler, Truck, UserRound, Wallet, XCircle,
-} from 'lucide-react';
-import { Button, Card, Input, Modal, PageShell, Select, Skeleton, Textarea } from '@/design-system/components';
+import { CalendarClock, CheckCircle2, ClipboardList, GraduationCap, Hammer, Palette, Pencil, Phone, Receipt, Ruler, Truck, UserRound, Wallet, XCircle } from 'lucide-react';
+import { Button, Card, Input, Modal, PageHero, PageShell, Select, Skeleton, Textarea, heroButton, heroIconButton } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print/PrintButton';
@@ -25,7 +23,7 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { customOrdersApi, type FurnitureCustomOrder, type FurnitureOrderStatus } from '../api/custom-orders.api';
 import { carpentersApi } from '../api/carpenters.api';
-import { ConfirmModal, DueChip, Info, MoneyModal, Pill } from '../components/ui';
+import { ConfirmModal, DueChip, Info, MoneyModal } from '../components/ui';
 import {
   BILLED_ORDER, FURNITURE_KEYS, MONEY_KEYS, OPEN_ORDER, ORDER_STATUS, categoryLabel, errorText, longDate, materialOf, orderTotal, shortDate, sizeText,
 } from '../lib/meta';
@@ -117,20 +115,21 @@ export default function CustomOrderDetailPage() {
           shortcuts={[['E', 'badlein'], ['P', 'payment'], ['Esc', 'wapas'], ['G', 'guide']]} />
       )}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate('/furniture/custom-orders')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <p className="font-mono text-[0.75rem] text-white/70">{o.orderNumber}</p>
-          <h1 className="truncate text-xl font-bold">{o.productType}</h1>
-          <p className="text-[0.8125rem] text-white/80">{o.customerName} · {o.customerPhone}</p>
-        </div>
-        <span className={`rounded-full px-3 py-1 text-[0.8125rem] font-semibold ring-1 ${st?.tone ?? ''}`}>{st?.label ?? o.status}</span>
-        <div className="flex flex-wrap gap-2 [&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
-          <PrintButton doc={() => quotationSlip(o, money)} label="Slip" size="sm" />
-          {canManage && !BILLED_ORDER.includes(o.status) && !closed && <Button size="sm" variant="secondary" onClick={() => navigate(`/furniture/custom-orders/${o.id}/edit`)}><Pencil className="h-3.5 w-3.5" />Badlein</Button>}
-          <Button size="sm" variant="secondary" onClick={guide.open} aria-label="Guide (G)"><GraduationCap className="h-3.5 w-3.5" /></Button>
-        </div>
-      </div>
+      <PageHero
+        title={o.productType}
+        chip={<span className="font-mono">{o.orderNumber}</span>}
+        subtitle={<>{o.customerName} · {o.customerPhone}</>}
+        back="/furniture/custom-orders"
+        backLabel="Wapas (Esc)"
+        actions={(
+          <>
+            <span className={`rounded-full px-3 py-1 text-[0.8125rem] font-semibold ring-1 ${st?.tone ?? ''}`}>{st?.label ?? o.status}</span>
+            <span className="flex flex-wrap gap-1.5 [&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => quotationSlip(o, money)} label="Slip" size="sm" /></span>
+            {canManage && !BILLED_ORDER.includes(o.status) && !closed && <button type="button" onClick={() => navigate(`/furniture/custom-orders/${o.id}/edit`)} className={heroButton}><Pencil className="h-4 w-4" />Badlein</button>}
+            <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          </>
+        )}
+      />
 
       {!closed && (
         <ol className="grid grid-cols-3 gap-2 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:grid-cols-6">
@@ -191,10 +190,10 @@ export default function CustomOrderDetailPage() {
               <div className="flex justify-between"><dt>Qeemat</dt><dd className="tabular-nums">{money(o.finalPrice ?? o.quotedPrice)}</dd></div>
               {o.requiresInstallation && <div className="flex justify-between"><dt>Fitting</dt><dd className="tabular-nums">{money(o.installationCharge ?? 0)}</dd></div>}
               <div className="flex justify-between border-t border-slate-100 pt-1.5 font-bold"><dt>Kul</dt><dd className="tabular-nums">{money(total)}</dd></div>
-              <div className="flex justify-between text-emerald-700"><dt>Mil chuka</dt><dd className="tabular-nums">{money(o.totalPaid)}</dd></div>
+              <div className="flex justify-between text-success-700"><dt>Mil chuka</dt><dd className="tabular-nums">{money(o.totalPaid)}</dd></div>
               <div className="flex justify-between font-semibold text-amber-700"><dt>Baqi</dt><dd className="tabular-nums">{money(o.balanceAmount)}</dd></div>
             </dl>
-            <div className="mt-2 h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full bg-emerald-500" style={{ width: `${Math.max(paidPct, 2)}%` }} /></div>
+            <div className="mt-2 h-2 rounded-full bg-slate-100"><div className="h-2 rounded-full bg-success-500" style={{ width: `${Math.max(paidPct, 2)}%` }} /></div>
             <p className="mt-1.5 text-[0.75rem] text-slate-500">
               {o.depositAmount > 0 && !o.depositPaid ? `Advance tay: ${money(o.depositAmount)} · ` : ''}
               {BILLED_ORDER.includes(o.status) ? 'Bill ban chuka — baqi customer ke khate me hai' : 'Har payment usi din drawer aur khate me; bill delivery par'}
@@ -209,7 +208,7 @@ export default function CustomOrderDetailPage() {
           <Info icon={CalendarClock} title="Waqt">
             <p className="text-[0.875rem] text-slate-700">Order {shortDate(o.quotationDate)} · dena {shortDate(o.expectedDeliveryDate)}</p>
             <DueChip o={o} />
-            {o.actualDeliveryDate && <p className="text-[0.8125rem] text-emerald-700">Diya {shortDate(o.actualDeliveryDate)}</p>}
+            {o.actualDeliveryDate && <p className="text-[0.8125rem] text-success-700">Diya {shortDate(o.actualDeliveryDate)}</p>}
           </Info>
           <Info icon={Hammer} title="Karigar">
             <p className="font-semibold text-slate-900">{o.carpenterName ?? 'Abhi nahi diya'}</p>

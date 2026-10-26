@@ -11,7 +11,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import {
   Activity, CalendarCheck, CheckCircle2, FileText, KeyRound, Laptop, Lock, LogOut, MonitorSmartphone, ShieldCheck, ShoppingBag, Store, Wallet, XCircle,
 } from 'lucide-react';
-import { Button, Card, Select, confirmDialog } from '@/design-system/components';
+import { Button, Card, confirmDialog, Input, Select, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -27,7 +27,7 @@ const refresh = (qc: ReturnType<typeof useQueryClient>) => AFFECTED_KEYS.forEach
 const dayLabel = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
 
 const ATT: Record<AttendanceStatus, { label: string; cls: string }> = {
-  PRESENT: { label: 'Haazir', cls: 'bg-emerald-500 text-white' },
+  PRESENT: { label: 'Haazir', cls: 'bg-success-500 text-white' },
   LATE: { label: 'Late', cls: 'bg-amber-500 text-white' },
   HALF_DAY: { label: 'Aadha din', cls: 'bg-sky-500 text-white' },
   ABSENT: { label: 'Ghair haazir', cls: 'bg-rose-500 text-white' },
@@ -189,12 +189,9 @@ function ApprovalPinCard({ userId, name, has, perms }: { userId: string; name: s
       </p>
       {open && (
         <form className="mt-3 flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (/^\d{4,8}$/.test(pin)) save.mutate(); }}>
-          <label className="text-[0.75rem] font-semibold text-slate-600">
-            Naya PIN (4 se 8 hindsay)
-            <input type="password" inputMode="numeric" autoComplete="new-password" value={pin} maxLength={8}
-              onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-              className="mt-1 block h-10 w-40 rounded-xl border border-slate-200 bg-white px-3 text-base tracking-[0.3em] text-slate-900" />
-          </label>
+          <Input label="Naya PIN (4 se 8 hindsay)" type="password" inputMode="numeric" autoComplete="new-password" value={pin} maxLength={8}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+            wrapperClassName="w-40" className="text-base tracking-[0.3em]" />
           <Button type="submit" size="sm" disabled={!/^\d{4,8}$/.test(pin)} loading={save.isPending}>Save karein</Button>
           <p className="w-full text-[0.6875rem] text-slate-500">Malik ke PIN ya kisi aur ke PIN jaisa nahi ho sakta. Har approval ka record banta hai ke kis ke PIN se hui.</p>
         </form>
@@ -275,7 +272,7 @@ export function AttendanceTab({ p }: { p: Profile }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <Tile label="Haazir" value={a.present} hint={monthName} tone="text-emerald-700" />
+        <Tile label="Haazir" value={a.present} hint={monthName} tone="text-success-700" />
         <Tile label="Late" value={a.late} hint={a.lateMinutes ? `${a.lateMinutes} min kul` : undefined} tone="text-amber-700" />
         <Tile label="Aadha din" value={a.halfDay} />
         <Tile label="Ghair haazir" value={a.absent} tone="text-rose-700" />
@@ -303,7 +300,7 @@ export function AttendanceTab({ p }: { p: Profile }) {
             {a.leaves.map((l) => (
               <li key={l.id} className="flex flex-wrap justify-between gap-2 py-2">
                 <span>{day(l.startDate)} – {day(l.endDate)} · {l.days} din{l.reason ? ` · ${l.reason}` : ''}</span>
-                <span className={cn('font-semibold', l.status === 'APPROVED' ? 'text-emerald-700' : l.status === 'REJECTED' ? 'text-rose-700' : 'text-amber-700')}>
+                <span className={cn('font-semibold', l.status === 'APPROVED' ? 'text-success-700' : l.status === 'REJECTED' ? 'text-rose-700' : 'text-amber-700')}>
                   {{ APPROVED: 'Approve', REJECTED: 'Na-approve', PENDING: 'Faisla baqi', CANCELLED: 'Cancel' }[l.status] ?? l.status}
                 </span>
               </li>
@@ -332,22 +329,20 @@ export function PayTab({ p }: { p: Profile }) {
           <Card className="rounded-2xl" flush title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Pichli tankhwahein</span>}
             actions={<Link to="/staff/salary/new" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Tankhwah ka safha</Link>}>
             {!s.payments.length ? <p className="px-5 pb-5 text-sm text-slate-500">Abhi koi tankhwah nahi bani.</p> : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[30rem] text-[0.8125rem]">
-                  <thead><tr className="border-b border-slate-200 text-left text-[0.75rem] text-slate-500"><th className="px-4 py-2 font-medium">Period</th><th className="px-2 py-2 font-medium">No.</th><th className="px-2 py-2 text-right font-medium">Banti</th><th className="px-2 py-2 text-right font-medium">Di</th><th className="px-4 py-2 text-right font-medium">Haal</th></tr></thead>
-                  <tbody>
-                    {s.payments.map((x) => (
-                      <tr key={x.id} className="border-b border-slate-100 last:border-0">
-                        <td className="px-4 py-2">{day(x.periodStart)} – {day(x.periodEnd)}</td>
-                        <td className="px-2 py-2 font-mono text-slate-500">{x.paymentNumber}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{formatPKR(x.netAmount)}</td>
-                        <td className="px-2 py-2 text-right tabular-nums">{formatPKR(x.paidAmount)}</td>
-                        <td className={cn('px-4 py-2 text-right font-semibold', x.status === 'PAID' ? 'text-emerald-700' : x.status === 'CANCELLED' ? 'text-slate-400' : 'text-amber-700')}>{PAY_STATUS[x.status] ?? x.status}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table minWidth="30rem" className="[&_table]:text-[0.8125rem]">
+                <THead><Tr><Th className="px-4 py-2">Period</Th><Th className="px-2 py-2">No.</Th><Th className="px-2 py-2 text-right">Banti</Th><Th className="px-2 py-2 text-right">Di</Th><Th className="px-4 py-2 text-right">Haal</Th></Tr></THead>
+                <TBody>
+                  {s.payments.map((x) => (
+                    <Tr key={x.id}>
+                      <Td className="px-4 py-2">{day(x.periodStart)} – {day(x.periodEnd)}</Td>
+                      <Td className="px-2 py-2 font-mono text-slate-500">{x.paymentNumber}</Td>
+                      <Td className="px-2 py-2 text-right tabular-nums">{formatPKR(x.netAmount)}</Td>
+                      <Td className="px-2 py-2 text-right tabular-nums">{formatPKR(x.paidAmount)}</Td>
+                      <Td className={cn('px-4 py-2 text-right font-semibold', x.status === 'PAID' ? 'text-success-700' : x.status === 'CANCELLED' ? 'text-slate-400' : 'text-amber-700')}>{PAY_STATUS[x.status] ?? x.status}</Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
             )}
           </Card>
         </>
@@ -358,7 +353,7 @@ export function PayTab({ p }: { p: Profile }) {
             : (
               <div className="space-y-3">
                 <p className="text-sm">{p.commission.enrolled
-                  ? <span className="inline-flex items-center gap-1.5 text-emerald-700"><CheckCircle2 className="h-4 w-4" />Commission chalu hai{p.commission.since ? ` — ${day(p.commission.since)} se` : ''}</span>
+                  ? <span className="inline-flex items-center gap-1.5 text-success-700"><CheckCircle2 className="h-4 w-4" />Commission chalu hai{p.commission.since ? ` — ${day(p.commission.since)} se` : ''}</span>
                   : <span className="inline-flex items-center gap-1.5 text-slate-500"><XCircle className="h-4 w-4" />Commission me shamil nahi</span>}</p>
                 {p.commission.payouts.length > 0 && (
                   <ul className="divide-y divide-slate-100 text-[0.8125rem]">
@@ -390,7 +385,7 @@ export function LoginsTab({ p, onResetPassword }: { p: Profile; onResetPassword:
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Tile label="Login" value={login.isActive ? 'Chalu' : 'Band'} tone={login.isActive ? 'text-emerald-700' : 'text-rose-700'} hint={login.email} />
+        <Tile label="Login" value={login.isActive ? 'Chalu' : 'Band'} tone={login.isActive ? 'text-success-700' : 'text-rose-700'} hint={login.email} />
         <Tile label="Aakhri login" value={ago(login.lastLoginAt)} hint={login.lastLoginAt ? dayTime(login.lastLoginAt) : 'Abhi tak nahi kiya'} />
         <Tile label="Khule devices" value={p.sessions.length} />
         <Tile label="Ghalat koshishein" value={failed} hint="Pichli 30 koshishon me" tone={failed ? 'text-rose-700' : undefined} />
@@ -421,7 +416,7 @@ export function LoginsTab({ p, onResetPassword }: { p: Profile; onResetPassword:
           <ul className="divide-y divide-slate-100">
             {p.logins.map((l) => (
               <li key={l.id} className="flex flex-wrap items-center gap-3 px-4 py-2 text-[0.8125rem] sm:px-5">
-                {l.success ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <XCircle className="h-4 w-4 text-rose-600" />}
+                {l.success ? <CheckCircle2 className="h-4 w-4 text-success-600" /> : <XCircle className="h-4 w-4 text-rose-600" />}
                 <span className="w-36 text-slate-700">{dayTime(l.createdAt)}</span>
                 <span className="min-w-0 flex-1 truncate text-slate-500">{[l.deviceName ?? 'Anjaan device', l.location, l.ipAddress].filter(Boolean).join(' · ')}</span>
                 {l.isNewDevice && <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[0.6875rem] font-medium text-sky-700">Naya device</span>}

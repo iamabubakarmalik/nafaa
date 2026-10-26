@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Barcode, Search, CheckCircle2, Shield } from 'lucide-react';
-import { Input, Modal } from '@/design-system/components';
+import { Badge, EmptyState, Input, Modal, Skeleton } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { serialTrackingApi } from '../../api/serial-tracking.api';
 import type { Product } from '@modules/inventory/products/api/products.api';
@@ -54,38 +54,30 @@ export function SerialPickerModal({ product, taken, onConfirm, onClose }: Props)
 
       <div>
         {isLoading ? (
-          <div className="text-center py-12 text-sm text-slate-500 font-semibold">Aa rahe hain…</div>
+          <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-[4.25rem] rounded-2xl" />)}</div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12">
-            <Barcode className="h-12 w-12 text-slate-300 mx-auto mb-2" />
-            <p className="font-semibold text-slate-700">Koi serial stock mein nahi</p>
-            <p className="text-xs text-slate-500 font-semibold mt-1">Purchase ya product page se serial daalein</p>
-          </div>
+          <EmptyState icon={<Barcode className="h-6 w-6" />} title="Koi serial stock me nahi" description="Purchase ya product page se serial daalein" />
         ) : (
           <div className="space-y-2">
             {filtered.map((s: any) => (
               <button key={s.id} type="button" onClick={() => onConfirm(s)}
-                className="w-full rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-lg p-3 flex items-center gap-3 transition group ">
-                <div className="h-11 w-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition">
+                className="group flex w-full items-center gap-3 rounded-2xl border border-slate-200 p-3 transition hover:border-brand-500 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700 transition group-hover:bg-brand-600 group-hover:text-brand-fg">
                   <Barcode className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <div className="font-mono font-semibold text-slate-900 text-sm truncate">{s.serialNumber}</div>
-                  <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                    {s.imei && (
-                      <span className="text-[0.6875rem] font-mono text-slate-600">IMEI: {s.imei}</span>
-                    )}
-                    {s.macAddress && (
-                      <span className="text-[0.6875rem] font-mono text-slate-600">MAC: {s.macAddress}</span>
-                    )}
+                </span>
+                <div className="min-w-0 flex-1 text-left">
+                  <div className="truncate font-mono text-sm font-semibold text-slate-900">{s.serialNumber}</div>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                    {s.imei && <span className="font-mono text-[0.6875rem] text-slate-600">IMEI: {s.imei}</span>}
+                    {s.macAddress && <span className="font-mono text-[0.6875rem] text-slate-600">MAC: {s.macAddress}</span>}
                   </div>
                   {s.warrantyEndDate && (
-                    <div className="mt-1 inline-flex items-center gap-1 text-[0.6875rem] font-semibold text-blue-700">
-                      <Shield className="h-2.5 w-2.5" /> Warranty {new Date(s.warrantyEndDate).toLocaleDateString('en-PK')} tak
-                    </div>
+                    <Badge size="xs" variant="success" className="mt-1 gap-1">
+                      <Shield className="h-3 w-3" /> Warranty {new Date(s.warrantyEndDate).toLocaleDateString('en-PK')} tak
+                    </Badge>
                   )}
                 </div>
-                <CheckCircle2 className="h-5 w-5 text-blue-500 opacity-0 group-hover:opacity-100 transition shrink-0" />
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-brand-500 opacity-0 transition group-hover:opacity-100" />
               </button>
             ))}
           </div>

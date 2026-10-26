@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { AlertTriangle, FileText } from 'lucide-react';
-import { Button, Skeleton } from '@/design-system/components';
+import { Button, Card, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import type { Authority, TaxReport, TaxStatus } from '../api';
 import { AUTH, dayShort, fullTime, monthName } from '../meta';
@@ -88,13 +88,13 @@ export function MonthlyReportView({ q, money, onInvoices }: {
 
       {r.byAuthority.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2">
-          <Table title="Rate ke hisaab se" head={['Rate', 'Bill', 'Sale', 'Tax']} rows={r.byRate.map((x) => [`${x.rate}%`, x.bills, money(x.saleValue), money(x.tax)])} />
-          <Table title="Branch ke hisaab se" head={['Branch', 'Bill', 'Sale', 'Tax']} rows={r.byShop.map((x) => [x.name, x.bills, money(x.saleValue), money(x.tax)])} />
+          <FigureTable title="Rate ke hisaab se" head={['Rate', 'Bill', 'Sale', 'Tax']} rows={r.byRate.map((x) => [`${x.rate}%`, x.bills, money(x.saleValue), money(x.tax)])} />
+          <FigureTable title="Branch ke hisaab se" head={['Branch', 'Bill', 'Sale', 'Tax']} rows={r.byShop.map((x) => [x.name, x.bills, money(x.saleValue), money(x.tax)])} />
         </div>
       )}
 
       {r.byAuthority.length > 0 && (
-        <Table
+        <FigureTable
           title={`Roz ka hisaab: ${monthName(r.month)}`}
           right={<Button size="sm" variant="ghost" onClick={() => setAllDays((v) => !v)}>{allDays ? 'Sirf sale wale din' : 'Mahine ke sab din'}</Button>}
           head={['Din', 'Bill', 'Return', 'Sale', 'Tax', 'Kul']}
@@ -119,30 +119,24 @@ function Line({ k, v, strong, sub }: { k: string; v: string; strong?: boolean; s
   );
 }
 
-function Table({ title, head, rows, foot, right }: { title: string; head: string[]; rows: Array<Array<string | number>>; foot?: Array<string | number>; right?: ReactNode }) {
+function FigureTable({ title, head, rows, foot, right }: { title: string; head: string[]; rows: Array<Array<string | number>>; foot?: Array<string | number>; right?: ReactNode }) {
   return (
-    <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-      <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-3">
-        <h3 className="font-semibold text-slate-900">{title}</h3>
-        {right}
-      </div>
-      {!rows.length ? <p className="px-4 pb-4 text-[0.8125rem] text-slate-500">Kuch nahi</p> : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-[0.8125rem]">
-            <thead className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-              <tr>{head.map((h, i) => <th key={h} className={cn('px-4 py-2', i > 0 && 'text-right')}>{h}</th>)}</tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={cn('px-4 py-1.5', j > 0 ? 'text-right tabular-nums' : 'font-medium text-slate-900')}>{c}</td>)}</tr>)}
-            </tbody>
-            {foot && (
-              <tfoot className="border-t border-slate-200 bg-slate-50 font-semibold text-slate-900">
-                <tr>{foot.map((c, j) => <td key={j} className={cn('px-4 py-2', j > 0 && 'text-right tabular-nums')}>{c}</td>)}</tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
+    <Card flush title={title} actions={right} className="overflow-hidden rounded-3xl">
+      {!rows.length ? <p className="px-4 pb-4 text-[0.8125rem] text-slate-500 sm:px-5">Kuch nahi</p> : (
+        <Table className="[&_table]:text-[0.8125rem]">
+          <THead className="text-[0.6875rem]">
+            <Tr>{head.map((h, i) => <Th key={h} align={i > 0 ? 'right' : 'left'} className="py-2">{h}</Th>)}</Tr>
+          </THead>
+          <TBody>
+            {rows.map((r, i) => <Tr key={i}>{r.map((c, j) => <Td key={j} align={j > 0 ? 'right' : 'left'} className={cn('py-1.5', j === 0 && 'font-medium text-slate-900')}>{c}</Td>)}</Tr>)}
+          </TBody>
+          {foot && (
+            <tfoot className="border-t border-slate-200 bg-slate-50 font-semibold text-slate-900">
+              <Tr>{foot.map((c, j) => <Td key={j} align={j > 0 ? 'right' : 'left'} className="py-2 text-slate-900">{c}</Td>)}</Tr>
+            </tfoot>
+          )}
+        </Table>
       )}
-    </section>
+    </Card>
   );
 }

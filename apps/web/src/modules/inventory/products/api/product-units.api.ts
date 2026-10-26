@@ -17,6 +17,7 @@ export interface ProductUnit {
   price: number;
   costPrice: number;
   wholesalePrice?: number | null;
+  creditPrice?: number | null;
   mrpPrice?: number | null;
   barcode?: string | null;
   sku?: string | null;

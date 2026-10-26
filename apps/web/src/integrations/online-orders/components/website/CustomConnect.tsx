@@ -1,4 +1,4 @@
-import { confirmDialog } from '@/design-system/components';
+import { Badge, Button, Card, confirmDialog, controlClass, EmptyState, Segmented, Switch } from '@/design-system/components';
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -6,7 +6,6 @@ import { CheckCircle2, Code2, ExternalLink, Link2, MessageCircle, MousePointerCl
 import { useAuthStore } from '@core/stores/auth.store';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { apiErrorMessage, onlineOrdersApi, type FormCoupon, type WebsiteOverview } from '../../api/online-orders.api';
-import { Badge, Btn, Card, EmptyState, Segmented, SettingRow, Toggle, inputCls } from '../ui/kit';
 import { CopyField } from './CopyField';
 import { ConnectGuide } from './ConnectGuides';
 import { cn } from '@core/lib/cn';
@@ -30,7 +29,7 @@ export function CustomConnect({ channelId, data, onChange }: { channelId: string
     <div className="space-y-4">
       <Card title="Website kaise jorein?" description="Jo aasaan lage chunein — teeno me orders isi channel me aate hain (ghanti, bill, stock khud).">
         {connected && (
-          <div className="mb-3 flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-[0.8125rem] font-semibold text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+          <div className="mb-3 flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-[0.8125rem] font-semibold text-brand-800">
             <CheckCircle2 className="h-4 w-4" /> Website se orders aa rahe hain
           </div>
         )}
@@ -59,12 +58,12 @@ function WayCard({ active, onClick, icon, title, desc, badge }: { active: boolea
   return (
     <button onClick={onClick}
       className={cn('rounded-xl border p-4 text-left transition',
-        active ? 'border-emerald-600 bg-emerald-50/60 ring-1 ring-emerald-600 dark:bg-emerald-500/10' : 'border-slate-200 hover:border-slate-400 dark:border-ink-700')}>
+        active ? 'border-brand-600 bg-brand-50/60 ring-1 ring-brand-600' : 'border-slate-200 hover:border-slate-400 dark:border-ink-700')}>
       <div className="flex items-center gap-2">
-        <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300')}>{icon}</span>
+        <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', active ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300')}>{icon}</span>
         <span className="text-[0.875rem] font-semibold text-slate-900 dark:text-ink-white">{title}</span>
       </div>
-      {badge && <Badge tone="success" className="mt-2">{badge}</Badge>}
+      {badge && <Badge size="xs" variant="success" className="mt-2">{badge}</Badge>}
       <p className="mt-2 text-[0.78125rem] text-slate-600 dark:text-ink-300">{desc}</p>
     </button>
   );
@@ -97,7 +96,7 @@ function FormWay({ channelId }: { channelId: string }) {
             ? 'Server par naya update abhi pahuncha nahi (deploy chal raha hai). Thori der baad dobara try karein.'
             : apiErrorMessage(error)}
         </p>
-        <Btn className="mt-3" size="sm" onClick={() => refetch()}>Dobara try karein</Btn>
+        <Button className="mt-3" size="xs" onClick={() => refetch()}>Dobara try karein</Button>
       </Card>
     );
   }
@@ -112,9 +111,9 @@ function FormWay({ channelId }: { channelId: string }) {
           <li>✓ Website par sirf ek line paste karein — har product par "Order karein" button</li>
           <li>✓ Customer ka order seedha yahan — COD, ghanti, bill, courier sab</li>
         </ul>
-        <Btn className="mt-4" variant="primary" loading={save.isPending} onClick={() => save.mutate({ enabled: true })} icon={<MousePointerClick className="h-4 w-4" />}>
+        <Button size="sm" className="mt-4" variant="primary" loading={save.isPending} onClick={() => save.mutate({ enabled: true })} leftIcon={<MousePointerClick className="h-4 w-4" />}>
           Order form chalu karein
-        </Btn>
+        </Button>
       </Card>
     );
   }
@@ -124,12 +123,12 @@ function FormWay({ channelId }: { channelId: string }) {
   return (
     <>
       <Card title="1 · Order form ka link" description="Ye link kahin bhi share karein — customer kholega, cheez chunega, order ho jayega."
-        actions={<Toggle checked={f.enabled} onChange={(v) => save.mutate({ enabled: v })} />}>
+        actions={<Switch size="sm" checked={f.enabled} onChange={(e) => save.mutate({ enabled: e.target.checked })} />}>
         <CopyField label="Order form" value={f.formUrl ?? ''} />
         <div className="mt-3 flex flex-wrap gap-2">
-          <a href={f.formUrl ?? '#'} target="_blank" rel="noreferrer"><Btn icon={<ExternalLink className="h-4 w-4" />}>Khol kar dekhein</Btn></a>
-          <a href={wa} target="_blank" rel="noreferrer"><Btn icon={<MessageCircle className="h-4 w-4" />}>WhatsApp par share</Btn></a>
-          <Btn variant="plain" onClick={async () => { if ((await confirmDialog({ title: 'Naya link banayein?', text: 'Purana link foran band ho jayega.', danger: true }))) save.mutate({ regenerate: true }); }} icon={<Link2 className="h-4 w-4" />}>Naya link</Btn>
+          <a href={f.formUrl ?? '#'} target="_blank" rel="noreferrer"><Button size="sm" leftIcon={<ExternalLink className="h-4 w-4" />}>Khol kar dekhein</Button></a>
+          <a href={wa} target="_blank" rel="noreferrer"><Button size="sm" leftIcon={<MessageCircle className="h-4 w-4" />}>WhatsApp par share</Button></a>
+          <Button size="sm" variant="ghost" onClick={async () => { if ((await confirmDialog({ title: 'Naya link banayein?', text: 'Purana link foran band ho jayega.', danger: true }))) save.mutate({ regenerate: true }); }} leftIcon={<Link2 className="h-4 w-4" />}>Naya link</Button>
         </div>
       </Card>
 
@@ -148,23 +147,26 @@ function FormWay({ channelId }: { channelId: string }) {
 
       <Card title="Form ki settings">
         <div className="divide-y divide-slate-100 dark:divide-ink-800">
-          <SettingRow title="Delivery charges (Rs)" help="Har order par — 0 = free delivery"
-            control={<input type="number" min={0} value={fee ?? String(f.deliveryFee)} onChange={(e) => setFee(e.target.value)}
-              onBlur={() => fee !== null && Number(fee) !== f.deliveryFee && save.mutate({ deliveryFee: Number(fee) })} className={cn(inputCls, 'w-28')} />} />
-          <SettingRow title="Itne se upar delivery free (Rs)" help="Khali = kabhi free nahi"
-            control={<input type="number" min={0} value={free ?? (f.freeAbove ? String(f.freeAbove) : '')} onChange={(e) => setFree(e.target.value)} placeholder="—"
-              onBlur={() => free !== null && save.mutate({ freeAbove: free ? Number(free) : null })} className={cn(inputCls, 'w-28')} />} />
-          <SettingRow title="Sirf stock wali cheezein dikhayein" help="Khatam hui cheez form me nahi aayegi"
-            control={<Toggle checked={f.onlyInStock} onChange={(v) => save.mutate({ onlyInStock: v })} />} />
-          <SettingRow title="Form ka rang" help="Buttons aur qeemat isi rang me"
-            control={<input type="color" value={f.accent ?? '#059669'} onChange={(e) => save.mutate({ accent: e.target.value })} className="h-9 w-16 cursor-pointer rounded border border-slate-200" />} />
-          <SettingRow title="Logo ka link (https)" help="Apna logo kisi bhi jagah upload karke us ka link — khali = Nafaa icon"
-            control={<input defaultValue={f.logoUrl ?? ''} onBlur={(e) => e.target.value !== (f.logoUrl ?? '') && save.mutate({ logoUrl: e.target.value.trim() || null })} placeholder="https://…/logo.png" className={cn(inputCls, 'w-64')} />} />
-          <SettingRow title="Form par dukaan ka WhatsApp number" help="Customer sawal pooch sake (Settings me business phone)"
-            control={<Toggle checked={f.showPhone} onChange={(v) => save.mutate({ showPhone: v })} />} />
-          <SettingRow title="Order ke baad message" help="Jaise: 24 ghante me call karke confirm karenge"
-            control={<input value={msg ?? f.message ?? ''} onChange={(e) => setMsg(e.target.value)} maxLength={300} placeholder="(default)"
-              onBlur={() => msg !== null && msg !== (f.message ?? '') && save.mutate({ message: msg || null })} className={cn(inputCls, 'w-64')} />} />
+          <div className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0"><p className="text-sm font-medium text-slate-800">Delivery charges (Rs)</p><p className="mt-0.5 text-xs text-slate-500">Har order par — 0 = free delivery</p></div>
+            <div className="shrink-0"><input type="number" min={0} value={fee ?? String(f.deliveryFee)} onChange={(e) => setFee(e.target.value)}
+              onBlur={() => fee !== null && Number(fee) !== f.deliveryFee && save.mutate({ deliveryFee: Number(fee) })} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-28')} /></div></div>
+          <div className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0"><p className="text-sm font-medium text-slate-800">Itne se upar delivery free (Rs)</p><p className="mt-0.5 text-xs text-slate-500">Khali = kabhi free nahi</p></div>
+            <div className="shrink-0"><input type="number" min={0} value={free ?? (f.freeAbove ? String(f.freeAbove) : '')} onChange={(e) => setFree(e.target.value)} placeholder="—"
+              onBlur={() => free !== null && save.mutate({ freeAbove: free ? Number(free) : null })} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-28')} /></div></div>
+          <Switch size="sm" checked={f.onlyInStock} onChange={(e) => save.mutate({ onlyInStock: e.target.checked })} label="Sirf stock wali cheezein dikhayein" description="Khatam hui cheez form me nahi aayegi" className="py-3 first:pt-0 last:pb-0" />
+          <div className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0"><p className="text-sm font-medium text-slate-800">Form ka rang</p><p className="mt-0.5 text-xs text-slate-500">Buttons aur qeemat isi rang me</p></div>
+            <div className="shrink-0"><input type="color" value={f.accent ?? '#059669'} onChange={(e) => save.mutate({ accent: e.target.value })} className="h-9 w-16 cursor-pointer rounded border border-slate-200" /></div></div>
+          <div className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0"><p className="text-sm font-medium text-slate-800">Logo ka link (https)</p><p className="mt-0.5 text-xs text-slate-500">Apna logo kisi bhi jagah upload karke us ka link — khali = Nafaa icon</p></div>
+            <div className="shrink-0"><input defaultValue={f.logoUrl ?? ''} onBlur={(e) => e.target.value !== (f.logoUrl ?? '') && save.mutate({ logoUrl: e.target.value.trim() || null })} placeholder="https://…/logo.png" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-64')} /></div></div>
+          <Switch size="sm" checked={f.showPhone} onChange={(e) => save.mutate({ showPhone: e.target.checked })} label="Form par dukaan ka WhatsApp number" description="Customer sawal pooch sake (Settings me business phone)" className="py-3 first:pt-0 last:pb-0" />
+          <div className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+            <div className="min-w-0"><p className="text-sm font-medium text-slate-800">Order ke baad message</p><p className="mt-0.5 text-xs text-slate-500">Jaise: 24 ghante me call karke confirm karenge</p></div>
+            <div className="shrink-0"><input value={msg ?? f.message ?? ''} onChange={(e) => setMsg(e.target.value)} maxLength={300} placeholder="(default)"
+              onBlur={() => msg !== null && msg !== (f.message ?? '') && save.mutate({ message: msg || null })} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-64')} /></div></div>
         </div>
       </Card>
     </>
@@ -194,22 +196,22 @@ function FormCoupons({ coupons, onSave, saving }: { coupons: FormCoupon[]; onSav
               <span className="text-slate-600 dark:text-ink-300">{c.type === 'PERCENT' ? `${c.value}%` : `Rs ${c.value}`}{c.minOrder ? ` · Rs ${c.minOrder}+ par` : ''}</span>
               <span className="text-slate-400">{c.uses}{c.maxUses ? ` / ${c.maxUses}` : ''} dafa chala</span>
               <span className="flex-1" />
-              <Toggle checked={c.active} disabled={saving} onChange={(v) => onSave(coupons.map((x) => (x.code === c.code ? { ...x, active: v } : x)))} />
+              <Switch size="sm" checked={c.active} disabled={saving} onChange={(e) => onSave(coupons.map((x) => (x.code === c.code ? { ...x, active: e.target.checked } : x)))} />
               <button disabled={saving} onClick={() => onSave(coupons.filter((x) => x.code !== c.code))} className="text-[0.75rem] font-semibold text-rose-600">Hatao</button>
             </li>
           ))}
         </ul>
       )}
-      <div className="grid gap-2 sm:grid-cols-[1fr_110px_90px_110px_100px_auto]">
-        <input value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })} placeholder="Code (EID10)" className={cn(inputCls, 'font-mono uppercase')} maxLength={20} />
-        <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as any })} className={inputCls}>
+      <div className="grid gap-2 sm:grid-cols-[1fr_6.875rem_5.625rem_6.875rem_6.25rem_auto]">
+        <input value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })} placeholder="Code (EID10)" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] font-mono uppercase')} maxLength={20} />
+        <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as any })} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')}>
           <option value="PERCENT">% off</option>
           <option value="FLAT">Rs off</option>
         </select>
-        <input value={draft.value} onChange={(e) => setDraft({ ...draft, value: e.target.value })} type="number" min={1} placeholder={draft.type === 'PERCENT' ? '10' : '200'} className={inputCls} />
-        <input value={draft.minOrder} onChange={(e) => setDraft({ ...draft, minOrder: e.target.value })} type="number" min={0} placeholder="Kam az kam Rs" className={inputCls} />
-        <input value={draft.maxUses} onChange={(e) => setDraft({ ...draft, maxUses: e.target.value })} type="number" min={1} placeholder="Kitni dafa" className={inputCls} />
-        <Btn variant="primary" loading={saving} onClick={add}>Jorein</Btn>
+        <input value={draft.value} onChange={(e) => setDraft({ ...draft, value: e.target.value })} type="number" min={1} placeholder={draft.type === 'PERCENT' ? '10' : '200'} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
+        <input value={draft.minOrder} onChange={(e) => setDraft({ ...draft, minOrder: e.target.value })} type="number" min={0} placeholder="Kam az kam Rs" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
+        <input value={draft.maxUses} onChange={(e) => setDraft({ ...draft, maxUses: e.target.value })} type="number" min={1} placeholder="Kitni dafa" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
+        <Button size="sm" variant="primary" loading={saving} onClick={add}>Jorein</Button>
       </div>
     </Card>
   );
@@ -240,10 +242,10 @@ function FormProducts({ selected, onSave, saving }: { channelId: string; selecte
         items={[{ value: 'all', label: 'Sab products' }, { value: 'some', label: 'Sirf chune hue' }]} />}>
       {mode === 'some' && (
         <>
-          {picked.size === 0 && <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[0.78125rem] font-semibold text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">Abhi koi nahi chuna — jab tak kam az kam ek na chunein, form par saare products dikhte rahenge.</p>}
+          {picked.size === 0 && <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[0.78125rem] font-semibold text-amber-800">Abhi koi nahi chuna — jab tak kam az kam ek na chunein, form par saare products dikhte rahenge.</p>}
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Product search…" className={cn(inputCls, 'pl-8')} />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Product search…" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] pl-8')} />
           </div>
           <div className="mt-2 max-h-80 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200 dark:divide-ink-800 dark:border-ink-800">
             {isFetching && !items.length ? <div className="p-4 text-[0.8125rem] text-slate-500">Aa rahe hain…</div>
@@ -282,20 +284,20 @@ function DeveloperWay({ channelId, data }: { channelId: string; data: WebsiteOve
   return (
     <Card title="Developer ko bhejein" description="Aap ko kuch samajhne ki zaroorat nahi — developer link kholega, code lagayega, 'Test' dabayega. Jurte hi yahan ✅.">
       {!link ? (
-        <Btn variant="primary" loading={make.isPending} onClick={() => make.mutate()} icon={<Send className="h-4 w-4" />}>Developer ka link banayein</Btn>
+        <Button size="sm" variant="primary" loading={make.isPending} onClick={() => make.mutate()} leftIcon={<Send className="h-4 w-4" />}>Developer ka link banayein</Button>
       ) : (
         <div className="space-y-3">
           <CopyField label="Developer ka link (7 din)" value={link.url} />
           <div className="flex flex-wrap gap-2">
-            <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"><Btn variant="success" icon={<MessageCircle className="h-4 w-4" />}>WhatsApp par bhejein</Btn></a>
-            <Btn onClick={() => navigator.clipboard?.writeText(text).then(() => toast.success('Message copy ho gaya'))}>Message copy</Btn>
-            <a href={link.url} target="_blank" rel="noreferrer"><Btn variant="plain" icon={<ExternalLink className="h-4 w-4" />}>Khud dekhein</Btn></a>
+            <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer"><Button size="sm" variant="success" leftIcon={<MessageCircle className="h-4 w-4" />}>WhatsApp par bhejein</Button></a>
+            <Button size="sm" onClick={() => navigator.clipboard?.writeText(text).then(() => toast.success('Message copy ho gaya'))}>Message copy</Button>
+            <a href={link.url} target="_blank" rel="noreferrer"><Button size="sm" variant="ghost" leftIcon={<ExternalLink className="h-4 w-4" />}>Khud dekhein</Button></a>
           </div>
           <p className="text-[0.75rem] text-slate-500">Link galat haath lage to "Setup & keys" me "Nayi key" dabayein — link foran band.</p>
         </div>
       )}
       <div className={cn('mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-[0.8125rem] font-semibold',
-        connected ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-slate-50 text-slate-600 dark:bg-ink-800/50 dark:text-ink-300')}>
+        connected ? 'bg-success-50 text-success-800' : 'bg-slate-50 text-slate-600 dark:bg-ink-800/50 dark:text-ink-300')}>
         {connected ? <><CheckCircle2 className="h-4 w-4" /> Jur gaya — website se orders aa rahe hain</> : 'Abhi website se koi order nahi aaya'}
       </div>
     </Card>

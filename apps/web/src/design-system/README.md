@@ -12,6 +12,7 @@ design-system/
     typography.ts          Latin and Urdu font options, text-size scale
     layout.ts              Density and corner-radius scales
     surfaces.ts            Page background tones and matching sidebar surfaces
+    hero.ts                Page header (PageHero) style, pattern, size and stats options
   industries/
     identities.ts          Color, icon and label for each of the 31 industries
   theme/
@@ -27,6 +28,7 @@ design-system/
   styles/
     tokens.css             CSS variable defaults (light and dark), print rules
     base.css               Element defaults layered after Tailwind preflight
+    hero.css               PageHero colors per header style (CSS variables)
 ```
 
 ## How a screen gets its look
@@ -61,6 +63,24 @@ Density and corners work app-wide: Tailwind's spacing and border-radius
 scales are multiplied by `--density-scale` and `--radius-scale`. A "dark" or
 "brand" sidebar adds the `dark` class to the sidebar only; `.light` does the
 opposite for a region inside a dark page (used by the live preview).
+
+## Page header styles
+
+`PageHero` (the colored box at the top of most pages) reads `heroStyle`,
+`heroPattern`, `heroSize` and `heroStats` from `useAppearance()`; they are
+ordinary appearance fields, so the platform, business and personal layers
+apply as for everything else. Styles: Modern (default gradient), Simple,
+Soft, Dark, Aurora and Outline.
+
+Each style is a set of CSS variables on `.nafaa-hero[data-hero-style=…]` in
+`styles/hero.css` (`--hero-bg`, `--hero-fg`, `--hero-muted`, `--hero-btn-*`,
+`--hero-primary-*`, …). Buttons in a header use the exported `heroButton`,
+`heroIconButton` and `heroPrimaryButton` classes, which read those variables.
+Content that pages wrote for the white-on-color header (`text-white/70`,
+`bg-white/15`, `ring-white/25`) is remapped inside the header for the other
+styles, so existing pages need no changes. New header content should use the
+exported classes or the `nafaa-hero-*` part classes rather than white
+utilities.
 
 ## Using tokens in components
 

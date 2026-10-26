@@ -29,6 +29,9 @@ export class BulkEditChangeDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) brand?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) price?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) costPrice?: number;
+  /** Wholesale and credit (udhaar) prices are optional; null clears them so the retail price applies. */
+  @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsNumber() @Min(0) wholesalePrice?: number | null;
+  @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsNumber() @Min(0) creditPrice?: number | null;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20) unit?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) barcode?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) lowStockAlert?: number;

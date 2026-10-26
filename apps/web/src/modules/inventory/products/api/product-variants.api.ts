@@ -14,6 +14,7 @@ export interface ProductVariant {
   price: number;
   costPrice: number;
   wholesalePrice?: number | null;
+  creditPrice?: number | null;
   stock: number;
   /** Pieces held for customers (garment hold, layaway); free to sell = stock − reserved. */
   reserved?: number;
@@ -38,7 +39,8 @@ export interface UpsertVariantPayload {
   unit?: string;
   price: number;
   costPrice?: number;
-  wholesalePrice?: number;
+  wholesalePrice?: number | null;
+  creditPrice?: number | null;
   /** Opening stock, used only when the variant is created. */
   stock?: number;
   lowStockAlert?: number;

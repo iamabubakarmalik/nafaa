@@ -3,6 +3,9 @@
  * and which parts the counter shows. Each user can still pick their own
  * layout and density on their counter (⚙️ on the POS screen).
  *
+ * Price tiers (Retail / Wholesale / Credit) are set here too: on or off,
+ * which tiers the counter offers, the default, and the automatic rules.
+ *
  * Saved through PATCH /settings/pos-counter (needs settings permission).
  */
 
@@ -10,13 +13,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Bell, Image, LayoutGrid, LayoutTemplate, ListOrdered, Package, Pencil, Percent, Printer, Repeat, Rows3, StickyNote, Tag, Truck,
+  BookOpen, Bell, Image, Layers, LayoutGrid, Receipt, SplitSquareHorizontal, Users, LayoutTemplate, ListOrdered, Package, Pencil, Percent, Printer, Repeat, Rows3, StickyNote, Tag, Truck,
   UserCheck, Zap,
 } from 'lucide-react';
 import { PosLayoutPicker } from '@modules/pos/components/PosLayoutPreview';
 import { normalizePosCounter, type PosCounterConfig } from '@modules/pos/lib/posCounterConfig';
 import { settingsApi } from '../api/settings.api';
-import { ChoiceGroup, Divider, Field, SectionCard, StatPill, Toggle } from '../components/UI';
+import { ChoiceGroup, Divider, Field, SectionCard, Toggle } from '../components/SettingsBlocks';
+import { Badge } from '@/design-system/components';
+import { PRICE_TIERS, PRICE_TIER_LABEL, type PriceTier } from '@core/lib/priceTiers';
 
 type BoolKey = { [K in keyof PosCounterConfig]: PosCounterConfig[K] extends boolean ? K : never }[keyof PosCounterConfig];
 
@@ -72,10 +77,15 @@ export function PosCounterSettings({ canEdit }: { canEdit: boolean }) {
     set('quickDiscounts', (has ? draft.quickDiscounts.filter((x) => x !== p) : [...draft.quickDiscounts, p]).sort((a, b) => a - b));
   };
   const onCount = TOGGLES.filter((t) => draft[t.key]).length;
+  const toggleTier = (t: PriceTier) => {
+    if (t === draft.defaultPriceTier) { toast.info('Default price tier band nahi ho sakti — pehle default badlein'); return; }
+    const has = draft.priceTierList.includes(t);
+    set('priceTierList', PRICE_TIERS.filter((x) => (x === t ? !has : draft.priceTierList.includes(x))));
+  };
 
   return (
     <SectionCard title="POS counter" desc="Counter ki shakal aur us par kya dikhe — har cashier apna layout ⚙️ se badal sakta hai" icon={LayoutTemplate} color="blue"
-      badge={<StatPill label="Layout" value={draft.layout === 'cartfocus' ? 'Bill bara' : draft.layout[0].toUpperCase() + draft.layout.slice(1)} tone="blue" />}>
+      badge={<Badge size="xs" variant="info"><span className="opacity-70">Layout</span>{draft.layout === 'cartfocus' ? 'Bill bara' : draft.layout[0].toUpperCase() + draft.layout.slice(1)}</Badge>}>
       <Field label="Dukaan ka layout" hint="Naye aur purane sab counters isi se khulte hain, jab tak cashier apna na chune.">
         <PosLayoutPicker value={draft.layout} onChange={(v) => v && set('layout', v)} disabled={!canEdit} />
       </Field>
@@ -104,6 +114,53 @@ export function PosCounterSettings({ canEdit }: { canEdit: boolean }) {
           <Toggle key={t.key} checked={draft[t.key]} onChange={(v) => set(t.key, v)} label={t.label} desc={t.desc} icon={t.icon} disabled={!canEdit} />
         ))}
       </div>
+
+      <Divider label="Price tiers — Retail / Wholesale / Credit" />
+      <Toggle checked={draft.priceTiers} onChange={(v) => set('priceTiers', v)} icon={Layers} disabled={!canEdit}
+        label="Price tiers on karein"
+        desc="Ek hi cheez Retail, Wholesale aur Credit (udhaar) price par. Band ho to counter pehle jaisa retail price par chalta hai." />
+      {draft.priceTiers && (
+        <div className="mt-2 space-y-4 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Counter par kaun si prices" hint="Jo band hai wo counter par nahi dikhti. Default hamesha on rehti hai.">
+              <div className="flex flex-wrap gap-1.5">
+                {PRICE_TIERS.map((t) => {
+                  const on = draft.priceTierList.includes(t);
+                  return (
+                    <button key={t} type="button" disabled={!canEdit} onClick={() => toggleTier(t)} aria-pressed={on}
+                      className={on ? 'inline-flex items-center rounded-full bg-brand-600 px-3 py-1.5 text-xs font-semibold text-brand-fg' : 'inline-flex items-center rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200 hover:ring-slate-300'}>
+                      {PRICE_TIER_LABEL[t]}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+            <Field label="Har naya bill kis price par" hint="Bill ke baad counter wapas isi par aata hai.">
+              <ChoiceGroup value={draft.defaultPriceTier} columns={3}
+                onChange={(v) => {
+                  const t = v as PriceTier;
+                  set('defaultPriceTier', t);
+                  if (!draft.priceTierList.includes(t)) set('priceTierList', PRICE_TIERS.filter((x) => x === t || draft.priceTierList.includes(x)));
+                }}
+                options={PRICE_TIERS.map((t) => ({ value: t, label: PRICE_TIER_LABEL[t] }))} />
+            </Field>
+          </div>
+          <div className="grid gap-x-6 md:grid-cols-2">
+            <Toggle checked={draft.tierCreditOnUdhaar} onChange={(v) => set('tierCreditOnUdhaar', v)} icon={BookOpen} disabled={!canEdit}
+              label="Udhaar par Credit price" desc="Checkout me Udhaar ya Kuch paisa chunte hi bill Credit price par — total pehle hi badal jata hai" />
+            <Toggle checked={draft.tierFromCustomer} onChange={(v) => set('tierFromCustomer', v)} icon={Users} disabled={!canEdit}
+              label="Customer ki apni price" desc="Customer ke form me Default price ho (jaise Wholesale) to usay chunte hi wohi lagti hai" />
+            <Toggle checked={draft.tierLineOverride} onChange={(v) => set('tierLineOverride', v)} icon={SplitSquareHorizontal} disabled={!canEdit}
+              label="Ek line alag price par" desc="Bill ki kisi ek line par doosri price (line par chip ya T key)" />
+            <Toggle checked={draft.tierOnReceipt} onChange={(v) => set('tierOnReceipt', v)} icon={Receipt} disabled={!canEdit}
+              label="Bill par price tier chhape" desc="Raseed par likha aaye ke Retail, Wholesale ya Credit price lagi" />
+          </div>
+          <p className="text-xs text-slate-500">
+            Hath se Wholesale / Credit chunne ke liye staff ko &ldquo;Price tier badalna&rdquo; permission chahiye (Owner aur Manager ke paas pehle se hai). Wholesale aur Credit price Discount nahi ginti.
+          </p>
+        </div>
+      )}
+
       <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
         <Rows3 className="h-3.5 w-3.5" /> &ldquo;Har bill par customer zaroori&rdquo; aur &ldquo;pehle se chuna payment&rdquo; neeche hain.
       </p>

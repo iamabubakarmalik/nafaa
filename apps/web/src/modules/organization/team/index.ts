@@ -1,2 +1,0 @@
-// Barrel for team
-export {};

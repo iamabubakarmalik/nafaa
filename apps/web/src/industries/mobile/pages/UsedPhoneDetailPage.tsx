@@ -10,10 +10,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  ArrowLeft, Ban, BadgeCheck, CheckCircle2, ClipboardCheck, History, IdCard, MessageCircle, Pencil, Printer, Receipt, Recycle, ShoppingCart, Smartphone, Wallet, XCircle,
-} from 'lucide-react';
-import { Button, Card, Modal, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { Ban, BadgeCheck, CheckCircle2, ClipboardCheck, History, IdCard, MessageCircle, Pencil, Printer, Receipt, Recycle, ShoppingCart, Smartphone, Wallet, XCircle } from 'lucide-react';
+import { Button, Card, Modal, PageHero, PageShell, Skeleton, Textarea, heroButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -82,29 +80,26 @@ export default function UsedPhoneDetailPage() {
 
   return (
     <PageShell>
-      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <div className="flex flex-wrap items-start gap-3">
-          <button type="button" onClick={() => navigate('/used-phones')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-xl font-bold">{p.brand} {p.model}{p.storage ? ` ${p.storage}` : ''}</h1>
-              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[0.75rem] font-medium ring-1 ring-white/25">{st.label}</span>
-            </div>
-            <p className="mt-0.5 font-mono text-[0.8125rem] text-white/80">{p.usedPhoneCode} · IMEI {p.imei1}{p.imei2 ? ` / ${p.imei2}` : ''}</p>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <button type="button" onClick={() => printBuybackSlip(p, shopName)} title="Parchi (P)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Printer className="h-4 w-4" />Parchi</button>
-            {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-            {canManage && <Link to={`/used-phones/${p.id}/edit`} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Pencil className="h-4 w-4" />Badlein</Link>}
-          </div>
-        </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label="Cost" value={cost(p.totalCost)} hint={Number(p.refurbishCost) ? `repair ${cost(p.refurbishCost)}` : undefined} />
-          <Stat label={sold ? 'Bika' : 'Bechne ki qeemat'} value={sales(sold ? Number(p.finalSoldPrice ?? 0) : p.resalePrice)} />
-          <Stat label="Profit" value={cost(sold ? Number(p.finalSoldPrice ?? 0) - Number(p.totalCost) : margin)} hint={sold ? 'asal' : 'bikne par'} />
-          <Stat label={sold ? 'Aaya tha' : 'Shop me'} value={sold ? dayOnly(p.receivedAt) : `${Math.max(0, Math.floor((Date.now() - new Date(p.receivedAt).getTime()) / 86_400_000))} din`} hint={p.shop?.name} />
-        </div>
-      </div>
+      <PageHero
+        title={<>{p.brand} {p.model}{p.storage ? ` ${p.storage}` : ''}</>}
+        chip={st.label}
+        subtitle={<span className="font-mono">{p.usedPhoneCode} · IMEI {p.imei1}{p.imei2 ? ` / ${p.imei2}` : ''}</span>}
+        back="/used-phones"
+        backLabel="Wapas (Esc)"
+        actions={(
+          <>
+            <button type="button" onClick={() => printBuybackSlip(p, shopName)} title="Parchi (P)" className={heroButton}><Printer className="h-4 w-4" />Parchi</button>
+            {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+            {canManage && <Link to={`/used-phones/${p.id}/edit`} title="Badlein (E)" className={heroButton}><Pencil className="h-4 w-4" />Badlein</Link>}
+          </>
+        )}
+        stats={[
+          { label: 'Cost', value: cost(p.totalCost), hint: Number(p.refurbishCost) ? `repair ${cost(p.refurbishCost)}` : undefined },
+          { label: sold ? 'Bika' : 'Bechne ki qeemat', value: sales(sold ? Number(p.finalSoldPrice ?? 0) : p.resalePrice) },
+          { label: 'Profit', value: cost(sold ? Number(p.finalSoldPrice ?? 0) - Number(p.totalCost) : margin), hint: sold ? 'asal' : 'bikne par' },
+          { label: sold ? 'Aaya tha' : 'Shop me', value: sold ? dayOnly(p.receivedAt) : `${Math.max(0, Math.floor((Date.now() - new Date(p.receivedAt).getTime()) / 86_400_000))} din`, hint: p.shop?.name },
+        ]}
+      />
 
       {open && canManage && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
@@ -148,11 +143,11 @@ export default function UsedPhoneDetailPage() {
                     <li key={i.id} className="rounded-xl bg-slate-50 p-3 text-[0.8125rem]">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-slate-900">{dateTime(i.inspectedAt)}</span>
-                        {i.batteryHealth != null && <span className={cn('rounded-md px-1.5 py-0.5 text-[0.75rem] font-medium', i.batteryHealth < 80 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800')}>Battery {i.batteryHealth}%</span>}
+                        {i.batteryHealth != null && <span className={cn('rounded-md px-1.5 py-0.5 text-[0.75rem] font-medium', i.batteryHealth < 80 ? 'bg-amber-100 text-amber-800' : 'bg-success-100 text-success-800')}>Battery {i.batteryHealth}%</span>}
                         {i.needsRepair && <span className="rounded-md bg-orange-100 px-1.5 py-0.5 text-[0.75rem] font-medium text-orange-800">Repair {formatPKR(i.estimatedRepairCost)}</span>}
                       </div>
                       <p className="mt-1 text-slate-600">Screen: {i.screenCondition ?? '—'} · Body: {i.bodyCondition ?? '—'}</p>
-                      <p className={cn('mt-0.5', bad.length ? 'text-rose-700' : 'text-emerald-700')}>{bad.length ? `Kharab: ${bad.join(', ')}` : 'Sab theek chal raha hai'}</p>
+                      <p className={cn('mt-0.5', bad.length ? 'text-rose-700' : 'text-success-700')}>{bad.length ? `Kharab: ${bad.join(', ')}` : 'Sab theek chal raha hai'}</p>
                       {i.recommendedActions && <p className="mt-0.5 text-slate-600">{i.recommendedActions}</p>}
                     </li>
                   );
@@ -181,11 +176,11 @@ export default function UsedPhoneDetailPage() {
             <ul className="space-y-2 text-[0.8125rem]">
               <Trail icon={Recycle} label={sourceOf(p.source).label} value={formatPKR(p.buybackPrice)} />
               {p.source === 'CASH_BUYBACK' && (
-                <Trail icon={p.paidFromDrawer ? CheckCircle2 : XCircle} tone={p.paidFromDrawer ? 'text-emerald-700' : 'text-amber-700'}
+                <Trail icon={p.paidFromDrawer ? CheckCircle2 : XCircle} tone={p.paidFromDrawer ? 'text-success-700' : 'text-amber-700'}
                   label={p.paidFromDrawer ? 'Galle se diye (register me likha)' : 'Galla khula nahi tha — register me nahi likha'} />
               )}
               {p.source === 'EXCHANGE' && (
-                <Trail icon={p.tradeInBill ? Receipt : XCircle} tone={p.tradeInBill ? 'text-emerald-700' : 'text-amber-700'}
+                <Trail icon={p.tradeInBill ? Receipt : XCircle} tone={p.tradeInBill ? 'text-success-700' : 'text-amber-700'}
                   label={p.tradeInBill ? `Trade-in bill ${p.tradeInBill.saleNumber}` : 'Abhi kisi bill me trade-in nahi laga — POS par Split / Trade-in se lagayein'} />
               )}
               {p.sale && <Trail icon={ShoppingCart} tone="text-violet-700" label={`Bika: ${p.sale.saleNumber}${p.sale.customer ? ` · ${p.sale.customer.name}` : ''}`} value={formatPKR(p.sale.total)} />}
@@ -219,16 +214,6 @@ export default function UsedPhoneDetailPage() {
         </Modal>
       )}
     </PageShell>
-  );
-}
-
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string | null }) {
-  return (
-    <div className="rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/15">
-      <p className="text-[0.75rem] text-white/70">{label}</p>
-      <p className="text-lg font-bold tabular-nums">{value}</p>
-      {hint && <p className="truncate text-[0.6875rem] text-white/60">{hint}</p>}
-    </div>
   );
 }
 

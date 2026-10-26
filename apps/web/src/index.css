@@ -9,6 +9,7 @@
 
 @import './design-system/styles/tokens.css';
 @import './design-system/styles/base.css';
+@import './design-system/styles/hero.css';
 
 @tailwind base;
 @tailwind components;

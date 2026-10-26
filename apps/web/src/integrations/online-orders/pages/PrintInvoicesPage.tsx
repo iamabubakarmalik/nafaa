@@ -5,6 +5,7 @@ import { ArrowLeft, Loader2, Printer } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
 import { apiErrorMessage, onlineOrdersApi, type OnlineOrderDetail } from '../api/online-orders.api';
 import { rs, whenText } from '../lib/labels';
+import { Button } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    INVOICE / PACKING SLIP — parcel ke andar rakhne wala bill.
@@ -34,14 +35,11 @@ export default function PrintInvoicesPage() {
 
   return (
     <div className="min-h-screen bg-slate-100 py-6 print:bg-white print:py-0">
-      <div className="mx-auto mb-4 flex max-w-[800px] items-center gap-3 px-4 print:hidden">
-        <Link to="/online-orders" className="inline-flex items-center gap-1.5 text-[13px] font-medium text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" /> Online orders</Link>
+      <div className="mx-auto mb-4 flex max-w-[50rem] items-center gap-3 px-4 print:hidden">
+        <Link to="/online-orders" className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-600 hover:text-slate-900"><ArrowLeft className="h-4 w-4" /> Online orders</Link>
         <span className="flex-1" />
-        <span className="text-[13px] text-slate-500">{orders.length} invoice{failed ? ` · ${failed} nahi khule` : ''}</span>
-        <button onClick={() => window.print()} disabled={loading || !orders.length}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-[13px] font-semibold text-white disabled:opacity-50">
-          <Printer className="h-4 w-4" /> Print
-        </button>
+        <span className="text-[0.8125rem] text-slate-500">{orders.length} invoice{failed ? ` · ${failed} nahi khule` : ''}</span>
+        <Button size="sm" onClick={() => window.print()} disabled={loading || !orders.length} leftIcon={<Printer className="h-4 w-4" />}>Print</Button>
       </div>
 
       {!ids.length ? (
@@ -66,6 +64,11 @@ export default function PrintInvoicesPage() {
   );
 }
 
+/**
+ * One packing slip per order. Sizes stay in px on purpose: this is a printed
+ * document (A4, A5, 4x6 label) and must not grow with the on-screen text-size
+ * preference. Colours are fixed ink for the same reason.
+ */
 function Invoice({ o, shopName }: { o: OnlineOrderDetail; shopName: string }) {
   const num = o.externalOrderNumber ?? o.externalOrderId;
   const codDue = o.isCod && o.paymentStatus !== 'PAID' ? o.total : 0;
@@ -98,7 +101,7 @@ function Invoice({ o, shopName }: { o: OnlineOrderDetail; shopName: string }) {
               <div className="mt-1 font-mono text-2xl font-black tracking-wider">{o.trackingNumber}</div>
             </>
           )}
-          <div className={`mt-2 inline-block rounded-lg border-2 px-3 py-1.5 text-lg font-black ${codDue ? 'border-slate-900' : 'border-emerald-700 text-emerald-700'}`}>
+          <div className={`mt-2 inline-block rounded-lg border-2 px-3 py-1.5 text-lg font-black ${codDue ? 'border-slate-900' : 'border-success-700 text-success-700'}`}>
             {codDue ? `COD: ${rs(codDue)}` : 'PAID — paisa nahi lena'}
           </div>
         </div>

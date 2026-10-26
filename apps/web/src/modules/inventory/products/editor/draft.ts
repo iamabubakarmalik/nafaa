@@ -9,7 +9,7 @@ import type { CoreDraft, EditorDraft, UnitDraft } from './types';
 
 export const emptyCore = (unit = 'pcs'): CoreDraft => ({
   name: '', description: '', categoryId: null, brandId: null, sku: '', barcode: '', unit,
-  price: 0, costPrice: 0, wholesalePrice: null, taxRate: 0, stock: 0, lowStockAlert: 5,
+  price: 0, costPrice: 0, wholesalePrice: null, creditPrice: null, taxRate: 0, stock: 0, lowStockAlert: 5,
   isActive: true, isFeatured: false, isRawMaterial: false, expiryTracked: false, weight: null, productType: null,
   tagIds: [], images: [], units: [], variants: [], batches: [],
 });
@@ -30,7 +30,7 @@ export async function loadCore(id: string): Promise<CoreDraft> {
   return {
     name: p.name ?? '', description: any.description ?? '', categoryId: any.categoryId ?? any.category?.id ?? null,
     brandId: any.brandId ?? any.brand?.id ?? null, sku: any.sku ?? '', barcode: any.barcode ?? '', unit: any.unit ?? 'pcs',
-    price: num(any.price), costPrice: num(any.costPrice), wholesalePrice: any.wholesalePrice ?? null, taxRate: num(any.taxRate),
+    price: num(any.price), costPrice: num(any.costPrice), wholesalePrice: any.wholesalePrice ?? null, creditPrice: any.creditPrice ?? null, taxRate: num(any.taxRate),
     stock: num(any.stock), lowStockAlert: num(any.lowStockAlert ?? 5), isActive: any.isActive !== false, isFeatured: !!any.isFeatured, isRawMaterial: !!any.isRawMaterial,
     expiryTracked: !!any.expiryTracked, weight: any.weight ?? null, productType: any.productType ?? null,
     tagIds: (any.tags ?? []).map((t: any) => t.tagId ?? t.tag?.id ?? t.id).filter(Boolean),
@@ -38,7 +38,7 @@ export async function loadCore(id: string): Promise<CoreDraft> {
     units: units.map((u): UnitDraft => ({
       id: u.id, unitName: u.unitName, conversionType: (u.conversionType as UnitDraft['conversionType']) ?? 'CUSTOM',
       conversionRate: num(u.conversionRate), isBase: u.isBase, price: num(u.price), costPrice: num(u.costPrice),
-      wholesalePrice: u.wholesalePrice ?? null, mrpPrice: u.mrpPrice ?? null, barcode: u.barcode ?? '', sku: u.sku ?? '', isActive: u.isActive !== false,
+      wholesalePrice: u.wholesalePrice ?? null, creditPrice: u.creditPrice ?? null, mrpPrice: u.mrpPrice ?? null, barcode: u.barcode ?? '', sku: u.sku ?? '', isActive: u.isActive !== false,
     })),
     variants: variants.map((v) => {
       const a = v as unknown as Record<string, any>;

@@ -14,7 +14,7 @@ import {
   ArrowUpRight, Award, BookOpen, ChevronRight, CircleCheck, CircleDashed, HeartPulse, KeyRound, Percent, Search, SearchX, X,
 } from 'lucide-react';
 import { cn } from '@core/lib/cn';
-import { KpiCard, KpiRow } from '@/design-system/components';
+import { IconButton, Input, KpiCard, KpiRow, Skeleton } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -116,27 +116,23 @@ function SettingsOverview() {
             hint="Credit & loyalty" onClick={() => go('/settings/credit-loyalty', 'Loyalty points')} />
         </KpiRow>
       ) : isLoading ? (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-[4.75rem] animate-pulse rounded-2xl bg-slate-100" />)}</div>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[4.75rem]" />)}</div>
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="min-w-0 space-y-4">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} aria-label="Settings search karein"
-              placeholder="Koi bhi setting dhoondein — PIN, logo, Discount, GST, printer…"
-              onKeyDown={(e) => { if (e.key === 'Enter' && hits[0]) open(hits[0]); if (e.key === 'Escape') setQ(''); }}
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-12 pr-11 text-[0.9375rem] text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
-            {q && (
-              <button type="button" onClick={() => setQ('')} aria-label="Search saaf karein"
-                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
+          <Input size="lg" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Settings search karein"
+            placeholder="Koi bhi setting dhoondein — PIN, logo, Discount, GST, printer…"
+            onKeyDown={(e) => { if (e.key === 'Enter' && hits[0]) open(hits[0]); if (e.key === 'Escape') setQ(''); }}
+            leftIcon={<Search className="h-5 w-5" />}
+            rightIcon={q ? (
+              <IconButton label="Search saaf karein" size="sm" onClick={() => setQ('')} className="-mr-2">
                 <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
+              </IconButton>
+            ) : undefined} />
 
           {q.trim() ? (
-            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               {hits.length === 0 ? (
                 <div className="px-4 py-12 text-center">
                   <SearchX className="mx-auto h-8 w-8 text-slate-300" />
@@ -163,7 +159,7 @@ function SettingsOverview() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
               {groups.map((g) => (
-                <section key={g.id} className={cn('flex flex-col rounded-2xl border bg-white shadow-sm', g.danger ? 'border-rose-200' : 'border-slate-200')}>
+                <section key={g.id} className={cn('flex flex-col rounded-xl border bg-white shadow-sm', g.danger ? 'border-rose-200' : 'border-slate-200')}>
                   <header className="flex items-start gap-3 px-4 pb-2 pt-4">
                     <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', g.danger ? 'bg-rose-50 text-rose-600' : 'bg-brand-50 text-brand-700')}>
                       <g.icon className="h-5 w-5" />
@@ -195,29 +191,29 @@ function SettingsOverview() {
         </div>
 
         <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <header className="border-b border-slate-100 px-4 py-4">
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><HeartPulse className="h-5 w-5" /></span>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success-50 text-success-700"><HeartPulse className="h-5 w-5" /></span>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-[0.9375rem] font-semibold text-slate-900">Setup ki sehat</h2>
                   <p className="text-xs text-slate-500">{checks.length ? `${done} / ${checks.length} kaam poore` : 'Check ho raha hai…'}</p>
                 </div>
-                <span className={cn('text-2xl font-bold tabular-nums', pct >= 80 ? 'text-emerald-700' : pct >= 50 ? 'text-amber-600' : 'text-rose-600')}>{pct}%</span>
+                <span className={cn('text-2xl font-bold tabular-nums', pct >= 80 ? 'text-success-700' : pct >= 50 ? 'text-amber-700' : 'text-rose-700')}>{pct}%</span>
               </div>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
-                <div className={cn('h-full rounded-full transition-all duration-700', pct >= 80 ? 'bg-emerald-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500')} style={{ width: `${pct}%` }} />
+                <div className={cn('h-full rounded-full transition-all duration-700', pct >= 80 ? 'bg-success-500' : pct >= 50 ? 'bg-amber-500' : 'bg-rose-500')} style={{ width: `${pct}%` }} />
               </div>
             </header>
             {!checks.length ? (
-              <div className="space-y-2 p-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-11 animate-pulse rounded-xl bg-slate-100" />)}</div>
+              <div className="space-y-2 p-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-11" />)}</div>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {ordered.map((c) => (
                   <li key={c.key}>
                     <button type="button" onClick={() => go(c.to, c.find)} className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50">
                       {c.done
-                        ? <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                        ? <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-success-600" />
                         : <CircleDashed className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />}
                       <span className="min-w-0 flex-1">
                         <span className={cn('block text-sm font-semibold', c.done ? 'text-slate-700' : 'text-slate-900')}>{c.label}</span>

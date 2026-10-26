@@ -8,7 +8,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Printer } from 'lucide-react';
-import { Button, Modal, Segmented, Skeleton } from '@/design-system/components';
+import { Button, Checkbox, Modal, Segmented, Skeleton } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { ReceiptPreview } from '@core/receipt/ReceiptPreview';
 import { printReceipt } from '@core/receipt/print';
@@ -49,10 +49,8 @@ export function PayslipPrintModal({ recordId, onClose }: { recordId: string; onC
   const go = () => { if (doc) { printReceipt(doc, { paper: o.paper, setup, copies: o.copies }); onClose(); } };
 
   const Toggle = ({ k, label, hint }: { k: 'bank' | 'signature' | 'logo'; label: string; hint?: string }) => (
-    <label className="flex cursor-pointer items-start gap-2.5 rounded-lg px-1.5 py-1.5 hover:bg-slate-50">
-      <input type="checkbox" checked={o[k]} onChange={(ev) => set(k, ev.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-600" />
-      <span><span className="block text-sm text-slate-800">{label}</span>{hint && <span className="block text-[0.6875rem] text-slate-500">{hint}</span>}</span>
-    </label>
+    <Checkbox checked={o[k]} onChange={(ev) => set(k, ev.target.checked)} label={label} description={hint}
+      className="rounded-lg px-1.5 py-1.5 hover:bg-slate-50" />
   );
 
   return (

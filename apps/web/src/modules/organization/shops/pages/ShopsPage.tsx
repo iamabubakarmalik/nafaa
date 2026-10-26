@@ -15,10 +15,7 @@ import {
   AlertTriangle, ArrowDownWideNarrow, BarChart3, Boxes, Building2, CalendarClock, GraduationCap, LayoutGrid, ListFilter, Plus, Power,
   Store, Table2, Trash2, Users, Wallet, Warehouse, Wrench,
 } from 'lucide-react';
-import {
-  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
-  heroButton, heroIconButton, heroPrimaryButton, type FilterOption,
-} from '@/design-system/components';
+import { Button, FilterBar, FilterChip, FilterMenu, heroButton, heroIconButton, heroPrimaryButton, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td, Th, THead, Tr, type FilterOption, ViewTabs } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton, type PrintDoc } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -304,46 +301,44 @@ function BranchTable({ shops, figOf, money, cost, showMoney }: {
   const head = ['Branch', ...(showMoney ? ['Aaj', 'Bill', 'Is mahine', 'Drawer', 'Stock (cost)', 'Kam stock', 'Udhaar', 'Duty par'] : ['Type', 'Login', 'Stock records'])];
   return (
     <div className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[44rem] text-[0.8125rem]">
-          <thead className="bg-slate-50/70 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-            <tr>{head.map((h, i) => <th key={h} className={cn('px-3 py-2.5', i === 0 ? 'pl-5 text-left' : 'text-right')}>{h}</th>)}</tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {shops.map((s) => {
-              const f = figOf.get(s.id);
-              const T = SHOP_TYPES[s.type];
-              return (
-                <tr key={s.id} className="hover:bg-slate-50/60">
-                  <td className="py-2.5 pl-5 pr-3">
-                    <Link to={`/shops/${s.id}/edit`} className="flex min-w-0 items-center gap-2 font-semibold text-slate-900 hover:text-brand-700">
-                      <T.icon className="h-4 w-4 shrink-0" style={{ color: T.color }} /><span className="truncate">{s.name}</span>
-                      {s.isMain && <span className="rounded bg-amber-50 px-1.5 text-[0.625rem] font-bold text-amber-800">MAIN</span>}
-                      {!s.isActive && <span className="rounded bg-slate-100 px-1.5 text-[0.625rem] font-bold text-slate-600">BAND</span>}
-                    </Link>
-                  </td>
-                  {showMoney ? (
-                    f ? <>
-                      <Num>{money(f.todaySales)}</Num><Num>{f.todayOrders}</Num><Num strong>{money(f.monthSales)}</Num>
-                      <Num>{f.registerOpen ? money(f.registerBalance) : <span className="text-slate-400">Band</span>}</Num>
-                      <Num>{cost(f.stockValue)}</Num>
-                      <Num>{f.lowStockCount > 0 ? <span className="font-semibold text-amber-700">{f.lowStockCount}</span> : <span className="text-slate-400">0</span>}</Num>
-                      <Num>{money(f.outstandingCredit)}</Num><Num>{f.staffOnDuty}/{f.staffCount}</Num>
-                    </> : <td colSpan={8} className="px-3 py-2.5 text-right text-slate-400">{s.isActive ? '—' : 'Band branch'}</td>
-                  ) : <>
-                    <Num>{T.label}</Num><Num>{s._count?.users ?? 0}</Num><Num>{s._count?.shopStocks ?? 0}</Num>
-                  </>}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <Table minWidth="44rem" className="[&_table]:text-[0.8125rem]">
+        <THead>
+          <Tr>{head.map((h, i) => <Th key={h} className={cn('px-3 py-2.5', i === 0 ? 'pl-5 text-left' : 'text-right')}>{h}</Th>)}</Tr>
+        </THead>
+        <TBody>
+          {shops.map((s) => {
+            const f = figOf.get(s.id);
+            const T = SHOP_TYPES[s.type];
+            return (
+              <Tr key={s.id} className="hover:bg-slate-50/60">
+                <Td className="py-2.5 pl-5 pr-3">
+                  <Link to={`/shops/${s.id}/edit`} className="flex min-w-0 items-center gap-2 font-semibold text-slate-900 hover:text-brand-700">
+                    <T.icon className="h-4 w-4 shrink-0" style={{ color: T.color }} /><span className="truncate">{s.name}</span>
+                    {s.isMain && <span className="rounded bg-amber-50 px-1.5 text-[0.625rem] font-bold text-amber-800">MAIN</span>}
+                    {!s.isActive && <span className="rounded bg-slate-100 px-1.5 text-[0.625rem] font-bold text-slate-600">BAND</span>}
+                  </Link>
+                </Td>
+                {showMoney ? (
+                  f ? <>
+                    <Num>{money(f.todaySales)}</Num><Num>{f.todayOrders}</Num><Num strong>{money(f.monthSales)}</Num>
+                    <Num>{f.registerOpen ? money(f.registerBalance) : <span className="text-slate-400">Band</span>}</Num>
+                    <Num>{cost(f.stockValue)}</Num>
+                    <Num>{f.lowStockCount > 0 ? <span className="font-semibold text-amber-700">{f.lowStockCount}</span> : <span className="text-slate-400">0</span>}</Num>
+                    <Num>{money(f.outstandingCredit)}</Num><Num>{f.staffOnDuty}/{f.staffCount}</Num>
+                  </> : <Td colSpan={8} className="px-3 py-2.5 text-right text-slate-400">{s.isActive ? '—' : 'Band branch'}</Td>
+                ) : <>
+                  <Num>{T.label}</Num><Num>{s._count?.users ?? 0}</Num><Num>{s._count?.shopStocks ?? 0}</Num>
+                </>}
+              </Tr>
+            );
+          })}
+        </TBody>
+      </Table>
       {showMoney && <p className="flex items-center gap-1.5 border-t border-slate-100 px-5 py-2.5 text-[0.75rem] text-slate-500"><CalendarClock className="h-3.5 w-3.5" />Sale return ghata kar · drawer ka cash abhi tak ka</p>}
     </div>
   );
 }
 
 function Num({ children, strong }: { children: ReactNode; strong?: boolean }) {
-  return <td className={cn('whitespace-nowrap px-3 py-2.5 text-right tabular-nums', strong ? 'font-semibold text-slate-900' : 'text-slate-600')}>{children}</td>;
+  return <Td className={cn('whitespace-nowrap px-3 py-2.5 text-right tabular-nums', strong ? 'font-semibold text-slate-900' : 'text-slate-600')}>{children}</Td>;
 }

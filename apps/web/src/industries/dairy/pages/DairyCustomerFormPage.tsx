@@ -8,8 +8,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, CalendarDays, GraduationCap, MapPin, Milk, UserRound, Wallet } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Textarea } from '@/design-system/components';
+import { AlertTriangle, CalendarDays, GraduationCap, MapPin, Milk, UserRound, Wallet } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Select, Skeleton, Textarea, heroIconButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { usePermission } from '@core/hooks/usePermission';
@@ -116,15 +116,13 @@ export default function DairyCustomerFormPage() {
           shortcuts={[['Ctrl+S', 'save'], ['G', 'guide']]} />
       )}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${existing.data?.name} — badlein` : 'Naya doodh customer'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{editing ? 'Jo badalna hai badlein — khata aur pichli delivery waisi rahengi' : 'Naam, pata, roz ki quantity aur rate'}</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
-        <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-      </div>
+      <PageHero
+        title={editing ? `${existing.data?.name} — badlein` : 'Naya doodh customer'}
+        subtitle={editing ? 'Jo badalna hai badlein — khata aur pichli delivery waisi rahengi' : 'Naam, pata, roz ki quantity aur rate'}
+        back={() => navigate(-1)}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">

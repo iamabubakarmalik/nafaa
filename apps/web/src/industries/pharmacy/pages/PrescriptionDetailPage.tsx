@@ -10,9 +10,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Ban, CheckCircle2, ClipboardCheck, ExternalLink, FileText, Image as ImageIcon, Package, Phone, Receipt, Repeat, Stethoscope, UserRound, Wallet,
+  Ban, CheckCircle2, ClipboardCheck, ExternalLink, FileText, Image as ImageIcon, Loader2, Package, Phone, Receipt, Repeat, Stethoscope, UserRound, Wallet,
 } from 'lucide-react';
-import { Button, Card, Input, Modal, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { Button, Card, Input, Modal, PageHero, PageShell, Select, Skeleton, Textarea, controlClass, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { useShopParam } from '@core/stores/auth.store';
@@ -146,30 +146,29 @@ export default function PrescriptionDetailPage() {
         </Modal>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <Link to="/pharmacy/prescriptions" aria-label="Wapas" className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50"><ArrowLeft className="h-5 w-5" /></Link>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="font-mono text-xl font-bold text-slate-900">{rx.prescriptionNumber}</h1>
-              <span className={cn('rounded-full px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1', st.tone)}>{st.label}</span>
-              {rx.type === 'REFILL' && <span className="rounded-full bg-violet-50 px-2.5 py-0.5 text-[0.75rem] font-semibold text-violet-700 ring-1 ring-violet-200">Refill</span>}
-            </div>
-            <p className="text-[0.8125rem] text-slate-500">Aaya {when(rx.createdAt)}{rx.verifiedAt && ` · check ${when(rx.verifiedAt)}`}{rx.dispensedAt && ` · poori di ${when(rx.dispensedAt)}`}</p>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+      <PageHero
+        back="/pharmacy/prescriptions"
+        title={<span className="font-mono">{rx.prescriptionNumber}</span>}
+        chip={rx.type === 'REFILL' ? `${st.label} · Refill` : st.label}
+        subtitle={<>Aaya {when(rx.createdAt)}{rx.verifiedAt && ` · check ${when(rx.verifiedAt)}`}{rx.dispensedAt && ` · poori di ${when(rx.dispensedAt)}`}</>}
+        actions={<>
           <PrintButton doc={() => rxDoc(rx)} label="Print" size="sm" />
-          {rx.sale && <Link to={`/sales/${rx.sale.id}/receipt`} target="_blank" className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Receipt className="h-4 w-4" />Aakhri bill</Link>}
+          {rx.sale && <Link to={`/sales/${rx.sale.id}/receipt`} target="_blank" className={heroButton}><Receipt className="h-4 w-4" />Aakhri bill</Link>}
           {rx.isRefillable && rx.type !== 'REFILL' && refillLeft > 0 && rx.status !== 'REJECTED' && rx.status !== 'PENDING' && (
-            <Button size="sm" variant="secondary" loading={refill.isPending} onClick={() => refill.mutate()} leftIcon={<Repeat className="h-4 w-4" />}>Refill ({refillLeft} baqi)</Button>
+            <button type="button" className={heroButton} disabled={refill.isPending} onClick={() => refill.mutate()}>
+              {refill.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Repeat className="h-4 w-4" />}Refill ({refillLeft} baqi)
+            </button>
           )}
           {(rx.status === 'PENDING' || rx.status === 'VERIFIED' || rx.status === 'PARTIALLY_DISPENSED') && (
-            <Button size="sm" variant="critical" onClick={() => { setReason(''); setRejecting(true); }} leftIcon={<Ban className="h-4 w-4" />}>{rx.status === 'PARTIALLY_DISPENSED' ? 'Baqi band' : 'Radd'}</Button>
+            <button type="button" className={heroButton} onClick={() => { setReason(''); setRejecting(true); }}><Ban className="h-4 w-4" />{rx.status === 'PARTIALLY_DISPENSED' ? 'Baqi band' : 'Radd'}</button>
           )}
-          {rx.status === 'PENDING' && <Button size="sm" loading={verify.isPending} onClick={() => verify.mutate()} leftIcon={<ClipboardCheck className="h-4 w-4" />}>Check ho gaya</Button>}
-        </div>
-      </div>
+          {rx.status === 'PENDING' && (
+            <button type="button" className={heroPrimaryButton} disabled={verify.isPending} onClick={() => verify.mutate()}>
+              {verify.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ClipboardCheck className="h-4 w-4" />}Check ho gaya
+            </button>
+          )}
+        </>}
+      />
 
       {rx.status === 'PENDING' && (
         <p className="rounded-2xl bg-amber-50 px-4 py-3 text-[0.875rem] text-amber-900 ring-1 ring-amber-200">Pharmacist nuskha dekh kar "Check ho gaya" dabaye — phir dawai di ja sakti hai.</p>
@@ -203,7 +202,7 @@ export default function PrescriptionDetailPage() {
                       !it.productId && !d.productId ? (
                         <div className="mt-2 rounded-xl bg-slate-50 p-2.5 text-[0.8125rem] text-slate-600">
                           Stock se nahi juri.
-                          <select value="" onChange={(e) => { const p = byId.get(e.target.value); if (p) setDraft(it, { productId: p.id, price: String(p.price), batchId: '' }); }} className="ml-2 h-8 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem]">
+                          <select value="" onChange={(e) => { const p = byId.get(e.target.value); if (p) setDraft(it, { productId: p.id, price: String(p.price), batchId: '' }); }} className={cn(controlClass(), 'ml-2 h-8 w-auto px-2 text-[0.8125rem]')}>
                             <option value="">Stock wali dawai chunein…</option>
                             {catalog.filter((p) => p.name.toLowerCase().includes(it.medicineName.toLowerCase().split(' ')[0] ?? '')).slice(0, 30).map((p) => <option key={p.id} value={p.id}>{p.name} · {formatPKR(p.price)}</option>)}
                           </select>
@@ -213,26 +212,19 @@ export default function PrescriptionDetailPage() {
                           <Input size="sm" label="Abhi dein" inputMode="decimal" value={d.qty} onChange={(e) => setDraft(it, { qty: e.target.value.replace(/[^\d.]/g, '') })}
                             error={Number(d.qty) > rem + 1e-9 ? `Sirf ${rem}` : undefined} />
                           <Input size="sm" label={`Rate / ${product?.unit ?? it.unit}`} inputMode="decimal" value={d.price} onChange={(e) => setDraft(it, { price: e.target.value.replace(/[^\d.]/g, '') })} />
-                          <label className="block min-w-0">
-                            <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Batch</span>
-                            <select value={d.batchId} onChange={(e) => setDraft(it, { batchId: e.target.value })} className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem]">
+                          <Select size="sm" label="Batch" wrapperClassName="min-w-0" value={d.batchId} onChange={(e) => setDraft(it, { batchId: e.target.value })}>
                               <option value="">{myBatches.length ? 'Jaldi expire wala pehle (khud)' : 'Batch nahi'}</option>
                               {myBatches.map((b) => {
                                 const exp = b.expiryDate ? new Date(b.expiryDate) : null;
                                 const gone = !!exp && exp.getTime() < Date.now();
                                 return <option key={b.id} value={b.id}>{b.batchNumber} · {Number(b.quantity.toFixed(2))} · {exp ? (gone ? 'EXPIRED ' : 'exp ') + shortDate(b.expiryDate) : 'expiry nahi'}</option>;
                               })}
-                            </select>
-                          </label>
+                          </Select>
                           {(subs.length > 0 || d.productId !== it.productId) && (
-                            <label className="block sm:col-span-3">
-                              <span className="mb-1 block text-[0.75rem] font-medium text-slate-600">Dawai jo di ja rahi hai</span>
-                              <select value={d.productId} onChange={(e) => { const p = byId.get(e.target.value); setDraft(it, { productId: e.target.value, price: String(p?.price ?? d.price), batchId: '' }); }}
-                                className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem]">
+                            <Select size="sm" label="Dawai jo di ja rahi hai" wrapperClassName="sm:col-span-3" value={d.productId} onChange={(e) => { const p = byId.get(e.target.value); setDraft(it, { productId: e.target.value, price: String(p?.price ?? d.price), batchId: '' }); }}>
                                 {it.productId && <option value={it.productId}>{byId.get(it.productId)?.name ?? it.medicineName} (likhi hui){(byId.get(it.productId)?.stock ?? 0) <= 0 ? ' — stock khatam' : ''}</option>}
                                 {subs.map((p) => <option key={p.id} value={p.id}>{p.name} · {formatPKR(p.price)} · same formula</option>)}
-                              </select>
-                            </label>
+                            </Select>
                           )}
                           {product && product.stock < Number(d.qty) && <p className="text-[0.75rem] font-medium text-rose-600 sm:col-span-3">Shelf par sirf {Number(product.stock.toFixed(2))} {product.unit}</p>}
                         </div>

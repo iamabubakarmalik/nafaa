@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from 'react';
 import { Upload, X, Loader2, ImageIcon, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@core/api/client';
+import { Button } from '@/design-system/components';
 
 interface LogoUploaderProps {
   value?: string | null;
@@ -94,16 +95,16 @@ export default function LogoUploader({
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
-                  className="h-9 w-9 rounded-xl bg-white text-slate-900 hover:bg-emerald-500 hover:text-white flex items-center justify-center shadow-lg transition"
-                  title="Change"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-900 shadow-lg transition hover:bg-brand-600 hover:text-brand-fg"
+                  title="Badlein" aria-label="Logo badlein"
                 >
                   <Camera className="h-4 w-4" />
                 </button>
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onChange(''); }}
-                  className="h-9 w-9 rounded-xl bg-white text-rose-600 hover:bg-rose-500 hover:text-white flex items-center justify-center shadow-lg transition"
-                  title="Remove"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-rose-600 shadow-lg transition hover:bg-rose-600 hover:text-white"
+                  title="Hatayein" aria-label="Logo hatayein"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -111,9 +112,9 @@ export default function LogoUploader({
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center gap-1.5 text-slate-400 dark:text-ink-500 pointer-events-none">
+          <div className="pointer-events-none flex flex-col items-center gap-1.5 text-slate-400">
             <ImageIcon className="h-7 w-7" />
-            <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider">
+            <span className="text-[0.6875rem] font-semibold uppercase tracking-wider">
               {dragOver ? 'Drop!' : 'Upload'}
             </span>
           </div>
@@ -122,13 +123,13 @@ export default function LogoUploader({
         {/* Uploading overlay */}
         {uploading && (
           <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center gap-2 backdrop-blur-sm">
-            <Loader2 className="h-7 w-7 text-emerald-400 animate-spin" />
+            <Loader2 className="h-7 w-7 animate-spin text-brand-300" />
             {progress > 0 && (
               <>
                 <div className="w-16 h-1 rounded-full bg-white/20 overflow-hidden">
-                  <div className="h-full bg-emerald-400 transition-all" style={{ width: `${progress}%` }} />
+                  <div className="h-full bg-brand-400 transition-all" style={{ width: `${progress}%` }} />
                 </div>
-                <span className="text-[0.6875rem] font-extrabold text-emerald-300 tabular-nums">{progress}%</span>
+                <span className="text-[0.6875rem] font-semibold tabular-nums text-brand-200">{progress}%</span>
               </>
             )}
           </div>
@@ -146,24 +147,12 @@ export default function LogoUploader({
         />
 
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={uploading}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-sm font-semibold text-brand-fg shadow-sm transition hover:bg-brand-700 active:scale-95 disabled:opacity-50"
-          >
-            <Upload className="h-4 w-4" />
+          <Button onClick={() => inputRef.current?.click()} disabled={uploading} leftIcon={<Upload className="h-4 w-4" />}>
             {uploading ? 'Upload ho raha hai…' : value ? 'Badlein' : 'Upload karein'}
-          </button>
+          </Button>
 
           {value && !uploading && (
-            <button
-              type="button"
-              onClick={() => onChange('')}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-rose-200 px-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 active:scale-95"
-            >
-              <X className="h-3.5 w-3.5" /> Hatayein
-            </button>
+            <Button variant="critical" onClick={() => onChange('')} leftIcon={<X className="h-3.5 w-3.5" />}>Hatayein</Button>
           )}
         </div>
 

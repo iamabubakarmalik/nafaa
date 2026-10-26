@@ -8,7 +8,8 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { useBusinessDayStart } from '@core/lib/business-day';
 import { getPendingAsSales, type PaymentMethod } from '@modules/sales/sales/api/sales.api';
-import { salesHistoryApi, type HistoryFilters, type HistorySale, type HistorySort, type HistoryStatus } from './api';
+import { billTierOf, salesHistoryApi, type BillTier, type HistoryFilters, type HistorySale, type HistorySort, type HistoryStatus } from './api';
+import { isPriceTier } from '@core/lib/priceTiers';
 import { presetRange, type DatePreset } from '@core/lib/dateRange';
 
 export const HISTORY_KEY = 'sales-history';
@@ -31,6 +32,7 @@ export function useSalesHistory() {
   const [status, setStatus] = useState<HistoryStatus>('all');
   const [staffId, setStaffId] = useState<string | undefined>();
   const [source, setSource] = useState<string | undefined>();
+  const [tier, setTier] = useState<BillTier | undefined>();
   const [sort, setSort] = useState<HistorySort>(saved.sort);
   const [search, setSearch] = useState(linkQ);
   const [query, setQuery] = useState(linkQ);
@@ -42,7 +44,7 @@ export function useSalesHistory() {
   }, [preset, sort, linkQ, saved.preset]);
 
   const range = presetRange(preset, startHour, custom);
-  const filters: HistoryFilters = { ...range, method, status, staffId, source, search: query, sort };
+  const filters: HistoryFilters = { ...range, method, status, staffId, source, search: query, tier, sort };
 
   const list = useInfiniteQuery({
     queryKey: [HISTORY_KEY, 'list', filters],
@@ -55,7 +57,7 @@ export function useSalesHistory() {
 
   // Offline bills only matter when today is in range and no narrowing filter is on.
   const today = presetRange('today', startHour).to;
-  const showPending = range.to === today && !method && !staffId && !source && !query && (status === 'all' || status === 'active');
+  const showPending = range.to === today && !method && !staffId && !source && !query && !tier && (status === 'all' || status === 'active');
   const { data: pending = [] } = useQuery({
     queryKey: [HISTORY_KEY, 'pending'],
     queryFn: async () => (await getPendingAsSales()).map((s): HistorySale => ({
@@ -68,7 +70,10 @@ export function useSalesHistory() {
       items: (s.items ?? []).map((it: any) => ({
         id: it.id, productId: it.productId ?? null, name: it.product?.name ?? 'Item', variant: null, unit: it.product?.unit ?? 'pcs',
         barcode: null, quantity: Number(it.quantity), returnedQty: 0, price: Number(it.price ?? 0), total: Number(it.total ?? 0),
+        priceTier: isPriceTier(it.priceTier) ? it.priceTier : null,
+        retailPrice: it.retailPrice != null ? Number(it.retailPrice) : null,
       })),
+      priceTier: billTierOf((s.items ?? []) as Array<{ priceTier?: string | null }>),
       pending: true,
     })),
     enabled: showPending,
@@ -84,12 +89,12 @@ export function useSalesHistory() {
 
   return {
     preset, setPreset, custom, setCustom, method, setMethod, status, setStatus, staffId, setStaffId, source, setSource,
-    sort, setSort, search, setSearch, filters, range, startHour,
-    sales, stats: first?.stats, count: first?.count ?? 0, pendingCount: showPending ? pending.length : 0,
+    sort, setSort, search, setSearch, tier, setTier, filters, range, startHour,
+    sales, stats: first?.stats, tiers: first?.tiers ?? null, count: first?.count ?? 0, pendingCount: showPending ? pending.length : 0,
     loading: list.isLoading, fetching: list.isFetching, hasMore: !!list.hasNextPage, loadMore: () => list.fetchNextPage(),
     loadingMore: list.isFetchingNextPage, refetch: list.refetch,
-    clear: () => { setMethod(undefined); setStatus('all'); setStaffId(undefined); setSource(undefined); setSearch(''); },
-    hasFilters: !!method || status !== 'all' || !!staffId || !!source || !!query,
+    clear: () => { setMethod(undefined); setStatus('all'); setStaffId(undefined); setSource(undefined); setTier(undefined); setSearch(''); },
+    hasFilters: !!method || status !== 'all' || !!staffId || !!source || !!tier || !!query,
   };
 }
 

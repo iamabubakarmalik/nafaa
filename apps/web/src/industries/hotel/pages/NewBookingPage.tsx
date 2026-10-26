@@ -13,8 +13,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, BedDouble, Building2, CalendarDays, GraduationCap, IdCard, LogIn, Search, Star, Trash2, UserRound, Wallet, X } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { BedDouble, Building2, CalendarDays, GraduationCap, IdCard, LogIn, Search, Star, Trash2, UserRound, Wallet, X } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea, heroButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -157,16 +157,13 @@ export default function NewBookingPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Link to="/hotel/bookings" className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Wapas"><ArrowLeft className="h-5 w-5" /></Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">{checkInNow ? 'Walk-in check-in' : 'Nayi booking'}</h1>
-            <p className="text-[0.8125rem] text-slate-500">Dates → room → guest → advance. <Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> se save, <Kbd>G</Kbd> guide.</p>
-          </div>
-        </div>
-        <Button variant="ghost" leftIcon={<GraduationCap className="h-4 w-4" />} onClick={guide.open}>Guide</Button>
-      </div>
+      <PageHero
+        back="/hotel/bookings"
+        title={checkInNow ? 'Walk-in check-in' : 'Nayi booking'}
+        subtitle="Dates → room → guest → advance"
+        meta={<span className="inline-flex items-center gap-1"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>G</Kbd> guide</span>}
+        actions={<button type="button" onClick={guide.open} className={heroButton}><GraduationCap className="h-4 w-4" />Guide</button>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-4">

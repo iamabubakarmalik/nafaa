@@ -1,26 +1,18 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, Copy, ChevronDown } from 'lucide-react';
+import { Button } from '@/design-system/components';
 
-/* ═════════════════════════════════════════════════════════════
-   ERROR BOUNDARY — safed safha ab nahi aayega
-   ─────────────────────────────────────────────────────────────
-   React me agar kisi bhi page ke render me error aa jaye aur
-   koi boundary na ho, to poora app un-mount ho jata hai aur
-   sirf SAFED SCREEN bachti hai — na koi paighaam, na koi
-   ishara ke masla kahan hai.
-
-   Nafaa me abhi tak koi boundary nahi thi. Ab har page isme
-   lipta hua hai: error aane par safha ruk jata hai, saaf
-   Urdu me batata hai ke kya hua, aur "dobara koshish" ka
-   button deta hai. Tafseel (stack) chhupi rehti hai magar
-   ek click par khul jati hai taake report ki ja sake.
-   ═════════════════════════════════════════════════════════════ */
+/**
+ * Error boundary around every page. A render error stops only the page, not
+ * the whole app: the user sees what happened in plain Roman Urdu, can retry
+ * or go to the dashboard, and can open or copy the stack for a report.
+ */
 
 interface Props {
   children: ReactNode;
-  /** Route badalne par boundary khud reset ho jaye */
+  /** Resets the boundary when this value changes (e.g. the route). */
   resetKey?: string;
-  /** Chhoti jagah ke liye halka sa nazara */
+  /** Small inline fallback for a section instead of a full page. */
   compact?: boolean;
 }
 
@@ -38,13 +30,13 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Console me poori tafseel — developer tools se dekhi ja sakti hai
+    // Full details go to the console for developers.
     console.error('[Nafaa] Page crash:', error, info.componentStack);
     this.setState({ info });
   }
 
   componentDidUpdate(prev: Props) {
-    // Naya safha khulte hi purana error saaf
+    // Clear the error when a new page opens.
     if (this.state.error && prev.resetKey !== this.props.resetKey) {
       this.setState({ error: null, info: null, showDetails: false });
     }
@@ -72,65 +64,46 @@ export class ErrorBoundary extends Component<Props, State> {
 
     if (this.props.compact) {
       return (
-        <div className="rounded-2xl border-2 border-rose-200 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-center">
-          <AlertTriangle className="h-6 w-6 text-rose-600 mx-auto mb-1.5" />
-          <p className="text-sm font-extrabold text-rose-900 dark:text-rose-200">Ye hissa khul nahi saka</p>
-          <p className="text-[0.6875rem] font-bold text-rose-700 dark:text-rose-300 mt-0.5">{error.message}</p>
-          <button onClick={this.reset}
-            className="mt-3 h-9 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 transition">
-            <RefreshCw className="h-3.5 w-3.5" /> Dobara
-          </button>
+        <div className="rounded-2xl bg-rose-50 p-4 text-center ring-1 ring-inset ring-rose-200">
+          <AlertTriangle className="mx-auto mb-1.5 h-6 w-6 text-rose-600" />
+          <p className="text-sm font-bold text-rose-900">Ye hissa khul nahi saka</p>
+          <p className="mt-0.5 text-[0.75rem] text-rose-700">{error.message}</p>
+          <Button size="xs" variant="critical" className="mt-3" onClick={this.reset} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>Dobara</Button>
         </div>
       );
     }
 
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="w-full max-w-lg rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-2xl overflow-hidden">
-          <div className="relative bg-gradient-to-br from-slate-950 via-rose-900 to-red-700 text-white p-6 text-center overflow-hidden">
-            <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-rose-400/25 blur-3xl" />
-            <div className="relative">
-              <div className="h-16 w-16 rounded-3xl bg-white/15 border-2 border-white/25 mx-auto flex items-center justify-center">
-                <AlertTriangle className="h-8 w-8" />
-              </div>
-              <h2 className="mt-3 text-xl sm:text-2xl font-black">Ye safha khul nahi saka</h2>
-              <p className="mt-1 text-sm font-bold text-white/85">
-                Aap ka koi data waste nahi hua — bas ye safha ruk gaya hai.
-              </p>
+      <div className="flex min-h-[70vh] items-center justify-center p-4">
+        <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200">
+          <div className="border-b border-slate-200 p-6 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-200">
+              <AlertTriangle className="h-7 w-7" />
             </div>
+            <h2 className="mt-3 text-xl font-bold text-slate-900 sm:text-[1.375rem]">Ye safha khul nahi saka</h2>
+            <p className="mt-1 text-sm text-slate-600">Aap ka koi data waste nahi hua — bas ye safha ruk gaya hai.</p>
           </div>
 
-          <div className="p-5 space-y-3">
-            <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3">
-              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500">Masla</div>
-              <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white break-words">
-                {error.name}: {error.message}
-              </div>
-              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5 font-mono break-all">
-                {window.location.pathname}
-              </div>
+          <div className="space-y-3 p-5">
+            <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
+              <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">Masla</div>
+              <div className="break-words text-sm font-semibold text-slate-900">{error.name}: {error.message}</div>
+              <div className="mt-0.5 break-all font-mono text-[0.6875rem] text-slate-500">{window.location.pathname}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={this.reset}
-                className="h-12 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-700 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg transition active:scale-[0.98]">
-                <RefreshCw className="h-4 w-4" /> Dobara Koshish
-              </button>
-              <button onClick={() => { window.location.href = '/dashboard'; }}
-                className="h-12 rounded-2xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-sm font-black inline-flex items-center justify-center gap-2 transition">
-                <Home className="h-4 w-4" /> Dashboard
-              </button>
+              <Button size="lg" onClick={this.reset} leftIcon={<RefreshCw className="h-4 w-4" />}>Dobara Koshish</Button>
+              <Button size="lg" variant="secondary" onClick={() => { window.location.href = '/dashboard'; }} leftIcon={<Home className="h-4 w-4" />}>Dashboard</Button>
             </div>
 
-            <button onClick={() => this.setState({ showDetails: !showDetails })}
-              className="w-full h-10 rounded-xl bg-slate-50 dark:bg-ink-800/60 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
-              <ChevronDown className={`h-3.5 w-3.5 transition ${showDetails ? 'rotate-180' : ''}`} />
+            <Button size="sm" variant="ghost" fullWidth onClick={() => this.setState({ showDetails: !showDetails })}
+              leftIcon={<ChevronDown className={showDetails ? 'h-3.5 w-3.5 rotate-180 transition' : 'h-3.5 w-3.5 transition'} />}>
               Details {showDetails ? 'chhupayein' : 'dekhein'}
-            </button>
+            </Button>
 
             {showDetails && (
-              <div className="rounded-2xl bg-slate-900 dark:bg-black p-3 max-h-56 overflow-auto">
-                <pre className="text-[0.6875rem] leading-relaxed text-slate-300 whitespace-pre-wrap break-words font-mono">
+              <div className="max-h-56 overflow-auto rounded-xl bg-slate-900 p-3">
+                <pre className="whitespace-pre-wrap break-words font-mono text-[0.6875rem] leading-relaxed text-slate-300">
                   {error.stack}
                   {info?.componentStack}
                 </pre>
@@ -138,10 +111,9 @@ export class ErrorBoundary extends Component<Props, State> {
             )}
 
             {showDetails && (
-              <button onClick={this.copyDetails}
-                className="w-full h-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
-                <Copy className="h-3.5 w-3.5" /> Details copy karein (report ke liye)
-              </button>
+              <Button size="sm" variant="secondary" fullWidth onClick={this.copyDetails} leftIcon={<Copy className="h-3.5 w-3.5" />}>
+                Details copy karein (report ke liye)
+              </Button>
             )}
           </div>
         </div>
@@ -150,7 +122,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-/** Route ke sath reset hone wali boundary */
+/** Boundary that resets when the route changes. */
 export function RouteErrorBoundary({ children }: { children: ReactNode }) {
   return <ErrorBoundary resetKey={window.location.pathname}>{children}</ErrorBoundary>;
 }

@@ -128,17 +128,18 @@ export function PrivacyToggle({ compact = false }: { compact?: boolean }) {
         title={hasPin
           ? (isUnlocked ? 'Dobara lock karein' : 'PIN daal kar cost dekhein')
           : (store.hideCost ? 'Cost dikhayein' : 'Cost chhupayein')}
-        className={[
-          'inline-flex items-center gap-1.5 rounded-xl border-2 font-extrabold text-xs transition',
-          compact ? 'h-9 px-2.5' : 'h-11 px-4',
+        type="button"
+        className={cn(
+          'inline-flex items-center gap-1.5 rounded-lg border text-xs font-semibold shadow-sm transition',
+          compact ? 'h-9 px-2.5' : 'h-10 px-4',
           hasPin && !isUnlocked
-            ? 'bg-slate-900 border-slate-900 text-white hover:bg-slate-800'
+            ? 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800'
             : hasPin && isUnlocked
-              ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700'
+              ? 'border-success-600 bg-success-600 text-white hover:bg-success-700'
               : store.hideCost
-                ? 'bg-slate-900 border-slate-900 text-white hover:bg-slate-800'
-                : 'bg-[#ffffff] dark:bg-ink-900 border-slate-200 dark:border-ink-700 hover:border-sky-300 text-slate-700 dark:text-ink-200',
-        ].join(' ')}
+                ? 'border-slate-900 bg-slate-900 text-white hover:bg-slate-800'
+                : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50',
+        )}
       >
         <Icon className={compact ? 'h-3.5 w-3.5' : 'h-4 w-4'} />
         {!compact && label}
@@ -201,7 +202,7 @@ export function PinPromptModal({
       open
       onClose={onClose}
       size="sm"
-      title={<span className="inline-flex items-center gap-2"><Shield className="h-4 w-4 text-emerald-600" />{title}</span>}
+      title={<span className="inline-flex items-center gap-2"><Shield className="h-4 w-4 text-brand-600" />{title}</span>}
       description={subtitle}
       footer={
         <>
@@ -421,7 +422,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
       open
       onClose={onClose}
       size="sm"
-      title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-emerald-600" />{heading}</span>}
+      title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-brand-600" />{heading}</span>}
       description="Har device par yehi PIN chalega"
       footer={footer}
     >
@@ -429,7 +430,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
         {step === 'menu' && (
           <>
             <MenuOption
-              tone="emerald"
+              tone="brand"
               icon={<KeyRound className="h-5 w-5" />}
               title="Naya PIN set karein"
               hint="Purana PIN bhi likhna hoga"
@@ -530,7 +531,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
 }
 
 const MENU_TONES = {
-  emerald: { box: 'border-emerald-200 bg-emerald-50 hover:border-emerald-400', icon: 'bg-emerald-600', title: 'text-emerald-900', hint: 'text-emerald-700' },
+  brand: { box: 'border-brand-200 bg-brand-50 hover:border-brand-400', icon: 'bg-brand-600', title: 'text-brand-900', hint: 'text-brand-700' },
   amber: { box: 'border-amber-200 bg-amber-50 hover:border-amber-400', icon: 'bg-amber-500', title: 'text-amber-900', hint: 'text-amber-700' },
   rose: { box: 'border-rose-200 bg-rose-50 hover:border-rose-400', icon: 'bg-rose-600', title: 'text-rose-900', hint: 'text-rose-700' },
 } as const;
@@ -561,11 +562,9 @@ export function PinSettingsButton() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-emerald-300 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition">
-        <KeyRound className="h-4 w-4 text-emerald-600" />
+      <Button variant="secondary" onClick={() => setOpen(true)} leftIcon={<KeyRound className="h-4 w-4 text-brand-600" />}>
         {hasPin ? 'PIN Settings' : 'Cost PIN Set Karein'}
-      </button>
+      </Button>
       {open && <PinSetupModal onClose={() => setOpen(false)} />}
     </>
   );

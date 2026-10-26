@@ -55,3 +55,6 @@ src/i18n/extracted.json
 # Debug/test routes (if accidentally created)
 app/locale-debug.tsx
 app/theme-test.tsx
+
+# local env backups
+.env*-backup

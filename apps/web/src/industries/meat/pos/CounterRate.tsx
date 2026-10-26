@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Building2, Package, Store } from 'lucide-react';
 import { Segmented } from '@/design-system/components';
+import { usePriceTierSettings } from '@modules/pos/lib/usePriceTierSettings';
 import { formatPKR } from '@core/lib/format';
 import { wholesaleApi } from '../api/wholesale.api';
 import { weightOrdersApi } from '../api/weight-orders.api';
@@ -17,6 +18,8 @@ import { saleListener, setRateMode, useRateMode, type RateMode } from './rateMod
 
 export function CounterRate({ customerId }: { customerId?: string | null }) {
   const mode = useRateMode();
+  // With shop-wide price tiers on, the bill's tier bar replaces this switch.
+  const tiersOn = usePriceTierSettings().on;
   const account = useQuery({
     queryKey: [KEYS.wholesale, 'by-customer', customerId],
     queryFn: () => wholesaleApi.byCustomer(customerId!).catch(() => null),
@@ -46,14 +49,14 @@ export function CounterRate({ customerId }: { customerId?: string | null }) {
 
   return (
     <div className="space-y-1.5">
-      <Segmented<RateMode> label="Rate" value={mode} onChange={setRateMode} className="w-full [&>button]:flex-1"
+      {!tiersOn && <Segmented<RateMode> label="Rate" value={mode} onChange={setRateMode} className="w-full [&>button]:flex-1"
         items={[
           { value: 'retail', label: <span className="inline-flex items-center gap-1.5"><Store className="h-3.5 w-3.5" />Aam rate</span> },
           { value: 'wholesale', label: <span className="inline-flex items-center gap-1.5"><Building2 className="h-3.5 w-3.5" />Restaurant rate</span> },
-        ]} />
-      {mode === 'wholesale' && (
+        ]} />}
+      {!tiersOn && mode === 'wholesale' && (
         <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
-          Ab jo item dalenge un par wholesale rate lagega (jis item par likha hai). Pehle se dali lines ka rate nahi badalta. Bill ke baad wapas aam rate.
+          Bill ki lines par wholesale rate lag gaya (jis item par likha hai). Bill ke baad wapas aam rate.
         </p>
       )}
       {acc && (

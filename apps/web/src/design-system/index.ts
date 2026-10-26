@@ -10,6 +10,7 @@ export * from './tokens/color';
 export * from './tokens/presets';
 export * from './tokens/typography';
 export * from './tokens/layout';
+export * from './tokens/hero';
 export * from './industries/identities';
 export * from './theme/appearance';
 export { applyAppearance, ensureFont, verifyFont, themeVariables, isDarkMode, BOOT_CACHE_KEY, RTL_ENABLED } from './theme/apply';

@@ -110,6 +110,7 @@ export const offlineCustomersApi = {
     cnic?: string;
     city?: string;
     creditLimit?: number;
+    priceTier?: OfflineCustomer['priceTier'];
   }): Promise<Customer> => {
     if (navigator.onLine) {
       try {
@@ -144,6 +145,7 @@ export const offlineCustomersApi = {
       totalSpent: 0,
       isActive: true,
       isVip: false,
+      priceTier: payload.priceTier ?? null,
       createdAt: now,
       updatedAt: now,
       _syncedAt: 0,

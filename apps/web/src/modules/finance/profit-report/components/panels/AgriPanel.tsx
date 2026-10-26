@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { AlertTriangle, Package } from 'lucide-react';
-import { Card, Segmented, Skeleton } from '@/design-system/components';
+import { Card, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -97,26 +97,26 @@ export function AgriPanel({ filters, fmt }: ProfitPanelProps) {
           )}>
           {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? 'Koi masla nahi' : 'Koi sale nahi'}</p> : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[46rem] text-[0.8125rem]">
-                <thead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <tr><th className="px-4 py-2">Cheez</th><th className="px-3 py-2 text-right">Biki</th><th className="px-3 py-2 text-right">Profit</th><th className="px-3 py-2 text-right">Per kilo / naap</th><th className="px-3 py-2 text-right">Thok rate</th><th className="px-4 py-2 text-right">Thok margin</th></tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table minWidth="46rem" className="[&>table]:text-[0.8125rem]">
+                <THead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                  <Tr><Th className="px-4 py-2">Cheez</Th><Th className="px-3 py-2 text-right">Biki</Th><Th className="px-3 py-2 text-right">Profit</Th><Th className="px-3 py-2 text-right">Per kilo / naap</Th><Th className="px-3 py-2 text-right">Thok rate</Th><Th className="px-4 py-2 text-right">Thok margin</Th></Tr>
+                </THead>
+                <TBody className="divide-y divide-slate-100">
                   {shown.map((r) => (
-                    <tr key={r.key}>
-                      <td className="px-4 py-2">
+                    <Tr key={r.key}>
+                      <Td className="text-inherit px-4 py-2">
                         <span className="block font-medium text-slate-900">{r.name}</span>
                         <span className="text-[0.6875rem] text-slate-500">{prettyAgriKind(r.kind)}{r.season ? ` · ${SEASONS.find((s) => s.v === r.season)?.l ?? ''}` : ''}</span>
-                      </td>
-                      <td className="px-3 py-2 text-right tabular-nums">{qty(r.qty)} {r.unit}{r.pack > 0 && <span className="block text-[0.6875rem] text-slate-400"><Package className="mr-0.5 inline h-3 w-3" />{qty(r.qty * r.pack)} {r.packUnit}</span>}</td>
-                      <td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (r.profit ?? 0) < 0 && 'text-rose-700')}>{fmt.cost(r.profit ?? 0)}<span className="block text-[0.6875rem] font-normal text-slate-400">{pct(r.margin)}</span></td>
-                      <td className="px-3 py-2 text-right tabular-nums">{r.perPack !== null ? `${fmt.cost(r.perPack)} / ${r.packUnit}` : '—'}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{r.bulkPrice ? `${fmt.money(r.bulkPrice)} (−${r.bulkPct}%)` : '—'}</td>
-                      <td className={cn('px-4 py-2 text-right tabular-nums', r.bulkRisk && 'font-semibold text-rose-700')}>{r.bulkMargin !== null ? pct(r.bulkMargin) : '—'}</td>
-                    </tr>
+                      </Td>
+                      <Td className="text-inherit px-3 py-2 text-right tabular-nums">{qty(r.qty)} {r.unit}{r.pack > 0 && <span className="block text-[0.6875rem] text-slate-400"><Package className="mr-0.5 inline h-3 w-3" />{qty(r.qty * r.pack)} {r.packUnit}</span>}</Td>
+                      <Td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (r.profit ?? 0) < 0 && 'text-rose-700')}>{fmt.cost(r.profit ?? 0)}<span className="block text-[0.6875rem] font-normal text-slate-400">{pct(r.margin)}</span></Td>
+                      <Td className="text-inherit px-3 py-2 text-right tabular-nums">{r.perPack !== null ? `${fmt.cost(r.perPack)} / ${r.packUnit}` : '—'}</Td>
+                      <Td className="text-inherit px-3 py-2 text-right tabular-nums">{r.bulkPrice ? `${fmt.money(r.bulkPrice)} (−${r.bulkPct}%)` : '—'}</Td>
+                      <Td className={cn('px-4 py-2 text-right tabular-nums', r.bulkRisk && 'font-semibold text-rose-700')}>{r.bulkMargin !== null ? pct(r.bulkMargin) : '—'}</Td>
+                    </Tr>
                   ))}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             </div>
           )}
         </Card>

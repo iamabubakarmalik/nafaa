@@ -44,6 +44,7 @@ export class ProductVariantsService {
       price: v.price,
       costPrice: v.costPrice ?? 0,
       wholesalePrice: v.wholesalePrice,
+      creditPrice: v.creditPrice ?? null,
       // Filled in by the opening-stock movement.
       stock: 0,
       lowStockAlert: v.lowStockAlert ?? 5,

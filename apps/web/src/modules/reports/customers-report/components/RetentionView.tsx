@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Activity, CalendarRange, Repeat, Sprout, Trophy, UserPlus } from 'lucide-react';
-import { KpiCard, KpiRow, Segmented } from '@/design-system/components';
+import { KpiCard, KpiRow, Segmented, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { Cohorts } from '../api';
@@ -42,38 +42,36 @@ export function RetentionView({ data: d, f, months, onMonths }: { data: Cohorts;
         hint="Har line: us mahine pehli dafa aane wale. Khane me: utne mahine baad kitne wapas aaye. Gehra rang = zyada log."
         actions={<Segmented label="Kya dikhayein" value={show} onChange={setShow} items={[{ value: 'pct', label: '%' }, { value: 'people', label: 'Log' }, { value: 'money', label: 'Sale' }]} />}>
         {d.newCustomers === 0 ? <div className="px-4 pb-4"><Empty text="In mahino me koi naya naam wala customer nahi aaya" /></div> : (
-          <div className="overflow-x-auto px-4 pb-4 sm:px-5">
-            <table className="w-full border-separate border-spacing-1 text-[0.75rem]">
-              <thead>
-                <tr className="text-[0.6875rem] font-semibold text-slate-500">
-                  <th className="sticky left-0 bg-white px-2 py-1 text-left">Pehla mahina</th>
-                  <th className="px-2 py-1 text-right">Naye</th>
-                  {Array.from({ length: span }, (_, i) => <th key={i} className="min-w-[3.25rem] px-1 py-1 text-center">{i === 0 ? 'Usi mahine' : `+${i}`}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {[...d.cohorts].reverse().map((c) => (
-                  <tr key={c.key}>
-                    <td className="sticky left-0 whitespace-nowrap bg-white px-2 py-1 font-medium text-slate-700">{keyLabel(c.key)}</td>
-                    <td className="px-2 py-1 text-right font-semibold tabular-nums text-slate-900">{c.size}</td>
-                    {Array.from({ length: span }, (_, i) => {
-                      const cell = c.cells[i];
-                      if (!cell) return <td key={i} />;
-                      const strength = i === 0 ? 1 : cell.pct / 100;
-                      const text = show === 'pct' ? `${cell.pct.toFixed(0)}%` : show === 'people' ? String(cell.customers) : f.money(cell.net);
-                      return (
-                        <td key={i} title={`${cell.customers} customers · ${f.money(cell.net)}`}
-                          className={cn('rounded-md px-1 py-1.5 text-center tabular-nums', !c.size && 'text-slate-300', Math.min(1, strength * (i === 0 ? 1 : 2.2)) > 0.5 ? 'text-white' : 'text-slate-800')}
-                          style={c.size ? { backgroundColor: tint(theme.primary, 0.1 + 0.9 * Math.min(1, strength * (i === 0 ? 1 : 2.2))) } : undefined}>
-                          {c.size ? text : '—'}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table className="px-4 pb-4 sm:px-5 [&_table]:text-[0.75rem] [&_table]:border-separate [&_table]:border-spacing-1">
+            <THead className="border-0 bg-transparent normal-case tracking-normal">
+              <Tr className="text-[0.6875rem] font-semibold text-slate-500">
+                <Th className="sticky left-0 bg-white px-2 py-1 text-left">Pehla mahina</Th>
+                <Th className="px-2 py-1 text-right">Naye</Th>
+                {Array.from({ length: span }, (_, i) => <Th key={i} className="min-w-[3.25rem] px-1 py-1 text-center">{i === 0 ? 'Usi mahine' : `+${i}`}</Th>)}
+              </Tr>
+            </THead>
+            <TBody className="divide-y-0">
+              {[...d.cohorts].reverse().map((c) => (
+                <Tr key={c.key}>
+                  <Td className="sticky left-0 whitespace-nowrap bg-white px-2 py-1 font-medium text-slate-700">{keyLabel(c.key)}</Td>
+                  <Td className="px-2 py-1 text-right font-semibold tabular-nums text-slate-900">{c.size}</Td>
+                  {Array.from({ length: span }, (_, i) => {
+                    const cell = c.cells[i];
+                    if (!cell) return <Td key={i} className="p-0" />;
+                    const strength = i === 0 ? 1 : cell.pct / 100;
+                    const text = show === 'pct' ? `${cell.pct.toFixed(0)}%` : show === 'people' ? String(cell.customers) : f.money(cell.net);
+                    return (
+                      <Td key={i} title={`${cell.customers} customers · ${f.money(cell.net)}`}
+                        className={cn('rounded-md px-1 py-1.5 text-center tabular-nums', !c.size && 'text-slate-300', Math.min(1, strength * (i === 0 ? 1 : 2.2)) > 0.5 ? 'text-white' : 'text-slate-800')}
+                        style={c.size ? { backgroundColor: tint(theme.primary, 0.1 + 0.9 * Math.min(1, strength * (i === 0 ? 1 : 2.2))) } : undefined}>
+                        {c.size ? text : '—'}
+                      </Td>
+                    );
+                  })}
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
         )}
       </Panel>
 

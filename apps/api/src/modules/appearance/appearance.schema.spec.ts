@@ -16,6 +16,12 @@ describe('sanitizeLayer', () => {
     expect(sanitizeLayer({ latinFont: 'gf:Bad;Name' })).toEqual({});
   });
 
+  it('accepts the page header options and rejects unknown ones', () => {
+    expect(sanitizeLayer({ heroStyle: 'aurora', heroPattern: 'grid', heroSize: 'compact', heroStats: 'cards' }))
+      .toEqual({ heroStyle: 'aurora', heroPattern: 'grid', heroSize: 'compact', heroStats: 'cards' });
+    expect(sanitizeLayer({ heroStyle: 'neon', heroPattern: 'waves', heroSize: 'huge', heroStats: 1 })).toEqual({});
+  });
+
   it('handles non-objects', () => {
     expect(sanitizeLayer(null)).toEqual({});
     expect(sanitizeLayer('dark')).toEqual({});

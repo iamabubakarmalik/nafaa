@@ -9,14 +9,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { FileText, FileType2, Image as ImageIcon, LayoutTemplate, MessageSquareText, Plus, Printer, ScrollText, Sparkles, Trash2, Wallet } from 'lucide-react';
-import { Button, Segmented } from '@/design-system/components';
+import { Button, Segmented, Input, Select, Textarea, IconButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { ReceiptPreview } from '@core/receipt/ReceiptPreview';
 import { printReceipt } from '@core/receipt/print';
 import { NAFAA, RECEIPT_SETUP_KEY, getReceiptSetup, receiptSetupApi, useReceiptSetup } from '@core/receipt/setup';
 import type { PayAccount, ReceiptDesign, ReceiptDoc, ReceiptPaper } from '@core/receipt/types';
 import { PAY_KIND_LABEL } from '@core/receipt/html';
-import { ChoiceGroup, Field, NumberInput, SectionCard, Select, TextArea, TextInput, Toggle } from '../components/UI';
+import { ChoiceGroup, Field, NumberInput, SectionCard, Toggle } from '../components/SettingsBlocks';
 import { HeaderActions } from '../components/SettingsFrame';
 import { SaveStatusBar } from './_SaveStatus';
 
@@ -117,17 +117,11 @@ export function ReceiptSection() {
               </Field>
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Harf ka size" hint="Bare harf door se parhne me aasaan, magar bill lamba hota hai.">
-                <Select value={draft.font} onChange={(v) => set('font', v as ReceiptDesign['font'])}
-                  options={[{ value: 'small', label: 'Chhota' }, { value: 'normal', label: 'Normal' }, { value: 'large', label: 'Bara (saaf parhne ke liye)' }]} />
-              </Field>
-              <Field label="Background par naam" hint="A4 / PDF par halka naam; thermal kaghaz halka rang nahi chhaapta">
-                <Select value={draft.watermark} onChange={(v) => set('watermark', v as ReceiptDesign['watermark'])}
-                  options={[{ value: 'both', label: 'Dukaan + Nafaa' }, { value: 'shop', label: 'Sirf dukaan' }, { value: 'nafaa', label: 'Sirf Nafaa' }, { value: 'none', label: 'Kuch nahi (saada safed)' }]} />
-              </Field>
+              <Select label="Harf ka size" hint="Bare harf door se parhne me aasaan, magar bill lamba hota hai." value={draft.font ?? ''} onChange={(e) => set('font', e.target.value as ReceiptDesign['font'])} options={[{ value: 'small', label: 'Chhota' }, { value: 'normal', label: 'Normal' }, { value: 'large', label: 'Bara (saaf parhne ke liye)' }]} />
+              <Select label="Background par naam" hint="A4 / PDF par halka naam; thermal kaghaz halka rang nahi chhaapta" value={draft.watermark ?? ''} onChange={(e) => set('watermark', e.target.value as ReceiptDesign['watermark'])} options={[{ value: 'both', label: 'Dukaan + Nafaa' }, { value: 'shop', label: 'Sirf dukaan' }, { value: 'nafaa', label: 'Sirf Nafaa' }, { value: 'none', label: 'Kuch nahi (saada safed)' }]} />
             </div>
             <div className="mt-4">
-              <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">Rang (A4 / PDF)</p>
+              <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Rang (A4 / PDF)</p>
               <p className="mb-2 text-xs text-slate-500">Thermal printer sirf kaala chhaapta hai; rang A4 aur PDF par aata hai.</p>
               <div className="flex flex-wrap items-center gap-1.5">
                 {ACCENTS.map((c) => (
@@ -141,9 +135,7 @@ export function ReceiptSection() {
           </SectionCard>
 
           <SectionCard title="Upar ka hissa" desc="Store ka naam, logo aur pata 'Store details' se aate hain" icon={ImageIcon} color="violet">
-            <Field label="Naam ke neeche chhoti line" hint="Misaal: Taaza aur asli maal · 1985 se">
-              <TextInput value={draft.tagline} onChange={(v) => set('tagline', v)} maxLength={80} placeholder="Apni dukaan ki pehchaan" />
-            </Field>
+            <Input label="Naam ke neeche chhoti line" hint="Misaal: Taaza aur asli maal · 1985 se" value={draft.tagline ?? ''} onChange={(e) => set('tagline', e.target.value)} maxLength={80} placeholder="Apni dukaan ki pehchaan" />
             <div className="mt-2">
               <Toggle checked={draft.showLogo} onChange={(v) => set('showLogo', v)} label="Logo"
                 desc={base.shop.logoUrl ? 'Thermal par kaala-safed chhapta hai' : 'Pehle Store details me logo lagayein'} />
@@ -166,18 +158,14 @@ export function ReceiptSection() {
 
           <SectionCard title="Neeche ka hissa" desc="Aap ke apne alfaaz — har bill ke neeche" icon={MessageSquareText} color="amber">
             <div className="grid gap-4">
-              <Field label="Neeche apna message" hint="Misaal: Eid par 10% Discount · Home delivery free">
-                <TextArea value={draft.footer} onChange={(v) => set('footer', v)} rows={2} maxLength={300} />
-              </Field>
-              <Field label="Return ke usool" hint="Har line alag usool ban kar chhapti hai">
-                <TextArea value={draft.terms} onChange={(v) => set('terms', v)} rows={3} maxLength={600}
-                  placeholder={'3 din me return, bill ke saath\nIstemal shuda maal wapas nahi'} />
-              </Field>
+              <Textarea label="Neeche apna message" hint={`Misaal: Eid par 10% Discount · Home delivery free · ${(draft.footer ?? '').length}/300`}
+                value={draft.footer ?? ''} onChange={(e) => set('footer', e.target.value)} rows={2} maxLength={300} />
+              <Textarea label="Return ke usool" hint={`Har line alag usool ban kar chhapti hai · ${(draft.terms ?? '').length}/600`}
+                value={draft.terms ?? ''} onChange={(e) => set('terms', e.target.value)} rows={3} maxLength={600}
+                placeholder={'3 din me return, bill ke saath\nIstemal shuda maal wapas nahi'} />
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Shukriya ki line" hint="Bill ki aakhri line"><TextInput value={draft.thanks} onChange={(v) => set('thanks', v)} maxLength={80} /></Field>
-                <Field label="Facebook / Instagram / website" hint="Customer aap ko online dhoond sake">
-                  <TextInput value={draft.social} onChange={(v) => set('social', v)} maxLength={100} placeholder="fb.com/meridukaan" />
-                </Field>
+                <Input label="Shukriya ki line" hint="Bill ki aakhri line" value={draft.thanks ?? ''} onChange={(e) => set('thanks', e.target.value)} maxLength={80} />
+                <Input label="Facebook / Instagram / website" hint="Customer aap ko online dhoond sake" value={draft.social ?? ''} onChange={(e) => set('social', e.target.value)} maxLength={100} placeholder="fb.com/meridukaan" />
               </div>
             </div>
             <div className="mt-2">
@@ -185,7 +173,7 @@ export function ReceiptSection() {
               <Toggle checked={draft.showPayQr} onChange={(v) => set('showPayQr', v)} label="Udhaar par payment QR" desc="Settings → Payment QR laga ho to" />
               <Toggle checked={draft.showReviewQr} onChange={(v) => set('showReviewQr', v)} label="Google review QR" desc="Settings → Google me link ho to" />
             </div>
-            <div className="mt-3 flex items-start gap-2.5 rounded-xl bg-brand-50 p-3 text-xs leading-relaxed text-brand-900 ring-1 ring-brand-100">
+            <div className="mt-3 flex items-start gap-2.5 rounded-lg bg-brand-50 p-3 text-xs leading-relaxed text-brand-900 ring-1 ring-inset ring-brand-200">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0" />
               <p>Har bill ke bilkul neeche <b>{NAFAA.name}</b> ki chhoti si line aati hai ({NAFAA.phone}).</p>
             </div>
@@ -194,18 +182,15 @@ export function ReceiptSection() {
           <SectionCard title="Paise kaise bhejein" desc="Udhaar ya online order wale bill par aap ke account chhapte hain, taake customer seedha bhej sake" icon={Wallet} color="emerald">
             <div className="space-y-3">
               {accounts.map((a, i) => (
-                <div key={i} className="grid gap-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)_auto]">
-                  <Select value={a.kind} onChange={(v) => setAccount(i, { kind: v as PayAccount['kind'] })}
-                    options={Object.entries(PAY_KIND_LABEL).map(([value, label]) => ({ value, label }))} />
-                  <TextInput value={a.number} onChange={(v) => setAccount(i, { number: v })} maxLength={40}
-                    placeholder={a.kind === 'BANK' ? 'Account number' : a.kind === 'RAAST' ? 'Raast ID / number' : '03xx-xxxxxxx'} />
-                  <TextInput value={a.title} onChange={(v) => setAccount(i, { title: v })} maxLength={80} placeholder="Account title (naam)" />
-                  <button type="button" onClick={() => removeAccount(i)} aria-label="Hatayein"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
+                <div key={i} className="grid gap-2 rounded-lg border border-slate-200 p-3 sm:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1fr)_auto]">
+                  <Select value={a.kind ?? ''} onChange={(e) => setAccount(i, { kind: e.target.value as PayAccount['kind'] })} options={Object.entries(PAY_KIND_LABEL).map(([value, label]) => ({ value, label }))} />
+                  <Input value={a.number ?? ''} onChange={(e) => setAccount(i, { number: e.target.value })} maxLength={40} placeholder={a.kind === 'BANK' ? 'Account number' : a.kind === 'RAAST' ? 'Raast ID / number' : '03xx-xxxxxxx'} />
+                  <Input value={a.title ?? ''} onChange={(e) => setAccount(i, { title: e.target.value })} maxLength={80} placeholder="Account title (naam)" />
+                  <IconButton label="Hatayein" variant="ghost" onClick={() => removeAccount(i)} className="text-slate-500 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></IconButton>
                   {a.kind === 'BANK' && (
                     <div className="grid gap-2 sm:col-span-4 sm:grid-cols-2">
-                      <TextInput value={a.bank ?? ''} onChange={(v) => setAccount(i, { bank: v })} maxLength={60} placeholder="Bank ka naam (Meezan, HBL…)" />
-                      <TextInput value={a.iban ?? ''} onChange={(v) => setAccount(i, { iban: v.toUpperCase().replace(/\s/g, '') })} maxLength={40} placeholder="IBAN (PK..)" />
+                      <Input value={a.bank ?? ''} onChange={(e) => setAccount(i, { bank: e.target.value })} maxLength={60} placeholder="Bank ka naam (Meezan, HBL…)" />
+                      <Input value={a.iban ?? ''} onChange={(e) => setAccount(i, { iban: e.target.value.toUpperCase().replace(/\s/g, '') })} maxLength={40} placeholder="IBAN (PK..)" />
                     </div>
                   )}
                 </div>
@@ -224,17 +209,13 @@ export function ReceiptSection() {
                     { value: 'never', label: 'Kabhi nahi' },
                   ]} />
               </Field>
-              <Field label="Saath ki hidayat" hint="Misaal: Paise bhej kar screenshot 0321-xxxxxxx par WhatsApp karein">
-                <TextInput value={draft.payNote} onChange={(v) => set('payNote', v)} maxLength={120} />
-              </Field>
+              <Input label="Saath ki hidayat" hint="Misaal: Paise bhej kar screenshot 0321-xxxxxxx par WhatsApp karein" value={draft.payNote ?? ''} onChange={(e) => set('payNote', e.target.value)} maxLength={120} />
             </div>
           </SectionCard>
 
           <SectionCard title="A4 invoice" desc="Bari companies jaisa invoice — PDF, online order aur wholesale ke liye" icon={FileType2} color="indigo">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Upar ka unwaan" hint="INVOICE, TAX INVOICE, BILL, CASH MEMO…">
-                <TextInput value={draft.a4Title} onChange={(v) => set('a4Title', v.toUpperCase())} maxLength={30} />
-              </Field>
+              <Input label="Upar ka unwaan" hint="INVOICE, TAX INVOICE, BILL, CASH MEMO…" value={draft.a4Title ?? ''} onChange={(e) => set('a4Title', e.target.value.toUpperCase())} maxLength={30} />
               <Field label="Paise dene ki period" hint="Baqi wale bill par aakhri date (0 = nahi)">
                 <NumberInput value={draft.dueDays} onChange={(v) => set('dueDays', v)} min={0} max={365} suffix="din" />
               </Field>
@@ -257,10 +238,9 @@ export function ReceiptSection() {
           </SectionCard>
 
           <SectionCard title="Peeche ka hissa" desc="Bill ke baad aap ki shartein aur hidayat, dukaan aur Nafaa ki pehchaan ke saath" icon={ScrollText} color="rose">
-            <Field label="Shartein / hidayat" hint="Har line alag number ban kar chhapti hai">
-              <TextArea value={draft.backText} onChange={(v) => set('backText', v)} rows={5} maxLength={2000}
-                placeholder={'Maal 3 din me wapas ho sakta hai, bill ke saath\nElectronics par sirf company warranty\nUdhaar 30 din me ada karein'} />
-            </Field>
+            <Textarea label="Shartein / hidayat" hint={`Har line alag number ban kar chhapti hai · ${(draft.backText ?? '').length}/2000`}
+              value={draft.backText ?? ''} onChange={(e) => set('backText', e.target.value)} rows={5} maxLength={2000}
+              placeholder={'Maal 3 din me wapas ho sakta hai, bill ke saath\nElectronics par sirf company warranty\nUdhaar 30 din me ada karein'} />
             <div className="mt-3">
               <Field label="Kahan chhapein" hint="Thermal par kaghaz zyada lagta hai — zaroorat ho to hi chalu karein">
                 <ChoiceGroup value={draft.backPrint} onChange={(v) => set('backPrint', v)} columns={3}

@@ -1,11 +1,10 @@
-import { confirmDialog } from '@/design-system/components';
+import { Alert, Badge, Button, Card, confirmDialog, EmptyState, Field, Input, PageHero, PageShell, Segmented, Switch, Table, TBody, Td, Tr } from '@/design-system/components';
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, KeyRound, Plus, RefreshCw, Send, Trash2, Webhook, Zap } from 'lucide-react';
 import { apiErrorMessage } from '@integrations/online-orders/api/online-orders.api';
 import { whenText } from '@integrations/online-orders/lib/labels';
-import { Badge, Banner, Btn, Card, EmptyState, Field, Page, Segmented, Toggle, inputCls } from '@integrations/online-orders/components/ui/kit';
 import { cn } from '@core/lib/cn';
 import { API_BASE, developerApi, type DeveloperOverview, type WebhookRow } from './developer.api';
 
@@ -24,21 +23,22 @@ export default function DeveloperPage() {
   const [secret, setSecret] = useState<{ title: string; value: string } | null>(null);
 
   return (
-    <Page back={{ to: '/settings', label: 'Settings' }} title="API & Webhooks"
-      subtitle="Nafaa ko Zapier, Make, Google Sheets ya apne software se jorein — bina kisi developer ke intezar ke.">
+    <PageShell>
+      <PageHero back="/settings" backLabel="Settings" title="API & Webhooks"
+        subtitle="Nafaa ko Zapier, Make, Google Sheets ya apne software se jorein — bina kisi developer ke intezar ke." />
       {secret && (
-        <Banner tone="warning" title={secret.title}
-          action={<Btn size="sm" onClick={() => setSecret(null)}>Likh liya</Btn>}>
+        <Alert tone="warning" title={secret.title}
+          action={<Button size="xs" onClick={() => setSecret(null)}>Likh liya</Button>}>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <code className="break-all rounded bg-white px-2 py-1 font-mono text-[0.78125rem] text-slate-900 dark:bg-ink-900 dark:text-ink-white">{secret.value}</code>
-            <Btn size="sm" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(secret.value)}>Copy</Btn>
+            <Button size="xs" leftIcon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(secret.value)}>Copy</Button>
           </div>
           <p className="mt-1 text-[0.78125rem]">Ye sirf abhi dikh raha hai — dobara nahi dikhega. Kho jaye to nayi bana lein.</p>
-        </Banner>
+        </Alert>
       )}
 
       {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
-        : error || !data ? <Card><EmptyState title="Safha nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
+        : error || !data ? <Card><EmptyState title="Safha nahi khula" description={apiErrorMessage(error)} /></Card>
         : (
           <>
             <QuickStart />
@@ -48,7 +48,7 @@ export default function DeveloperPage() {
             <DocsCard />
           </>
         )}
-    </Page>
+    </PageShell>
   );
 }
 
@@ -101,22 +101,20 @@ function KeysCard({ data, onSecret }: { data: DeveloperOverview; onSecret: (s: {
             {data.keys.map((k) => (
               <li key={k.id} className="flex flex-wrap items-center gap-2 px-3 py-2 text-[0.8125rem]">
                 <span className="font-semibold text-slate-900 dark:text-ink-white">{k.name}</span>
-                <Badge tone={k.scope === 'write' ? 'warning' : 'neutral'}>{k.scope === 'write' ? 'Parhna + likhna' : 'Sirf parhna'}</Badge>
+                <Badge size="xs" variant={k.scope === 'write' ? 'warning' : 'default'}>{k.scope === 'write' ? 'Parhna + likhna' : 'Sirf parhna'}</Badge>
                 <code className="font-mono text-[0.75rem] text-slate-500">{k.preview}</code>
                 <span className="flex-1" />
                 <span className="text-[0.75rem] text-slate-500">{k.lastUsedAt ? `istemal ${whenText(k.lastUsedAt)}` : 'abhi istemal nahi hui'}</span>
-                <Btn size="sm" variant="plain" className="text-rose-600" loading={revoke.isPending && revoke.variables === k.id}
-                  onClick={async () => { if ((await confirmDialog({ title: `"${k.name}" key band karein?`, text: 'Jo software is se jura hai wo ruk jayega.', danger: true }))) revoke.mutate(k.id); }}>Band karein</Btn>
+                <Button size="xs" variant="critical" loading={revoke.isPending && revoke.variables === k.id}
+                  onClick={async () => { if ((await confirmDialog({ title: `"${k.name}" key band karein?`, text: 'Jo software is se jura hai wo ruk jayega.', danger: true }))) revoke.mutate(k.id); }}>Band karein</Button>
               </li>
             ))}
           </ul>
         )}
         <div className="flex flex-wrap items-end gap-2">
-          <Field label="Naam">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Zapier, Mera ERP…" className={cn(inputCls, 'w-56')} />
-          </Field>
+          <Input size="sm" label="Naam" value={name} onChange={(e) => setName(e.target.value)} placeholder="Zapier, Mera ERP…" className="w-56" />
           <Segmented value={scope} onChange={setScope} items={[{ value: 'read', label: 'Sirf parhna' }, { value: 'write', label: '+ Customer banana' }]} />
-          <Btn variant="primary" disabled={!name.trim()} loading={create.isPending} icon={<Plus className="h-4 w-4" />} onClick={() => create.mutate()}>Key banayein</Btn>
+          <Button size="sm" variant="primary" disabled={!name.trim()} loading={create.isPending} leftIcon={<Plus className="h-4 w-4" />} onClick={() => create.mutate()}>Key banayein</Button>
         </div>
       </div>
     </Card>
@@ -143,28 +141,24 @@ function HooksCard({ data, onSecret }: { data: DeveloperOverview; onSecret: (s: 
   const toggleEv = (t: string) => setEvents((v) => (t === '*' ? ['*'] : v.includes(t) ? v.filter((x) => x !== t) : [...v.filter((x) => x !== '*'), t]));
 
   return (
-    <Card title={<span className="flex items-center gap-2"><Webhook className="h-4 w-4" /> Webhooks {data.pendingRetries > 0 && <Badge tone="warning">{data.pendingRetries} dobara bhejne ki qatar me</Badge>}</span>}
+    <Card title={<span className="flex items-center gap-2"><Webhook className="h-4 w-4" /> Webhooks {data.pendingRetries > 0 && <Badge size="xs" variant="warning">{data.pendingRetries} dobara bhejne ki qatar me</Badge>}</span>}
       description="Nafaa me kuch ho to 1 minute ke andar aap ke URL par khabar. Fail ho to Nafaa khud 6 dafa dobara bhejta hai."
-      actions={!open ? <Btn size="sm" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setOpen(true)}>Webhook jorein</Btn> : undefined}>
+      actions={!open ? <Button size="xs" leftIcon={<Plus className="h-3.5 w-3.5" />} onClick={() => setOpen(true)}>Webhook jorein</Button> : undefined}>
       <div className="space-y-3">
         {data.endpoints.map((h) => <HookRow key={h.id} h={h} labels={data.events} onSecret={onSecret} />)}
         {open && (
           <div className="space-y-3 rounded-xl border border-dashed border-slate-300 p-3 dark:border-ink-700">
-            <Field label="URL" help="https:// wala — Zapier 'Catch Hook', Make 'Custom webhook', ya apna server">
-              <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://hooks.zapier.com/hooks/catch/…" className={cn(inputCls, 'font-mono')} />
-            </Field>
+            <Input size="sm" label="URL" hint="https:// wala — Zapier 'Catch Hook', Make 'Custom webhook', ya apna server" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://hooks.zapier.com/hooks/catch/…" className="font-mono" />
             <Field label="Kaun se waqiat">
-              <div className="flex flex-wrap gap-1.5">
+              {() => (<div className="flex flex-wrap gap-1.5">
                 <EvChip on={events.includes('*')} onClick={() => toggleEv('*')}>Sab</EvChip>
                 {data.events.map((e) => <EvChip key={e.type} on={events.includes(e.type)} onClick={() => toggleEv(e.type)} title={e.type}>{e.label}</EvChip>)}
-              </div>
+              </div>)}
             </Field>
-            <Field label="Note (optional)">
-              <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Sales → Google Sheet" className={inputCls} />
-            </Field>
+            <Input size="sm" label="Note (optional)" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Sales → Google Sheet" />
             <div className="flex justify-end gap-2">
-              {data.endpoints.length > 0 && <Btn variant="plain" onClick={() => setOpen(false)}>Rehne dein</Btn>}
-              <Btn variant="primary" disabled={!url.trim() || !events.length} loading={create.isPending} onClick={() => create.mutate()}>Jorein</Btn>
+              {data.endpoints.length > 0 && <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Rehne dein</Button>}
+              <Button size="sm" variant="primary" disabled={!url.trim() || !events.length} loading={create.isPending} onClick={() => create.mutate()}>Jorein</Button>
             </div>
           </div>
         )}
@@ -177,7 +171,7 @@ function EvChip({ on, onClick, children, title }: { on: boolean; onClick: () => 
   return (
     <button type="button" title={title} onClick={onClick}
       className={cn('rounded-full border px-2.5 py-1 text-[0.75rem] font-medium transition',
-        on ? 'border-emerald-600 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300' : 'border-slate-300 text-slate-600 hover:border-slate-400 dark:border-ink-700 dark:text-ink-300')}>
+        on ? 'border-brand-600 bg-brand-50 text-brand-800' : 'border-slate-300 text-slate-600 hover:border-slate-400 dark:border-ink-700 dark:text-ink-300')}>
       {children}
     </button>
   );
@@ -200,9 +194,9 @@ function HookRow({ h, labels, onSecret }: { h: WebhookRow; labels: { type: strin
     <div className="rounded-xl border border-slate-200 p-3 dark:border-ink-800">
       <div className="flex flex-wrap items-center gap-2">
         <code className="min-w-0 flex-1 truncate font-mono text-[0.78125rem] text-slate-900 dark:text-ink-white" title={h.url}>{h.url}</code>
-        {h.source === 'api' && <Badge tone="info">Zapier/Make ne khud jora</Badge>}
-        {h.active ? (h.failCount > 0 ? <Badge tone="warning" dot>{h.failCount} fail</Badge> : <Badge tone="success" dot>Chal raha</Badge>) : <Badge tone="neutral">Band</Badge>}
-        <Toggle checked={h.active} onChange={(v) => on.mutate(v)} disabled={on.isPending} />
+        {h.source === 'api' && <Badge size="xs" variant="info">Zapier/Make ne khud jora</Badge>}
+        {h.active ? (h.failCount > 0 ? <Badge size="xs" variant="warning" dot>{h.failCount} fail</Badge> : <Badge size="xs" variant="success" dot>Chal raha</Badge>) : <Badge size="xs" variant="default">Band</Badge>}
+        <Switch size="sm" checked={h.active} onChange={(e) => on.mutate(e.target.checked)} disabled={on.isPending} />
       </div>
       <div className="mt-1 text-[0.78125rem] text-slate-600 dark:text-ink-300">{h.description ? `${h.description} — ` : ''}{evText}</div>
       <div className="mt-1 text-[0.75rem] text-slate-500">
@@ -211,11 +205,11 @@ function HookRow({ h, labels, onSecret }: { h: WebhookRow; labels: { type: strin
         {h.disabledReason && <div className="font-semibold text-rose-600">{h.disabledReason}</div>}
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <Btn size="sm" loading={test.isPending} icon={<Send className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>Test bhejein</Btn>
-        <Btn size="sm" variant="plain" loading={rotate.isPending} icon={<RefreshCw className="h-3.5 w-3.5" />}
-          onClick={async () => { if ((await confirmDialog({ title: 'Naya secret banayein?', text: 'Purane se signature check karne wala server fail hoga.', danger: true }))) rotate.mutate(); }}>Naya secret</Btn>
-        <Btn size="sm" variant="plain" className="text-rose-600" loading={del.isPending} icon={<Trash2 className="h-3.5 w-3.5" />}
-          onClick={async () => { if ((await confirmDialog({ title: 'Ye webhook hatayein?', danger: true }))) del.mutate(); }}>Hatayein</Btn>
+        <Button size="xs" loading={test.isPending} leftIcon={<Send className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>Test bhejein</Button>
+        <Button size="xs" variant="ghost" loading={rotate.isPending} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+          onClick={async () => { if ((await confirmDialog({ title: 'Naya secret banayein?', text: 'Purane se signature check karne wala server fail hoga.', danger: true }))) rotate.mutate(); }}>Naya secret</Button>
+        <Button size="xs" variant="critical" loading={del.isPending} leftIcon={<Trash2 className="h-3.5 w-3.5" />}
+          onClick={async () => { if ((await confirmDialog({ title: 'Ye webhook hatayein?', danger: true }))) del.mutate(); }}>Hatayein</Button>
       </div>
     </div>
   );
@@ -227,21 +221,21 @@ function LogCard({ data }: { data: DeveloperOverview }) {
   return (
     <Card title="Aakhri bheje gaye" description="Pichle 50 — kya gaya, kya pohancha." flush>
       <div className="max-h-80 overflow-y-auto">
-        <table className="w-full text-[0.78125rem]">
-          <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
+        <Table className="[&_table]:text-[0.78125rem]">
+          <TBody className="divide-y divide-slate-100 dark:divide-ink-800">
             {data.log.map((l, i) => (
-              <tr key={i}>
-                <td className="whitespace-nowrap px-4 py-1.5 text-slate-500">{whenText(l.at)}</td>
-                <td className="px-2 py-1.5 font-mono">{l.type}</td>
-                <td className="max-w-[220px] truncate px-2 py-1.5 text-slate-500" title={urlOf(l.endpointId)}>{urlOf(l.endpointId)}</td>
-                <td className="px-2 py-1.5">{l.attempt > 1 && <span className="text-slate-500">#{l.attempt} </span>}</td>
-                <td className="whitespace-nowrap px-4 py-1.5 text-right">
-                  {l.ok ? <Badge tone="success">{l.status} · {l.ms}ms</Badge> : <Badge tone="critical">{l.error ?? l.status}</Badge>}
-                </td>
-              </tr>
+              <Tr key={i}>
+                <Td className="whitespace-nowrap px-4 py-1.5 text-slate-500">{whenText(l.at)}</Td>
+                <Td className="px-2 py-1.5 font-mono">{l.type}</Td>
+                <Td className="max-w-[13.75rem] truncate px-2 py-1.5 text-slate-500" title={urlOf(l.endpointId)}>{urlOf(l.endpointId)}</Td>
+                <Td className="px-2 py-1.5">{l.attempt > 1 && <span className="text-slate-500">#{l.attempt} </span>}</Td>
+                <Td className="whitespace-nowrap px-4 py-1.5 text-right">
+                  {l.ok ? <Badge size="xs" variant="success">{l.status} · {l.ms}ms</Badge> : <Badge size="xs" variant="danger">{l.error ?? l.status}</Badge>}
+                </Td>
+              </Tr>
             ))}
-          </tbody>
-        </table>
+          </TBody>
+        </Table>
       </div>
     </Card>
   );
@@ -275,17 +269,17 @@ if (expected !== v1 || Date.now() / 1000 - t > 300) return res.status(401).end()
     <Card title="Developer ke liye" description={`Base URL: ${API_BASE}/v1 · JSON · 120 request / minute`}>
       <div className="space-y-4">
         <div className="overflow-x-auto">
-          <table className="w-full text-[0.78125rem]">
-            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
+          <Table className="[&_table]:text-[0.78125rem]">
+            <TBody className="divide-y divide-slate-100 dark:divide-ink-800">
               {ENDPOINTS.map(([m, p, d]) => (
-                <tr key={m + p}>
-                  <td className="py-1.5 pr-2 font-mono font-semibold text-emerald-700 dark:text-emerald-400">{m}</td>
-                  <td className="whitespace-nowrap py-1.5 pr-3 font-mono text-slate-900 dark:text-ink-white">{p}</td>
-                  <td className="py-1.5 text-slate-600 dark:text-ink-300">{d}</td>
-                </tr>
+                <Tr key={m + p}>
+                  <Td className="py-1.5 pr-2 font-mono font-semibold text-brand-700">{m}</Td>
+                  <Td className="whitespace-nowrap py-1.5 pr-3 font-mono text-slate-900 dark:text-ink-white">{p}</Td>
+                  <Td className="py-1.5 text-slate-600 dark:text-ink-300">{d}</Td>
+                </Tr>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </div>
         <Code title="Pehli request" text={curl} />
         <Code title="Webhook signature check" text={verify} />
@@ -302,7 +296,7 @@ function Code({ title, text }: { title: string; text: string }) {
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300">
-        {title} <button type="button" onClick={() => copy(text)} className="inline-flex items-center gap-1 text-emerald-700 hover:underline"><Copy className="h-3 w-3" /> Copy</button>
+        {title} <button type="button" onClick={() => copy(text)} className="inline-flex items-center gap-1 text-brand-700 hover:underline"><Copy className="h-3 w-3" /> Copy</button>
       </div>
       <pre className="overflow-x-auto rounded-lg bg-slate-950 p-3 font-mono text-[0.75rem] leading-relaxed text-slate-100">{text}</pre>
     </div>

@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { ChevronRight, Globe, Plus } from 'lucide-react';
 import { channelMeta, channelPath, useSalesChannels } from '../hooks/useSalesChannels';
 import { timeAgo } from '../lib/labels';
-import { Badge, Btn, Card, ChannelAvatar, EmptyState, Page } from '../components/ui/kit';
+import { ChannelAvatar } from '../components/ChannelAvatar';
+import { Badge, Button, heroPrimaryButton, Card, EmptyState, PageHero, PageShell } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    SALES CHANNELS (Settings) — jore hue channels + naya jorna
@@ -20,16 +21,15 @@ export default function ChannelsListPage() {
   const channels = data ?? [];
 
   return (
-    <Page title="Sales channels" subtitle="Jahan jahan aap bechte hain. Har channel ke orders Online orders me, aur stock sab ka ek — Nafaa."
-      actions={<Link to="/online-store/connect"><Btn variant="primary" icon={<Plus className="h-4 w-4" />}>Channel jorein</Btn></Link>}>
+    <PageShell>
+      <PageHero title="Sales channels" subtitle="Jahan jahan aap bechte hain. Har channel ke orders Online orders me, aur stock sab ka ek — Nafaa."
+        actions={<Link to="/online-store/connect" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Channel jorein</Link>} />
       <Card flush>
         {isLoading ? (
           <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" />)}</div>
         ) : channels.length === 0 ? (
           <EmptyState icon={<Globe className="h-5 w-5" />} title="Abhi koi channel nahi jura"
-            action={<Link to="/online-store/connect"><Btn variant="primary">Pehla channel jorein</Btn></Link>}>
-            Apni website jorein — orders khud Nafaa me aayenge, ghanti bajegi, aur stock dono jagah ek rahega.
-          </EmptyState>
+            action={<Link to="/online-store/connect"><Button size="sm" variant="primary">Pehla channel jorein</Button></Link>} description="Apni website jorein — orders khud Nafaa me aayenge, ghanti bajegi, aur stock dono jagah ek rahega." />
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-ink-800">
             {channels.map((c) => {
@@ -41,9 +41,9 @@ export default function ChannelsListPage() {
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="truncate text-[0.875rem] font-semibold text-slate-900 dark:text-ink-white">{c.displayName}</span>
-                        <Badge tone={c.live ? 'success' : 'neutral'} dot>{c.live ? 'Live' : 'Band'}</Badge>
-                        {c.oneClick && <Badge tone="info">Automatic</Badge>}
-                        {c.pendingOrders > 0 && <Badge tone="warning">{c.pendingOrders} naye</Badge>}
+                        <Badge size="xs" variant={c.live ? 'success' : 'default'} dot>{c.live ? 'Live' : 'Band'}</Badge>
+                        {c.oneClick && <Badge size="xs" variant="info">Automatic</Badge>}
+                        {c.pendingOrders > 0 && <Badge size="xs" variant="warning">{c.pendingOrders} naye</Badge>}
                       </div>
                       <div className="truncate text-[0.78125rem] text-slate-500">
                         {m.label}{c.siteUrl ? ` · ${c.siteUrl.replace(/^https?:\/\//, '')}` : ''} · {c.lastOrderAt ? `aakhri order ${timeAgo(c.lastOrderAt)}` : 'abhi koi order nahi'}
@@ -74,6 +74,6 @@ export default function ChannelsListPage() {
           })}
         </div>
       </Card>
-    </Page>
+    </PageShell>
   );
 }

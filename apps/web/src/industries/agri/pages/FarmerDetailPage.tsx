@@ -8,8 +8,8 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, Ban, BookOpen, Boxes, Edit3, EyeOff, Landmark, Leaf, Link2, MapPin, MessageCircle, Phone, RotateCcw, Sprout, Wallet } from 'lucide-react';
-import { Button, Card, KpiCard, KpiRow, Modal, PageShell, Skeleton, Table, TBody, THead, Td, Th, Tr } from '@/design-system/components';
+import { AlertTriangle, Ban, BookOpen, Boxes, Edit3, EyeOff, Landmark, Leaf, Link2, MapPin, MessageCircle, Phone, RotateCcw, Sprout, Wallet } from 'lucide-react';
+import { Button, Card, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, Table, TBody, Td, Th, THead, Tr, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -85,25 +85,25 @@ export default function FarmerDetailPage() {
 
   return (
     <PageShell>
-      <div className="relative rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <div className="flex flex-wrap items-start gap-3">
-          <button type="button" onClick={() => navigate('/agri/farmers')} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-bold">{f.fullName}{stopped && <span className="ml-2 rounded-full bg-rose-500/90 px-2 py-0.5 align-middle text-[0.6875rem] font-semibold">Udhaar roka hua</span>}</h1>
-            <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[0.8125rem] text-white/75">
-              <span>{f.farmerNumber}</span><span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{f.phone}</span>
-              <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{[f.village, f.tehsil, f.district].filter(Boolean).join(', ') || '—'}</span>
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {canCollect && f.khataLinked && f.currentBalance > 0 && <button type="button" onClick={() => setPay(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-bold text-brand-800"><Wallet className="h-4 w-4" />Wasool</button>}
-            {f.currentBalance > 0 && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+      <PageHero
+        title={<>{f.fullName}{stopped && <span className="ml-2 rounded-full bg-rose-500/90 px-2 py-0.5 align-middle text-[0.6875rem] font-semibold">Udhaar roka hua</span>}</>}
+        subtitle={(
+          <span className="flex flex-wrap items-center gap-x-3">
+            <span>{f.farmerNumber}</span><span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{f.phone}</span>
+            <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{[f.village, f.tehsil, f.district].filter(Boolean).join(', ') || '—'}</span>
+          </span>
+        )}
+        back="/agri/farmers"
+        actions={(
+          <>
+            {canCollect && f.khataLinked && f.currentBalance > 0 && <button type="button" onClick={() => setPay(true)} className={heroPrimaryButton}><Wallet className="h-4 w-4" />Wasool</button>}
+            {f.currentBalance > 0 && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
             {canKhata && khataQ.data && <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={statement} label="Statement" /></span>}
-            {canOrders && <Link to={`/agri/bulk-orders/new?farmer=${f.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Boxes className="h-4 w-4" />Bulk order</Link>}
-            {canManage && <Link to={`/agri/farmers/${f.id}/edit`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Edit3 className="h-4 w-4" />Badlein</Link>}
-          </div>
-        </div>
-      </div>
+            {canOrders && <Link to={`/agri/bulk-orders/new?farmer=${f.id}`} className={heroButton}><Boxes className="h-4 w-4" />Bulk order</Link>}
+            {canManage && <Link to={`/agri/farmers/${f.id}/edit`} className={heroButton}><Edit3 className="h-4 w-4" />Badlein</Link>}
+          </>
+        )}
+      />
 
       {!f.khataLinked && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-amber-900 ring-1 ring-amber-200">
@@ -136,7 +136,7 @@ export default function FarmerDetailPage() {
                       <Tr key={s.key}>
                         <Td className="font-semibold text-slate-900">{s.label}</Td>
                         <Td align="right">{money(s.udhaar)}</Td>
-                        <Td align="right" className="text-emerald-700">{money(s.received)}</Td>
+                        <Td align="right" className="text-success-700">{money(s.received)}</Td>
                         <Td align="right" className="font-semibold">{money(s.closing)}</Td>
                         <Td className="text-[0.75rem] text-slate-500">{shortDate(s.recoveryBy)}</Td>
                       </Tr>
@@ -153,7 +153,7 @@ export default function FarmerDetailPage() {
                     <Td className="text-[0.8125rem]">{shortDate(e.createdAt)}</Td>
                     <Td className="text-[0.8125rem]">{ENTRY[e.type] ?? e.type}{e.paymentMethod ? <span className="text-slate-500"> · {methodLabel(e.paymentMethod)}</span> : null}</Td>
                     <Td className="max-w-[16rem] truncate text-[0.75rem] text-slate-500">{[e.reference, e.note].filter(Boolean).join(' · ')}</Td>
-                    <Td align="right" className={cn('font-semibold', e.amount < 0 ? 'text-emerald-700' : 'text-slate-900')}>{money(e.amount)}</Td>
+                    <Td align="right" className={cn('font-semibold', e.amount < 0 ? 'text-success-700' : 'text-slate-900')}>{money(e.amount)}</Td>
                     <Td align="right">{money(e.balanceAfter)}</Td>
                   </Tr>
                 ))}</TBody>

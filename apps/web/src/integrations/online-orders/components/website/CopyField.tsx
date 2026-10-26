@@ -20,23 +20,22 @@ export function CopyField({ label, value, secret, hint }: { label: string; value
 
   return (
     <div>
-      <div className="mb-1 text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-ink-400">{label}</div>
+      <div className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">{label}</div>
       <div className="flex items-center gap-1.5">
         <code
           className={cn(
-            'min-w-0 flex-1 truncate rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[0.78125rem] font-semibold text-slate-800',
-            'dark:border-ink-700 dark:bg-ink-900 dark:text-ink-100',
+            'min-w-0 flex-1 truncate rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[0.78125rem] font-semibold text-slate-800',
           )}
           title={shown ? value : undefined}
         >
           {display}
         </code>
         {secret && (
-          <button onClick={() => setShown((s) => !s)} className={btn} title={shown ? 'Chhupao' : 'Dikhao'}>
+          <button type="button" onClick={() => setShown((s) => !s)} className={btn} title={shown ? 'Chhupao' : 'Dikhao'} aria-label={shown ? 'Chhupao' : 'Dikhao'}>
             {shown ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         )}
-        <button onClick={copy} className={cn(btn, 'bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-600')} title="Copy">
+        <button type="button" onClick={copy} className={cn(btn, 'border-brand-600 bg-brand-600 text-brand-fg hover:bg-brand-700')} title="Copy" aria-label={`${label} copy`}>
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
         </button>
       </div>
@@ -46,4 +45,4 @@ export function CopyField({ label, value, secret, hint }: { label: string; value
 }
 
 const btn =
-  'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-ink-700 dark:text-ink-300 dark:hover:bg-ink-800';
+  'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50';

@@ -22,7 +22,8 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { useCostHidden } from '@core/security/HiddenValue';
 import { waNumber } from '@core/lib/whatsapp/templates';
 import { REPORT_PREFS_KEY, fiscalYearStart, type ReportFigure } from '@modules/reports/prefs';
-import { Alert, ChoiceGroup, Divider, Field, SectionCard, Select, StatPill, TextInput, Toggle } from '../components/UI';
+import { ChoiceGroup, Divider, Field, SectionCard, Toggle } from '../components/SettingsBlocks';
+import { Alert, Avatar, Badge, Button, Checkbox, Input, Segmented, Select, Skeleton } from '@/design-system/components';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
 import { dailySummaryApi, type DailySummary, type DailySummaryStatus } from '../api/daily-summary.api';
@@ -193,8 +194,7 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
             <Field label="Maali saal kis mahine se shuru hota hai"
               hint={`Pakistan me tax ka saal July se shuru hota hai. "Maali saal" period isi mahine se gini jaati hai — abhi ${dayLabel(fiscalYearStart(today, cfg.fiscalYearStartMonth))} ${fiscalYearStart(today, cfg.fiscalYearStartMonth).slice(0, 4)} se.`}>
               <div className="max-w-xs">
-                <Select value={String(cfg.fiscalYearStartMonth)} onChange={(v) => rc.save({ fiscalYearStartMonth: Number(v) })}
-                  options={MONTHS.map((m, i) => ({ value: String(i + 1), label: m }))} />
+                <Select value={String(cfg.fiscalYearStartMonth)} onChange={(e) => rc.save({ fiscalYearStartMonth: Number(e.target.value) })} options={MONTHS.map((m, i) => ({ value: String(i + 1), label: m }))} />
               </div>
             </Field>
 
@@ -218,7 +218,7 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
       </SectionCard>
 
       <SectionCard title="Staff ko kaun se figures dikhein" desc="Malik ke ilawa sab ke liye, reports me" icon={ShieldCheck} color="rose"
-        badge={!owner ? <StatPill label="" value="Sirf malik" tone="slate" icon={Lock} /> : undefined}>
+        badge={!owner ? <Badge size="xs" variant="default"><Lock className="h-3 w-3" />Sirf malik</Badge> : undefined}>
         {!cfg ? <ConfigSkeleton /> : (
           <>
             {FIGURES.map((f) => (
@@ -226,7 +226,7 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
                 checked={cfg.staffFigures.includes(f.id)}
                 onChange={(v) => rc.save({ staffFigures: toggleIn(cfg.staffFigures, f.id, v) })} />
             ))}
-            <Alert tone="blue" icon={ShieldCheck}>
+            <Alert className="mt-3" tone="info" icon={<ShieldCheck className="h-4 w-4" />}>
               Ye sirf dikhane ka usool hai — kisi ko nayi permission nahi deta. Band karne par server hi ye figures nahi bhejta: reports, din ka hisaab,
               rozana report aur un ke print/CSV me. Malik ko hamesha sab dikhta hai. Nigrani me galle ka farq dikhta rehta hai, wo chori pakadne ke liye hai.
               {canTeam && <> <Link to="/staff?tab=roles" className="font-semibold underline underline-offset-2">Roles & permissions</Link></>}
@@ -236,7 +236,7 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
       </SectionCard>
 
       <SectionCard title="Rozana closing report" desc="Din ke aakhir me poora hisaab khud aap ke paas aata hai" icon={Bell} color="amber"
-        badge={<StatPill label="" value={on ? 'Chalu' : 'Band'} tone={on ? 'emerald' : 'slate'} />}>
+        badge={<Badge size="xs" variant={on ? 'success' : 'default'}>{on ? 'Chalu' : 'Band'}</Badge>}>
         <Toggle checked={on} onChange={(v) => set('notifyDailySummary', v)} icon={Bell}
           label="Rozana report bhejein"
           desc="Har din ek dafa, chune hue waqt par. Jis din na sale hui na expense, us din nahi aati." />
@@ -248,12 +248,12 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
               hint={`Dukaan ke time zone ke mutabiq. Din shuru hone ke 6 ghante ke andar ka waqt rakhein to pichhle din ka hisaab aata hai.`}>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="w-36">
-                  <TextInput type="time" value={time} onChange={(v) => set('dailySummaryTime', v)} prefix={<Clock className="h-4 w-4" />} />
+                  <Input type="time" value={time ?? ''} onChange={(e) => set('dailySummaryTime', e.target.value)} leftIcon={<Clock className="h-4 w-4" />} />
                 </div>
                 {QUICK_TIMES.map((t) => (
                   <button key={t} type="button" onClick={() => set('dailySummaryTime', t)}
                     className={cn('rounded-full px-3 py-1.5 text-[0.8125rem] font-medium ring-1 transition',
-                      time === t ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
+                      time === t ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
                     {timeLabel(t)}
                   </button>
                 ))}
@@ -278,15 +278,15 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
       </SectionCard>
 
       <SectionCard title="Kis ko milti hai" desc="Malik, aur har woh banda jis ke paas 'Reports dekhna' ki permission hai — in me se jinhein aap chunein" icon={Users} color="violet"
-        badge={st ? <StatPill label="Log" value={st.recipients.filter((p) => p.selected).length} tone="blue" /> : undefined}>
+        badge={st ? <Badge size="xs" variant="info"><span className="opacity-70">Log</span>{st.recipients.filter((p) => p.selected).length}</Badge> : undefined}>
         {!canReports ? (
           <p className="text-sm text-slate-500">Ye list dekhne ke liye 'Reports dekhna' ki permission chahiye.</p>
         ) : status.isLoading || !cfg ? (
-          <div className="space-y-2">{[0, 1].map((i) => <div key={i} className="h-11 animate-pulse rounded-xl bg-slate-100" />)}</div>
+          <div className="space-y-2">{[0, 1].map((i) => <Skeleton key={i} className="h-11" />)}</div>
         ) : (
           <Recipients cfg={cfg} people={st?.recipients ?? []} emailOn={!!st?.emailOn && cfg.summary.channels.includes('email')} onSave={rc.save} />
         )}
-        <Alert tone="blue" icon={ShieldCheck}>
+        <Alert className="mt-3" tone="info" icon={<ShieldCheck className="h-4 w-4" />}>
           Profit sirf unhein dikhta hai jin ke paas 'Cost dekhna' ki permission hai aur upar staff ke liye profit chalu hai. Branch se juda manager sirf apni branch ka hisaab paata hai.
           {canTeam && <> <Link to="/staff?tab=roles" className="font-semibold underline underline-offset-2">Permission badlein</Link></>}
         </Alert>
@@ -298,11 +298,8 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
             {PARTS.map((p) => {
               const checked = cfg.summary.include.includes(p.id);
               return (
-                <label key={p.id} className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm text-slate-800 hover:bg-slate-50">
-                  <input type="checkbox" checked={checked} className="h-4 w-4 rounded border-slate-300 accent-brand-600"
-                    onChange={(e) => rc.save({ summary: { include: toggleIn(cfg.summary.include, p.id, e.target.checked) } })} />
-                  {p.label}
-                </label>
+                <Checkbox key={p.id} label={p.label} checked={checked} className="rounded-lg px-2 py-2 hover:bg-slate-50"
+                  onChange={(e) => rc.save({ summary: { include: toggleIn(cfg.summary.include, p.id, e.target.checked) } })} />
               );
             })}
           </div>
@@ -316,7 +313,7 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
 }
 
 function ConfigSkeleton() {
-  return <div className="space-y-2">{[0, 1].map((i) => <div key={i} className="h-11 animate-pulse rounded-xl bg-slate-100" />)}</div>;
+  return <div className="space-y-2">{[0, 1].map((i) => <Skeleton key={i} className="h-11" />)}</div>;
 }
 
 function Channels({ cfg, emailOn, onSave }: {
@@ -350,14 +347,12 @@ function Recipients({ cfg, people, emailOn, onSave }: {
       <Toggle icon={Users} label="Sab ko bhejein" checked={everyone}
         desc="Chalu ho to aage jo bhi 'Reports dekhna' ki permission paye, usay bhi khud milne lagegi."
         onChange={(v) => onSave({ summary: { recipientIds: v ? null : people.map((p) => p.id) } })} />
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-slate-200">
         {people.map((p) => (
           <li key={p.id} className="flex flex-wrap items-center gap-2 py-2.5">
-            <input type="checkbox" aria-label={`${p.name} ko bhejein`} disabled={everyone} checked={everyone || chosen.has(p.id)}
-              onChange={(e) => pick(p.id, e.target.checked)} className="h-4 w-4 rounded border-slate-300 accent-brand-600 disabled:opacity-50" />
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-semibold text-slate-600">
-              {p.name.slice(0, 1).toUpperCase()}
-            </span>
+            <Checkbox aria-label={`${p.name} ko bhejein`} disabled={everyone} checked={everyone || chosen.has(p.id)}
+              onChange={(e) => pick(p.id, e.target.checked)} />
+            <Avatar name={p.name} size={32} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-slate-900">{p.name}</p>
               <p className="text-xs text-slate-500">
@@ -365,8 +360,8 @@ function Recipients({ cfg, people, emailOn, onSave }: {
                 {emailOn && <> · {p.hasEmail ? 'email bhi' : 'email tasdeeq nahi'}</>}
               </p>
             </div>
-            <StatPill label="" value={p.seesProfit ? 'Profit bhi' : 'Profit nahi'} tone={p.seesProfit ? 'emerald' : 'slate'} />
-            {!p.seesDrawer && <StatPill label="" value="Galla nahi" tone="slate" />}
+            <Badge size="xs" variant={p.seesProfit ? 'success' : 'default'}>{p.seesProfit ? 'Profit bhi' : 'Profit nahi'}</Badge>
+            {!p.seesDrawer && <Badge size="xs" variant="default">Galla nahi</Badge>}
           </li>
         ))}
       </ul>
@@ -420,19 +415,12 @@ function PreviewCard({ settings, today, recent }: {
   return (
     <SectionCard title="Preview aur abhi bhejein" desc="Aap ki branch ka hisaab, bilkul waisa jaisa notification me jata hai" icon={Eye} color="emerald"
       action={
-        <div role="tablist" className="inline-flex rounded-lg bg-slate-100 p-0.5">
-          {(['today', 'yesterday'] as const).map((k) => (
-            <button key={k} type="button" role="tab" aria-selected={which === k} onClick={() => setWhich(k)}
-              className={cn('rounded-md px-2.5 py-1 text-[0.8125rem] font-medium transition',
-                which === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900')}>
-              {k === 'today' ? 'Aaj' : 'Kal'}
-            </button>
-          ))}
-        </div>
+        <Segmented label="Kis din ka hisaab" value={which} onChange={setWhich}
+          items={[{ value: 'today', label: 'Aaj' }, { value: 'yesterday', label: 'Kal' }]} />
       }>
       {preview.isLoading || (which === 'yesterday' && !date) ? (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />)}
+          {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
         </div>
       ) : preview.isError || !data ? (
         <p className="py-6 text-center text-sm text-slate-500">Preview nahi bana. Thori der baad dobara kholein.</p>
@@ -463,25 +451,21 @@ function PreviewCard({ settings, today, recent }: {
           )}
 
           <Divider label="Message" />
-          <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-xl bg-slate-50 p-3 font-sans text-[0.8125rem] leading-relaxed text-slate-800 ring-1 ring-slate-200">
+          <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-3 font-sans text-[0.8125rem] leading-relaxed text-slate-800 ring-1 ring-slate-200">
             {body}
           </pre>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" onClick={() => send.mutate()} disabled={send.isPending}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-60">
-              <Send className="h-4 w-4" /> {send.isPending ? 'Bhej rahe hain…' : 'Abhi sab ko bhejein'}
-            </button>
+            <Button onClick={() => send.mutate()} loading={send.isPending} leftIcon={<Send className="h-4 w-4" />}>
+              {send.isPending ? 'Bhej rahe hain…' : 'Abhi sab ko bhejein'}
+            </Button>
             {waHref && (
               <a href={waHref} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 transition hover:bg-emerald-50">
+                className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-success-200 bg-white px-4 text-sm font-semibold text-success-700 shadow-sm transition hover:bg-success-50">
                 <MessageCircle className="h-4 w-4" /> WhatsApp par bhejein
               </a>
             )}
-            <button type="button" onClick={copy}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50">
-              <Copy className="h-4 w-4" /> Copy
-            </button>
+            <Button variant="secondary" onClick={copy} leftIcon={<Copy className="h-4 w-4" />}>Copy</Button>
           </div>
           <p className="mt-2 text-xs text-slate-500">
             "Abhi sab ko bhejein" chune hue logon ko chune hue tareeqon se bhejta hai. Har banda apni permission ke mutabiq hisaab dekhta hai.
@@ -544,10 +528,10 @@ function Figures({ s, costHidden, drawerHidden }: { s: DailySummary; costHidden:
     <>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {tiles.map((t) => (
-          <div key={t.label} className="rounded-xl border border-slate-200 p-3">
+          <div key={t.label} className="rounded-lg border border-slate-200 p-3">
             <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">{t.label}</p>
             <p className="mt-0.5 truncate text-base font-semibold tabular-nums text-slate-900">{t.value}</p>
-            <p className={cn('mt-0.5 truncate text-[0.6875rem]', t.tone === 'up' ? 'text-emerald-700' : t.tone === 'down' ? 'text-rose-700' : 'text-slate-500')}>{t.hint}</p>
+            <p className={cn('mt-0.5 truncate text-[0.6875rem]', t.tone === 'up' ? 'text-success-700' : t.tone === 'down' ? 'text-rose-700' : 'text-slate-500')}>{t.hint}</p>
           </div>
         ))}
       </div>

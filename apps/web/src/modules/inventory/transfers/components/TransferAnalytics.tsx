@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { AlertTriangle, ArrowRight, Clock, PackageSearch, PieChart as PieIcon, Route, TrendingUp, Truck } from 'lucide-react';
-import { Card, Segmented, Skeleton } from '@/design-system/components';
+import { Card, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -112,21 +112,21 @@ export function TransferAnalytics({ data, loading, money }: { data?: Data; loadi
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><PackageSearch className="h-4 w-4 text-brand-600" />Sab se zyada bheja maal</span>} description="Quantity base unit me, qeemat cost par">
           {!data.topProducts.length ? <Empty text="Koi transfer nahi" /> : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[22rem] text-sm">
-                <thead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-                  <tr><th className="py-2">#</th><th className="py-2">Cheez</th><th className="py-2 text-right">Quantity</th><th className="py-2 text-right">Qeemat</th></tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table minWidth="22rem" className="[&>table]:text-sm">
+                <THead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
+                  <Tr><Th className="px-0 py-2">#</Th><Th className="px-0 py-2">Cheez</Th><Th className="px-0 py-2 text-right">Quantity</Th><Th className="px-0 py-2 text-right">Qeemat</Th></Tr>
+                </THead>
+                <TBody className="divide-y divide-slate-100">
                   {data.topProducts.map((p, n) => (
-                    <tr key={`${p.name}${n}`}>
-                      <td className="py-2 text-slate-400">{n + 1}</td>
-                      <td className="py-2 font-medium text-slate-900">{p.name}</td>
-                      <td className="py-2 text-right tabular-nums">{qty(p.qty)} {p.unit}</td>
-                      <td className="py-2 text-right font-semibold tabular-nums">{money(p.value)}</td>
-                    </tr>
+                    <Tr key={`${p.name}${n}`}>
+                      <Td className="px-0 py-2 text-slate-400">{n + 1}</Td>
+                      <Td className="px-0 py-2 font-medium text-slate-900">{p.name}</Td>
+                      <Td className="px-0 text-inherit py-2 text-right tabular-nums">{qty(p.qty)} {p.unit}</Td>
+                      <Td className="px-0 text-inherit py-2 text-right font-semibold tabular-nums">{money(p.value)}</Td>
+                    </Tr>
                   ))}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             </div>
           )}
         </Card>

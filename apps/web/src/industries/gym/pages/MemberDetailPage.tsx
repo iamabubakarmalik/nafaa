@@ -11,14 +11,9 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  Activity, ArrowLeft, Award, CalendarCheck, Flame, GraduationCap, HandCoins, HeartPulse, KeyRound, LogIn, Package, PauseCircle, Pencil, PlayCircle, Plus, Receipt,
-  RefreshCw, Ruler, ShieldAlert, UserMinus, UserCheck, XCircle,
-} from 'lucide-react';
+import { Activity, Award, CalendarCheck, Flame, GraduationCap, HandCoins, HeartPulse, KeyRound, LogIn, Package, PauseCircle, Pencil, PlayCircle, Plus, Receipt, RefreshCw, Ruler, ShieldAlert, UserMinus, UserCheck, XCircle } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import {
-  Avatar, Badge, Button, Card, Input, Kbd, KpiCard, KpiRow, Modal, PageShell, Skeleton, Table, TBody, Td, Th, THead, Tr, Textarea, ViewTabs,
-} from '@/design-system/components';
+import { Avatar, Badge, Button, Card, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, Table, TBody, Td, Textarea, Th, THead, Tr, ViewTabs, heroIconButton } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { attendanceApi } from '../api/attendance.api';
@@ -96,24 +91,26 @@ export default function MemberDetailPage() {
 
   return (
     <PageShell>
-      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-          <Avatar name={m.customer?.name ?? m.memberNumber} url={m.photoUrl} size={56} className="ring-2 ring-white/40" />
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-bold">{m.customer?.name ?? m.memberNumber}</h1>
-            <p className="text-[0.8125rem] text-white/80">{m.memberNumber}{m.customer?.phone ? ` · ${m.customer.phone}` : ''}{m.customer?.cnic ? ` · ${m.customer.cnic}` : ''}</p>
-            <div className="mt-1 flex flex-wrap gap-1.5"><Badge size="xs" variant={st.variant}>{st.label}</Badge>{!m.isActive && <Badge size="xs" variant="danger">Chhor gaya</Badge>}<Badge size="xs" variant="outline" className="text-white">{goalLabel(m.primaryGoal)}</Badge></div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
+      <PageHero
+        title={<span className="inline-flex items-center gap-3"><Avatar name={m.customer?.name ?? m.memberNumber} url={m.photoUrl} size={40} className="ring-2 ring-white/40" />{m.customer?.name ?? m.memberNumber}</span>}
+        subtitle={(
+          <>
+            <span>{m.memberNumber}{m.customer?.phone ? ` · ${m.customer.phone}` : ''}{m.customer?.cnic ? ` · ${m.customer.cnic}` : ''}</span>
+            <span className="mt-1 flex flex-wrap gap-1.5"><Badge size="xs" variant={st.variant}>{st.label}</Badge>{!m.isActive && <Badge size="xs" variant="danger">Chhor gaya</Badge>}<Badge size="xs" variant="outline" className="text-white">{goalLabel(m.primaryGoal)}</Badge></span>
+          </>
+        )}
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        actions={(
+          <>
+            <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
             {m.isActive && can.viewMembers && <Button variant="inverse" size="sm" loading={checkIn.isPending} onClick={() => checkIn.mutate()} leftIcon={<LogIn className="h-4 w-4" />}>Check-in</Button>}
             {can.members && <Button variant="inverse" size="sm" onClick={() => navigate(`/gym/members/${m.id}/edit`)} leftIcon={<Pencil className="h-4 w-4" />}>Badlein</Button>}
             {can.bill && m.isActive && (cur ? <Button size="sm" onClick={() => setModal({ kind: 'renew', m: cur })} leftIcon={<RefreshCw className="h-4 w-4" />}>Renew</Button>
               : <Button size="sm" onClick={() => setSelling(true)} leftIcon={<Plus className="h-4 w-4" />}>Plan bechein</Button>)}
-          </div>
-        </div>
-      </div>
+          </>
+        )}
+      />
 
       <KpiRow cols={4}>
         <KpiCard icon={Award} color="#16a34a" label="Membership" value={cur ? (left >= 0 ? `${left} din` : 'Khatam') : '—'} hint={cur ? `${cur.plan?.name ?? ''} · ${dateOf(cur.endDate)} tak` : 'Koi plan nahi'} />

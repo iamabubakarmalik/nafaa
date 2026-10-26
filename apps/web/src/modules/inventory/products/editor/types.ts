@@ -15,6 +15,7 @@ export interface UnitDraft {
   price: number;
   costPrice: number;
   wholesalePrice: number | null;
+  creditPrice: number | null;
   mrpPrice: number | null;
   barcode: string;
   sku: string;
@@ -58,7 +59,9 @@ export interface CoreDraft {
   unit: string;
   price: number;
   costPrice: number;
+  /** Wholesale and credit (udhaar) prices; null means the retail price applies. */
   wholesalePrice: number | null;
+  creditPrice: number | null;
   taxRate: number;
   /** Opening stock on create; read-only on edit. */
   stock: number;

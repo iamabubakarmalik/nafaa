@@ -48,7 +48,13 @@ export interface ProductsPageConfig {
   /** Industry warnings above the list. */
   Banners?: ComponentType<{ data: CatalogPage; setFilter: <K extends keyof CatalogFilters>(k: K, v: CatalogFilters[K]) => void }>;
   /** An extra tab next to Products and Analytics (bakery raw materials). */
-  extraTab?: { id: string; label: string; icon: LucideIcon; Component: ComponentType };
+  extraTab?: {
+    id: string; label: string; icon: LucideIcon; Component: ComponentType;
+    /** Open on this tab instead of the product list (restaurant menu board). */
+    initial?: boolean;
+    /** The tab has its own search and filters; the catalog stock tabs, alerts and toolbar hide while it is open. */
+    standalone?: boolean;
+  };
   /** Called when a scanned code matches no product; return true if handled. */
   onScanMiss?: (code: string, navigate: (to: string) => void) => Promise<boolean>;
   /** Quick quantities in the stock dialog for this product. */

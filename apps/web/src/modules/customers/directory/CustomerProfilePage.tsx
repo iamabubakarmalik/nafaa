@@ -13,10 +13,10 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
-  ArrowLeft, BookOpen, Cake, Copy, Crown, Download, Gift, LineChart, Mail, MapPin, MessageCircle, Pencil, Phone, Plus, Receipt,
+  BookOpen, Cake, Copy, Crown, Download, Gift, LineChart, Mail, MapPin, MessageCircle, Pencil, Phone, Plus, Receipt,
   StickyNote, Trash2, User, Wallet,
 } from 'lucide-react';
-import { Avatar, Button, Card, Modal, Skeleton, PageShell } from '@/design-system/components';
+import { Avatar, Button, Card, Kbd, Modal, PageHero, Skeleton, PageShell, ViewTabs, heroIconButton, heroPrimaryButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PrintButton, type PrintDoc } from '@core/print';
@@ -33,6 +33,7 @@ import { customersApi } from '@modules/customers/customers/api/customers.api';
 import { customerLedgerApi, type LedgerEntry } from '@modules/customers/khata/api/customer-ledger.api';
 import { getCachedLedger } from '@core/lib/offline/offlineKhata';
 import { salesHistoryApi } from '@modules/sales/history/api';
+import { BillTierBadge } from '@modules/sales/history/components/PriceTierBadge';
 import { directoryApi } from './api';
 import { useDirectory } from './useDirectory';
 import { loadTemplates, reminderText, thanksText, toneFor, waLink } from './messages';
@@ -196,17 +197,21 @@ export function CustomerProfilePage() {
         </Modal>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/customers" className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-500 hover:text-slate-900"><ArrowLeft className="h-4 w-4" />Customers</Link>
-        <div className="flex flex-wrap items-center gap-1.5">
+      <PageHero
+        back="/customers"
+        backLabel="Customers par wapas"
+        title={c.name}
+        chip={!c.isActive ? 'Band' : birthdayToday ? <><Cake />Aaj salgirah!</> : undefined}
+        subtitle={`Customer ${day(c.createdAt)} se`}
+        actions={<>
           <PrivacyToggle compact />
-          <PrintButton doc={statement} label="Statement" />
-          <button type="button" onClick={() => void copyDetails()} title="Details copy" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"><Copy className="h-4 w-4" /></button>
-          {can.edit && <button type="button" onClick={() => void toggleVip()} title={c.isVip ? 'VIP hatayein' : 'VIP banayein'} className={cn('flex h-9 w-9 items-center justify-center rounded-xl ring-1 ring-slate-200 hover:bg-slate-50', c.isVip ? 'bg-amber-50 text-amber-600' : 'bg-white text-slate-500')}><Crown className="h-4 w-4" /></button>}
-          {can.edit && <button type="button" onClick={() => setConfirmDelete(true)} title="Mitayein" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-rose-600 ring-1 ring-slate-200 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>}
-          {can.edit && <Link to={`/customers/${id}/edit`} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white shadow-sm hover:bg-brand-700"><Pencil className="h-4 w-4" />Badlein</Link>}
-        </div>
-      </div>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={statement} label="Statement" /></span>
+          <button type="button" onClick={() => void copyDetails()} title="Details copy" aria-label="Details copy" className={heroIconButton}><Copy className="h-4 w-4" /></button>
+          {can.edit && <button type="button" onClick={() => void toggleVip()} title={c.isVip ? 'VIP hatayein' : 'VIP banayein'} aria-label="VIP" className={cn(heroIconButton, c.isVip && 'bg-amber-400 text-amber-950 hover:bg-amber-300')}><Crown className="h-4 w-4" /></button>}
+          {can.edit && <button type="button" onClick={() => setConfirmDelete(true)} title="Mitayein" aria-label="Mitayein" className={heroIconButton}><Trash2 className="h-4 w-4" /></button>}
+          {can.edit && <Link to={`/customers/${id}/edit`} title="Badlein (E)" className={heroPrimaryButton}><Pencil className="h-4 w-4" />Badlein</Link>}
+        </>}
+      />
 
       <div className="grid gap-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex min-w-0 gap-4">
@@ -215,16 +220,10 @@ export function CustomerProfilePage() {
             {c.isVip && <span className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 text-amber-950 ring-2 ring-white"><Crown className="h-4 w-4" /></span>}
           </span>
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">{c.name}</h1>
-              {!c.isActive && <span className="rounded-md bg-slate-900/80 px-2 py-0.5 text-[0.6875rem] font-bold uppercase text-white">Band</span>}
-              {birthdayToday && <span className="inline-flex items-center gap-1 rounded-md bg-pink-50 px-2 py-0.5 text-[0.75rem] font-semibold text-pink-700"><Cake className="h-3.5 w-3.5" />Aaj salgirah!</span>}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem] text-slate-600">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem] text-slate-600">
               {c.phone && <a href={`tel:${c.phone}`} className="inline-flex items-center gap-1.5 hover:text-brand-700"><Phone className="h-3.5 w-3.5" />{c.phone}</a>}
               {c.email && <a href={`mailto:${c.email}`} className="inline-flex items-center gap-1.5 hover:text-brand-700"><Mail className="h-3.5 w-3.5" />{c.email}</a>}
               {(c.city || c.area) && <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{[c.area, c.city].filter(Boolean).join(', ')}</span>}
-              <span className="text-slate-500">Customer {day(c.createdAt)} se</span>
             </div>
             {c.notes && <p className="mt-2 line-clamp-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.8125rem] text-amber-900"><StickyNote className="mr-1 inline h-3.5 w-3.5" />{c.notes}</p>}
             <div className="mt-3 flex flex-wrap gap-2">
@@ -240,7 +239,7 @@ export function CustomerProfilePage() {
           {ledger.data && Math.abs(ledger.data.totalBalance - balance) > 0.009 && <p className="text-[0.75rem] text-slate-600">Saari branches: {money(ledger.data.totalBalance)}</p>}
           {limitPct !== null && (
             <div className="mt-2">
-              <div className="h-1.5 overflow-hidden rounded-full bg-white/70"><div className={cn('h-full rounded-full', limitPct >= 100 ? 'bg-rose-600' : limitPct >= 75 ? 'bg-amber-400' : 'bg-success-500')} style={{ width: `${limitPct}%` }} /></div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/70"><div className={cn('h-full rounded-full', limitPct >= 100 ? 'bg-rose-500' : limitPct >= 75 ? 'bg-amber-400' : 'bg-success-500')} style={{ width: `${limitPct}%` }} /></div>
               <p className="mt-0.5 text-[0.6875rem] text-slate-600">Had {money(c.creditLimit)}{limitPct >= 100 ? ' — paar ho gayi' : ''}</p>
             </div>
           )}
@@ -263,20 +262,14 @@ export function CustomerProfilePage() {
         <Tile label="Points" value={c.loyaltyPoints} hint={ins?.visits.returned ? `${ins.visits.returned} dafa maal wapas` : undefined} />
       </div>
 
-      <div role="tablist" className="-mx-1 flex gap-1 overflow-x-auto px-1 [scrollbar-width:none]">
-        {tabs.map((t, i) => (
-          <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)} title={`${t.label} (${i + 1})`}
-            className={cn('inline-flex h-10 shrink-0 items-center gap-2 rounded-2xl px-4 text-[0.875rem] font-semibold transition', tab === t.id ? 'bg-slate-900 text-white shadow' : 'bg-white text-slate-600 ring-1 ring-slate-200/80 hover:bg-slate-50')}>
-            <t.icon className="h-4 w-4" />{t.label}
-          </button>
-        ))}
-      </div>
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>{tabs.length}</Kbd> se badlein</>}
+        tabs={tabs.map((t) => ({ id: t.id, label: t.label, icon: t.icon }))} />
 
       {tab === 'overview' && (
         <div className="grid gap-4 lg:grid-cols-3">
           <Card className="rounded-2xl lg:col-span-2" title="Har mahine kitna khareeda" description="Pichhle 12 mahine">
             {!ins ? <Skeleton className="h-60 rounded-xl" /> : ins.visits.count === 0 ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Abhi tak kuch nahi khareeda</p> : (
-              <div className="h-[240px]">
+              <div className="h-[15rem]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={months} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                     <CartesianGrid stroke={theme.grid} vertical={false} />
@@ -341,6 +334,7 @@ export function CustomerProfilePage() {
                       <span className="w-28 shrink-0 font-mono font-semibold text-slate-900">{s.saleNumber}</span>
                       <span className="w-36 shrink-0 text-slate-500">{when(s.soldAt)}</span>
                       <span className="min-w-0 flex-1 truncate text-slate-600">{s.items.slice(0, 3).map((i) => `${Number(i.quantity)} × ${i.name}`).join(', ')}{s.items.length > 3 ? ` +${s.items.length - 3}` : ''}</span>
+                      <BillTierBadge tier={s.priceTier} />
                       {s.status === 'VOIDED' && <span className="text-rose-600">void</span>}
                       {s.creditAmount > 0 && s.status !== 'VOIDED' && <span className="rounded bg-rose-50 px-1.5 text-[0.6875rem] font-semibold text-rose-700">udhaar {money(s.creditAmount)}</span>}
                       <span className="w-24 text-right font-semibold tabular-nums text-slate-900">{money(s.total)}</span>

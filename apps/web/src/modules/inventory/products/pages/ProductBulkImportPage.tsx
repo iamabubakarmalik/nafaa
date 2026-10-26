@@ -69,7 +69,7 @@ const WIDTH: Partial<Record<ImportField, number>> = {
   name: 240, description: 200, imei: 230, category: 140, brand: 130, sku: 130, barcode: 140, packBarcode: 140, variant: 130,
   expiryDate: 112, batchNumber: 110, unit: 80, size: 80, color: 90,
 };
-const NUMERIC = new Set<ImportField>(['price', 'costPrice', 'wholesalePrice', 'taxRate', 'stock', 'lowStockAlert', 'packQty', 'packPrice']);
+const NUMERIC = new Set<ImportField>(['price', 'costPrice', 'wholesalePrice', 'creditPrice', 'taxRate', 'stock', 'lowStockAlert', 'packQty', 'packPrice']);
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Free size', '28', '30', '32', '34', '36', '38', '40', '41', '42', '43', '44', 'Unstitched'];
 const COLORS = ['Black', 'White', 'Red', 'Blue', 'Navy', 'Green', 'Grey', 'Brown', 'Beige', 'Pink', 'Maroon', 'Yellow', 'Purple', 'Orange', 'Golden', 'Silver'];
 /** Id of the empty row drawn under the last one; typing in it adds a real row. */
@@ -312,7 +312,8 @@ export default function ProductBulkImportPage({ start }: { start?: 'blank' } = {
     setRun(null);
     setSheet({ fileName: `Bulk products ${new Date().toLocaleDateString('en-PK')}`, headers: [], rows: [] });
     setMapping([]);
-    setExtraFields([]);
+    // Wholesale and credit prices are optional; the columns are there so they can be filled while typing.
+    setExtraFields(['wholesalePrice', 'creditPrice']);
     grid.reset(Array.from({ length: 10 }, (_, i) => ({ id: i + 1, cells: {} })));
     setSelected(new Set());
     setCheck(null);

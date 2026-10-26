@@ -10,7 +10,7 @@ import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer,
 import {
   CalendarDays, CalendarRange, Clock, CreditCard, PieChart as PieIcon, Receipt, Store, TrendingDown, TrendingUp, Trophy, Users, Wallet, type LucideIcon,
 } from 'lucide-react';
-import { Card, Skeleton } from '@/design-system/components';
+import { Card, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -121,38 +121,38 @@ export function ExpenseAnalytics({ filters, onCategory }: { filters: ExpenseFilt
       <Card className="rounded-2xl" title={<Title icon={Receipt}>Category har mahine</Title>} description="Ek hi bill mahine ba mahine — maslan bijli July vs August" flush>
         {!d.matrix.rows.length ? <Empty /> : (
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[48rem] text-[0.75rem]">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-500">
-                  <th className="sticky left-0 bg-white px-4 py-2 text-left font-medium">Category</th>
-                  {d.matrix.months.map((m) => <th key={m} className="px-2 py-2 text-right font-medium">{monthLabel(m)}</th>)}
-                  <th className="px-4 py-2 text-right font-semibold text-slate-700">Kul</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table minWidth="48rem" className="[&>table]:text-[0.75rem]">
+              <THead>
+                <Tr className="border-b border-slate-100 text-slate-500">
+                  <Th className="sticky left-0 bg-white px-4 py-2 text-left font-medium">Category</Th>
+                  {d.matrix.months.map((m) => <Th key={m} className="px-2 py-2 text-right font-medium">{monthLabel(m)}</Th>)}
+                  <Th className="px-4 py-2 text-right font-semibold text-slate-700">Kul</Th>
+                </Tr>
+              </THead>
+              <TBody>
                 {d.matrix.rows.map((r) => {
                   const max = Math.max(1, ...r.values);
                   return (
-                    <tr key={r.key} className="border-b border-slate-50">
-                      <td className="sticky left-0 max-w-[12rem] truncate bg-white px-4 py-1.5 font-medium text-slate-800">
+                    <Tr key={r.key} className="border-b border-slate-50">
+                      <Td className="sticky left-0 max-w-[12rem] truncate bg-white px-4 py-1.5 font-medium text-slate-800">
                         <span className="mr-1.5 inline-block h-2 w-2 rounded-full" style={{ background: r.color }} />{r.label}
-                      </td>
+                      </Td>
                       {r.values.map((v, i) => (
-                        <td key={i} className="px-2 py-1.5 text-right tabular-nums text-slate-700" style={v ? { backgroundColor: `${r.color}${Math.round(10 + (v / max) * 40).toString(16).padStart(2, '0')}` } : undefined}>
+                        <Td key={i} className="px-2 py-1.5 text-right tabular-nums text-slate-700" style={v ? { backgroundColor: `${r.color}${Math.round(10 + (v / max) * 40).toString(16).padStart(2, '0')}` } : undefined}>
                           {v ? axisMoney(v) : <span className="text-slate-300">·</span>}
-                        </td>
+                        </Td>
                       ))}
-                      <td className="px-4 py-1.5 text-right font-semibold tabular-nums text-slate-900">{formatPKR(r.total)}</td>
-                    </tr>
+                      <Td className="px-4 py-1.5 text-right font-semibold tabular-nums text-slate-900">{formatPKR(r.total)}</Td>
+                    </Tr>
                   );
                 })}
-                <tr className="bg-slate-50 font-semibold text-slate-900">
-                  <td className="sticky left-0 bg-slate-50 px-4 py-2">Kul</td>
-                  {d.matrix.totals.map((v, i) => <td key={i} className="px-2 py-2 text-right tabular-nums">{v ? axisMoney(v) : '—'}</td>)}
-                  <td className="px-4 py-2 text-right tabular-nums">{formatPKR(d.matrix.totals.reduce((s, v) => s + v, 0))}</td>
-                </tr>
-              </tbody>
-            </table>
+                <Tr className="bg-slate-50 font-semibold text-slate-900">
+                  <Td className="text-inherit sticky left-0 bg-slate-50 px-4 py-2">Kul</Td>
+                  {d.matrix.totals.map((v, i) => <Td key={i} className="text-inherit px-2 py-2 text-right tabular-nums">{v ? axisMoney(v) : '—'}</Td>)}
+                  <Td className="text-inherit px-4 py-2 text-right tabular-nums">{formatPKR(d.matrix.totals.reduce((s, v) => s + v, 0))}</Td>
+                </Tr>
+              </TBody>
+            </Table>
           </div>
         )}
         {t.biggest && <p className="px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5">Is period ka sab se bara expense: <b className="text-slate-700">{t.biggest.title}</b> · {formatPKR(t.biggest.amount)} · {day(t.biggest.date)}</p>}

@@ -7,7 +7,7 @@ import {
 import { hasPermission, PERMISSIONS, type PermissionKey } from '@core/lib/permissions';
 import { cn } from '@core/lib/cn';
 import { useVisibleNav } from '../navigation/useVisibleNav';
-import { Kbd } from '@/design-system/components';
+import { Kbd, controlClass } from '@/design-system/components';
 import { hasHover, Panel, useDismiss } from '../ui';
 
 interface Props {
@@ -21,15 +21,15 @@ type Action = { key: string; to: string; label: string; sub?: string; icon: any;
 type Section = { title: string; items: Action[]; tiles?: boolean };
 
 const TONE: Record<Tone, string> = {
-  brand: 'bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300',
-  blue: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
-  violet: 'bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
-  pink: 'bg-pink-50 text-pink-700 dark:bg-pink-500/15 dark:text-pink-300',
-  amber: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
-  rose: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
-  cyan: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300',
-  orange: 'bg-orange-50 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300',
-  slate: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300',
+  brand: 'bg-brand-50 text-brand-700',
+  blue: 'bg-blue-50 text-blue-700',
+  violet: 'bg-violet-50 text-violet-700',
+  pink: 'bg-pink-50 text-pink-700',
+  amber: 'bg-amber-50 text-amber-700',
+  rose: 'bg-rose-50 text-rose-700',
+  cyan: 'bg-cyan-50 text-cyan-700',
+  orange: 'bg-orange-50 text-orange-700',
+  slate: 'bg-slate-100 text-slate-600',
 };
 
 /**
@@ -173,8 +173,8 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
         <Kbd className="ml-0.5 hidden border-white/25 bg-white/15 text-white/90 xl:inline-flex dark:border-ink-white/25 dark:bg-ink-white/15 dark:text-ink-white/90">⌥N</Kbd>
       </button>
 
-      <Panel open={open} onClose={close} widthClass="sm:w-[400px]" label="Quick actions">
-        <div className="border-b border-slate-100 p-3 dark:border-ink-800">
+      <Panel open={open} onClose={close} widthClass="sm:w-[25rem]" label="Quick actions">
+        <div className="border-b border-slate-100 p-3">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
@@ -184,7 +184,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
               onKeyDown={onKeyDown}
               placeholder="Search actions, pages, settings…"
               aria-label="Search actions"
-              className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-[0.875rem] text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-white"
+              className={cn(controlClass(), 'h-11 rounded-xl pl-9 pr-3 text-[0.875rem]')}
             />
           </div>
         </div>
@@ -202,9 +202,9 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
                     return (
                       <button key={a.key} data-idx={i} onClick={() => go(a)} onMouseEnter={() => setIdx(i)}
                         className={cn('flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition',
-                          idx === i ? 'border-brand-500/50 bg-brand-50/70 dark:border-brand-500/40 dark:bg-brand-500/10'
-                            : 'border-slate-200 hover:border-slate-300 dark:border-ink-700')}>
-                        <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', TONE[a.tone])}><Icon className="h-[18px] w-[18px]" /></span>
+                          idx === i ? 'border-brand-300 bg-brand-50'
+                            : 'border-slate-200 hover:border-slate-300')}>
+                        <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', TONE[a.tone])}><Icon className="h-[1.125rem] w-[1.125rem]" /></span>
                         <span>
                           <span className="block text-[0.84375rem] font-semibold">{a.label}</span>
                           {a.sub && <span className="block text-[0.75rem] text-slate-500">{a.sub}</span>}
@@ -221,7 +221,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
                   return (
                     <button key={a.key} data-idx={i} onClick={() => go(a)} onMouseEnter={() => setIdx(i)}
                       className={cn('flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition',
-                        idx === i ? 'bg-slate-100 dark:bg-ink-800' : 'hover:bg-slate-50 dark:hover:bg-ink-800/60')}>
+                        idx === i ? 'bg-slate-100' : 'hover:bg-slate-50')}>
                       <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', TONE[a.tone])}><Icon className="h-4 w-4" /></span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[0.84375rem] font-medium">{a.label}</span>
@@ -229,7 +229,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
                       </span>
                       {idx === i
                         ? <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                        : <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-300 dark:text-ink-600" />}
+                        : <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-300" />}
                     </button>
                   );
                 })
@@ -238,14 +238,14 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
           ))}
           {flat.length === 0 && (
             <div className="px-4 py-10 text-center">
-              <Search className="mx-auto h-7 w-7 text-slate-300 dark:text-ink-700" />
+              <Search className="mx-auto h-7 w-7 text-slate-300" />
               <div className="mt-2 text-[0.875rem] font-semibold">Nothing found for “{q}”</div>
               <div className="text-[0.75rem] text-slate-500">Try a page name like “khata” or “products”.</div>
             </div>
           )}
         </div>
 
-        <div className="hidden items-center gap-3 border-t border-slate-100 px-3 py-2 text-[0.6875rem] text-slate-500 sm:flex dark:border-ink-800">
+        <div className="hidden items-center gap-3 border-t border-slate-100 px-3 py-2 text-[0.6875rem] text-slate-500 sm:flex">
           <span className="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> move</span>
           <span className="flex items-center gap-1"><Kbd>↵</Kbd> open</span>
           <span className="flex items-center gap-1"><Kbd>esc</Kbd> close</span>

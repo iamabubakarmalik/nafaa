@@ -1,26 +1,16 @@
 /**
  * Counter rate for the current bill: the normal (retail) rate or the
- * restaurant / hotel rate (the item's wholesale price). Kept outside React
- * so the catalog hook and the bill panel read the same value.
+ * restaurant / hotel rate (the item's wholesale price). Backed by the shared
+ * POS price tier, so the bill, the receipt and reports see the same tier.
  */
 
-import { useSyncExternalStore } from 'react';
 import type { PosSavedSale } from '@modules/pos/engine';
+import { setCounterTier, useCounterTier } from '@modules/pos/lib/priceTierStore';
 
 export type RateMode = 'retail' | 'wholesale';
 
-let mode: RateMode = 'retail';
-const subs = new Set<() => void>();
-
-const getRateMode = () => mode;
-export function setRateMode(next: RateMode) {
-  if (next === mode) return;
-  mode = next;
-  subs.forEach((f) => f());
-}
-export function useRateMode() {
-  return useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, getRateMode, getRateMode);
-}
+export const setRateMode = (next: RateMode) => setCounterTier(next === 'wholesale' ? 'WHOLESALE' : 'RETAIL');
+export const useRateMode = (): RateMode => (useCounterTier() === 'WHOLESALE' ? 'wholesale' : 'retail');
 
 /** Set by the bill panel to go back to retail rate after a bill. */
 export const saleListener: { current: ((sale: PosSavedSale) => void) | null } = { current: null };

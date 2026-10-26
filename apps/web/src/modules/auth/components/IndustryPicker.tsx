@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { Input } from '@/design-system/components';
 import { POPULAR_COUNT, type IndustryChoice } from '../lib/industry-choices';
 
 interface IndustryPickerProps {
@@ -31,17 +32,15 @@ export function IndustryPicker({ choices, value, onChange, error, label = 'Aap k
       <legend className="mb-2 block text-[0.8125rem] font-medium text-slate-700">{label}</legend>
 
       {expanded && (
-        <div className="relative mb-3">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search: pharmacy, kapre, mobile…"
-            aria-label="Kaam search"
-            autoFocus
-            className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-          />
-        </div>
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search: pharmacy, kapre, mobile…"
+          aria-label="Kaam search"
+          autoFocus
+          leftIcon={<Search className="h-4 w-4" aria-hidden />}
+          wrapperClassName="mb-3"
+        />
       )}
 
       <div role="radiogroup" aria-label={label} className={cn('grid grid-cols-2 gap-2 sm:grid-cols-4', expanded && 'max-h-[20rem] overflow-y-auto p-0.5')}>

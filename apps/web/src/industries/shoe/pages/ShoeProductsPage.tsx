@@ -14,7 +14,7 @@ import { BadgePercent, HandMetal, PackagePlus, Ruler, Sparkles } from 'lucide-re
 import { cn } from '@core/lib/cn';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
-import { Card, Skeleton, heroButton } from '@/design-system/components';
+import { Badge, Card, Skeleton, heroButton } from '@/design-system/components';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { CatalogItem } from '@modules/inventory/products/list/api';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
@@ -111,9 +111,9 @@ export default function ShoeProductsPage() {
           line: line || undefined,
           badges: m && (m.onSale || m.isNewArrival || m.isBridal) ? (
             <>
-              {m.onSale && <span className="inline-flex items-center gap-1 rounded-md bg-rose-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><BadgePercent className="h-3 w-3" />Sale {m.offPct}%</span>}
-              {m.isNewArrival && <span className="inline-flex items-center gap-1 rounded-md bg-sky-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white"><Sparkles className="h-3 w-3" />Naya</span>}
-              {m.isBridal && <span className="rounded-md bg-pink-600 px-1.5 py-0.5 text-[0.625rem] font-bold text-white">Bridal</span>}
+              {m.onSale && <Badge size="xs" variant="danger" className="gap-1 shadow-sm"><BadgePercent className="h-3 w-3" />Sale {m.offPct}%</Badge>}
+              {m.isNewArrival && <Badge size="xs" variant="info" className="gap-1 shadow-sm"><Sparkles className="h-3 w-3" />Naya</Badge>}
+              {m.isBridal && <Badge size="xs" variant="brand" className="shadow-sm">Bridal</Badge>}
             </>
           ) : undefined,
           chips: <SizeStrip item={item} />,

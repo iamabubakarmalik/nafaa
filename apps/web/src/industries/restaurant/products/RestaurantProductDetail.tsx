@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, ChefHat, CircleSlash, Clock, Plus, Power, UtensilsCrossed, Wheat } from 'lucide-react';
-import { Button, Card } from '@/design-system/components';
+import { Button, Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -174,26 +174,24 @@ function RecipeTab({ ctx }: { ctx: Ctx }) {
   return (
     <Card className="rounded-2xl" flush title={`Recipe · ${fmt(portions)} plate ka saamaan`}
       actions={<Link to={`/restaurant-menu-items/${ctx.product.id}/edit`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Badlein →</Link>}>
-      <div className="overflow-x-auto">
-        <table className="w-full text-[0.8125rem]">
-          <thead className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-            <tr><th className="px-4 py-2.5">Saamaan</th><th className="px-3 py-2.5 text-right">Recipe me</th><th className="px-3 py-2.5 text-right">Ek plate</th><th className="px-4 py-2.5 text-right">Aaj ki cost</th></tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {rows.map((x) => (
-              <tr key={x.id}>
-                <td className="px-4 py-2.5"><span className="font-medium text-slate-900">{x.name}</span>{x.optional && <span className="ml-1.5 text-[0.6875rem] text-slate-500">(marzi ka)</span>}{x.notes && <span className="block text-[0.6875rem] text-slate-500">{x.notes}</span>}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums">{fmt(x.qty)} {x.unit}{x.waste > 0 && <span className="block text-[0.6875rem] text-amber-700">+{fmt(x.waste)}% wastage</span>}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{fmt(x.per)} {x.stockUnit}</td>
-                <td className="px-4 py-2.5 text-right tabular-nums">{x.optional ? '—' : ctx.cost(x.cost)}</td>
-              </tr>
-            ))}
-          </tbody>
-          <tfoot className="bg-slate-50 font-semibold">
-            <tr><td className="px-4 py-2.5" colSpan={3}>Ek plate ki cost{pct !== null && !ctx.costHidden && <span className={cn('ml-2 text-[0.75rem]', tone === 'bad' ? 'text-rose-700' : tone === 'warn' ? 'text-amber-700' : 'text-success-700')}>{pct.toFixed(1)}% food cost</span>}</td><td className="px-4 py-2.5 text-right tabular-nums">{ctx.cost(plate)}</td></tr>
-          </tfoot>
-        </table>
-      </div>
+      <Table>
+        <THead>
+          <Tr><Th className="px-4 py-2.5">Saamaan</Th><Th align="right" className="px-3 py-2.5">Recipe me</Th><Th align="right" className="px-3 py-2.5">Ek plate</Th><Th align="right" className="px-4 py-2.5">Aaj ki cost</Th></Tr>
+        </THead>
+        <TBody>
+          {rows.map((x) => (
+            <Tr key={x.id}>
+              <Td className="px-4 py-2.5"><span className="font-medium text-slate-900">{x.name}</span>{x.optional && <span className="ml-1.5 text-[0.6875rem] text-slate-500">(marzi ka)</span>}{x.notes && <span className="block text-[0.6875rem] text-slate-500">{x.notes}</span>}</Td>
+              <Td align="right" className="px-3 py-2.5 tabular-nums">{fmt(x.qty)} {x.unit}{x.waste > 0 && <span className="block text-[0.6875rem] text-amber-700">+{fmt(x.waste)}% wastage</span>}</Td>
+              <Td align="right" className="px-3 py-2.5 tabular-nums text-slate-600">{fmt(x.per)} {x.stockUnit}</Td>
+              <Td align="right" className="px-4 py-2.5 tabular-nums">{x.optional ? '—' : ctx.cost(x.cost)}</Td>
+            </Tr>
+          ))}
+        </TBody>
+        <tfoot className="bg-slate-50 font-semibold">
+          <Tr><Td className="px-4 py-2.5" colSpan={3}>Ek plate ki cost{pct !== null && !ctx.costHidden && <span className={cn('ml-2 text-[0.75rem]', tone === 'bad' ? 'text-rose-700' : tone === 'warn' ? 'text-amber-700' : 'text-success-700')}>{pct.toFixed(1)}% food cost</span>}</Td><Td align="right" className="px-4 py-2.5 tabular-nums">{ctx.cost(plate)}</Td></Tr>
+        </tfoot>
+      </Table>
       {cook && (
         <p className={cn('flex items-center gap-2 border-t border-slate-100 px-4 py-3 text-[0.8125rem]', cook.canMake === 0 ? 'text-rose-700' : 'text-slate-600')}>
           <ChefHat className="h-4 w-4" />

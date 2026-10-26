@@ -22,7 +22,7 @@ export { Avatar } from './Avatar';
 export { Modal, type ModalProps } from './Modal';
 export { Tabs, Segmented, type TabItem } from './Tabs';
 export { PageHeader } from './PageHeader';
-export { PageHero, heroButton, heroIconButton, heroPrimaryButton, type HeroStat } from './PageHero';
+export { PageHero, HeroBackdrop, heroButton, heroIconButton, heroPrimaryButton, type HeroStat } from './PageHero';
 export { StatCard } from './StatCard';
 export { Table, THead, TBody, Tr, Th, Td } from './Table';
 export { FilterMenu, type FilterOption } from './FilterMenu';

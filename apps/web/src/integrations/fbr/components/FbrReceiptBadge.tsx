@@ -13,7 +13,7 @@ interface Props {
  * Receipt/bill pe FBR verified badge + QR code print karta hai.
  * - FBR disabled OR no invoice: kuch nahi
  * - Submitted: FBR logo + invoice number + QR code
- * Print-friendly (black & white safe).
+ * Print-friendly (black & white safe). Sizes are rem so they follow the text-size setting; 0.625rem is the floor.
  */
 /** FBR + suba'i authority (PRA / SRB / KPRA) — sab receipt pages yahi lagate hain */
 export function FbrReceiptBadge(props: Props) {
@@ -49,7 +49,7 @@ function FbrOnlyBadge({ saleId, variant = 'thermal', className }: Props) {
           <div className="flex-1">
             <div className="font-black text-sm uppercase tracking-wider">FBR Verified Invoice</div>
             <div className="text-xs font-mono mt-0.5">FBR #: {inv.fbrInvoiceNumber}</div>
-            <div className="text-[10px] text-slate-600 mt-0.5">Tax: Rs {inv.taxAmount.toLocaleString()}</div>
+            <div className="text-[0.625rem] text-slate-600 mt-0.5">Tax: Rs {inv.taxAmount.toLocaleString()}</div>
           </div>
           {showQr && (
             <div className="h-20 w-20 bg-white p-1 shrink-0">
@@ -57,7 +57,7 @@ function FbrOnlyBadge({ saleId, variant = 'thermal', className }: Props) {
             </div>
           )}
         </div>
-        <div className="text-[9px] text-slate-500 mt-2 border-t pt-2">
+        <div className="text-[0.625rem] text-slate-500 mt-2 border-t pt-2">
           Federal Board of Revenue · Government of Pakistan · Scan QR to verify
         </div>
       </div>
@@ -79,17 +79,17 @@ function FbrOnlyBadge({ saleId, variant = 'thermal', className }: Props) {
       {showLogo && (
         <div className="flex items-center justify-center gap-1 mb-1">
           <Shield className="h-3 w-3" />
-          <span className="text-[10px] font-black uppercase tracking-widest">FBR Verified</span>
+          <span className="text-[0.625rem] font-black uppercase tracking-widest">FBR Verified</span>
         </div>
       )}
-      <div className="text-[9px] font-bold">FBR #: {inv.fbrInvoiceNumber}</div>
-      <div className="text-[8px]">Tax: Rs {inv.taxAmount.toLocaleString()}</div>
+      <div className="text-[0.625rem] font-bold">FBR #: {inv.fbrInvoiceNumber}</div>
+      <div className="text-[0.625rem]">Tax: Rs {inv.taxAmount.toLocaleString()}</div>
       {showQr && (
         <div className="mt-1 mx-auto w-24 h-24 bg-white p-1">
           <img src={`data:image/png;base64,${inv.fbrQrCode}`} alt="FBR QR" className="w-full h-full" />
         </div>
       )}
-        <div className="text-[7px] text-slate-500 mt-1">Scan to verify</div>
+        <div className="text-[0.625rem] text-slate-500 mt-1">Scan to verify</div>
       </div>
     </>
   );

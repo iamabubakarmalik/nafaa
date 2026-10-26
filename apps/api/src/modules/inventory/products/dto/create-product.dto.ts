@@ -60,11 +60,19 @@ export class CreateProductDto {
   @Min(0)
   costPrice?: number;
 
-  @ApiPropertyOptional({ example: 1000 })
+  /** Price for wholesale buyers. Empty or null means the retail price. */
+  @ApiPropertyOptional({ example: 1000, nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
-  wholesalePrice?: number;
+  wholesalePrice?: number | null;
+
+  /** Price for credit (udhaar) customers. Empty or null means the retail price. */
+  @ApiPropertyOptional({ example: 1300, nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  creditPrice?: number | null;
 
   @ApiPropertyOptional({ example: 17 })
   @IsOptional()

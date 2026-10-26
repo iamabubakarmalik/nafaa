@@ -7,7 +7,7 @@ export type ImportRow = { row: number } & Partial<Record<ImportField, string>>;
 
 export type ImportField =
   | 'name' | 'sku' | 'barcode' | 'category' | 'brand' | 'unit' | 'description'
-  | 'price' | 'costPrice' | 'wholesalePrice' | 'taxRate' | 'stock' | 'lowStockAlert'
+  | 'price' | 'costPrice' | 'wholesalePrice' | 'creditPrice' | 'taxRate' | 'stock' | 'lowStockAlert'
   | 'variant' | 'size' | 'color'
   | 'packName' | 'packQty' | 'packPrice' | 'packBarcode'
   | 'batchNumber' | 'expiryDate' | 'imei';
@@ -142,6 +142,9 @@ export interface BulkEditRow {
   price: number;
   /** Missing for users who may not see cost. */
   costPrice?: number;
+  /** Empty (null) means the retail price applies. */
+  wholesalePrice?: number | null;
+  creditPrice?: number | null;
   unit: string;
   sku: string;
   barcode: string;
@@ -168,6 +171,9 @@ export interface BulkEditChange {
   brand?: string;
   price?: number;
   costPrice?: number;
+  /** null clears the price so the retail price applies. */
+  wholesalePrice?: number | null;
+  creditPrice?: number | null;
   unit?: string;
   barcode?: string;
   lowStockAlert?: number;

@@ -9,7 +9,8 @@
 import { ArrowLeftRight, Ban, CreditCard, KeyRound, Monitor, Percent, Printer, Receipt, RotateCcw, ShieldCheck, Tag, Users, UtensilsCrossed } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
-import { Alert, ChoiceGroup, Divider, Field, NumberInput, PageLink, SectionCard, StatPill, Toggle } from '../components/UI';
+import { ChoiceGroup, Divider, Field, NumberInput, PageLink, SectionCard, Toggle } from '../components/SettingsBlocks';
+import { Badge, Alert } from '@/design-system/components';
 import { SettingLink } from '../components/SettingsFrame';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
@@ -58,7 +59,7 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
       </div>
 
       <SectionCard title="Discount" desc="Cashier haath se kitna Discount de sakta hai (codes aur points ke apne usool hain)" icon={Percent} color="amber"
-        badge={<StatPill label="Had" value={draft.allowDiscount ? `${max}%` : 'Band'} tone={draft.allowDiscount ? 'amber' : 'slate'} />}>
+        badge={<Badge size="xs" variant={draft.allowDiscount ? 'warning' : 'default'}><span className="opacity-70">Had</span>{draft.allowDiscount ? `${max}%` : 'Band'}</Badge>}>
         <Toggle checked={draft.allowDiscount} onChange={(v) => set('allowDiscount', v)} icon={Tag}
           label="Haath se Discount"
           desc={draft.allowDiscount ? 'Cashier bill par Discount de sakta hai' : 'Band — counter par Discount ka button kaam nahi karega'} />
@@ -90,7 +91,7 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
         <div className="grid gap-4 xl:grid-cols-2">
           {industry === 'restaurant' && (
             <SectionCard title="Service charge" desc="Table par khane (dine-in) ke bill par lagta hai" icon={UtensilsCrossed} color="emerald"
-              badge={<StatPill label="Ab" value={service ? `${service}%` : 'Nahi'} tone={service ? 'emerald' : 'slate'} />}>
+              badge={<Badge size="xs" variant={service ? 'success' : 'default'}><span className="opacity-70">Ab</span>{service ? `${service}%` : 'Nahi'}</Badge>}>
               <Field label="Dine-in service charge" hint="Har naya dine-in order isi % se shuru hota hai; waiter ek order par badal sakta hai. 0 = koi service charge nahi.">
                 <NumberInput value={draft.serviceChargePct} onChange={(v) => set('serviceChargePct', v)} min={0} max={100} step={0.5} suffix="%" />
               </Field>
@@ -99,7 +100,7 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
           )}
           {industry === 'garments' && (
             <SectionCard title="Exchange" desc="Bika hua maal kitne din tak badla ja sakta hai" icon={ArrowLeftRight} color="blue"
-              badge={<StatPill label="Had" value={exchange ? `${exchange} din` : 'Nahi'} tone={exchange ? 'blue' : 'slate'} />}>
+              badge={<Badge size="xs" variant={exchange ? 'info' : 'default'}><span className="opacity-70">Had</span>{exchange ? `${exchange} din` : 'Nahi'}</Badge>}>
               <Field label="Exchange ke din" hint="Bill ke itne din baad tak maal badla ja sakta hai. 0 = koi had nahi.">
                 <NumberInput value={draft.exchangeDays} onChange={(v) => set('exchangeDays', Math.round(v))} min={0} max={365} suffix="din" />
               </Field>
@@ -109,9 +110,9 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
       )}
 
       <SectionCard title="Malik ka PIN kab maangein" desc="In kaamon se pehle counter par malik ka PIN maanga jayega" icon={ShieldCheck} color="violet"
-        badge={<StatPill label="PIN" value={hasPin ? 'Laga hua' : 'Nahi laga'} tone={hasPin ? 'emerald' : 'rose'} />}>
+        badge={<Badge size="xs" variant={hasPin ? 'success' : 'danger'}><span className="opacity-70">PIN</span>{hasPin ? 'Laga hua' : 'Nahi laga'}</Badge>}>
         {!hasPin && (
-          <Alert tone="amber" icon={KeyRound} title="Abhi PIN nahi laga">
+          <Alert tone="warning" title="Abhi PIN nahi laga" icon={<KeyRound className="h-4 w-4" />}>
             PIN ke bagair yeh usool kaam nahi karte (sirf Discount ki had band rehti hai).{' '}
             <SettingLink to="/settings/security" find="Malik ka PIN" className="font-semibold underline underline-offset-2">PIN lagayein</SettingLink>
           </Alert>

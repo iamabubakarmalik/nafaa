@@ -5,10 +5,21 @@
  */
 
 import { apiClient } from '@core/api/client';
+import type { PriceTier } from '@core/lib/priceTiers';
 
 export interface Period { from: string; to: string }
 interface Meta { from: string; to: string; grouping: 'day' | 'month' }
 interface Group { bills: number; net: number; profit?: number; cashIn: number }
+
+/**
+ * Sale by price tier (null tier = Retail). Bills count each bill once per
+ * tier it holds; sale, cost and profit add up to the tab's headline. `mixed`
+ * is false when every line was retail. Null when the split could not be read.
+ */
+export interface PriceTierSplit {
+  mixed: boolean;
+  tiers: Array<{ tier: PriceTier; label: string; bills: number; qty: number; net: number; cost?: number; profit?: number; margin?: number }>;
+}
 
 export interface SalesReport extends Meta {
   totals: {
@@ -25,6 +36,7 @@ export interface SalesReport extends Meta {
   staff: Array<Group & { id: string | null; name: string }>;
   channels: Array<Group & { source: string }>;
   shops: Array<Group & { id: string | null; name: string }>;
+  priceTiers?: PriceTierSplit | null;
 }
 
 export interface ItemRow {
@@ -80,6 +92,7 @@ export interface ProfitReport extends Meta {
   totals: ProfitSummary & { damageCount: number };
   previous: ProfitSummary | null;
   rows: Array<{ key: string; sales: number; cost?: number; grossProfit?: number; expenses: number; netProfit?: number }>;
+  priceTiers?: PriceTierSplit | null;
 }
 
 export interface TaxReport extends Meta {

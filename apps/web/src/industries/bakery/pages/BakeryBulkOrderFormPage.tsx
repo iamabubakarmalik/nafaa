@@ -11,8 +11,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, Building2, CalendarDays, Package, Plus, Search, Trash2, Truck, Wallet } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { AlertTriangle, Building2, CalendarDays, Package, Plus, Search, Trash2, Truck, Wallet } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Skeleton, Switch, Textarea, controlClass } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
@@ -140,14 +140,13 @@ export default function BakeryBulkOrderFormPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${orderQ.data?.orderNumber} — badlein` : 'Naya bara order'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{editing ? 'Mila hua paisa yahan se nahi badalta — order ki list me "Paisa mila" se' : 'Shadi, daftar, school — cheezein, rate, event aur advance'}</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-      </div>
+      <PageHero
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        title={editing ? `${orderQ.data?.orderNumber} — badlein` : 'Naya bara order'}
+        subtitle={editing ? 'Mila hua paisa yahan se nahi badalta — order ki list me "Paisa mila" se' : 'Shadi, daftar, school — cheezein, rate, event aur advance'}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
@@ -181,8 +180,8 @@ export default function BakeryBulkOrderFormPage() {
                   {lines.map((l) => (
                     <li key={l.key} className="grid grid-cols-[minmax(0,1fr)_5rem_6rem_auto] items-center gap-2 rounded-xl bg-slate-50 p-2 ring-1 ring-slate-200">
                       {l.productId ? <span className="truncate text-[0.875rem] font-medium text-slate-900">{l.name}</span> : <Input size="sm" value={l.name} onChange={(e) => update(l.key, { name: e.target.value })} placeholder="Cheez ka naam" />}
-                      <input inputMode="decimal" value={l.qty} onChange={(e) => update(l.key, { qty: digits(e.target.value) })} placeholder="Kitne" aria-label="Kitne" className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-right text-[0.875rem] tabular-nums" />
-                      <input inputMode="decimal" value={l.rate} onChange={(e) => update(l.key, { rate: digits(e.target.value) })} placeholder="Rate" aria-label="Rate" className="h-9 rounded-lg border border-slate-300 bg-white px-2 text-right text-[0.875rem] tabular-nums" />
+                      <input inputMode="decimal" value={l.qty} onChange={(e) => update(l.key, { qty: digits(e.target.value) })} placeholder="Kitne" aria-label="Kitne" className={cn(controlClass(), 'h-9 px-2 text-right text-[0.875rem] tabular-nums')} />
+                      <input inputMode="decimal" value={l.rate} onChange={(e) => update(l.key, { rate: digits(e.target.value) })} placeholder="Rate" aria-label="Rate" className={cn(controlClass(), 'h-9 px-2 text-right text-[0.875rem] tabular-nums')} />
                       <button type="button" aria-label="Hatayein" onClick={() => setLines((xs) => xs.filter((x) => x.key !== l.key))} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                       <span className="col-span-4 -mt-1 text-right text-[0.6875rem] tabular-nums text-slate-500">{l.unit ? `${l.unit} · ` : ''}{formatPKR((Number(l.qty) || 0) * (Number(l.rate) || 0))}{!l.productId && ' · maal se nahi juri'}</span>
                     </li>

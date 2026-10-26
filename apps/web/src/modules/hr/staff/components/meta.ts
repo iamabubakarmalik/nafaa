@@ -49,6 +49,7 @@ export const salaryTypeOf = (id: string) => SALARY_TYPES.find((s) => s.id === id
 const PERM_TEXT: Record<string, [string, string]> = {
   'pos.use': ['POS counter', 'Sale ka counter khol sakta hai'],
   'pos.discount_override': ['Had se zyada discount', 'Settings wali discount ki had aur PIN is par nahi lagte — sirf bharose wale banday ko dein'],
+  'pos.price_tier': ['Price tier badalna', 'Counter par Wholesale / Credit price chun sakta hai. Customer ya udhaar se jo price khud lagti hai us ke liye ye zaroori nahi'],
   'sales.view': ['Sale dekhna', 'Purane bill aur sale ki list'],
   'sales.void': ['Bill void karna', 'Bana hua bill radd kar sakta hai (PIN setting alag hai)'],
   'returns.view': ['Return dekhna', 'Wapas aaye maal ki list'],

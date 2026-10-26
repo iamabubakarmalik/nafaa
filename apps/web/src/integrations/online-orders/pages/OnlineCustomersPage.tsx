@@ -15,9 +15,7 @@ import { toast } from 'sonner';
 import {
   ArrowRight, Copy, Crown, Download, GraduationCap, MessageCircle, Phone, Repeat, Send, ShieldBan, Sparkles, UserMinus, UserPlus, Users, X,
 } from 'lucide-react';
-import {
-  Badge, Button, Card, FilterBar, FilterChip, FilterMenu, IconButton, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton,
-  ViewTabs, heroButton, heroIconButton, confirmDialog } from '@/design-system/components';
+import { Badge, Button, Card, confirmDialog, FilterBar, FilterChip, FilterMenu, heroButton, heroIconButton, IconButton, Input, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td, Textarea, Th, THead, Tr, ViewTabs } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -200,19 +198,15 @@ export default function OnlineCustomersPage() {
         ) : (
           <div className="grid gap-4 lg:grid-cols-5">
             <Card className="rounded-2xl lg:col-span-2" title="Message" description={`${seg.hint}. {naam}, {dukaan} aur {link} khud badal jate hain.`}>
-              <textarea value={tpl} onChange={(e) => setTemplates({ ...templates, [segment]: e.target.value })} rows={5} maxLength={600}
-                className="w-full rounded-xl border border-slate-200 bg-white p-3 text-[0.875rem] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100" />
-              <label className="mt-3 block text-[0.75rem] font-semibold text-slate-600">
-                {'{link}'} — order form ya website ka link
-                <input value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://…" className="mt-1 block h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-[0.875rem] font-normal outline-none focus:border-brand-400" />
-              </label>
+              <Textarea value={tpl} onChange={(e) => setTemplates({ ...templates, [segment]: e.target.value })} rows={5} maxLength={600} aria-label="Message" />
+              <Input wrapperClassName="mt-3" label={<>{'{link}'} — order form ya website ka link</>} value={link} onChange={(e) => setLink(e.target.value)} placeholder="https://…" />
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button size="sm" variant="ghost" onClick={() => setTemplates({ ...templates, [segment]: TEMPLATES[segment] })}>Pehla wala message</Button>
                 <Button size="sm" variant="secondary" leftIcon={<Copy className="h-4 w-4" />} onClick={() => void copyNumbers()} disabled={!rows.length}>Sab numbers copy</Button>
               </div>
               {rows[0] && (
-                <div className="mt-4 rounded-2xl bg-emerald-50 p-3 text-[0.8125rem] text-emerald-950 ring-1 ring-emerald-100">
-                  <p className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-emerald-700">{rows[0].name.split(' ')[0]} ko aise jayega</p>
+                <div className="mt-4 rounded-2xl bg-brand-50 p-3 text-[0.8125rem] text-brand-950 ring-1 ring-brand-100">
+                  <p className="mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-brand-700">{rows[0].name.split(' ')[0]} ko aise jayega</p>
                   <p className="whitespace-pre-line">{msgFor(rows[0]) || '—'}</p>
                 </div>
               )}
@@ -227,14 +221,14 @@ export default function OnlineCustomersPage() {
                     const href = waHref(c);
                     const done = sent.has(c.key);
                     return (
-                      <li key={c.key} className={cn('flex items-center gap-3 px-4 py-2.5 sm:px-5', done && 'bg-emerald-50/50')}>
+                      <li key={c.key} className={cn('flex items-center gap-3 px-4 py-2.5 sm:px-5', done && 'bg-success-50/50')}>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-[0.875rem] font-medium text-slate-900">{c.name}</span>
                           <span className="block text-[0.75rem] text-slate-500">{c.phone}{c.city ? ` · ${c.city}` : ''}</span>
                         </span>
                         {href ? (
                           <a href={href} target="_blank" rel="noreferrer" onClick={() => setSent((s) => new Set(s).add(c.key))}
-                            className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-semibold', done ? 'bg-white text-emerald-700 ring-1 ring-emerald-200' : 'bg-emerald-600 text-white hover:bg-emerald-700')}>
+                            className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-semibold', done ? 'bg-white text-brand-700 ring-1 ring-brand-200' : 'bg-brand-600 text-white hover:bg-brand-700')}>
                             <MessageCircle className="h-4 w-4" />{done ? 'Bhej diya' : 'Bhejein'}
                           </a>
                         ) : <span className="text-[0.75rem] text-slate-400">Number sahi nahi</span>}
@@ -257,16 +251,16 @@ export default function OnlineCustomersPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[46rem] text-[0.8125rem]">
-                <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                  <tr><th className="px-4 py-2 sm:px-5">Customer</th><th className="px-3 py-2 text-right">Deliver / orders</th><th className="px-3 py-2 text-right">Kharch</th><th className="px-3 py-2 text-right">Aakhri order</th><th className="px-4 py-2 sm:px-5" /></tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table minWidth="46rem" className="[&_table]:text-[0.8125rem]">
+                <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                  <Tr><Th className="px-4 py-2 sm:px-5">Customer</Th><Th className="px-3 py-2 text-right">Deliver / orders</Th><Th className="px-3 py-2 text-right">Kharch</Th><Th className="px-3 py-2 text-right">Aakhri order</Th><Th className="px-4 py-2 sm:px-5" /></Tr>
+                </THead>
+                <TBody className="divide-y divide-slate-100">
                   {rows.map((c) => {
                     const href = waHref(c);
                     return (
-                      <tr key={c.key} className="hover:bg-slate-50/80">
-                        <td className="px-4 py-2.5 sm:px-5">
+                      <Tr key={c.key} className="hover:bg-slate-50/80">
+                        <Td className="px-4 py-2.5 sm:px-5">
                           <button type="button" onClick={() => setOpenCustomer(c)} className="text-left">
                             <span className="flex flex-wrap items-center gap-1.5">
                               <span className="font-semibold text-slate-900 hover:underline">{c.name}</span>
@@ -277,17 +271,17 @@ export default function OnlineCustomersPage() {
                             </span>
                             <span className="block text-[0.75rem] text-slate-500">{c.phone}{c.city ? ` · ${c.city}` : ''}{c.channels.length ? ` · ${c.channels.join(', ')}` : ''}</span>
                           </button>
-                        </td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">{c.delivered}<span className="text-slate-400"> / {c.orders}</span></td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">
+                        </Td>
+                        <Td className="px-3 py-2.5 text-right tabular-nums">{c.delivered}<span className="text-slate-400"> / {c.orders}</span></Td>
+                        <Td className="px-3 py-2.5 text-right tabular-nums">
                           <div className="font-semibold text-slate-900">{money(c.spent)}</div>
                           {c.avgOrder > 0 && <div className="text-[0.6875rem] text-slate-400">ausat {money(c.avgOrder)}</div>}
-                        </td>
-                        <td className="px-3 py-2.5 text-right text-slate-600">{c.daysSince === 0 ? 'aaj' : `${c.daysSince} din pehle`}</td>
-                        <td className="px-4 py-2.5 sm:px-5">
+                        </Td>
+                        <Td className="px-3 py-2.5 text-right text-slate-600">{c.daysSince === 0 ? 'aaj' : `${c.daysSince} din pehle`}</Td>
+                        <Td className="px-4 py-2.5 sm:px-5">
                           <div className="flex justify-end gap-1">
                             {href && (
-                              <a href={href} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 text-[0.8125rem] font-semibold text-white hover:bg-emerald-700">
+                              <a href={href} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-brand-600 px-2.5 text-[0.8125rem] font-semibold text-white hover:bg-brand-700">
                                 <MessageCircle className="h-4 w-4" /><span className="hidden md:inline">WhatsApp</span>
                               </a>
                             )}
@@ -297,12 +291,12 @@ export default function OnlineCustomersPage() {
                               <ShieldBan className="h-4 w-4" />{c.blocked && 'Unblock'}
                             </button>
                           </div>
-                        </td>
-                      </tr>
+                        </Td>
+                      </Tr>
                     );
                   })}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             </div>
           )}
           <PagerRow page={page} pages={pages} total={data?.total ?? 0} setPage={setPage} />

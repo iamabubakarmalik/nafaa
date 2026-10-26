@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight, Minus, type LucideIcon } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { Table } from '@/design-system/components';
 
 export function Panel({ icon: Icon, title, hint, actions, children, className, flush }: {
   icon: LucideIcon; title: ReactNode; hint?: ReactNode; actions?: ReactNode; children: ReactNode; className?: string; flush?: boolean;
@@ -87,9 +88,7 @@ export function Tag({ tone, children }: { tone: 'rose' | 'amber' | 'green' | 'sl
 /** Table shell that scrolls sideways on phones instead of the page. */
 export function TableWrap({ children, minWidth = '36rem' }: { children: ReactNode; minWidth?: string }) {
   return (
-    <div className="-mx-4 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
-      <table className="w-full text-[0.8125rem]" style={{ minWidth }}>{children}</table>
-    </div>
+    <Table minWidth={minWidth} className="-mx-4 px-4 sm:-mx-5 sm:px-5 [&_table]:text-[0.8125rem]">{children}</Table>
   );
 }
 

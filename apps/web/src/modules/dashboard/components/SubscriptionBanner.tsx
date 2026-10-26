@@ -1,10 +1,71 @@
+/**
+ * Subscription notice on the dashboard: payment under review, expired or
+ * past due, trial ending soon, active trial, or renewal within 7 days.
+ * Renders nothing when there is nothing to say.
+ */
+
+import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Sparkles, AlertTriangle, Clock, CreditCard, XCircle, ArrowRight,
+  Sparkles, AlertTriangle, Clock, XCircle, ArrowRight,
   CheckCircle2, Crown, Zap,
 } from 'lucide-react';
 import { useSubscriptionStatus } from '@core/hooks/useSubscriptionStatus';
 import { formatPKR } from '@core/lib/format';
+import { cn } from '@core/lib/cn';
+
+type Tone = 'info' | 'danger' | 'warning' | 'brand';
+
+const TONES: Record<Tone, { box: string; icon: string; tag: string; title: string; text: string; link: string }> = {
+  info: {
+    box: 'bg-blue-50 ring-blue-200', icon: 'bg-blue-100 text-blue-700', tag: 'bg-blue-100 text-blue-800',
+    title: 'text-blue-950', text: 'text-blue-800', link: 'bg-blue-500 text-white hover:bg-blue-600',
+  },
+  danger: {
+    box: 'bg-rose-50 ring-rose-200', icon: 'bg-rose-100 text-rose-700', tag: 'bg-rose-100 text-rose-800',
+    title: 'text-rose-950', text: 'text-rose-800', link: 'bg-rose-500 text-white hover:bg-rose-600',
+  },
+  warning: {
+    box: 'bg-amber-50 ring-amber-200', icon: 'bg-amber-100 text-amber-700', tag: 'bg-amber-100 text-amber-800',
+    title: 'text-amber-950', text: 'text-amber-800', link: 'bg-amber-500 text-amber-950 hover:bg-amber-400',
+  },
+  brand: {
+    box: 'bg-brand-50 ring-brand-200', icon: 'bg-brand-100 text-brand-700', tag: 'bg-brand-100 text-brand-800',
+    title: 'text-brand-950', text: 'text-brand-800', link: 'bg-brand-600 text-brand-fg hover:bg-brand-700',
+  },
+};
+
+function Banner({ tone, icon, tag, tagIcon, title, text, to, cta }: {
+  tone: Tone;
+  icon: ReactNode;
+  tag: string;
+  tagIcon: ReactNode;
+  title: ReactNode;
+  text: ReactNode;
+  to: string;
+  cta: string;
+}) {
+  const t = TONES[tone];
+  return (
+    <div className={cn('rounded-2xl p-4 shadow-sm ring-1 ring-inset sm:p-5', t.box)}>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-xl [&_svg]:h-5 [&_svg]:w-5', t.icon)}>{icon}</div>
+          <div className="min-w-0">
+            <div className={cn('mb-1 inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[0.6875rem] font-bold uppercase tracking-wider [&_svg]:h-3 [&_svg]:w-3', t.tag)}>
+              {tagIcon}{tag}
+            </div>
+            <h3 className={cn('text-base font-bold sm:text-[1.0625rem]', t.title)}>{title}</h3>
+            <p className={cn('mt-0.5 text-[0.8125rem]', t.text)}>{text}</p>
+          </div>
+        </div>
+        <Link to={to} className={cn('inline-flex h-10 items-center gap-1.5 rounded-lg px-4 text-sm font-semibold shadow-sm transition', t.link)}>
+          {cta} <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export function SubscriptionBanner() {
   const {
@@ -14,158 +75,60 @@ export function SubscriptionBanner() {
 
   if (isLoading || !subscription) return null;
 
-  // ─── PENDING UPGRADE (waiting for payment approval) ───
+  // Upgrade paid and waiting for admin approval.
   if (pendingUpgrade && pendingUpgrade.invoice) {
     return (
-      <div className="rounded-3xl bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <Clock className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1">
-                <Clock className="h-2.5 w-2.5" />
-                Payment Verification
-              </div>
-              <h3 className="text-base sm:text-lg font-extrabold text-blue-900">
-                Your payment is being verified
-              </h3>
-              <p className="text-xs sm:text-sm text-blue-800 mt-0.5">
-                Invoice <strong>{pendingUpgrade.invoice.invoiceNumber}</strong> — {formatPKR(pendingUpgrade.invoice.total)} • Admin approval pending (usually within 24 hours)
-              </p>
-            </div>
-          </div>
-          <Link
-            to="/billing"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-md transition"
-          >
-            View Status <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
+      <Banner tone="info" icon={<Clock />} tagIcon={<Clock />} tag="Payment Verification"
+        title="Your payment is being verified"
+        text={<>Invoice <strong>{pendingUpgrade.invoice.invoiceNumber}</strong> — {formatPKR(pendingUpgrade.invoice.total)} • Admin approval pending (usually within 24 hours)</>}
+        to="/billing" cta="View Status" />
     );
   }
 
-  // ─── EXPIRED / PAST DUE ───
   if (isExpired || isPastDue) {
     return (
-      <div className="rounded-3xl bg-gradient-to-r from-rose-500 via-red-500 to-rose-600 text-white p-5 shadow-2xl shadow-rose-500/30">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-              <XCircle className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1">
-                <AlertTriangle className="h-2.5 w-2.5" />
-                Action Required
-              </div>
-              <h3 className="text-base sm:text-lg font-extrabold">
-                {isExpired ? 'Your subscription has expired' : 'Payment is past due'}
-              </h3>
-              <p className="text-xs sm:text-sm text-white/90 mt-0.5">
-                Renew now to continue using all features — sales, POS, inventory access pe restrictions lag sakti hain
-              </p>
-            </div>
-          </div>
-          <Link
-            to="/plans"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-rose-700 hover:bg-rose-50 text-sm font-extrabold shadow-md transition"
-          >
-            Renew Now <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
+      <Banner tone="danger" icon={<XCircle />} tagIcon={<AlertTriangle />} tag="Action Required"
+        title={isExpired ? 'Your subscription has expired' : 'Payment is past due'}
+        text="Renew now to continue using all features — sales, POS, inventory access pe restrictions lag sakti hain"
+        to="/plans" cta="Renew Now" />
     );
   }
 
-  // ─── TRIAL EXPIRING SOON ───
   if (isTrial && isTrialExpiringSoon) {
     return (
-      <div className="rounded-3xl bg-gradient-to-r from-amber-500 to-orange-500 text-white p-5 shadow-2xl shadow-amber-500/30">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-              <Zap className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1">
-                <Clock className="h-2.5 w-2.5" />
-                Trial Expiring
-              </div>
-              <h3 className="text-base sm:text-lg font-extrabold">
-                {trialDaysLeft === 0
-                  ? 'Last day of your trial!'
-                  : `Only ${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left in your trial`}
-              </h3>
-              <p className="text-xs sm:text-sm text-white/90 mt-0.5">
-                Upgrade now to continue using {subscription.plan?.name || 'Premium'} features — koi data loss nahi hoga
-              </p>
-            </div>
-          </div>
-          <Link
-            to="/plans"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-amber-700 hover:bg-amber-50 text-sm font-extrabold shadow-md transition"
-          >
-            Upgrade Now <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
+      <Banner tone="warning" icon={<Zap />} tagIcon={<Clock />} tag="Trial Expiring"
+        title={trialDaysLeft === 0 ? 'Last day of your trial!' : `Only ${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left in your trial`}
+        text={`Upgrade now to continue using ${subscription.plan?.name || 'Premium'} features — koi data loss nahi hoga`}
+        to="/plans" cta="Upgrade Now" />
     );
   }
 
-  // ─── ACTIVE TRIAL ───
   if (isTrial) {
     return (
-      <div className="rounded-3xl bg-gradient-to-r from-violet-500 to-purple-600 text-white p-5 shadow-2xl shadow-violet-500/30">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
-              <Sparkles className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/20 backdrop-blur text-[0.6875rem] font-extrabold uppercase tracking-wider mb-1">
-                <Crown className="h-2.5 w-2.5" />
-                Free Trial Active
-              </div>
-              <h3 className="text-base sm:text-lg font-extrabold">
-                {trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''} left in your trial
-              </h3>
-              <p className="text-xs sm:text-sm text-white/90 mt-0.5">
-                Enjoying {subscription.plan?.name || 'Premium'}? Subscribe anytime to keep all features after trial ends
-              </p>
-            </div>
-          </div>
-          <Link
-            to="/plans"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-violet-700 hover:bg-violet-50 text-sm font-extrabold shadow-md transition"
-          >
-            View Plans <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
+      <Banner tone="brand" icon={<Sparkles />} tagIcon={<Crown />} tag="Free Trial Active"
+        title={`${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left in your trial`}
+        text={`Enjoying ${subscription.plan?.name || 'Premium'}? Subscribe anytime to keep all features after trial ends`}
+        to="/plans" cta="View Plans" />
     );
   }
 
-  // ─── ACTIVE SUBSCRIPTION (subtle indicator) ───
+  // Active subscription: a quiet note only when renewal is within 7 days.
   if (subscription.status === 'ACTIVE') {
     const daysUntilRenewal = Math.ceil(
-      (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      (new Date(subscription.currentPeriodEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     );
 
-    // Only show if renewal is within 7 days
     if (daysUntilRenewal <= 7 && daysUntilRenewal > 0) {
       return (
-        <div className="rounded-2xl bg-blue-50 border border-blue-200 p-4 flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-blue-50 p-4 ring-1 ring-inset ring-blue-200">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-blue-600" />
+            <CheckCircle2 className="h-5 w-5 text-blue-700" />
             <div className="text-sm">
               <span className="font-bold text-blue-900">{subscription.plan?.name}</span>
               <span className="text-blue-700"> subscription renews in {daysUntilRenewal} day{daysUntilRenewal !== 1 ? 's' : ''}</span>
             </div>
           </div>
-          <Link to="/billing" className="text-xs font-bold text-blue-700 hover:underline">
+          <Link to="/billing" className="text-[0.75rem] font-bold text-blue-700 hover:underline">
             Manage →
           </Link>
         </div>

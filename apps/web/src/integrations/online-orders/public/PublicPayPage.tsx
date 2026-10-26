@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, CreditCard, Loader2, Lock, XCircle } from 'lucide-react';
+import { Alert, Button, Card, Input } from '@/design-system/components';
 import { publicFetch } from './publicApi';
 
 /* ═════════════════════════════════════════════════════════════
@@ -70,7 +71,7 @@ export default function PublicPayPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-      <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-sm">
+      <Card className="w-full max-w-md rounded-3xl p-1 sm:p-2">
         {!info && !err ? (
           <div className="flex justify-center p-10"><Loader2 className="h-7 w-7 animate-spin text-slate-400" /></div>
         ) : !info ? (
@@ -79,17 +80,17 @@ export default function PublicPayPage() {
           <>
             <div className="text-center">
               <div className="text-sm font-semibold text-slate-500">{info.shop}</div>
-              <div className="mt-1 text-3xl font-black text-slate-900">{rs(info.amount)}</div>
+              <div className="mt-1 text-3xl font-black tabular-nums text-slate-900">{rs(info.amount)}</div>
               <div className="mt-1 text-sm text-slate-500">
                 Order #{info.orderNumber}{info.kind === 'ADVANCE' ? ` · advance (kul ${rs(info.orderTotal)}, baqi delivery par)` : ''}
               </div>
             </div>
 
             {info.status === 'PAID' ? (
-              <div className="mt-6 rounded-2xl bg-emerald-50 p-5 text-center">
-                <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-600" />
-                <div className="mt-2 text-lg font-bold text-emerald-900">Payment ho gayi — shukriya {info.customer}! 🎉</div>
-                <p className="mt-1 text-sm text-emerald-800">{info.shop} ko khabar ho gayi hai.</p>
+              <div className="mt-6 rounded-2xl bg-success-50 p-5 text-center ring-1 ring-success-200">
+                <CheckCircle2 className="mx-auto h-12 w-12 text-success-600" />
+                <div className="mt-2 text-lg font-bold text-success-900">Payment ho gayi — shukriya {info.customer}! 🎉</div>
+                <p className="mt-1 text-sm text-success-800">{info.shop} ko khabar ho gayi hai.</p>
               </div>
             ) : info.status === 'EXPIRED' || info.status === 'FAILED' ? (
               <div className="mt-6 rounded-2xl bg-slate-50 p-5 text-center">
@@ -99,31 +100,27 @@ export default function PublicPayPage() {
             ) : (
               <>
                 {checking && (
-                  <div className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-sky-50 p-3 text-sm font-semibold text-sky-800">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Payment ki tasdeeq ho rahi hai…
-                  </div>
+                  <Alert tone="info" className="mt-5" icon={<Loader2 className="h-4 w-4 animate-spin text-blue-600" />} title="Payment ki tasdeeq ho rahi hai…" />
                 )}
-                {cancelled && <p className="mt-5 rounded-xl bg-amber-50 p-3 text-center text-sm font-semibold text-amber-800">Payment cancel ho gayi — dobara try kar sakte hain.</p>}
+                {cancelled && <Alert tone="warning" className="mt-5" title="Payment cancel ho gayi — dobara try kar sakte hain." />}
                 {wallet && (
                   <div className="mt-5 space-y-2">
-                    <input value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" placeholder={`Apna ${info.provider} number (03xxxxxxxxx)`}
-                      className="w-full rounded-xl border border-slate-300 px-3 py-3 text-[0.9375rem] outline-none focus:border-slate-500" />
+                    <Input size="lg" value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" aria-label="Mobile number"
+                      placeholder={`Apna ${info.provider} number (03xxxxxxxxx)`} />
                     {info.collect.includes('cnic') && (
-                      <input value={cnic} onChange={(e) => setCnic(e.target.value)} inputMode="numeric" maxLength={15} placeholder="CNIC ke aakhri 6 hindse"
-                        className="w-full rounded-xl border border-slate-300 px-3 py-3 text-[0.9375rem] outline-none focus:border-slate-500" />
+                      <Input size="lg" value={cnic} onChange={(e) => setCnic(e.target.value)} inputMode="numeric" maxLength={15} aria-label="CNIC"
+                        placeholder="CNIC ke aakhri 6 hindse" />
                     )}
                   </div>
                 )}
                 {walletWait && (
-                  <div className="mt-4 rounded-xl bg-sky-50 p-3 text-center text-sm font-semibold text-sky-800">
-                    📱 Apne phone par {info.provider} ka message dekhein aur MPIN / approve karein… (1 minute tak)
-                  </div>
+                  <Alert tone="info" className="mt-4" title={`📱 Apne phone par ${info.provider} ka message dekhein aur MPIN / approve karein… (1 minute tak)`} />
                 )}
-                {walletMsg && <div className="mt-4 rounded-xl bg-sky-50 p-3 text-center text-sm font-semibold text-sky-800">{walletMsg}</div>}
-                <button onClick={pay} disabled={busy}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 py-4 text-base font-bold text-white disabled:opacity-60">
-                  {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />} {rs(info.amount)} pay karein
-                </button>
+                {walletMsg && <Alert tone="info" className="mt-4" title={walletMsg} />}
+                <Button size="xl" fullWidth className="mt-6" onClick={pay} disabled={busy}
+                  leftIcon={busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <CreditCard className="h-5 w-5" />}>
+                  {rs(info.amount)} pay karein
+                </Button>
                 <p className="mt-3 text-center text-xs text-slate-500">{info.methods.join(' · ')} — {info.provider} ke zariye</p>
                 {err && <p className="mt-3 text-center text-sm font-semibold text-rose-600">{err}</p>}
               </>
@@ -136,7 +133,7 @@ export default function PublicPayPage() {
             {Object.entries(form.fields).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
           </form>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

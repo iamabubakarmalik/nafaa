@@ -10,8 +10,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, CalendarClock, Gift, Package, Plus, Search, Settings2, Trash2 } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { AlertTriangle, CalendarClock, Gift, Package, Plus, Search, Settings2, Trash2 } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
@@ -128,14 +128,13 @@ export default function GiftPackFormPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${packQ.data?.name} — badlein` : 'Naya gift pack'}</h1>
-          <p className="text-[0.8125rem] text-white/75">Khilone chunein, pack ki qeemat rakhein — counter par ek tap me bikta hai</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
-      </div>
+      <PageHero
+        title={editing ? `${packQ.data?.name} — badlein` : 'Naya gift pack'}
+        subtitle="Khilone chunein, pack ki qeemat rakhein — counter par ek tap me bikta hai"
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
@@ -207,7 +206,7 @@ export default function GiftPackFormPage() {
               hint={original ? `Alag alag ${formatPKR(original)} — 10% kam: ${formatPKR(Math.round(original * 0.9))}` : 'Khilone chunne ke baad'} />
             <dl className="mt-3 grid grid-cols-3 gap-2 text-[0.8125rem]">
               <div><dt className="text-slate-500">Alag alag</dt><dd className="font-semibold tabular-nums">{formatPKR(original)}</dd></div>
-              <div><dt className="text-slate-500">Bachat</dt><dd className="font-semibold tabular-nums text-emerald-700">{formatPKR(savings)}</dd></div>
+              <div><dt className="text-slate-500">Bachat</dt><dd className="font-semibold tabular-nums text-success-700">{formatPKR(savings)}</dd></div>
               <div><dt className="text-slate-500">Stock se</dt><dd className={cn('font-semibold tabular-nums', packs === 0 && d.lines.length ? 'text-rose-600' : '')}>{packs} pack</dd></div>
             </dl>
             {price > original && original > 0 && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">Pack alag alag se mehnga hai — customer alag le lega.</p>}

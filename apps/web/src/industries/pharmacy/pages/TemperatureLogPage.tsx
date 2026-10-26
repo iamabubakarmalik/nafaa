@@ -10,7 +10,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, CalendarRange, CheckCircle2, Clock, Download, Droplets, GraduationCap, MapPin, Snowflake, Thermometer } from 'lucide-react';
 import {
-  Button, DateRangeMenu, FilterBar, FilterMenu, Input, KpiCard, KpiRow, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton, resolveRange, type DateRangeValue,
+  Button, DateRangeMenu, FilterBar, FilterMenu, Input, KpiCard, KpiRow, PageHero, PageShell, Skeleton, Table, TBody, Td, Th, THead, Tr,
+  ViewTabs, heroButton, heroIconButton, resolveRange, type DateRangeValue,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { downloadCsv } from '@core/lib/csv';
@@ -172,30 +173,28 @@ export default function TemperatureLogPage() {
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
         {isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}</div>
           : rows.length === 0 ? <p className="px-6 py-14 text-center text-[0.875rem] text-slate-500">{tab === 'breach' ? 'Is muddat me temperature hamesha had me raha' : 'Is muddat me koi reading nahi — upar se likhein'}</p> : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[40rem] text-[0.875rem]">
-                <thead><tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="px-5 py-2.5">Waqt</th><th className="px-3 py-2.5">Jagah</th><th className="px-3 py-2.5 text-right">Temperature</th><th className="px-3 py-2.5">Had</th><th className="px-3 py-2.5">Kis ne</th><th className="px-5 py-2.5">Note</th>
-                </tr></thead>
-                <tbody className="divide-y divide-slate-100">
-                  {rows.map((l: TemperatureLog) => (
-                    <tr key={l.id} className={cn(!l.isWithinRange && 'bg-rose-50/60')}>
-                      <td className="whitespace-nowrap px-5 py-2 text-slate-600">{when(l.logDate)}</td>
-                      <td className="px-3 py-2 font-medium text-slate-900">{l.location ?? '—'}</td>
-                      <td className="px-3 py-2 text-right">
-                        <span className={cn('inline-flex items-center gap-1 font-bold tabular-nums', l.isWithinRange ? 'text-slate-900' : 'text-rose-700')}>
-                          {l.isWithinRange ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> : <AlertTriangle className="h-3.5 w-3.5" />}{l.temperature}°C
-                        </span>
-                        {l.humidity != null && <span className="ml-2 inline-flex items-center gap-0.5 text-[0.75rem] text-slate-500"><Droplets className="h-3 w-3" />{l.humidity}%</span>}
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">{l.minLimit ?? '—'}° – {l.maxLimit ?? '—'}°</td>
-                      <td className="px-3 py-2 text-slate-600">{l.recordedBy ?? '—'}</td>
-                      <td className="px-5 py-2 text-slate-600">{l.notes ?? ''}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table minWidth="40rem">
+              <THead><Tr>
+                <Th className="px-5 py-2.5">Waqt</Th><Th className="px-3 py-2.5">Jagah</Th><Th align="right" className="px-3 py-2.5">Temperature</Th><Th className="px-3 py-2.5">Had</Th><Th className="px-3 py-2.5">Kis ne</Th><Th className="px-5 py-2.5">Note</Th>
+              </Tr></THead>
+              <TBody>
+                {rows.map((l: TemperatureLog) => (
+                  <Tr key={l.id} className={cn(!l.isWithinRange && 'bg-rose-50/60')}>
+                    <Td className="whitespace-nowrap px-5 py-2 text-slate-600">{when(l.logDate)}</Td>
+                    <Td className="px-3 py-2 font-medium text-slate-900">{l.location ?? '—'}</Td>
+                    <Td align="right" className="px-3 py-2">
+                      <span className={cn('inline-flex items-center gap-1 font-bold tabular-nums', l.isWithinRange ? 'text-slate-900' : 'text-rose-700')}>
+                        {l.isWithinRange ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> : <AlertTriangle className="h-3.5 w-3.5" />}{l.temperature}°C
+                      </span>
+                      {l.humidity != null && <span className="ml-2 inline-flex items-center gap-0.5 text-[0.75rem] text-slate-500"><Droplets className="h-3 w-3" />{l.humidity}%</span>}
+                    </Td>
+                    <Td className="px-3 py-2 text-slate-600">{l.minLimit ?? '—'}° – {l.maxLimit ?? '—'}°</Td>
+                    <Td className="px-3 py-2 text-slate-600">{l.recordedBy ?? '—'}</Td>
+                    <Td className="px-5 py-2 text-slate-600">{l.notes ?? ''}</Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
           )}
       </section>
     </PageShell>

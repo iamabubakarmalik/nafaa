@@ -15,6 +15,7 @@ import {
   businessDayKey, dateKeyTz, safeDayStart, tzParts, weekdayInTz, zonedToUtc,
 } from '../../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import { tierOf, type PriceTier } from '../../../common/helpers/price-tier.helper';
 
 export interface SalesHistoryQuery {
   from?: string;
@@ -25,6 +26,8 @@ export interface SalesHistoryQuery {
   staffId?: string;
   customerId?: string;
   search?: string;
+  /** Bill price tier: RETAIL, WHOLESALE, CREDIT or MIXED. Absent = every bill. */
+  tier?: string;
   sort?: string;
   page?: string;
   limit?: string;
@@ -36,6 +39,37 @@ const n = (v: unknown) => Number(v ?? 0);
 const KEY = /^\d{4}-\d{2}-\d{2}$/;
 const METHODS = Object.values(PaymentMethod) as string[];
 const SOURCES = Object.values(SaleSource) as string[];
+
+export type BillTier = PriceTier | 'MIXED';
+const BILL_TIERS: BillTier[] = ['RETAIL', 'WHOLESALE', 'CREDIT', 'MIXED'];
+// Older lines have no tier; they count as retail.
+const RETAIL_LINE: Prisma.SaleItemWhereInput = { OR: [{ priceTier: null }, { priceTier: 'RETAIL' }] };
+
+/** Where-clause for bills sold at one tier; mixed means lines at more than one tier. */
+// `none` with explicit null checks, since SQL `every` would let NULL tiers through.
+function tierWhere(tier: BillTier): Prisma.SaleWhereInput {
+  if (tier === 'RETAIL') return { items: { none: { priceTier: { in: ['WHOLESALE', 'CREDIT'] } } } };
+  if (tier !== 'MIXED') return { items: { some: { priceTier: tier }, none: { OR: [{ priceTier: null }, { priceTier: { not: tier } }] } } };
+  const has = (line: Prisma.SaleItemWhereInput): Prisma.SaleWhereInput => ({ items: { some: line } });
+  const W = { priceTier: 'WHOLESALE' }, C = { priceTier: 'CREDIT' };
+  return {
+    OR: [
+      { AND: [has(W), has(RETAIL_LINE)] },
+      { AND: [has(C), has(RETAIL_LINE)] },
+      { AND: [has(W), has(C)] },
+    ],
+  };
+}
+
+/**
+ * A bill's tier from its lines: null when every line predates price tiers,
+ * MIXED when lines differ (a null line counts as retail), else the one tier.
+ */
+export function billTier(lines: Array<{ priceTier: string | null }>): BillTier | null {
+  if (!lines.some((l) => l.priceTier)) return null;
+  const tiers = new Set(lines.map((l) => tierOf(l.priceTier)));
+  return tiers.size > 1 ? 'MIXED' : [...tiers][0];
+}
 
 @Injectable()
 export class SalesHistoryService {
@@ -84,6 +118,9 @@ export class SalesHistoryService {
       ];
       w.AND = [...((w.AND as Prisma.SaleWhereInput[]) ?? []), { OR: search }];
     }
+    if (q.tier && (BILL_TIERS as string[]).includes(q.tier)) {
+      w.AND = [...((w.AND as Prisma.SaleWhereInput[]) ?? []), tierWhere(q.tier as BillTier)];
+    }
     return w;
   }
 
@@ -97,7 +134,7 @@ export class SalesHistoryService {
     // Money totals leave voided bills out, whatever the status filter.
     const liveWhere: Prisma.SaleWhereInput = { AND: [where, { status: { in: [...LIVE] } }] };
 
-    const [rows, count, agg, voided, creditCount, qty, best] = await Promise.all([
+    const [rows, count, agg, voided, creditCount, qty, best, tierLines] = await Promise.all([
       this.prisma.sale.findMany({
         where, orderBy, skip: (page - 1) * limit, take: limit,
         select: {
@@ -111,9 +148,9 @@ export class SalesHistoryService {
           createdBy: { select: { id: true, fullName: true } },
           items: {
             select: {
-              id: true, quantity: true, returnedQty: true, price: true, total: true,
-              product: { select: { id: true, name: true, unit: true, barcode: true, sku: true } },
-              variantLink: { select: { variant: { select: { name: true } } } },
+              id: true, quantity: true, returnedQty: true, price: true, total: true, priceTier: true, retailPrice: true,
+              product: { select: { id: true, name: true, unit: true, barcode: true, sku: true, price: true } },
+              variantLink: { select: { variant: { select: { name: true, price: true } } } },
             },
           },
         },
@@ -128,8 +165,12 @@ export class SalesHistoryService {
       this.prisma.sale.count({ where: { AND: [liveWhere, { creditAmount: { gt: 0 } }] } }),
       this.prisma.saleItem.aggregate({ where: { sale: liveWhere }, _sum: { quantity: true, returnedQty: true }, _count: { _all: true } }),
       this.prisma.sale.findFirst({ where: liveWhere, orderBy: { total: 'desc' }, select: { id: true, saleNumber: true, total: true, soldAt: true } }),
+      // Line totals per tier. SaleItem.total is already net of the line discount;
+      // the bill-level discount is not spread over lines.
+      this.prisma.saleItem.groupBy({ by: ['priceTier'], where: { sale: liveWhere }, _sum: { total: true } }),
     ]);
 
+    const tiers = await this.tierTotals(liveWhere, tierLines);
     const total = n(agg._sum.total);
     const cogs = n(agg._sum.costOfGoods);
     const bills = agg._count._all;
@@ -138,11 +179,20 @@ export class SalesHistoryService {
       items: rows.map((s) => ({
         ...s,
         staff: s.soldBy?.fullName ?? s.createdBy?.fullName ?? null,
-        items: s.items.map((i) => ({
-          id: i.id, productId: i.product?.id ?? null, name: i.product?.name ?? 'Item', variant: i.variantLink?.variant?.name ?? null,
-          unit: i.product?.unit ?? 'pcs', barcode: i.product?.barcode ?? null, quantity: i.quantity, returnedQty: i.returnedQty,
-          price: i.price, total: i.total,
-        })),
+        priceTier: billTier(s.items),
+        items: s.items.map((i) => {
+          const tier = i.priceTier ? tierOf(i.priceTier) : null;
+          // Lines sold before retailPrice was stored fall back to today's retail price.
+          const todayRetail = i.variantLink?.variant?.price ?? i.product?.price ?? null;
+          const offRetail = !!tier && tier !== 'RETAIL';
+          return {
+            id: i.id, productId: i.product?.id ?? null, name: i.product?.name ?? 'Item', variant: i.variantLink?.variant?.name ?? null,
+            unit: i.product?.unit ?? 'pcs', barcode: i.product?.barcode ?? null, quantity: i.quantity, returnedQty: i.returnedQty,
+            price: i.price, total: i.total, priceTier: tier,
+            retailPrice: offRetail ? (i.retailPrice ?? todayRetail) : null,
+            retailPriceIsToday: offRetail && i.retailPrice == null && todayRetail != null,
+          };
+        }),
       })),
       stats: {
         bills, voided, creditCount,
@@ -153,6 +203,27 @@ export class SalesHistoryService {
         lines: qty._count._all, qty: n(qty._sum.quantity) - n(qty._sum.returnedQty),
         best,
       },
+      tiers,
+    };
+  }
+
+  /**
+   * Bills and line totals per tier for the filtered period. Bill counts only run
+   * when a non-retail line exists, since the page hides the strip otherwise.
+   * Bill counts follow the tier filter (a mixed bill counts only as mixed);
+   * money follows the lines, so a mixed bill's lines add to each tier they used.
+   */
+  private async tierTotals(liveWhere: Prisma.SaleWhereInput, lines: Array<{ priceTier: string | null; _sum: { total: number | null } }>) {
+    const amount: Record<PriceTier, number> = { RETAIL: 0, WHOLESALE: 0, CREDIT: 0 };
+    for (const g of lines) amount[tierOf(g.priceTier)] += n(g._sum.total);
+    if (!lines.some((g) => tierOf(g.priceTier) !== 'RETAIL')) return null;
+    const count = (tier: BillTier) => this.prisma.sale.count({ where: { AND: [liveWhere, tierWhere(tier)] } });
+    const [retail, wholesale, credit, mixed] = await Promise.all(BILL_TIERS.map(count));
+    return {
+      RETAIL: { bills: retail, total: amount.RETAIL },
+      WHOLESALE: { bills: wholesale, total: amount.WHOLESALE },
+      CREDIT: { bills: credit, total: amount.CREDIT },
+      mixedBills: mixed,
     };
   }
 

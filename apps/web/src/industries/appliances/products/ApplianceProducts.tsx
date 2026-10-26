@@ -7,7 +7,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Barcode, HardHat, ShieldCheck, Truck, Zap } from 'lucide-react';
-import { heroButton } from '@/design-system/components';
+import { Badge, heroButton } from '@/design-system/components';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import type { ApplianceProductProfile } from '../api/products.api';
@@ -34,7 +34,6 @@ function HeroLinks() {
   );
 }
 
-const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.625rem] font-bold text-white';
 
 export default function ApplianceProducts() {
   const profiles = useApplianceProfiles();
@@ -52,15 +51,15 @@ export default function ApplianceProducts() {
         line: [item.brand?.name, p.modelNumber, sizeLine(p)].filter(Boolean).join(' · ') || undefined,
         badges: (
           <>
-            {p.warrantyMonths > 0 && <span className={`${chip} bg-emerald-600/90`}><ShieldCheck className="h-3 w-3" />{p.warrantyMonths}m</span>}
-            {p.requiresInstallation && <span className={`${chip} bg-blue-600/90`}><HardHat className="h-3 w-3" />Fitting</span>}
+            {p.warrantyMonths > 0 && <Badge size="xs" variant="success" className="gap-1 shadow-sm"><ShieldCheck className="h-3 w-3" />{p.warrantyMonths}m</Badge>}
+            {p.requiresInstallation && <Badge size="xs" variant="info" className="gap-1 shadow-sm"><HardHat className="h-3 w-3" />Fitting</Badge>}
           </>
         ),
         chips: (
           <>
             {p.categoryType && <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[0.6875rem] text-slate-600">{catLabel(p.categoryType)}</span>}
-            {p.isInverter && <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-amber-800"><Zap className="h-3 w-3" />Inverter</span>}
-            {p.freeDelivery && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-emerald-700"><Truck className="h-3 w-3" />Free delivery</span>}
+            {p.isInverter && <Badge size="xs" variant="warning" className="gap-1"><Zap className="h-3 w-3" />Inverter</Badge>}
+            {p.freeDelivery && <Badge size="xs" variant="success" className="gap-1"><Truck className="h-3 w-3" />Free delivery</Badge>}
           </>
         ),
       };

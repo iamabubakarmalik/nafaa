@@ -1,6 +1,12 @@
-// apps/web/src/modules/onboarding/components/BusinessTypeSelector.tsx
+/**
+ * Business type picker used by Settings → Business config: search, a grid of
+ * industry cards and a summary of what the chosen type turns on.
+ */
+
 import { useState, useMemo } from 'react';
-import { Check, Sparkles, Search } from 'lucide-react';
+import { Check, ChevronDown, Sparkles, Search } from 'lucide-react';
+import { cn } from '@core/lib/cn';
+import { Badge, Button, EmptyState, Input } from '@/design-system/components';
 
 export interface BusinessTypeCard {
   value: string;
@@ -16,9 +22,9 @@ export interface BusinessTypeCard {
   featureCount?: number;
 }
 
-// ─── Fallback list — agar API se options.businessTypes empty aayen ───
+// Fallback list, used when the API returns no business types.
 const FALLBACK_BUSINESS_TYPES: BusinessTypeCard[] = [
-  // ═══ POPULAR (top of list) ═══
+  // Popular types (shown first)
   {
     value: 'GROCERY', label: 'Grocery / Kiryana', labelUrdu: 'کریانہ سٹور', emoji: '🛒',
     description: 'General stores, supermarkets', category: 'Retail', popular: true,
@@ -74,7 +80,7 @@ const FALLBACK_BUSINESS_TYPES: BusinessTypeCard[] = [
     highlights: ['Serial + IMEI', 'Warranty', 'Bundle deals', 'Repair services', 'Trade-in'],
   },
 
-  // ═══ REGULAR ═══
+  // Other types
   {
     value: 'BAKERY', label: 'Bakery / Cake Shop', labelUrdu: 'بیکری', emoji: '🍰',
     description: 'Bakeries, sweet shops', category: 'Food',
@@ -154,7 +160,7 @@ const FALLBACK_BUSINESS_TYPES: BusinessTypeCard[] = [
     highlights: ['Technician dispatch', 'Quotations', 'Warranty', 'AMC contracts'],
   },
 
-  // ═══ 10 NEW INDUSTRIES ═══
+  // Industries added later
   {
     value: 'FURNITURE', label: 'Furniture Store', labelUrdu: 'فرنیچر شاپ', emoji: '🪑',
     description: 'Sofas, beds, tables, custom furniture', category: 'Retail',
@@ -224,7 +230,7 @@ export function BusinessTypeSelector({ value, options, onChange, onSelect }: Pro
   const [search, setSearch] = useState('');
   const [showAll, setShowAll] = useState(false);
 
-  // ═══ FIX: agar API se options empty aayen to fallback use karo ═══
+  // Fall back to the built-in list when the API returns none.
   const effectiveOptions = useMemo<BusinessTypeCard[]>(() => {
     if (Array.isArray(options) && options.length > 0) return options;
     return FALLBACK_BUSINESS_TYPES;
@@ -243,7 +249,7 @@ export function BusinessTypeSelector({ value, options, onChange, onSelect }: Pro
           o.value.toLowerCase().includes(q),
       );
     } else if (!showAll) {
-      // Show popular + first few
+      // Popular types first, then a few others.
       const popular = list.filter((o) => o.popular);
       const rest = list.filter((o) => !o.popular).slice(0, 4);
       list = [...popular, ...rest];
@@ -260,133 +266,93 @@ export function BusinessTypeSelector({ value, options, onChange, onSelect }: Pro
 
   return (
     <div className="space-y-4">
-      {/* Search */}
-      <div className="relative">
-        <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search your business type (e.g. bakery, mobile, salon)..."
-          className="h-12 w-full rounded-2xl border-2 border-slate-200 pl-10 pr-3 text-sm font-medium focus:outline-none focus:border-emerald-500"
-        />
-      </div>
+      <Input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Apna kaam search karein (bakery, mobile, salon…)"
+        aria-label="Business type search"
+        leftIcon={<Search className="h-4 w-4" aria-hidden />}
+      />
 
-      {/* Empty state */}
       {filtered.length === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
-          <div className="text-4xl mb-2">🔍</div>
-          <div className="font-black text-slate-900">"{search}" ke liye kuch nahi mila</div>
-          <div className="text-xs text-slate-500 font-medium mt-1">Alag keyword try karein ya "General Retail" chunein</div>
-          <button
-            type="button"
-            onClick={() => setSearch('')}
-            className="mt-3 text-xs font-black text-emerald-600 hover:text-emerald-700 underline"
-          >
-            Clear search
-          </button>
-        </div>
+        <EmptyState
+          icon={<Search className="h-5 w-5" />}
+          title={`"${search}" ke liye kuch nahi mila`}
+          description='Alag lafz try karein ya "General Retail" chunein.'
+          action={<Button variant="secondary" size="sm" onClick={() => setSearch('')}>Search saaf karein</Button>}
+        />
       )}
 
-      {/* Grid */}
       {filtered.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div role="radiogroup" aria-label="Business type" className="grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-4">
           {filtered.map((opt) => {
             const isSelected = value === opt.value;
             return (
               <button
                 key={opt.value}
                 type="button"
+                role="radio"
+                aria-checked={isSelected}
                 onClick={() => handlePick(opt)}
-                className={`group relative rounded-3xl border-2 p-4 text-left transition-all ${
-                  isSelected
-                    ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-teal-50 shadow-xl shadow-emerald-500/20 scale-[1.03]'
-                    : 'border-slate-200 bg-white hover:border-emerald-300 hover:shadow-lg hover:-translate-y-0.5'
-                }`}
+                className={cn(
+                  'relative flex flex-col rounded-xl border bg-white p-3.5 text-left transition',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
+                  isSelected ? 'border-brand-500 bg-brand-50/60 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
+                )}
               >
                 {isSelected && (
-                  <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-lg ring-4 ring-white">
-                    <Check className="h-4 w-4" strokeWidth={3} />
-                  </div>
-                )}
-                {opt.popular && !isSelected && (
-                  <div className="absolute -top-2 left-3 text-[0.625rem] font-black px-2 py-0.5 rounded-full bg-amber-500 text-white shadow border border-white">
-                    ⭐ POPULAR
-                  </div>
-                )}
-
-                <div className="text-4xl mb-2">{opt.emoji}</div>
-                <div className={`font-black text-sm leading-tight ${isSelected ? 'text-emerald-900' : 'text-slate-900'}`}>
-                  {opt.label}
-                </div>
-                {opt.labelUrdu && (
-                  <div className="text-xs text-slate-500 mt-0.5">{opt.labelUrdu}</div>
-                )}
-                <div className="text-[0.6875rem] text-slate-500 mt-1 line-clamp-2 font-medium">{opt.description}</div>
-
-                <div className="mt-2 flex items-center gap-1 flex-wrap">
-                  <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-black ${
-                    isSelected ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {opt.category}
+                  <span className="absolute right-2.5 top-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-brand-fg">
+                    <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
                   </span>
-                  {opt.defaultUnit && (
-                    <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-black ${
-                      isSelected ? 'bg-teal-200 text-teal-800' : 'bg-teal-50 text-teal-700'
-                    }`}>
-                      {opt.defaultUnit}
-                    </span>
-                  )}
-                </div>
+                )}
+                <span className="mb-2 text-3xl leading-none" aria-hidden>{opt.emoji}</span>
+                <span className={cn('pr-6 text-sm font-semibold leading-tight', isSelected ? 'text-brand-800' : 'text-slate-900')}>{opt.label}</span>
+                {opt.labelUrdu && <span className="mt-0.5 font-urdu text-xs text-slate-500">{opt.labelUrdu}</span>}
+                <span className="mt-1 line-clamp-2 text-xs text-slate-500">{opt.description}</span>
+                <span className="mt-2 flex flex-wrap items-center gap-1">
+                  {opt.popular && <Badge size="xs" variant="warning">Popular</Badge>}
+                  <Badge size="xs" variant={isSelected ? 'brand' : 'default'}>{opt.category}</Badge>
+                  {opt.defaultUnit && <Badge size="xs" variant="outline">{opt.defaultUnit}</Badge>}
+                </span>
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Show all */}
       {!showAll && !search && effectiveOptions.length > filtered.length && (
-        <button
-          type="button"
-          onClick={() => setShowAll(true)}
-          className="w-full text-sm font-black text-slate-600 hover:text-slate-900 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 transition"
-        >
-          Show all {effectiveOptions.length} business types →
-        </button>
+        <Button variant="secondary" fullWidth onClick={() => setShowAll(true)} rightIcon={<ChevronDown className="h-4 w-4" />}>
+          Sab {effectiveOptions.length} business types dekhein
+        </Button>
       )}
 
-      {/* Preview */}
       {selectedCard && (
-        <div className="rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-800 text-white p-6 shadow-2xl">
-          <div className="flex items-start gap-4">
-            <div className="text-5xl">{selectedCard.emoji}</div>
-            <div className="flex-1">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-black backdrop-blur">
-                <Sparkles className="h-3 w-3 text-amber-400" />
-                Auto-configured for you
-              </div>
-              <h3 className="mt-2 text-2xl font-black">{selectedCard.label}</h3>
-              <p className="text-sm text-white/85 mt-1 font-medium">{selectedCard.description}</p>
+        <section className="rounded-xl border border-brand-200 bg-brand-50/60 p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <span className="text-4xl leading-none" aria-hidden>{selectedCard.emoji}</span>
+            <div className="min-w-0 flex-1">
+              <Badge size="xs" variant="brand"><Sparkles className="h-3 w-3" aria-hidden /> Aap ke liye set ho jayega</Badge>
+              <h3 className="mt-1.5 text-lg font-bold text-slate-900">{selectedCard.label}</h3>
+              <p className="mt-0.5 text-sm text-slate-600">{selectedCard.description}</p>
             </div>
           </div>
 
           {selectedCard.highlights && selectedCard.highlights.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <div className="text-[0.6875rem] uppercase tracking-widest text-white/60 font-black mb-2">
-                Features enabled automatically:
-              </div>
-              <div className="grid sm:grid-cols-2 gap-2">
+            <div className="mt-4 border-t border-brand-200 pt-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Ye features khud on ho jayenge</p>
+              <ul className="grid gap-1.5 sm:grid-cols-2">
                 {selectedCard.highlights.map((h, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <div className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </div>
-                    <span className="text-white/90 font-medium">{h}</span>
-                  </div>
+                  <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-success-100 text-success-700">
+                      <Check className="h-2.5 w-2.5" strokeWidth={3} aria-hidden />
+                    </span>
+                    {h}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   );

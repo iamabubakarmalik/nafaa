@@ -10,6 +10,7 @@ import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge';
 import type { HistorySale } from '../api';
 import { receiptLink } from '../receiptPrefs';
+import { BillTierBadge } from './PriceTierBadge';
 
 const time = (v: string) => new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: '2-digit' }).format(new Date(v));
 export const qtyText = (n: number) => String(Number(Number(n).toFixed(2)));
@@ -46,6 +47,7 @@ function Badges({ sale }: { sale: HistorySale }) {
   return (
     <>
       <SaleSourceBadge sale={sale as never} />
+      <BillTierBadge tier={sale.priceTier} />
       <StatusBadge sale={sale} />
       {sale.creditAmount > 0 && sale.status !== 'VOIDED' && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-800"><BookOpen className="h-3 w-3" />Udhaar</span>}
     </>

@@ -40,11 +40,11 @@ export function NafaaAiMark({ size = 'md', state = 'idle', className, title }: {
         }
       `}</style>
       <path
-        className="nafaa-ai-spark fill-[#f59e0b] dark:fill-[#fbbf24]"
+        className="nafaa-ai-spark fill-accent-500 dark:fill-accent-400"
         style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
         d="M32 1L38.5 7.5L32 14L25.5 7.5Z"
       />
-      <rect x="30" y="12.5" width="4" height="7" rx="1.5" className="fill-[#15803d] dark:fill-[#22c55e]" />
+      <rect x="30" y="12.5" width="4" height="7" rx="1.5" className="fill-success-700 dark:fill-success-500" />
       <rect x="2" y="32" width="6" height="14" rx="2.5" fill="#15803d" />
       <rect x="56" y="32" width="6" height="14" rx="2.5" fill="#15803d" />
       <rect x="6" y="18" width="52" height="43" rx="13" fill="#16a34a" />

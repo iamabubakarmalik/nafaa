@@ -7,7 +7,7 @@
 
 import type { ReactNode } from 'react';
 import { Eye, Settings as SettingsIcon } from 'lucide-react';
-import { Button } from '@/design-system/components';
+import { Button, Card, EmptyState, Skeleton } from '@/design-system/components';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import type { TenantSettings } from '../api/settings.api';
@@ -55,19 +55,18 @@ export default function SettingsSectionPage({ section }: { section: SettingsSect
   if (isLoading) {
     return (
       <div className="space-y-4" aria-busy="true">
-        {[0, 1, 2].map((i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-slate-100" />)}
+        {[0, 1, 2].map((i) => <Skeleton key={i} className="h-44" />)}
       </div>
     );
   }
 
   if (!settings) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
-        <SettingsIcon className="mx-auto h-8 w-8 text-slate-300" />
-        <p className="mt-3 font-semibold text-slate-900">Settings load nahi huin</p>
-        <p className="mt-1 text-sm text-slate-500">Internet check karein aur dobara koshish karein.</p>
-        <Button variant="secondary" size="sm" className="mt-4" loading={isRefetching} onClick={() => refetch()}>Dobara koshish</Button>
-      </div>
+      <Card>
+        <EmptyState icon={<SettingsIcon className="h-6 w-6" />} title="Settings load nahi huin"
+          description="Internet check karein aur dobara koshish karein."
+          action={<Button variant="secondary" size="sm" loading={isRefetching} onClick={() => refetch()}>Dobara koshish</Button>} />
+      </Card>
     );
   }
 

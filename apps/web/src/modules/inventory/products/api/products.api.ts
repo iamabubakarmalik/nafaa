@@ -20,6 +20,8 @@ export interface Product {
   price: number;
   costPrice: number;
   wholesalePrice?: number | null;
+  /** Credit (udhaar) price; empty means the retail price. */
+  creditPrice?: number | null;
   taxRate: number;
   stock: number;
   lowStockAlert: number;
@@ -81,7 +83,9 @@ export interface CreateProductPayload {
   unit?: string;
   price: number;
   costPrice?: number;
-  wholesalePrice?: number;
+  /** null clears the price so the retail price applies. */
+  wholesalePrice?: number | null;
+  creditPrice?: number | null;
   taxRate?: number;
   stock?: number;
   lowStockAlert?: number;
@@ -182,6 +186,7 @@ async function localCreate(payload: CreateProductPayload): Promise<Product> {
     price: Number(payload.price) || 0,
     costPrice: Number(payload.costPrice) || 0,
     wholesalePrice: payload.wholesalePrice ?? null,
+    creditPrice: payload.creditPrice ?? null,
     taxRate: Number(payload.taxRate) || 0,
     stock: Number(payload.stock) || 0,
     lowStockAlert: Number(payload.lowStockAlert) || 0,

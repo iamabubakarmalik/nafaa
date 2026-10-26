@@ -10,9 +10,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, BookOpen, Building2, GraduationCap, Landmark, Mail, Phone, Save, Truck, UserRound } from 'lucide-react';
+import { AlertTriangle, BookOpen, Building2, GraduationCap, Landmark, Mail, Phone, Save, Truck, UserRound } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea, confirmDialog } from '@/design-system/components';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Skeleton, Switch, Textarea, confirmDialog, heroIconButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
@@ -177,16 +177,15 @@ export default function SupplierFormPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={goBack} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${existing.data?.name ?? 'Supplier'} — badlein` : 'Naya supplier'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Sirf naam zaroori hai. Phone ho to WhatsApp par order aur hisaab bhej sakenge.'}</p>
-        </div>
-        {dirty && <span className="rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[0.75rem] font-semibold text-amber-100 ring-1 ring-amber-300/40">Save nahi hua</span>}
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
-        <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-      </div>
+      <PageHero
+        back={goBack}
+        backLabel="Wapas (Esc)"
+        title={editing ? `${existing.data?.name ?? 'Supplier'} — badlein` : 'Naya supplier'}
+        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Sirf naam zaroori hai. Phone ho to WhatsApp par order aur hisaab bhej sakenge.'}
+        chip={dirty ? 'Save nahi hua' : undefined}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       {guide.isOpen && (
         <PageGuide title="Supplier kaise jorein" onClose={guide.close}
@@ -256,7 +255,7 @@ export default function SupplierFormPage() {
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {TERMS.map((t) => (
                     <button key={t} type="button" onClick={() => set('paymentTerms', t)}
-                      className={cn('h-7 rounded-lg px-2 text-[0.75rem] font-medium ring-1', f.paymentTerms === t ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>{t}</button>
+                      className={cn('h-7 rounded-lg px-2 text-[0.75rem] font-medium ring-1', f.paymentTerms === t ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>{t}</button>
                   ))}
                 </div>
               </div>

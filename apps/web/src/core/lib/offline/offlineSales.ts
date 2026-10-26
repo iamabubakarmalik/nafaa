@@ -75,12 +75,12 @@ async function buildItemSnapshots(
       if (variant) variantName = variant.name;
     }
 
-    // Same order as the server: typed price, else wholesale, else variant or product price.
+    // Same order as the server: typed price, else the tier price (variant, then product), else variant or product price.
     const listPrice = Number(variant?.price ?? p?.price ?? 0);
-    const unitPrice = Number(
-      it.priceOverride ??
-      (it.useWholesale ? (variant?.wholesalePrice ?? p?.wholesalePrice ?? listPrice) : listPrice),
-    ) || 0;
+    const tier = it.priceTier ?? (it.useWholesale ? 'WHOLESALE' : null);
+    const tierListPrice = tier === 'WHOLESALE' ? (variant?.wholesalePrice ?? p?.wholesalePrice ?? listPrice)
+      : tier === 'CREDIT' ? (variant?.creditPrice ?? p?.creditPrice ?? listPrice) : listPrice;
+    const unitPrice = Number(it.priceOverride ?? tierListPrice) || 0;
     const qty = Number(it.quantity) || 0;
     const lineTotal = unitPrice * qty - (it.lineDiscount || 0);
 
@@ -98,6 +98,7 @@ async function buildItemSnapshots(
       itemKind: it.imeiId ? 'NEW_PHONE_IMEI' : 'PRODUCT',
       quantity: qty,
       unitPrice,
+      priceTier: tier,
       lineTotal: Math.max(lineTotal, 0),
       lineDiscount: it.lineDiscount,
       note: it.note,

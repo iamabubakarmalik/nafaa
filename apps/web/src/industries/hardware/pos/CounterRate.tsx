@@ -8,11 +8,14 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { HardHat, Store } from 'lucide-react';
 import { Segmented } from '@/design-system/components';
+import { usePriceTierSettings } from '@modules/pos/lib/usePriceTierSettings';
 import { setRateMode, saleListener, useRateMode, type RateMode } from './rateMode';
 
 export function CounterRate() {
   const mode = useRateMode();
   const navigate = useNavigate();
+  // With shop-wide price tiers on, the bill's tier bar replaces this switch.
+  const tiersOn = usePriceTierSettings().on;
 
   useEffect(() => {
     saleListener.current = (sale) => {
@@ -26,6 +29,7 @@ export function CounterRate() {
     return () => { saleListener.current = null; };
   }, [navigate]);
 
+  if (tiersOn) return null;
   return (
     <div className="space-y-1.5">
       <Segmented<RateMode> label="Rate" value={mode} onChange={setRateMode} className="w-full [&>button]:flex-1"
@@ -35,7 +39,7 @@ export function CounterRate() {
         ]} />
       {mode === 'wholesale' && (
         <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.75rem] text-amber-900 ring-1 ring-amber-200">
-          Ab jo item dalenge un par wholesale rate lagega (jahan rate likha hai). Bill ke baad wapas retail.
+          Bill ki lines par wholesale rate lag gaya (jahan rate likha hai). Bill ke baad wapas retail.
         </p>
       )}
     </div>

@@ -15,7 +15,7 @@ import {
   AlertTriangle, ArrowLeft, Boxes, CalendarClock, Coins, Eye, EyeOff, GraduationCap, Hourglass, Layers, LineChart, Package,
   Pencil, Plus, Receipt, ShoppingBag, Star, Tag, TrendingUp, Truck, Wallet,
 } from 'lucide-react';
-import { Button, Kbd, KpiCard, KpiRow, Modal, PageShell, Skeleton, ViewTabs } from '@/design-system/components';
+import { Badge, Button, Kbd, KpiCard, KpiRow, Modal, PageShell, Skeleton, ViewTabs } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PrintButton, type PrintDoc } from '@core/print';
@@ -183,9 +183,10 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
     meta: [['Category', p.category?.name ?? '—'], ['Unit', p.unit]],
     sections: [
       { kind: 'rows', title: 'Qeemat aur stock', rows: [
-        { label: 'Bechne ki qeemat', value: formatPKR(p.price) },
-        ...(costHidden ? [] : [{ label: 'Cost', value: formatPKR(p.costPrice) }]),
-        ...(p.wholesalePrice ? [{ label: 'Wholesale', value: formatPKR(p.wholesalePrice) }] : []),
+        { label: 'Retail price', value: formatPKR(p.price) },
+        ...(p.wholesalePrice ? [{ label: 'Wholesale price', value: formatPKR(p.wholesalePrice) }] : []),
+        ...(p.creditPrice ? [{ label: 'Credit (udhaar) price', value: formatPKR(p.creditPrice) }] : []),
+        ...(costHidden ? [] : [{ label: 'Cost price', value: formatPKR(p.costPrice) }]),
         { label: 'Stock', value: `${fmt(stock)} ${p.unit}`, strong: true },
         ...(ins ? [{ label: `${ins.window} din ki sale`, value: `${fmt(ins.totals.qty)} ${p.unit} · ${formatPKR(ins.totals.revenue)}` }] : []),
       ] },
@@ -226,17 +227,17 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
       <div className="flex flex-col gap-4 rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:flex-row sm:items-start sm:p-5">
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:h-28 sm:w-28">
           <ProductThumb name={p.name} category={p.category?.name} url={images[0]?.url} size="full" />
-          {images.length > 1 && <span className="absolute bottom-1 right-1 rounded-md bg-slate-900/70 px-1.5 text-[0.625rem] font-bold text-white">+{images.length - 1}</span>}
+          {images.length > 1 && <span className="absolute bottom-1 right-1 rounded-md bg-black/60 px-1.5 text-[0.625rem] font-bold text-white">+{images.length - 1}</span>}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            {!p.isActive && <span className="rounded-md bg-slate-900 px-2 py-0.5 text-[0.75rem] font-semibold text-white">Band hai</span>}
+            {!p.isActive && <Badge variant="default">Band hai</Badge>}
             {p.category && <span className="rounded-md px-2 py-0.5 text-[0.75rem] font-semibold" style={{ backgroundColor: `${p.category.color}18`, color: p.category.color }}>{p.category.name}</span>}
-            {p.isFeatured && <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-[0.75rem] font-semibold text-amber-700"><Star className="h-3 w-3 fill-current" />Khaas</span>}
+            {p.isFeatured && <Badge variant="accent"><Star className="h-3 w-3 fill-current" />Khaas</Badge>}
             {config.badges?.(ctx)}
           </div>
           <h1 className="mt-1 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">{p.name}</h1>
-          <p className="mt-0.5 text-[0.9375rem] text-slate-700"><strong className="tabular-nums">{money(p.price)}</strong> <span className="text-slate-500">/ {p.unit}</span>{p.wholesalePrice ? <span className="ml-2 text-[0.8125rem] text-slate-500">Wholesale {money(p.wholesalePrice)}</span> : null}</p>
+          <p className="mt-0.5 text-[0.9375rem] text-slate-700"><strong className="tabular-nums">{money(p.price)}</strong> <span className="text-slate-500">/ {p.unit}</span>{p.wholesalePrice ? <span className="ml-2 text-[0.8125rem] text-slate-500">Wholesale {money(p.wholesalePrice)}</span> : null}{p.creditPrice ? <span className="ml-2 text-[0.8125rem] text-slate-500">Credit {money(p.creditPrice)}</span> : null}</p>
           <div className="mt-2 flex flex-wrap gap-1.5 text-[0.75rem]">
             {p.sku && <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-slate-700">SKU {p.sku}</span>}
             {p.barcode && <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-slate-700">{p.barcode}</span>}
@@ -259,7 +260,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
             </>
           )}
           {can.stock && <button type="button" onClick={() => setStockOpen(true)} title="Stock (S)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-50 px-3 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-100"><Plus className="h-4 w-4" />Stock</button>}
-          {can.edit && <Link to={config.paths.edit(p.id)} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white shadow-sm hover:bg-brand-700"><Pencil className="h-4 w-4" />Badlein</Link>}
+          {can.edit && <Link to={config.paths.edit(p.id)} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg shadow-sm hover:bg-brand-700"><Pencil className="h-4 w-4" />Badlein</Link>}
         </div>
       </div>
 

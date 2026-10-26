@@ -3,11 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   Download, Upload, RefreshCw, Package, CheckCircle2,
-  AlertCircle, Search, ChevronRight, Sparkles,
+  AlertCircle, Search,
 } from 'lucide-react';
 import { integrationsApi } from '../api/integrations.api';
 import { apiClient } from '@core/api/client';
-import { Button, Input, Badge, SkeletonCard } from '@/design-system/components';
+import { Alert, Badge, Button, EmptyState, Input, SkeletonCard } from '@/design-system/components';
 import { CodeBlock } from './CodeBlock';
 import { cn } from '@core/lib/cn';
 
@@ -88,38 +88,21 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
 
   return (
     <div className="space-y-4">
-      {/* Info banner */}
-      <div className={cn(
-        'p-4 rounded-2xl border',
-        isCustomWebsite
-          ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border-emerald-200 dark:border-emerald-800'
-          : 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800',
-      )}>
-        <div className="flex items-start gap-3">
-          <div className={cn(
-            'h-10 w-10 rounded-xl flex items-center justify-center shrink-0',
-            isCustomWebsite ? 'bg-emerald-500' : 'bg-blue-500',
-          )}>
-            {isCustomWebsite ? <Upload className="h-5 w-5 text-white" /> : <Download className="h-5 w-5 text-white" />}
-          </div>
-          <div className="flex-1">
-            <div className="font-black text-sm text-slate-900 dark:text-ink-white">
-              {isCustomWebsite ? 'Website se Products Import Karo' : 'Channel se Products Pull Karo'}
-            </div>
-            <p className="text-xs text-slate-600 dark:text-ink-400 mt-1">
-              {isCustomWebsite
-                ? 'Apni website ka code Nafaa webhook ko products bheje — sab automatically POS mein aa jayenge (name, price, stock, images, sab).'
-                : 'Foodpanda/Daraz ke saare products ek click mein Nafaa POS mein import karo. Mapping automatic ban jayegi.'}
-            </p>
-          </div>
-        </div>
-      </div>
+      <Alert
+        tone="info"
+        icon={isCustomWebsite ? <Upload className="h-4 w-4 text-blue-600" /> : <Download className="h-4 w-4 text-blue-600" />}
+        title={isCustomWebsite ? 'Website se Products Import Karo' : 'Channel se Products Pull Karo'}
+      >
+        {isCustomWebsite
+          ? 'Apni website ka code Nafaa webhook ko products bheje — sab automatically POS mein aa jayenge (name, price, stock, images, sab).'
+          : 'Foodpanda/Daraz ke saare products ek click mein Nafaa POS mein import karo. Mapping automatic ban jayegi.'}
+      </Alert>
 
       {/* Action buttons */}
       <div className="grid grid-cols-2 gap-2">
         {!isCustomWebsite && (
           <Button
-            variant="gradient"
+            variant="primary"
             loading={importMutation.isPending}
             onClick={() => importMutation.mutate()}
             leftIcon={<Download className="h-4 w-4" />}
@@ -144,7 +127,7 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
 
       {/* Push product search */}
       {showPush && (
-        <div className="p-3 rounded-xl border-2 border-dashed border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-950/20 space-y-3">
+        <div className="space-y-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3">
           <Input
             label="Nafaa Product Search"
             placeholder="Product name likho..."
@@ -159,16 +142,17 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
                   key={p.id}
                   onClick={() => pushMutation.mutate(p.id)}
                   disabled={pushMutation.isPending}
-                  className="w-full p-2.5 rounded-lg bg-white dark:bg-ink-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-left text-xs transition flex items-center gap-2"
+                  type="button"
+                  className="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white p-2.5 text-left text-xs transition hover:border-brand-300 hover:bg-brand-50 disabled:opacity-60"
                 >
-                  <Package className="h-4 w-4 text-blue-600 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-slate-900 dark:text-ink-white truncate">{p.name}</div>
+                  <Package className="h-4 w-4 shrink-0 text-slate-400" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-semibold text-slate-900">{p.name}</div>
                     <div className="text-[0.6875rem] text-slate-500">
                       SKU: {p.sku} · Rs {Number(p.price).toFixed(0)} · Stock: {p.stock ?? 0}
                     </div>
                   </div>
-                  <Upload className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                  <Upload className="h-3.5 w-3.5 shrink-0 text-brand-600" />
                 </button>
               ))}
             </div>
@@ -182,11 +166,11 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
       {/* Mappings list */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <div className="text-xs font-black text-slate-600 dark:text-ink-400 uppercase tracking-wider">
+          <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Mapped Products ({mappings?.length ?? 0})
           </div>
           <Button
-            size="sm"
+            size="xs"
             variant="ghost"
             onClick={() => queryClient.invalidateQueries({ queryKey: ['product-mappings', integrationId] })}
             leftIcon={<RefreshCw className="h-3 w-3" />}
@@ -198,30 +182,28 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
         {isLoading ? (
           <SkeletonCard />
         ) : (mappings ?? []).length === 0 ? (
-          <div className="text-center py-8 rounded-xl bg-slate-50 dark:bg-ink-800/50">
-            <Package className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-            <div className="font-bold text-sm text-slate-500">Koi mapped product nahi</div>
-            <div className="text-[0.6875rem] text-slate-400 mt-1">
-              {isCustomWebsite ? 'Website se products bhejo ya Import button dabao' : 'Import All Products dabao'}
-            </div>
-          </div>
+          <EmptyState
+            icon={<Package className="h-5 w-5" />}
+            title="Koi mapped product nahi"
+            description={isCustomWebsite ? 'Website se products bhejo ya Import button dabao' : 'Import All Products dabao'}
+          />
         ) : (
           <div className="space-y-2 max-h-[40vh] overflow-y-auto">
             {mappings!.map((m: any) => (
               <div
                 key={m.id}
-                className="p-3 rounded-xl bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-700 flex items-center gap-3"
+                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3"
               >
                 <div className={cn(
-                  'h-9 w-9 rounded-lg flex items-center justify-center shrink-0',
-                  m.syncStatus === 'SUCCESS' ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-amber-100 dark:bg-amber-900/40',
+                  'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+                  m.syncStatus === 'SUCCESS' ? 'bg-success-50' : 'bg-amber-50',
                 )}>
                   {m.syncStatus === 'SUCCESS'
-                    ? <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    ? <CheckCircle2 className="h-4 w-4 text-success-600" />
                     : <AlertCircle className="h-4 w-4 text-amber-600" />}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-black text-slate-900 dark:text-ink-white truncate">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs font-semibold text-slate-900">
                     {m.product?.name ?? 'Unknown Product'}
                   </div>
                   <div className="text-[0.6875rem] text-slate-500 font-mono">

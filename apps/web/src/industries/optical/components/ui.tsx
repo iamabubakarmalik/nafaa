@@ -8,8 +8,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeft, ChevronLeft, ChevronRight, Wallet } from 'lucide-react';
-import { Button, Input, Kbd, Modal, Skeleton, Textarea } from '@/design-system/components';
+import { ChevronLeft, ChevronRight, Wallet } from 'lucide-react';
+import { Button, Input, Kbd, Modal, PageHero, Skeleton, Textarea } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PaymentMethodPicker } from '@modules/pos/components';
@@ -121,14 +121,13 @@ export function Chips({ options, value, onChange, clearable }: { options: string
 export function FormHeader({ title, hint }: { title: string; hint: string }) {
   const navigate = useNavigate();
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-      <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-      <div className="min-w-0 flex-1">
-        <h1 className="truncate text-xl font-bold">{title}</h1>
-        <p className="text-[0.8125rem] text-white/75">{hint}</p>
-      </div>
-      <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Esc</Kbd> wapas</span>
-    </div>
+    <PageHero
+      title={title}
+      subtitle={hint}
+      back={() => navigate(-1)}
+      backLabel="Wapas (Esc)"
+      meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Esc</Kbd> wapas</span>}
+    />
   );
 }
 
@@ -210,7 +209,7 @@ export function CustomerFields({ value, onChange, errors = {}, phoneRequired = t
           ))}
         </div>
       )}
-      {value.customerId && <p className="text-[0.75rem] text-emerald-700">Saved customer — record aur khata isi ke naam. <button type="button" className="underline" onClick={() => onChange({ ...value, customerId: undefined })}>Alag customer</button></p>}
+      {value.customerId && <p className="text-[0.75rem] text-success-700">Saved customer — record aur khata isi ke naam. <button type="button" className="underline" onClick={() => onChange({ ...value, customerId: undefined })}>Alag customer</button></p>}
     </div>
   );
 }

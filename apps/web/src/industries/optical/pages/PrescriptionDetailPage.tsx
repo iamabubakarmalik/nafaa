@@ -8,8 +8,8 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Ban, Eye, Glasses, MessageCircle, Pencil, Printer, RefreshCw } from 'lucide-react';
-import { Button, Card, Modal, PageShell, Skeleton, Table, TBody, THead, Td, Th, Tr } from '@/design-system/components';
+import { Ban, Eye, Glasses, MessageCircle, Pencil, Printer, RefreshCw } from 'lucide-react';
+import { Button, Card, Modal, PageHero, PageShell, Skeleton, Table, TBody, Td, Th, THead, Tr, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { usePrinter } from '@core/print';
 import { prescriptionsApi } from '../api/prescriptions.api';
@@ -43,7 +43,6 @@ export default function PrescriptionDetailPage() {
   const d = daysFrom(rx.expiryDate);
   const usable = rx.isActive && (d == null || d >= 0);
   const wa = waLink(rx.customerPhone, `Assalam o alaikum ${rx.customerName}, aap ka nuskha ${rx.prescriptionNumber}: ${dayOnly(rx.prescriptionDate)}. Shukriya.`);
-  const hb = 'inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25';
 
   return (
     <PageShell>
@@ -53,24 +52,26 @@ export default function PrescriptionDetailPage() {
           <p className="text-[0.875rem] text-slate-600">{rx.prescriptionNumber} · {rx.customerName}</p>
         </Modal>
       )}
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-bold">{rx.customerName}</h1>
-            <span className="rounded-full bg-white/15 px-2 py-0.5 text-[0.75rem] ring-1 ring-white/25">{rx.prescriptionNumber}</span>
+      <PageHero
+        title={(
+          <span className="inline-flex items-center gap-2">
+            {rx.customerName}
             {!rx.isActive ? <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-700">Band</span>
               : d != null && d < 0 ? <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[0.6875rem] font-semibold">Muddat khatam</span>
               : d != null && d <= 60 ? <span className="rounded-full bg-amber-300 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-950">{d} din baqi</span> : null}
-          </div>
-          <p className="text-[0.8125rem] text-white/75">{rxTypeLabel(rx.prescriptionType)} · {dayOnly(rx.prescriptionDate)} se {dayOnly(rx.expiryDate)} tak{rx.customerPhone ? ` · ${rx.customerPhone}` : ''}</p>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {wa && <a href={wa} target="_blank" rel="noreferrer" className={hb}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-          <button type="button" onClick={() => void print(rxDoc(rx))} className={hb}><Printer className="h-4 w-4" />Print</button>
-          {usable && <Link to={`/optical/lens-orders/new?rx=${rx.id}`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-bold text-brand-800 shadow-sm hover:bg-brand-50"><Glasses className="h-4 w-4" />Chashma order</Link>}
-        </div>
-      </div>
+          </span>
+        )}
+        chip={rx.prescriptionNumber}
+        subtitle={<>{rxTypeLabel(rx.prescriptionType)} · {dayOnly(rx.prescriptionDate)} se {dayOnly(rx.expiryDate)} tak{rx.customerPhone ? ` · ${rx.customerPhone}` : ''}</>}
+        back={() => navigate(-1)}
+        actions={(
+          <>
+            {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+            <button type="button" onClick={() => void print(rxDoc(rx))} className={heroButton}><Printer className="h-4 w-4" />Print</button>
+            {usable && <Link to={`/optical/lens-orders/new?rx=${rx.id}`} className={heroPrimaryButton}><Glasses className="h-4 w-4" />Chashma order</Link>}
+          </>
+        )}
+      />
 
       <div className="flex flex-wrap gap-2">
         <Button variant="secondary" leftIcon={<Pencil className="h-4 w-4" />} onClick={() => navigate(`/optical/prescriptions/${rx.id}/edit`)}>Badlein</Button>

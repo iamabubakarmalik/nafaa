@@ -13,9 +13,7 @@ import {
   ArrowLeft, CheckCircle2, ExternalLink, KeyRound, ListFilter, PackageCheck, PenLine, Power, Printer, RefreshCw, Truck, Unplug, UserX,
   Wallet, Zap,
 } from 'lucide-react';
-import {
-  Alert, Badge, Button, Card, FilterBar, FilterMenu, KpiCard, KpiRow, PageHero, PageShell, SearchField, Segmented, Skeleton, ViewTabs,
-  heroButton, heroIconButton, type BadgeVariant, confirmDialog } from '@/design-system/components';
+import { Alert, Badge, Button, Card, confirmDialog, FilterBar, FilterMenu, heroButton, heroIconButton, KpiCard, KpiRow, PageHero, PageShell, SearchField, Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr, type BadgeVariant, ViewTabs } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { apiErrorMessage, couriersApi, type CourierAccount, type CourierShipment } from '../api/online-orders.api';
@@ -237,7 +235,7 @@ function Overview({ c, onTab, onParcels }: { c: CourierAccount; onTab: (t: Tab) 
 }
 
 const Li = ({ children }: { children: React.ReactNode }) => (
-  <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /><span>{children}</span></li>
+  <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success-600" /><span>{children}</span></li>
 );
 
 /** Accepted orders not yet handed to any courier: pick and book together. */
@@ -370,46 +368,46 @@ function PortalParcels({ c, money, onOpen }: { c: CourierAccount; money: (n: num
                 text={c.lastSyncAt ? 'Pichhle 30 din me is filter ka koi parcel nahi.' : 'Upar "Abhi sync" dabayein — pichhle 30 din ke saare parcels aa jayenge.'} />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[46rem] text-[0.8125rem]">
-                  <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                    <tr>
-                      <th className="w-10 px-4 py-2 sm:px-5">
+                <Table minWidth="46rem" className="[&_table]:text-[0.8125rem]">
+                  <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                    <Tr>
+                      <Th className="w-10 px-4 py-2 sm:px-5">
                         <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chunein" checked={rows.every((r) => picked.has(r.trackingNumber))}
                           onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.trackingNumber)) : new Set())} />
-                      </th>
-                      <th className="px-3 py-2">CN</th><th className="px-3 py-2">Customer</th><th className="px-3 py-2">Status</th><th className="px-3 py-2">Nafaa order</th>
-                      <th className="px-4 py-2 text-right sm:px-5">COD</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+                      </Th>
+                      <Th className="px-3 py-2">CN</Th><Th className="px-3 py-2">Customer</Th><Th className="px-3 py-2">Status</Th><Th className="px-3 py-2">Nafaa order</Th>
+                      <Th className="px-4 py-2 text-right sm:px-5">COD</Th>
+                    </Tr>
+                  </THead>
+                  <TBody className="divide-y divide-slate-100">
                     {rows.map((r) => {
                       const st = COURIER_STATE[r.state] ?? COURIER_STATE.UNKNOWN;
                       return (
-                        <tr key={r.id} className="hover:bg-slate-50/80">
-                          <td className="px-4 py-2.5 sm:px-5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(r.trackingNumber)} onChange={() => toggle(r.trackingNumber)} aria-label={`${r.trackingNumber} chunein`} /></td>
-                          <td className="px-3 py-2.5">
+                        <Tr key={r.id} className="hover:bg-slate-50/80">
+                          <Td className="px-4 py-2.5 sm:px-5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(r.trackingNumber)} onChange={() => toggle(r.trackingNumber)} aria-label={`${r.trackingNumber} chunein`} /></Td>
+                          <Td className="px-3 py-2.5">
                             <CopyCn cn={r.trackingNumber} />
                             <div className="text-[0.75rem] text-slate-400">{whenText(r.bookedAt)}{r.orderRef ? ` · ref ${r.orderRef}` : ''}</div>
-                          </td>
-                          <td className="px-3 py-2.5">
+                          </Td>
+                          <Td className="px-3 py-2.5">
                             <div className="max-w-[12rem] truncate text-slate-800">{r.customerName ?? '—'}</div>
                             <div className="text-[0.75rem] text-slate-500">{[r.customerPhone, r.city].filter(Boolean).join(' · ') || '—'}</div>
-                          </td>
-                          <td className="px-3 py-2.5">
+                          </Td>
+                          <Td className="px-3 py-2.5">
                             <Badge variant={st.tone}>{st.label}</Badge>
                             {r.statusLabel && <div className="mt-0.5 max-w-[11rem] truncate text-[0.6875rem] text-slate-400" title={r.statusLabel}>{r.statusLabel}</div>}
-                          </td>
-                          <td className="px-3 py-2.5">
+                          </Td>
+                          <Td className="px-3 py-2.5">
                             {r.order
                               ? <button type="button" onClick={() => onOpen(r.order!.id)} className="font-semibold text-brand-700 hover:underline">#{r.order.number}</button>
                               : <span className="text-[0.75rem] text-slate-400">Portal se book</span>}
-                          </td>
-                          <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 sm:px-5">{money(r.codAmount)}</td>
-                        </tr>
+                          </Td>
+                          <Td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 sm:px-5">{money(r.codAmount)}</Td>
+                        </Tr>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TBody>
+                </Table>
               </div>
             )}
         <Pager total={data?.total ?? 0} page={page} pages={pages} setPage={setPage} />
@@ -443,14 +441,14 @@ function NafaaParcels({ c, money, filter, setFilter, onOpen }: {
             : !rows.length ? <Empty title="Yahan koi parcel nahi" text={q ? 'Is talaash se kuch nahi mila.' : 'Is filter me abhi kuch nahi.'} />
               : (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[46rem] text-[0.8125rem]">
-                    <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                      <tr><th className="px-4 py-2 sm:px-5">Order</th><th className="px-3 py-2">CN</th><th className="px-3 py-2">Customer</th><th className="px-3 py-2">Courier status</th><th className="px-3 py-2">Order</th><th className="px-3 py-2 text-right">Amount</th><th className="px-4 py-2 sm:px-5" /></tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
+                  <Table minWidth="46rem" className="[&_table]:text-[0.8125rem]">
+                    <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                      <Tr><Th className="px-4 py-2 sm:px-5">Order</Th><Th className="px-3 py-2">CN</Th><Th className="px-3 py-2">Customer</Th><Th className="px-3 py-2">Courier status</Th><Th className="px-3 py-2">Order</Th><Th className="px-3 py-2 text-right">Amount</Th><Th className="px-4 py-2 sm:px-5" /></Tr>
+                    </THead>
+                    <TBody className="divide-y divide-slate-100">
                       {rows.map((o) => <ParcelRow key={o.id} o={o} c={c} money={money} onOpen={() => onOpen(o.id)} />)}
-                    </tbody>
-                  </table>
+                    </TBody>
+                  </Table>
                 </div>
               )}
         <Pager total={data?.total ?? 0} page={page} pages={pages} setPage={setPage} />
@@ -468,35 +466,35 @@ function ParcelRow({ o, c, money, onOpen }: { o: CourierShipment; c: CourierAcco
   });
   const waitingDays = o.courierStatus === 'BOOKED' && o.courierBookedAt ? Math.floor((Date.now() - new Date(o.courierBookedAt).getTime()) / 86_400_000) : 0;
   return (
-    <tr className="hover:bg-slate-50/80">
-      <td className="px-4 py-2.5 sm:px-5">
+    <Tr className="hover:bg-slate-50/80">
+      <Td className="px-4 py-2.5 sm:px-5">
         <button type="button" onClick={onOpen} className="font-semibold text-slate-900 hover:underline">#{o.externalOrderNumber ?? o.externalOrderId}</button>
         <div className="text-[0.75rem] text-slate-400">{whenText(o.courierBookedAt ?? o.dispatchedAt)}</div>
-      </td>
-      <td className="px-3 py-2.5">
+      </Td>
+      <Td className="px-3 py-2.5">
         {o.trackingNumber ? <CopyCn cn={o.trackingNumber} /> : <span className="text-slate-400">—</span>}
         {!o.viaApi && <div className="text-[0.6875rem] text-slate-400"><PenLine className="mr-0.5 inline h-3 w-3" />manual</div>}
-      </td>
-      <td className="px-3 py-2.5">
+      </Td>
+      <Td className="px-3 py-2.5">
         <div className="max-w-[11rem] truncate text-slate-800">{o.customerName}</div>
         <div className="text-[0.75rem] text-slate-500">{o.customerCity ?? '—'}</div>
-      </td>
-      <td className="px-3 py-2.5">
+      </Td>
+      <Td className="px-3 py-2.5">
         {st ? <Badge variant={st.tone}>{st.label}</Badge> : <span className="text-slate-400">—</span>}
         {o.courierLabel && <div className="mt-0.5 max-w-[11rem] truncate text-[0.6875rem] text-slate-400" title={o.courierLabel}>{o.courierLabel}</div>}
         {waitingDays >= 2 && <div className="mt-0.5 text-[0.6875rem] font-medium text-amber-700">{waitingDays} din se pickup nahi hua</div>}
-      </td>
-      <td className="px-3 py-2.5"><span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', ord?.tone)}>{ord?.short ?? o.orderStatus}</span></td>
-      <td className="px-3 py-2.5 text-right tabular-nums">
+      </Td>
+      <Td className="px-3 py-2.5"><span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', ord?.tone)}>{ord?.short ?? o.orderStatus}</span></Td>
+      <Td className="px-3 py-2.5 text-right tabular-nums">
         <div className="font-semibold text-slate-900">{money(o.total)}</div>
         <div className="text-[0.6875rem] text-slate-400">{o.paymentStatus === 'PAID' ? 'mil gaya' : o.paymentStatus === 'COLLECTED' ? 'courier ke paas' : o.paymentStatus === 'NOT_COLLECTED' ? 'nahi aayega' : 'COD'}</div>
-      </td>
-      <td className="px-4 py-2.5 text-right sm:px-5">
+      </Td>
+      <Td className="px-4 py-2.5 text-right sm:px-5">
         {o.viaApi && c.connected && c.connect?.features.label && o.orderStatus !== 'RETURNED' && (
           <Button size="xs" variant="ghost" loading={label.isPending} onClick={() => label.mutate()} leftIcon={<Printer className="h-3.5 w-3.5" />}>Label</Button>
         )}
-      </td>
-    </tr>
+      </Td>
+    </Tr>
   );
 }
 

@@ -5,9 +5,9 @@ import { BookOpen, CheckCircle2, ChevronRight, Circle, Copy, ExternalLink, Messa
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteOverview } from '../../api/online-orders.api';
 import { docsUrl } from '../../lib/docs';
-import { Btn, Card, inputCls } from '../ui/kit';
 import { CopyField } from './CopyField';
 import { cn } from '@core/lib/cn';
+import { Button, Card, controlClass } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    SETUP KE HISSE — malik ya developer khud jor sake:
@@ -27,7 +27,7 @@ function useActiveShops(): Shop[] {
 export function DocsLink({ anchor, children = 'Poori guide' }: { anchor?: string; children?: ReactNode }) {
   return (
     <a href={docsUrl(anchor)} target="_blank" rel="noreferrer"
-      className="inline-flex items-center gap-1 text-[0.78125rem] font-semibold text-emerald-700 hover:underline dark:text-emerald-400">
+      className="inline-flex items-center gap-1 text-[0.78125rem] font-semibold text-brand-700 hover:underline">
       <BookOpen className="h-3.5 w-3.5" /> {children}
     </a>
   );
@@ -37,7 +37,7 @@ function Step({ n, done, title, children }: { n: number; done?: boolean; title: 
   return (
     <li className="flex gap-3">
       <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.75rem] font-bold',
-        done ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-ink-800 dark:text-ink-200')}>
+        done ? 'bg-success-100 text-success-700' : 'bg-slate-100 text-slate-700')}>
         {done ? <CheckCircle2 className="h-4 w-4" /> : n}
       </span>
       <div className="min-w-0 flex-1 pt-0.5">
@@ -86,12 +86,12 @@ export function IndoljGuide({ data, onOpenProducts }: { data: WebsiteOverview; o
     <Card title="Indolj se jorna" description="Do hisse: menu (products) aur orders. Orders wali settings aksar Indolj ki team lagati hai — neeche wala message unhein bhej dein."
       actions={<DocsLink anchor="indolj" />}>
       <ol className="space-y-5">
-        <Step n={1} done={menuOk} title={<>Menu Nafaa me {menuOk && <span className="font-normal text-emerald-700">— jura hua ✓</span>}</>}>
+        <Step n={1} done={menuOk} title={<>Menu Nafaa me {menuOk && <span className="font-normal text-success-700">— jura hua ✓</span>}</>}>
           <p>Indolj se <b>Menu API activation token</b> aur <b>JWT secret</b> lein, phir Products tab me <b>"Indolj se jorein"</b> me paste karein.</p>
-          <Btn size="sm" onClick={onOpenProducts}>Products tab kholein</Btn>
+          <Button size="xs" onClick={onOpenProducts}>Products tab kholein</Button>
         </Step>
 
-        <Step n={2} done={ordersOk} title={<>Orders — Indolj ki General POS settings {ordersOk && <span className="font-normal text-emerald-700">— orders aa rahe hain ✓</span>}</>}>
+        <Step n={2} done={ordersOk} title={<>Orders — Indolj ki General POS settings {ordersOk && <span className="font-normal text-success-700">— orders aa rahe hain ✓</span>}</>}>
           <p>{multi ? 'Har branch ki' : 'Branch ki'} General POS settings me ye khaane bharein:</p>
           <div className="space-y-3">
             {rows.map((r) => (
@@ -107,11 +107,11 @@ export function IndoljGuide({ data, onOpenProducts }: { data: WebsiteOverview; o
               </div>
             ))}
           </div>
-          <div className="flex flex-wrap items-center gap-2 rounded-xl bg-sky-50 p-3 dark:bg-sky-500/10">
-            <span className="flex-1 text-[0.8125rem] font-medium text-sky-900 dark:text-sky-200">Indolj ki team ko English me poora message — har branch ka URL aur Token ke saath.</span>
-            <Btn size="sm" variant="primary" onClick={copy} icon={<Copy className="h-3.5 w-3.5" />}>Message copy</Btn>
+          <div className="flex flex-wrap items-center gap-2 rounded-xl bg-sky-50 p-3">
+            <span className="flex-1 text-[0.8125rem] font-medium text-sky-900">Indolj ki team ko English me poora message — har branch ka URL aur Token ke saath.</span>
+            <Button size="xs" variant="primary" onClick={copy} leftIcon={<Copy className="h-3.5 w-3.5" />}>Message copy</Button>
             <a href={`https://wa.me/?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer">
-              <Btn size="sm" icon={<MessageCircle className="h-3.5 w-3.5" />}>WhatsApp</Btn>
+              <Button size="xs" leftIcon={<MessageCircle className="h-3.5 w-3.5" />}>WhatsApp</Button>
             </a>
           </div>
         </Step>
@@ -190,12 +190,12 @@ function BranchCodeMap({ channelId, codes, defaultShopId, shops }: {
           <span className="flex-1" />
           <select value={map[c.code] ?? fallback}
             onChange={(e) => setMap((m) => ({ ...m, [c.code]: e.target.value === fallback ? null : e.target.value }))}
-            className={cn(inputCls, 'w-64')}>
+            className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-64')}>
             {shops.map((s) => <option key={s.id} value={s.id}>{s.name}{s.id === fallback ? ' (main)' : ''}</option>)}
           </select>
         </div>
       ))}
-      {dirty && <div className="flex justify-end"><Btn size="sm" variant="primary" loading={save.isPending} onClick={() => save.mutate()}>Mehfooz karein</Btn></div>}
+      {dirty && <div className="flex justify-end"><Button size="xs" variant="primary" loading={save.isPending} onClick={() => save.mutate()}>Mehfooz karein</Button></div>}
     </div>
   );
 }
@@ -208,7 +208,7 @@ export function Troubleshoot({ kind, onOpenActivity }: { kind: Kind; onOpenActiv
   const items: Array<{ q: string; a: ReactNode; only?: Kind[] }> = [
     {
       q: 'Website par order hua, Nafaa me nahi aaya',
-      a: <>Pehle <button onClick={onOpenActivity} className="font-semibold text-emerald-700 hover:underline">Activity</button> dekhein. <b>401</b> = key / Token ghalat — Setup se dobara copy karein. Activity me kuch nahi = request aayi hi nahi: URL dobara copy karein aur dekhein channel band to nahi.</>,
+      a: <>Pehle <button onClick={onOpenActivity} className="font-semibold text-brand-700 hover:underline">Activity</button> dekhein. <b>401</b> = key / Token ghalat — Setup se dobara copy karein. Activity me kuch nahi = request aayi hi nahi: URL dobara copy karein aur dekhein channel band to nahi.</>,
     },
     {
       q: 'Order ghalat branch me aaya',
@@ -263,9 +263,9 @@ export function HelpCard() {
   return (
     <Card title="Madad">
       <ul className="space-y-2 text-[0.8125rem]">
-        <li><a href={docsUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-ink-200"><BookOpen className="h-4 w-4" /> Online store ki poori guide <ExternalLink className="h-3 w-3" /></a></li>
-        <li><a href={docsUrl('masle')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-ink-200"><Circle className="h-4 w-4" /> Masle aur hal <ExternalLink className="h-3 w-3" /></a></li>
-        <li><a href={docsUrl('api')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-ink-200"><Circle className="h-4 w-4" /> Developer API <ExternalLink className="h-3 w-3" /></a></li>
+        <li><a href={docsUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-brand-700 dark:text-ink-200"><BookOpen className="h-4 w-4" /> Online store ki poori guide <ExternalLink className="h-3 w-3" /></a></li>
+        <li><a href={docsUrl('masle')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-brand-700 dark:text-ink-200"><Circle className="h-4 w-4" /> Masle aur hal <ExternalLink className="h-3 w-3" /></a></li>
+        <li><a href={docsUrl('api')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-brand-700 dark:text-ink-200"><Circle className="h-4 w-4" /> Developer API <ExternalLink className="h-3 w-3" /></a></li>
       </ul>
     </Card>
   );

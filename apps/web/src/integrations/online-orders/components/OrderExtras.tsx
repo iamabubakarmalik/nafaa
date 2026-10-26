@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Ban, Pencil, StickyNote, Tag, X } from 'lucide-react';
-import { Button, Modal } from '@/design-system/components';
+import { Badge, Button, Card, controlClass, Input, Modal, Textarea } from '@/design-system/components';
 import { apiErrorMessage, onlineOrdersApi, type OnlineOrderDetail } from '../api/online-orders.api';
 import { whenText } from '../lib/labels';
-import { inputCls } from './ui/kit';
 import { cn } from '@core/lib/cn';
 
 const QUICK_TAGS = ['VIP', 'Gift', 'Urgent', 'Exchange', 'Call pehle', 'Advance liya'];
@@ -51,42 +50,42 @@ export function OrderExtras({ order: o, onChanged }: { order: OnlineOrderDetail;
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
+    <Card>
       <div className="mb-2 flex items-center gap-2">
-        <span className="flex-1 text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Staff (customer ko nahi dikhta)</span>
+        <span className="flex-1 text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400">Staff (customer ko nahi dikhta)</span>
         {canEdit && <Button size="xs" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditOpen(true)}>Details badlein</Button>}
         {o.customerPhone && (blocked
           ? <Button size="xs" variant="ghost" loading={unblock.isPending} onClick={() => unblock.mutate()}>Unblock</Button>
-          : <Button size="xs" variant="ghost" className="text-rose-600" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => setBlockOpen(true)}>Number block</Button>)}
+          : <Button size="xs" variant="critical" leftIcon={<Ban className="h-3.5 w-3.5" />} onClick={() => setBlockOpen(true)}>Number block</Button>)}
       </div>
 
       {/* Tags */}
       <div className="flex flex-wrap items-center gap-1.5">
         <Tag className="h-3.5 w-3.5 text-slate-400" />
         {tags.map((t) => (
-          <span key={t} className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-bold text-slate-700 dark:bg-ink-800 dark:text-ink-200">
+          <Badge key={t} size="xs" className="gap-1 font-bold">
             {t}
-            <button onClick={() => saveTags.mutate(tags.filter((x) => x !== t))} aria-label={`${t} hatao`}><X className="h-3 w-3" /></button>
-          </span>
+            <button type="button" onClick={() => saveTags.mutate(tags.filter((x) => x !== t))} aria-label={`${t} hatao`}><X className="h-3 w-3" /></button>
+          </Badge>
         ))}
         {QUICK_TAGS.filter((t) => !tags.includes(t)).slice(0, 4).map((t) => (
-          <button key={t} onClick={() => addTag(t)} className="rounded-md border border-dashed border-slate-300 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-500 hover:border-slate-500 dark:border-ink-700">+ {t}</button>
+          <button key={t} onClick={() => addTag(t)} type="button" className="rounded-md border border-dashed border-slate-300 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-500 hover:border-slate-400 hover:text-slate-700">+ {t}</button>
         ))}
         <input value={tagDraft} onChange={(e) => setTagDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addTag(tagDraft); }}
-          placeholder="Naya tag…" maxLength={30} className="h-6 w-24 rounded-md border border-slate-200 bg-transparent px-2 text-[0.6875rem] outline-none dark:border-ink-700" />
+          placeholder="Naya tag…" aria-label="Naya tag" maxLength={30} className={cn(controlClass(), 'h-6 w-24 rounded-md px-2 text-[0.6875rem]')} />
       </div>
 
       {/* Notes */}
       <div className="mt-3 space-y-1.5">
         {notes.map((n) => (
-          <div key={n.id} className="rounded-lg bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-950 dark:bg-amber-500/10 dark:text-amber-100">
+          <div key={n.id} className="rounded-lg bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-inset ring-amber-200">
             <div className="whitespace-pre-wrap">{n.text}</div>
             <div className="mt-0.5 text-[0.65625rem] font-semibold opacity-70">{n.byName ?? 'Staff'} · {whenText(n.at)}</div>
           </div>
         ))}
         <div className="flex gap-2">
           <input value={note} onChange={(e) => setNote(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && note.trim()) addNote.mutate(); }}
-            placeholder="Andar ka note — jaise: customer ne 5 baje ke baad bola" maxLength={500} className={cn(inputCls, 'h-8 text-[0.78125rem]')} />
+            placeholder="Andar ka note — jaise: customer ne 5 baje ke baad bola" aria-label="Andar ka note" maxLength={500} className={cn(controlClass(), 'h-8 px-3 text-[0.78125rem]')} />
           <Button size="xs" variant="outline" disabled={!note.trim()} loading={addNote.isPending} onClick={() => addNote.mutate()} leftIcon={<StickyNote className="h-3.5 w-3.5" />}>Note</Button>
         </div>
       </div>
@@ -111,7 +110,7 @@ export function OrderExtras({ order: o, onChanged }: { order: OnlineOrderDetail;
           qc.invalidateQueries({ queryKey: ['online-orders'] }); qc.invalidateQueries({ queryKey: ['blocklist'] });
         }} />
       )}
-    </section>
+    </Card>
   );
 }
 
@@ -130,11 +129,11 @@ function EditModal({ o, onClose, onSaved }: { o: OnlineOrderDetail; onClose: () 
     <Modal open onClose={onClose} size="md" title="Customer details badlein" description="Courier booking se pehle. Website par nahi badalta — sirf Nafaa, label aur invoice me."
       footer={<div className="flex w-full justify-end gap-2"><Button variant="ghost" onClick={onClose}>Chhoro</Button><Button variant="primary" loading={save.isPending} disabled={!v.customerName.trim()} onClick={() => save.mutate()}>Save</Button></div>}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <L label="Naam"><input value={v.customerName} onChange={set('customerName')} className={inputCls} maxLength={100} /></L>
-        <L label="Phone"><input value={v.customerPhone} onChange={set('customerPhone')} className={inputCls} maxLength={20} placeholder="03xxxxxxxxx" /></L>
-        <div className="sm:col-span-2"><L label="Address"><textarea value={v.customerAddress} onChange={set('customerAddress')} className={cn(inputCls, 'h-20 py-2')} maxLength={400} /></L></div>
-        <L label="Shehar"><input value={v.customerCity} onChange={set('customerCity')} className={inputCls} maxLength={80} /></L>
-        <L label="Customer ka note"><input value={v.notes} onChange={set('notes')} className={inputCls} maxLength={500} /></L>
+        <Input size="sm" label="Naam" value={v.customerName} onChange={set('customerName')} maxLength={100} />
+        <Input size="sm" label="Phone" value={v.customerPhone} onChange={set('customerPhone')} maxLength={20} placeholder="03xxxxxxxxx" />
+        <Textarea wrapperClassName="sm:col-span-2" label="Address" value={v.customerAddress} onChange={set('customerAddress')} rows={3} maxLength={400} />
+        <Input size="sm" label="Shehar" value={v.customerCity} onChange={set('customerCity')} maxLength={80} />
+        <Input size="sm" label="Customer ka note" value={v.notes} onChange={set('notes')} maxLength={500} />
       </div>
     </Modal>
   );
@@ -153,15 +152,10 @@ function BlockModal({ o, onClose, onDone }: { o: OnlineOrderDetail; onClose: () 
       footer={<div className="flex w-full justify-end gap-2"><Button variant="ghost" onClick={onClose}>Nahi</Button><Button variant="danger" loading={block.isPending} onClick={() => block.mutate()}>Block</Button></div>}>
       <div className="flex flex-wrap gap-1.5">
         {['Fake order', 'Parcel wapas kiya', 'Phone nahi uthata', 'Badtameezi'].map((r) => (
-          <button key={r} onClick={() => setReason(r)} className={cn('rounded-lg border px-2.5 py-1 text-xs font-bold', reason === r ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-700 dark:border-ink-700 dark:text-ink-200')}>{r}</button>
+          <Button key={r} size="xs" variant={reason === r ? 'inverse' : 'secondary'} onClick={() => setReason(r)}>{r}</Button>
         ))}
       </div>
-      <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah (optional)" className={cn(inputCls, 'mt-2')} maxLength={200} />
+      <Input size="sm" wrapperClassName="mt-2" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah (optional)" aria-label="Wajah" maxLength={200} />
     </Modal>
   );
 }
-
-function L({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block"><span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">{label}</span>{children}</label>;
-}
-

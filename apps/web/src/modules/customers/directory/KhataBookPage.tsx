@@ -46,7 +46,7 @@ const TYPES: Array<{ id: DirectoryType; label: string; icon: typeof Users }> = [
 ];
 const AGING: Array<{ id: AgingBucket; label: string; tone: string; color: string }> = [
   { id: 'd0', label: '7 din se kam', tone: 'bg-success-500', color: '#16a34a' }, { id: 'd7', label: '7–30 din', tone: 'bg-amber-400', color: '#d97706' },
-  { id: 'd30', label: '30–90 din', tone: 'bg-orange-500', color: '#ea580c' }, { id: 'd90', label: '90+ din', tone: 'bg-rose-600', color: '#e11d48' },
+  { id: 'd30', label: '30–90 din', tone: 'bg-orange-500', color: '#ea580c' }, { id: 'd90', label: '90+ din', tone: 'bg-rose-500', color: '#e11d48' },
 ];
 const SORTS: Array<FilterOption<DirectoryFilters['sort']>> = [
   { value: 'balance', label: 'Zyada baqi pehle' }, { value: 'aging', label: 'Purana udhaar pehle' },
@@ -284,7 +284,7 @@ function KhataBook() {
                     </span>
                   </Link>
                   {c.balance > 0.009 && c.dueDays !== null && (
-                    <span className={cn('shrink-0 rounded-lg px-2 py-0.5 text-[0.75rem] font-semibold', c.dueDays >= 90 ? 'bg-rose-600 text-white' : c.dueDays >= 30 ? 'bg-orange-50 text-orange-700' : c.dueDays >= 7 ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-600')}>{c.dueDays} din</span>
+                    <span className={cn('shrink-0 rounded-lg px-2 py-0.5 text-[0.75rem] font-semibold', c.dueDays >= 90 ? 'bg-rose-100 font-bold text-rose-800 ring-1 ring-inset ring-rose-300' : c.dueDays >= 30 ? 'bg-orange-50 text-orange-700' : c.dueDays >= 7 ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-600')}>{c.dueDays} din</span>
                   )}
                   {c.overLimit && <span className="shrink-0 rounded-lg bg-rose-50 px-2 py-0.5 text-[0.75rem] font-semibold text-rose-700">Had paar</span>}
                   {c.period && (

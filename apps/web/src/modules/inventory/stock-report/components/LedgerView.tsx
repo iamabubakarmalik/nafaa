@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ArrowDownLeft, ArrowUpRight, Info, PackageOpen } from 'lucide-react';
-import { Button, Card, Segmented, Skeleton } from '@/design-system/components';
+import { Button, Card, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -100,27 +100,27 @@ export function LedgerView({ q, show, setShow, sort, money, cost, costHidden, on
           <div className="flex flex-col items-center px-6 py-14 text-center"><PackageOpen className="h-8 w-8 text-slate-300" /><p className="mt-2 text-[0.875rem] text-slate-500">Is period me kuch nahi</p></div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[44rem] text-[0.8125rem]">
-              <thead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">Cheez</th><th className="px-2 py-2 text-right">Shuru</th><th className="px-2 py-2 text-right">Aaya</th><th className="px-2 py-2 text-right">Bika</th><th className="px-2 py-2 text-right">Baqi gaya</th><th className="px-2 py-2 text-right">Aakhir</th><th className="px-4 py-2 text-right">{costHidden ? 'Bechne par' : 'Cost'}</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table minWidth="44rem" className="[&>table]:text-[0.8125rem]">
+              <THead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-4 py-2">Cheez</Th><Th className="px-2 py-2 text-right">Shuru</Th><Th className="px-2 py-2 text-right">Aaya</Th><Th className="px-2 py-2 text-right">Bika</Th><Th className="px-2 py-2 text-right">Baqi gaya</Th><Th className="px-2 py-2 text-right">Aakhir</Th><Th className="px-4 py-2 text-right">{costHidden ? 'Bechne par' : 'Cost'}</Th></Tr>
+              </THead>
+              <TBody className="divide-y divide-slate-100">
                 {d.items.map((x) => {
                   const sold = -(x.kinds.sale ?? 0);
                   return (
-                    <tr key={x.productId} className="cursor-pointer hover:bg-slate-50" onClick={() => onOpen(x.productId)}>
-                      <td className="px-4 py-2"><span className="font-medium text-slate-900">{x.name}</span>{x.category && <span className="block text-[0.6875rem] text-slate-500">{x.category.name}</span>}</td>
-                      <td className="px-2 py-2 text-right tabular-nums text-slate-600">{qty(x.opening)}</td>
-                      <td className="px-2 py-2 text-right tabular-nums text-emerald-700">{x.inQty ? `+${qty(x.inQty)}` : '—'}</td>
-                      <td className="px-2 py-2 text-right tabular-nums text-slate-800">{sold ? qty(sold) : '—'}</td>
-                      <td className="px-2 py-2 text-right tabular-nums text-rose-700">{x.outQty - sold > 0 ? `−${qty(x.outQty - sold)}` : '—'}</td>
-                      <td className={cn('px-2 py-2 text-right font-semibold tabular-nums', x.closing < 0 ? 'text-rose-700' : 'text-slate-900')}>{qty(x.closing)} <span className="font-normal text-slate-500">{x.unit}</span></td>
-                      <td className="px-4 py-2 text-right tabular-nums">{val(x.closingValue)}</td>
-                    </tr>
+                    <Tr key={x.productId} className="cursor-pointer hover:bg-slate-50" onClick={() => onOpen(x.productId)}>
+                      <Td className="text-inherit px-4 py-2"><span className="font-medium text-slate-900">{x.name}</span>{x.category && <span className="block text-[0.6875rem] text-slate-500">{x.category.name}</span>}</Td>
+                      <Td className="px-2 py-2 text-right tabular-nums text-slate-600">{qty(x.opening)}</Td>
+                      <Td className="px-2 py-2 text-right tabular-nums text-emerald-700">{x.inQty ? `+${qty(x.inQty)}` : '—'}</Td>
+                      <Td className="px-2 py-2 text-right tabular-nums text-slate-800">{sold ? qty(sold) : '—'}</Td>
+                      <Td className="px-2 py-2 text-right tabular-nums text-rose-700">{x.outQty - sold > 0 ? `−${qty(x.outQty - sold)}` : '—'}</Td>
+                      <Td className={cn('px-2 py-2 text-right font-semibold tabular-nums', x.closing < 0 ? 'text-rose-700' : 'text-slate-900')}>{qty(x.closing)} <span className="font-normal text-slate-500">{x.unit}</span></Td>
+                      <Td className="text-inherit px-4 py-2 text-right tabular-nums">{val(x.closingValue)}</Td>
+                    </Tr>
                   );
                 })}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         )}
       </section>

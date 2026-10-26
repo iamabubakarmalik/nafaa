@@ -1,2 +1,0 @@
-// Barrel for categories
-export {};

@@ -1,0 +1,284 @@
+/*
+ * Page header (PageHero) styles.
+ *
+ * Every color the header and its buttons use is a variable set per style on
+ * `.nafaa-hero[data-hero-style=…]`. Pages put their own content into the
+ * header (actions, chips, stats) written for a white-on-color header, so the
+ * second half of this file maps those white utilities onto the header
+ * variables for the other styles. Every selector starts at `.nafaa-hero`, so
+ * nothing outside a header is affected.
+ *
+ * Fallbacks repeat the light values: `.light` regions (previews) reset the
+ * palette variables to `initial`.
+ *
+ * The exported button classes (heroButton, heroIconButton, heroPrimaryButton
+ * in PageHero.tsx) read --hero-btn-* and --hero-primary-* through Tailwind
+ * arbitrary utilities, so they stay after Tailwind's preflight and a page
+ * can still override them with its own utilities.
+ */
+
+/* ─── Modern (default): matches the original header exactly ─── */
+.nafaa-hero {
+  --hero-bg: linear-gradient(to bottom right, rgb(var(--brand-600)), rgb(var(--brand-700)), rgb(var(--brand-900)));
+  --hero-fg: rgb(255 255 255);
+  --hero-title: var(--hero-fg);
+  --hero-soft: rgb(255 255 255 / 0.75);
+  --hero-muted: rgb(255 255 255 / 0.7);
+  --hero-subtle: rgb(255 255 255 / 0.6);
+  --hero-line: rgb(var(--bd-white-0, 255 255 255) / 0.2);
+  --hero-shadow: 0 10px 15px -3px rgb(var(--brand-900) / 0.15), 0 4px 6px -4px rgb(var(--brand-900) / 0.15);
+  --hero-glow: rgb(var(--bg-white-0, 255 255 255) / 0.1);
+  --hero-pattern-color: rgb(255 255 255);
+  --hero-pattern-opacity: 0.06;
+  --hero-edge: transparent;
+  --hero-chip-bg: rgb(var(--bg-white-0, 255 255 255) / 0.1);
+  --hero-chip-ring: rgb(var(--bd-white-0, 255 255 255) / 0.2);
+  --hero-chip-fg: rgb(255 255 255 / 0.9);
+  --hero-btn-bg: rgb(var(--bg-white-0, 255 255 255) / 0.15);
+  --hero-btn-hover: rgb(var(--bg-white-0, 255 255 255) / 0.25);
+  --hero-btn-ring: rgb(var(--bd-white-0, 255 255 255) / 0.25);
+  --hero-btn-fg: rgb(255 255 255);
+  --hero-primary-bg: rgb(var(--bg-white-0, 255 255 255));
+  --hero-primary-hover: rgb(var(--bg-brand-50, var(--brand-50)));
+  --hero-primary-fg: rgb(var(--tx-brand-800, var(--brand-800)));
+  --hero-tile-bg: rgb(var(--bg-white-0, 255 255 255) / 0.1);
+  --hero-tile-ring: rgb(var(--bd-white-0, 255 255 255) / 0.18);
+  --hero-skeleton: rgb(var(--bg-white-0, 255 255 255) / 0.15);
+  --hero-dot: rgb(var(--bg-white-0, 255 255 255));
+
+  background: var(--hero-bg);
+  color: var(--hero-fg);
+  box-shadow: var(--hero-shadow);
+}
+
+/* ─── Simple: flat accent, no glow or pattern ─── */
+.nafaa-hero[data-hero-style='simple'] {
+  --hero-bg: rgb(var(--brand-600));
+  --hero-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
+  --hero-glow: transparent;
+  --hero-line: rgb(255 255 255 / 0.22);
+  --hero-chip-bg: rgb(255 255 255 / 0.14);
+  --hero-chip-ring: rgb(255 255 255 / 0.22);
+  --hero-btn-bg: rgb(255 255 255 / 0.15);
+  --hero-btn-hover: rgb(255 255 255 / 0.25);
+  --hero-btn-ring: rgb(255 255 255 / 0.28);
+  --hero-primary-bg: rgb(255 255 255);
+  --hero-primary-hover: rgb(var(--brand-50));
+  --hero-primary-fg: rgb(var(--brand-800));
+  --hero-tile-bg: rgb(255 255 255 / 0.12);
+  --hero-tile-ring: rgb(255 255 255 / 0.2);
+  --hero-skeleton: rgb(255 255 255 / 0.2);
+  --hero-dot: rgb(255 255 255);
+}
+
+/* ─── Soft: light tint, dark text, accent edge ─── */
+.nafaa-hero[data-hero-style='soft'] {
+  --hero-bg: linear-gradient(to bottom right, rgb(var(--bg-brand-50, var(--brand-50))), rgb(var(--bg-brand-100, var(--brand-100))));
+  --hero-fg: rgb(var(--tx-slate-900, 15 23 42));
+  --hero-title: rgb(var(--tx-slate-900, 15 23 42));
+  --hero-soft: rgb(var(--tx-slate-700, 51 65 85));
+  --hero-muted: rgb(var(--tx-slate-600, 71 85 105));
+  --hero-subtle: rgb(var(--tx-slate-500, 100 116 139));
+  --hero-line: rgb(var(--bd-brand-200, var(--brand-200)));
+  --hero-shadow: 0 1px 2px rgb(15 23 42 / 0.05), inset 0 0 0 1px rgb(var(--bd-brand-100, var(--brand-100)));
+  --hero-glow: rgb(var(--brand-400) / 0.18);
+  --hero-pattern-color: rgb(var(--brand-600));
+  --hero-pattern-opacity: 0.09;
+  --hero-edge: rgb(var(--brand-500));
+  --hero-chip-bg: rgb(var(--bg-white-0, 255 255 255) / 0.75);
+  --hero-chip-ring: rgb(var(--bd-brand-200, var(--brand-200)));
+  --hero-chip-fg: rgb(var(--tx-brand-800, var(--brand-800)));
+  --hero-btn-bg: rgb(var(--bg-white-0, 255 255 255));
+  --hero-btn-hover: rgb(var(--bg-brand-50, var(--brand-50)));
+  --hero-btn-ring: rgb(var(--bd-brand-200, var(--brand-200)));
+  --hero-btn-fg: rgb(var(--tx-slate-800, 30 41 59));
+  --hero-primary-bg: rgb(var(--brand-600));
+  --hero-primary-hover: rgb(var(--brand-700));
+  --hero-primary-fg: var(--brand-fg);
+  --hero-tile-bg: rgb(var(--bg-white-0, 255 255 255) / 0.7);
+  --hero-tile-ring: rgb(var(--bd-brand-200, var(--brand-200)));
+  --hero-skeleton: rgb(var(--bg-brand-200, var(--brand-200)) / 0.7);
+  --hero-dot: rgb(var(--brand-500));
+}
+
+/* ─── Dark: ink surface with an accent glow (same in light and dark mode) ─── */
+.nafaa-hero[data-hero-style='dark'] {
+  --hero-bg:
+    radial-gradient(120% 160% at 100% 0%, rgb(var(--brand-600) / 0.38), transparent 55%),
+    linear-gradient(to bottom right, rgb(30 41 59), rgb(15 23 42) 45%, rgb(2 6 23));
+  --hero-soft: rgb(226 232 240);
+  --hero-muted: rgb(203 213 225);
+  --hero-subtle: rgb(148 163 184);
+  --hero-line: rgb(255 255 255 / 0.12);
+  --hero-shadow: 0 10px 20px -6px rgb(2 6 23 / 0.35), inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  --hero-glow: rgb(var(--brand-500) / 0.45);
+  --hero-pattern-color: rgb(255 255 255);
+  --hero-pattern-opacity: 0.05;
+  --hero-chip-bg: rgb(var(--brand-500) / 0.18);
+  --hero-chip-ring: rgb(var(--brand-400) / 0.35);
+  --hero-chip-fg: rgb(var(--brand-200));
+  --hero-btn-bg: rgb(255 255 255 / 0.08);
+  --hero-btn-hover: rgb(255 255 255 / 0.16);
+  --hero-btn-ring: rgb(255 255 255 / 0.16);
+  --hero-primary-bg: rgb(var(--brand-500));
+  --hero-primary-hover: rgb(var(--brand-400));
+  --hero-primary-fg: rgb(var(--brand-950));
+  --hero-tile-bg: rgb(255 255 255 / 0.05);
+  --hero-tile-ring: rgb(255 255 255 / 0.1);
+  --hero-skeleton: rgb(255 255 255 / 0.12);
+  --hero-dot: rgb(var(--brand-400));
+}
+
+/* ─── Aurora: a mesh of the accent scale ─── */
+.nafaa-hero[data-hero-style='aurora'] {
+  --hero-bg:
+    radial-gradient(45% 110% at 88% 0%, rgb(var(--brand-300) / 0.95), transparent 70%),
+    radial-gradient(40% 90% at 62% 110%, rgb(var(--brand-400) / 0.75), transparent 70%),
+    radial-gradient(35% 80% at 40% -10%, rgb(var(--brand-500) / 0.8), transparent 70%),
+    radial-gradient(55% 140% at 0% 100%, rgb(var(--brand-950)), transparent 70%),
+    linear-gradient(to right, rgb(var(--brand-800)), rgb(var(--brand-600)));
+  --hero-shadow: 0 12px 24px -8px rgb(var(--brand-900) / 0.3);
+  --hero-glow: rgb(var(--brand-200) / 0.25);
+  --hero-line: rgb(255 255 255 / 0.22);
+  --hero-chip-bg: rgb(255 255 255 / 0.14);
+  --hero-chip-ring: rgb(255 255 255 / 0.25);
+  --hero-btn-bg: rgb(255 255 255 / 0.15);
+  --hero-btn-hover: rgb(255 255 255 / 0.25);
+  --hero-btn-ring: rgb(255 255 255 / 0.28);
+  --hero-primary-bg: rgb(255 255 255);
+  --hero-primary-hover: rgb(var(--brand-50));
+  --hero-primary-fg: rgb(var(--brand-800));
+  --hero-tile-bg: rgb(255 255 255 / 0.12);
+  --hero-tile-ring: rgb(255 255 255 / 0.22);
+  --hero-skeleton: rgb(255 255 255 / 0.2);
+  --hero-dot: rgb(255 255 255);
+}
+
+/* ─── Outline: page-colored card, accent title and border ─── */
+.nafaa-hero[data-hero-style='outline'] {
+  --hero-bg: transparent;
+  --hero-fg: rgb(var(--tx-slate-900, 15 23 42));
+  --hero-title: rgb(var(--tx-brand-700, var(--brand-700)));
+  --hero-soft: rgb(var(--tx-slate-700, 51 65 85));
+  --hero-muted: rgb(var(--tx-slate-600, 71 85 105));
+  --hero-subtle: rgb(var(--tx-slate-500, 100 116 139));
+  --hero-line: rgb(var(--bd-slate-200, 226 232 240));
+  --hero-shadow: inset 0 0 0 1.5px rgb(var(--bd-brand-300, var(--brand-300)));
+  --hero-glow: transparent;
+  --hero-pattern-color: rgb(var(--brand-500));
+  --hero-pattern-opacity: 0.07;
+  --hero-chip-bg: rgb(var(--bg-brand-50, var(--brand-50)));
+  --hero-chip-ring: rgb(var(--bd-brand-200, var(--brand-200)));
+  --hero-chip-fg: rgb(var(--tx-brand-700, var(--brand-700)));
+  --hero-btn-bg: rgb(var(--bg-white-0, 255 255 255));
+  --hero-btn-hover: rgb(var(--bg-slate-50, 248 250 252));
+  --hero-btn-ring: rgb(var(--bd-slate-200, 226 232 240));
+  --hero-btn-fg: rgb(var(--tx-slate-800, 30 41 59));
+  --hero-primary-bg: rgb(var(--brand-600));
+  --hero-primary-hover: rgb(var(--brand-700));
+  --hero-primary-fg: var(--brand-fg);
+  --hero-tile-bg: rgb(var(--bg-white-0, 255 255 255));
+  --hero-tile-ring: rgb(var(--bd-slate-200, 226 232 240));
+  --hero-skeleton: rgb(var(--bg-slate-200, 226 232 240));
+  --hero-dot: rgb(var(--brand-500));
+}
+
+/* ─── Parts of the header ─── */
+.nafaa-hero-title { color: var(--hero-title); }
+.nafaa-hero-soft { color: var(--hero-soft); }
+.nafaa-hero-muted { color: var(--hero-muted); }
+.nafaa-hero-subtle { color: var(--hero-subtle); }
+.nafaa-hero-line { border-color: var(--hero-line); }
+.nafaa-hero-glow { background-color: var(--hero-glow); }
+.nafaa-hero-edge { background-color: var(--hero-edge); }
+.nafaa-hero-pattern { color: var(--hero-pattern-color); opacity: var(--hero-pattern-opacity); }
+.nafaa-hero-skeleton { background-color: var(--hero-skeleton); }
+.nafaa-hero-dot { background-color: var(--hero-dot); }
+.nafaa-hero-chip {
+  background-color: var(--hero-chip-bg);
+  color: var(--hero-chip-fg);
+  --tw-ring-color: var(--hero-chip-ring);
+}
+.nafaa-hero-tile {
+  background-color: var(--hero-tile-bg);
+  box-shadow: inset 0 0 0 1px var(--hero-tile-ring);
+}
+.nafaa-hero[data-hero-style='simple'] .nafaa-hero-glow,
+.nafaa-hero[data-hero-style='outline'] .nafaa-hero-glow,
+.nafaa-hero[data-hero-style='simple'] .nafaa-hero-pattern { display: none; }
+
+/*
+ * Page content written for the Modern header.
+ *
+ * Every style except Modern: translucent white surfaces, rings and borders
+ * become the style's button surface and lines. Menus and dialogs opened from
+ * the header keep their own colors.
+ */
+.nafaa-hero[data-hero-style]:not([data-hero-style='modern'])
+  :is(.bg-white\/10, .bg-white\/15, .bg-white\/20, .bg-white\/25):not(:is([role='listbox'], [role='menu'], [role='dialog']) *) {
+  background-color: var(--hero-btn-bg);
+}
+.nafaa-hero[data-hero-style]:not([data-hero-style='modern'])
+  :is(.hover\:bg-white\/10, .hover\:bg-white\/15, .hover\:bg-white\/20, .hover\:bg-white\/25):hover:not(:is([role='listbox'], [role='menu'], [role='dialog']) *) {
+  background-color: var(--hero-btn-hover);
+}
+.nafaa-hero[data-hero-style]:not([data-hero-style='modern'])
+  :is(.ring-white\/20, .ring-white\/25, .ring-white\/30, .ring-white\/40):not(:is([role='listbox'], [role='menu'], [role='dialog']) *) {
+  --tw-ring-color: var(--hero-btn-ring);
+}
+.nafaa-hero[data-hero-style]:not([data-hero-style='modern'])
+  :is(.border-white\/20, .border-white\/25, .border-white\/30):not(:is([role='listbox'], [role='menu'], [role='dialog']) *) {
+  border-color: var(--hero-line);
+}
+/* Wrappers such as `[&_button]:border-white/25 [&_button]:bg-white` around a PrintButton. */
+.nafaa-hero[data-hero-style]:not([data-hero-style='modern']) [class*='[&_button]:border-white'] button {
+  border-color: var(--hero-btn-ring);
+}
+.nafaa-hero[data-hero-style]:not([data-hero-style='modern']) [class*='[&_button]:bg-white/'] button {
+  background-color: var(--hero-btn-bg);
+}
+
+/*
+ * Light styles (Soft, Outline): white text becomes the header's dark text.
+ * Elements that paint their own solid color (a red "expired" badge, an amber
+ * VIP button) keep white text. Only a plain `bg-*` class counts; hover
+ * variants such as `hover:bg-slate-50` do not.
+ */
+.nafaa-hero:is([data-hero-style='soft'], [data-hero-style='outline'])
+  :is(.text-white, .hover\:text-white:hover, [class*='[&_button]:text-white'] button):not(:is([role='listbox'], [role='menu'], [role='dialog']) *):not(:is(
+    [class^='bg-brand-'], [class*=' bg-brand-'], [class^='bg-emerald-'], [class*=' bg-emerald-'],
+    [class^='bg-rose-'], [class*=' bg-rose-'], [class^='bg-red-'], [class*=' bg-red-'],
+    [class^='bg-amber-'], [class*=' bg-amber-'], [class^='bg-orange-'], [class*=' bg-orange-'],
+    [class^='bg-sky-'], [class*=' bg-sky-'], [class^='bg-blue-'], [class*=' bg-blue-'],
+    [class^='bg-indigo-'], [class*=' bg-indigo-'], [class^='bg-violet-'], [class*=' bg-violet-'],
+    [class^='bg-green-'], [class*=' bg-green-'], [class^='bg-success-'], [class*=' bg-success-'],
+    [class^='bg-slate-'], [class*=' bg-slate-'], [class^='bg-black'], [class*=' bg-black'],
+    [class^='bg-gradient-'], [class*=' bg-gradient-'])) {
+  color: var(--hero-fg);
+}
+/* `!text-white` (an important utility) needs an important override. */
+.nafaa-hero:is([data-hero-style='soft'], [data-hero-style='outline']) .\!text-white {
+  color: var(--hero-fg) !important;
+}
+.nafaa-hero:is([data-hero-style='soft'], [data-hero-style='outline'])
+  :is(.text-white\/90, .text-white\/80, .text-white\/75):not(:is([role='listbox'], [role='menu'], [role='dialog']) *) {
+  color: var(--hero-soft);
+}
+.nafaa-hero:is([data-hero-style='soft'], [data-hero-style='outline'])
+  :is(.text-white\/70, .text-white\/60, .text-white\/50):not(:is([role='listbox'], [role='menu'], [role='dialog']) *) {
+  color: var(--hero-muted);
+}
+.nafaa-hero:is([data-hero-style='soft'], [data-hero-style='outline']) .placeholder\:text-white\/50::placeholder {
+  color: var(--hero-subtle);
+}
+/* Light hue text meant for a dark header (text-amber-200, text-rose-200) moves to the deep end. */
+.nafaa-hero:is([data-hero-style='soft'], [data-hero-style='outline']) :is(.text-amber-200, .text-amber-300) { color: rgb(var(--tx-amber-700, 180 83 9)); }
+.nafaa-hero:is([data-hero-style='soft'], [data-hero-style='outline']) :is(.text-rose-200, .text-rose-300) { color: rgb(var(--tx-rose-700, 190 18 60)); }
+
+/* Reduced motion: the OS setting as well as the in-app one (html[data-motion]). */
+@media (prefers-reduced-motion: reduce) {
+  .nafaa-hero * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

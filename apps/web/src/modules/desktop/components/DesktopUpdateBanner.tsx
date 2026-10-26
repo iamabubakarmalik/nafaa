@@ -1,12 +1,21 @@
+/**
+ * Desktop app update notice: download progress, "ready to install" with a
+ * restart button, or the update error. Renders only inside Electron.
+ */
+
 import { useState } from 'react';
-import { Download, X, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Download, RefreshCw, X } from 'lucide-react';
 import { useAutoUpdate, useDesktop } from '@core/lib/desktop/useDesktop';
 import { getElectron } from '@core/lib/desktop/electron';
+import { cn } from '@core/lib/cn';
+import { Button, IconButton } from '@/design-system/components';
 
-/**
- * Shows update notification when desktop app has update available.
- * Only renders in Electron — invisible in browser.
- */
+const TONES = {
+  info: { box: 'bg-blue-50 ring-blue-200', icon: 'bg-blue-100 text-blue-700', title: 'text-blue-900', text: 'text-blue-800' },
+  success: { box: 'bg-success-50 ring-success-200', icon: 'bg-success-100 text-success-700', title: 'text-success-900', text: 'text-success-800' },
+  danger: { box: 'bg-rose-50 ring-rose-200', icon: 'bg-rose-100 text-rose-700', title: 'text-rose-900', text: 'text-rose-800' },
+} as const;
+
 export function DesktopUpdateBanner() {
   const { isDesktop } = useDesktop();
   const update = useAutoUpdate();
@@ -19,100 +28,54 @@ export function DesktopUpdateBanner() {
     if (electron) electron.relaunch();
   };
 
+  const tone = TONES[update.state === 'ready' ? 'success' : update.state === 'error' ? 'danger' : 'info'];
+  const percent = update.percent || 0;
+
   return (
     <div className="mx-4 my-2">
-      <div
-        className="rounded-2xl p-4 border-2"
-        style={{
-          backgroundColor:
-            update.state === 'ready' ? '#dcfce7' :
-            update.state === 'error' ? '#fee2e2' :
-            '#dbeafe',
-          borderColor:
-            update.state === 'ready' ? '#86efac' :
-            update.state === 'error' ? '#fca5a5' :
-            '#93c5fd',
-        }}
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className="h-10 w-10 rounded-2xl flex items-center justify-center"
-            style={{
-              backgroundColor:
-                update.state === 'ready' ? '#16a34a' :
-                update.state === 'error' ? '#dc2626' :
-                '#2563eb',
-            }}
-          >
-            {update.state === 'ready' ? (
-              <CheckCircle2 className="h-5 w-5 text-white" />
-            ) : update.state === 'downloading' ? (
-              <Download className="h-5 w-5 text-white animate-bounce" />
-            ) : (
-              <RefreshCw className="h-5 w-5 text-white" />
-            )}
-          </div>
+      <div role="status" className={cn('flex items-start gap-3 rounded-xl p-4 ring-1 ring-inset', tone.box)}>
+        <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', tone.icon)}>
+          {update.state === 'ready' ? <CheckCircle2 className="h-5 w-5" aria-hidden />
+            : update.state === 'downloading' ? <Download className="h-5 w-5 animate-bounce" aria-hidden />
+              : <RefreshCw className="h-5 w-5" aria-hidden />}
+        </span>
 
-          <div className="flex-1 min-w-0">
-            {update.state === 'available' && (
-              <>
-                <div className="font-extrabold text-blue-900">
-                  Nafaa Update Available
-                </div>
-                <div className="text-xs text-blue-800 mt-0.5">
-                  Version {update.version} download ho raha hai...
-                </div>
-              </>
-            )}
-            {update.state === 'downloading' && (
-              <>
-                <div className="font-extrabold text-blue-900">
-                  Downloading Update...
-                </div>
-                <div className="mt-2 h-2 bg-white rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-600 transition-all"
-                    style={{ width: `${update.percent || 0}%` }}
-                  />
-                </div>
-                <div className="text-xs text-blue-700 mt-1 font-semibold">
-                  {update.percent || 0}% complete
-                </div>
-              </>
-            )}
-            {update.state === 'ready' && (
-              <>
-                <div className="font-extrabold text-emerald-900">
-                  Update Ready to Install
-                </div>
-                <div className="text-xs text-emerald-800 mt-0.5">
-                  Version {update.version} install karne ke liye restart karein
-                </div>
-                <button
-                  onClick={handleInstall}
-                  className="mt-3 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700"
-                >
-                  Restart & Install
-                </button>
-              </>
-            )}
-            {update.state === 'error' && (
-              <>
-                <div className="font-extrabold text-rose-900">Update Error</div>
-                <div className="text-xs text-rose-800 mt-0.5">
-                  {update.message}
-                </div>
-              </>
-            )}
-          </div>
-
-          <button
-            onClick={() => setDismissed(true)}
-            className="h-6 w-6 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center"
-          >
-            <X className="h-3 w-3" />
-          </button>
+        <div className="min-w-0 flex-1">
+          {update.state === 'available' && (
+            <>
+              <p className={cn('text-sm font-semibold', tone.title)}>Nafaa ka naya version aa gaya</p>
+              <p className={cn('mt-0.5 text-xs', tone.text)}>Version {update.version} download ho raha hai…</p>
+            </>
+          )}
+          {update.state === 'downloading' && (
+            <>
+              <p className={cn('text-sm font-semibold', tone.title)}>Update download ho raha hai…</p>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white" role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
+                <div className="h-full rounded-full bg-brand-600 transition-all" style={{ width: `${percent}%` }} />
+              </div>
+              <p className={cn('mt-1 text-xs font-medium tabular-nums', tone.text)}>{percent}% ho gaya</p>
+            </>
+          )}
+          {update.state === 'ready' && (
+            <>
+              <p className={cn('text-sm font-semibold', tone.title)}>Update install ke liye tayyar</p>
+              <p className={cn('mt-0.5 text-xs', tone.text)}>Version {update.version} install karne ke liye app restart karein.</p>
+              <Button size="sm" variant="success" className="mt-3" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={handleInstall}>
+                Restart & Install
+              </Button>
+            </>
+          )}
+          {update.state === 'error' && (
+            <>
+              <p className={cn('text-sm font-semibold', tone.title)}>Update nahi hua</p>
+              <p className={cn('mt-0.5 text-xs', tone.text)}>{update.message}</p>
+            </>
+          )}
         </div>
+
+        <IconButton label="Band karein" size="sm" variant="ghost" onClick={() => setDismissed(true)}>
+          <X className="h-4 w-4" />
+        </IconButton>
       </div>
     </div>
   );

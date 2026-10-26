@@ -13,7 +13,8 @@ import { toast } from 'sonner';
 import { Archive, Copy, GraduationCap, Pencil, Plus, Printer, Star, Table2, Trash2, X } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import {
-  Button, FilterBar, FilterMenu, Input, Modal, PageHero, PageShell, SearchField, Segmented, Select, Skeleton, Switch, heroIconButton, heroPrimaryButton,
+  Button, FilterBar, FilterMenu, Input, Modal, PageHero, PageShell, SearchField, Segmented, Select, Skeleton, Switch, Table, TBody, Td, Th,
+  THead, Tr, controlClass, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
@@ -120,11 +121,11 @@ export default function SizeChartsPage() {
                         {canEdit && <Button size="sm" variant="ghost" onClick={() => setForm({ chart: c })} aria-label="Badlein"><Pencil className="h-4 w-4" /></Button>}
                       </div>
                     </div>
-                    <div className="mt-3 overflow-x-auto">
-                      <table className="w-full min-w-[20rem] text-[0.8125rem]">
-                        <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-2 py-1.5">Size</th>{cols.map((k) => <th key={k} className="px-2 py-1.5 text-right">{label(k)}</th>)}</tr></thead>
-                        <tbody className="divide-y divide-slate-100">{c.rows.map((r) => <tr key={String(r.size)}><td className="px-2 py-1.5 font-semibold">{r.size}</td>{cols.map((k) => <td key={k} className="px-2 py-1.5 text-right tabular-nums">{r[k] ?? '—'}</td>)}</tr>)}</tbody>
-                      </table>
+                    <div className="mt-3">
+                      <Table minWidth="20rem">
+                        <THead><Tr><Th className="px-2 py-1.5">Size</Th>{cols.map((k) => <Th align="right" key={k} className="px-2 py-1.5">{label(k)}</Th>)}</Tr></THead>
+                        <TBody>{c.rows.map((r) => <Tr key={String(r.size)}><Td className="px-2 py-1.5 font-semibold">{r.size}</Td>{cols.map((k) => <Td align="right" key={k} className="px-2 py-1.5 tabular-nums">{r[k] ?? '—'}</Td>)}</Tr>)}</TBody>
+                      </Table>
                     </div>
                     {canEdit && <button type="button" onClick={() => off.mutate(c)} className="mt-3 text-[0.75rem] font-semibold text-slate-500 hover:text-slate-800">{c.isActive ? 'Band karein' : 'Chalu karein'}</button>}
                   </article>
@@ -206,25 +207,25 @@ function ChartForm({ chart, seed, onClose, onDone }: { chart: SizeChart | null; 
           <Select label="Kis ke liye" value={gender} onChange={(e) => setGender(e.target.value)} options={[{ value: '', label: '—' }, ...GENDERS.map((g) => ({ value: g.value, label: g.label }))]} />
           <div><span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Unit</span><Segmented value={unit} onChange={(v) => setUnit(v as 'INCH' | 'CM')} items={[{ value: 'INCH', label: 'Inch' }, { value: 'CM', label: 'CM' }]} /></div>
         </div>
-        <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200">
-          <table className="w-full min-w-[28rem] text-[0.8125rem]">
-            <thead>
-              <tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <th className="px-2 py-2">Size</th>
-                {cols.map((k) => <th key={k} className="px-2 py-2"><span className="inline-flex items-center gap-1">{label(k)}<button type="button" onClick={() => setCols(cols.filter((c) => c !== k))} aria-label="Khana hatayein" className="text-slate-400 hover:text-rose-600"><X className="h-3 w-3" /></button></span></th>)}
-                <th className="w-10" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+        <div className="overflow-hidden rounded-2xl ring-1 ring-slate-200">
+          <Table minWidth="28rem">
+            <THead>
+              <Tr>
+                <Th className="px-2 py-2">Size</Th>
+                {cols.map((k) => <Th key={k} className="px-2 py-2"><span className="inline-flex items-center gap-1">{label(k)}<button type="button" onClick={() => setCols(cols.filter((c) => c !== k))} aria-label="Khana hatayein" className="text-slate-400 hover:text-rose-600"><X className="h-3 w-3" /></button></span></Th>)}
+                <Th className="w-10" />
+              </Tr>
+            </THead>
+            <TBody>
               {rows.map((r, i) => (
-                <tr key={i}>
-                  <td className="px-2 py-1"><input value={r.size ?? ''} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, size: e.target.value } : x)))} className="h-8 w-20 rounded-md border border-slate-200 px-2 font-semibold" /></td>
-                  {cols.map((k) => <td key={k} className="px-2 py-1"><input inputMode="decimal" value={r[k] ?? ''} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, [k]: e.target.value.replace(/[^\d.]/g, '') } : x)))} className="h-8 w-20 rounded-md border border-slate-200 px-2 text-right tabular-nums" /></td>)}
-                  <td><button type="button" onClick={() => setRows(rows.filter((_, j) => j !== i))} aria-label="Size hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button></td>
-                </tr>
+                <Tr key={i}>
+                  <Td className="px-2 py-1"><input value={r.size ?? ''} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, size: e.target.value } : x)))} className={cn(controlClass(), 'h-8 w-20 px-2 font-semibold')} /></Td>
+                  {cols.map((k) => <Td key={k} className="px-2 py-1"><input inputMode="decimal" value={r[k] ?? ''} onChange={(e) => setRows(rows.map((x, j) => (j === i ? { ...x, [k]: e.target.value.replace(/[^\d.]/g, '') } : x)))} className={cn(controlClass(), 'h-8 w-20 px-2 text-right tabular-nums')} /></Td>)}
+                  <Td><button type="button" onClick={() => setRows(rows.filter((_, j) => j !== i))} aria-label="Size hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button></Td>
+                </Tr>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </div>
         <div className="flex flex-wrap items-end gap-2">
           <Button size="sm" variant="secondary" onClick={() => setRows([...rows, { size: '' }])} leftIcon={<Plus className="h-4 w-4" />}>Size</Button>

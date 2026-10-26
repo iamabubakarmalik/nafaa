@@ -3,8 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ExternalLink, Lock, Zap } from 'lucide-react';
 import { apiErrorMessage, couriersApi, type CourierAccount, type CourierSettingField } from '../../api/online-orders.api';
-import { Btn, Field, SettingRow, inputCls } from '../ui/kit';
 import { cn } from '@core/lib/cn';
+import { Button, controlClass, Field } from '@/design-system/components';
 
 export const COURIERS_KEY = ['courier-accounts'];
 
@@ -55,7 +55,7 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
         ))}
         {c.connect?.portalUrl && (
           <li className="pl-7">
-            <a href={c.connect.portalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-emerald-700 hover:underline dark:text-emerald-400">
+            <a href={c.connect.portalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline">
               {c.name} portal kholein <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </li>
@@ -63,28 +63,28 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
       </ol>
       <div className={cn('grid gap-3', fields.length > 1 && 'sm:grid-cols-2')}>
         {fields.map((f) => (
-          <Field key={f.key} label={<>{f.label}{f.optional && <span className="font-normal text-slate-400"> (optional)</span>}</>} help={f.help}>
-            {f.options ? (
-              <select value={vals[f.key] ?? f.options[0]?.value ?? ''} onChange={(e) => setVals((v) => ({ ...v, [f.key]: e.target.value }))} className={inputCls}>
+          <Field key={f.key} label={<>{f.label}{f.optional && <span className="font-normal text-slate-400"> (optional)</span>}</>} hint={f.help}>
+            {(id) => (f.options ? (
+              <select id={id} value={vals[f.key] ?? f.options[0]?.value ?? ''} onChange={(e) => setVals((v) => ({ ...v, [f.key]: e.target.value }))} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')}>
                 {f.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             ) : (
             <input
-              type={f.secret ? 'password' : 'text'} autoComplete="off" spellCheck={false}
+              id={id} type={f.secret ? 'password' : 'text'} autoComplete="off" spellCheck={false}
               value={vals[f.key] ?? ''} placeholder={f.placeholder}
               onChange={(e) => setVals((v) => ({ ...v, [f.key]: e.target.value }))}
               onKeyDown={(e) => { if (e.key === 'Enter' && !missing) connect.mutate(); }}
-              className={cn(inputCls, f.secret && 'font-mono')}
+              className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]', f.secret && 'font-mono')}
             />
-            )}
+            ))}
           </Field>
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Lock className="h-3.5 w-3.5" /> Keys encrypted save hoti hain · sirf malik / manager</span>
-        <Btn variant="primary" loading={connect.isPending} disabled={missing} onClick={() => connect.mutate()} icon={<Zap className="h-4 w-4" />}>
+        <Button size="sm" variant="primary" loading={connect.isPending} disabled={missing} onClick={() => connect.mutate()} leftIcon={<Zap className="h-4 w-4" />}>
           {c.connected ? 'Nayi key check karke lagayein' : 'Check karke jorein'}
-        </Btn>
+        </Button>
       </div>
     </div>
   );
@@ -118,8 +118,9 @@ export function CourierSettingsForm({ c }: { c: CourierAccount }) {
   return (
     <div className="divide-y divide-slate-100 dark:divide-ink-800">
       {defs.map((d) => (
-        <SettingRow key={d.key} title={<>{d.label}{d.required && <span className="text-rose-600"> *</span>}</>} help={d.help}
-          control={<SettingControl d={d} value={c.settings?.[d.key]} opts={opts} loading={isLoading} onSave={(v) => save.mutate({ [d.key]: v })} />} />
+        <div className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
+          <div className="min-w-0"><p className="text-sm font-medium text-slate-800">{<>{d.label}{d.required && <span className="text-rose-600"> *</span>}</>}</p><p className="mt-0.5 text-xs text-slate-500">{d.help}</p></div>
+          <div className="shrink-0"><SettingControl d={d} value={c.settings?.[d.key]} opts={opts} loading={isLoading} onSave={(v) => save.mutate({ [d.key]: v })} /></div></div>
       ))}
     </div>
   );
@@ -142,7 +143,7 @@ function SettingControl({ d, value, opts, loading, onSave }: {
         : d.type === 'service' ? (opts?.services ?? []).map((x) => ({ value: x.code, label: x.name }))
           : d.options ?? [];
     return (
-      <select value={current} disabled={loading && d.type !== 'select'} onChange={(e) => onSave(e.target.value || null)} className={cn(inputCls, 'w-60')}>
+      <select value={current} disabled={loading && d.type !== 'select'} onChange={(e) => onSave(e.target.value || null)} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-60')}>
         <option value="">{loading && d.type !== 'select' ? 'Aa raha hai…' : d.placeholder ?? 'Default'}</option>
         {current && !list.some((o) => o.value === current) && <option value={current}>{current}</option>}
         {list.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -155,7 +156,7 @@ function SettingControl({ d, value, opts, loading, onSave }: {
       value={draft} placeholder={d.placeholder ?? '(khali)'} maxLength={200}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => draft !== current && onSave(draft === '' ? null : d.type === 'number' ? Number(draft) : draft)}
-      className={cn(inputCls, d.type === 'number' ? 'w-24' : 'w-60')}
+      className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]', d.type === 'number' ? 'w-24' : 'w-60')}
     />
   );
 }

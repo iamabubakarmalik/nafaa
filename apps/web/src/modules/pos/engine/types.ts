@@ -76,7 +76,7 @@ export interface AddOptions {
   /** Skip the industry's beforeAdd checks already answered by the user. */
   confirmed?: string[];
   /** `stock` is what may be sold; `reserved` set means held pieces are already taken out of it. */
-  variant?: { id: string; name: string; price?: number | null; stock?: number | null; reserved?: number | null };
+  variant?: { id: string; name: string; price?: number | null; wholesalePrice?: number | null; creditPrice?: number | null; stock?: number | null; reserved?: number | null };
   serial?: { id: string; serialNumber: string; imei?: string | null };
   /** The exact phone sold (mobile shops): quantity stays 1 and the sale carries its IMEI. */
   imei?: { id: string; imei1: string; imei2?: string | null };

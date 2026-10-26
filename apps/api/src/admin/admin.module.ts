@@ -5,6 +5,7 @@ import { AdminAuthModule } from './auth/admin-auth.module';
 import { AdminBillingModule } from './billing/admin-billing.module';
 import { AdminBroadcastModule } from './broadcast/admin-broadcast.module';
 import { AdminBulkModule } from './bulk/admin-bulk.module';
+import { AdminCommunicationsModule } from './communications/admin-communications.module';
 import { AdminCustomersModule } from './customers/admin-customers.module';
 import { AdminEmailTemplatesModule } from './email-templates/admin-email-templates.module';
 import { AdminExportsModule } from './exports/admin-exports.module';
@@ -46,6 +47,7 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminBroadcastModule,
     AdminPlatformDiscountsModule,
     AdminEmailTemplatesModule,
+    AdminCommunicationsModule,
     AdminSettingsModule,
     AdminHealthModule,
     AdminBulkModule,

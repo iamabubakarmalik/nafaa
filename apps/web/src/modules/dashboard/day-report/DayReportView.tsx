@@ -19,6 +19,7 @@ import { PAYMENT_COLORS, PAYMENT_LABELS } from '../engine/useChartTheme';
 import { useMasked } from '../engine/useMasked';
 import { EmptyHint, fmtQty } from '../engine/parts';
 import { PrintButton } from '@core/print';
+import { TIER_DOT } from '@modules/reports/center/components/PriceTierSplit';
 import { categoryTotals, dayReportDoc, prettyDate, reportText } from './exportReport';
 
 const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -161,6 +162,19 @@ function MoneyColumn({ r }: { r: DayReport }) {
     <>
       <Section title="Paisa kaise aaya" icon={Wallet}>
         <Line label={`Total sale · ${r.sales.bills} bill`} value={sales(r.sales.total)} />
+        {!!r.priceTiers?.length && (
+          <ul className="mb-1 space-y-1 rounded-lg bg-slate-50 px-2.5 py-2">
+            {r.priceTiers.map((t) => (
+              <li key={t.tier} className="flex items-baseline justify-between gap-2 text-[0.8125rem]">
+                <span className="flex min-w-0 items-center gap-1.5 text-slate-600">
+                  <span className={cn('h-2 w-2 shrink-0 rounded-full', TIER_DOT[t.tier])} />
+                  {t.label} <span className="text-slate-400">· {t.bills} bill</span>
+                </span>
+                <span className="font-medium tabular-nums text-slate-900">{sales(t.total)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="my-2 space-y-2">
           {r.payments.map((p) => (
             <div key={p.method}>

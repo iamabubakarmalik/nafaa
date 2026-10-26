@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { Printer } from 'lucide-react';
-import { Button, Modal, Segmented } from '@/design-system/components';
+import { Button, Checkbox, Modal, Segmented } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { ReceiptPreview } from '@core/receipt/ReceiptPreview';
 import { printReceipt } from '@core/receipt/print';
@@ -76,10 +76,8 @@ export function StatementPrintModal({ d, onClose }: { d: CommissionDetail; onClo
   const go = () => { printReceipt(doc, { paper: o.paper, setup, copies: o.copies }); onClose(); };
 
   const Toggle = ({ k, label, hint }: { k: 'working' | 'signature' | 'logo'; label: string; hint?: string }) => (
-    <label className="flex cursor-pointer items-start gap-2.5 rounded-lg px-1.5 py-1.5 hover:bg-slate-50">
-      <input type="checkbox" checked={o[k]} onChange={(ev) => set(k, ev.target.checked)} className="mt-0.5 h-4 w-4 accent-brand-600" />
-      <span><span className="block text-sm text-slate-800">{label}</span>{hint && <span className="block text-[0.6875rem] text-slate-500">{hint}</span>}</span>
-    </label>
+    <Checkbox checked={o[k]} onChange={(ev) => set(k, ev.target.checked)} label={label} description={hint}
+      className="rounded-lg px-1.5 py-1.5 hover:bg-slate-50" />
   );
 
   return (

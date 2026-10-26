@@ -17,10 +17,7 @@ import {
   CheckCircle2, ChevronDown, ClipboardPaste, Clock, Download, GraduationCap, Hourglass, ListChecks, PackageX, ReceiptText, RotateCcw,
   Truck, Wallet,
 } from 'lucide-react';
-import {
-  Button, Card, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton,
-  ViewTabs, heroButton, heroIconButton, resolveRange,
-} from '@/design-system/components';
+import { Button, Card, DateRangeMenu, FilterBar, FilterChip, FilterMenu, heroButton, heroIconButton, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, resolveRange, SearchField, Skeleton, Table, TBody, Td, Textarea, Th, THead, Tr, ViewTabs } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -300,12 +297,12 @@ export default function CodPage() {
                     <li key={key}>
                       <button type="button" onClick={() => setOpenBatch(isOpen ? null : key)} aria-expanded={isOpen}
                         className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50/80 sm:px-5">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><ReceiptText className="h-4 w-4" /></span>
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-success-50 text-success-700"><ReceiptText className="h-4 w-4" /></span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-[0.875rem] font-semibold text-slate-900">{keyDay(b.day)} {b.ref ? <span className="font-mono font-normal text-slate-600">· ref {b.ref}</span> : <span className="font-normal text-slate-400">· bina ref</span>}</span>
                           <span className="block truncate text-[0.75rem] text-slate-500">{b.count} order · {b.couriers.join(', ')}</span>
                         </span>
-                        <span className="text-[0.9375rem] font-bold tabular-nums text-emerald-700">{money(b.value)}</span>
+                        <span className="text-[0.9375rem] font-bold tabular-nums text-success-700">{money(b.value)}</span>
                         <ChevronDown className={cn('h-4 w-4 text-slate-400 transition', isOpen && 'rotate-180')} />
                       </button>
                       {isOpen && (
@@ -331,25 +328,25 @@ export default function CodPage() {
               <Empty icon={PackageX} title="Is period me koi parcel wapas nahi aaya" text="Wapas (RTO) par bill void hota hai aur stock khud wapas aa jata hai." />
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[44rem] text-[0.8125rem]">
-                  <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                    <tr><th className="px-4 py-2 sm:px-5">Order</th><th className="px-3 py-2">Courier · CN</th><th className="px-3 py-2">Wajah</th><th className="px-3 py-2">Wapas aaya</th><th className="px-4 py-2 text-right sm:px-5">Amount</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
+                <Table minWidth="44rem" className="[&_table]:text-[0.8125rem]">
+                  <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                    <Tr><Th className="px-4 py-2 sm:px-5">Order</Th><Th className="px-3 py-2">Courier · CN</Th><Th className="px-3 py-2">Wajah</Th><Th className="px-3 py-2">Wapas aaya</Th><Th className="px-4 py-2 text-right sm:px-5">Amount</Th></Tr>
+                  </THead>
+                  <TBody className="divide-y divide-slate-100">
                     {returns.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50/80">
-                        <td className="px-4 py-2.5 sm:px-5">
+                      <Tr key={r.id} className="hover:bg-slate-50/80">
+                        <Td className="px-4 py-2.5 sm:px-5">
                           <button type="button" onClick={() => setOrderId(r.id)} className="font-semibold text-slate-900 hover:underline">#{r.number}</button>
                           <div className="text-[0.75rem] text-slate-500">{r.customerName}{r.customerCity ? ` · ${r.customerCity}` : ''}</div>
-                        </td>
-                        <td className="px-3 py-2.5 text-slate-600">{r.courier}{r.trackingNumber && <div className="font-mono text-[0.75rem] text-slate-500">{r.trackingNumber}</div>}</td>
-                        <td className="max-w-[14rem] truncate px-3 py-2.5 text-slate-600">{r.reason ?? '—'}</td>
-                        <td className="px-3 py-2.5 text-slate-600">{whenText(r.returnedAt)}{r.daysOut != null && <div className="text-[0.75rem] text-slate-400">{r.daysOut} din bahar raha</div>}</td>
-                        <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 sm:px-5">{money(r.total)}</td>
-                      </tr>
+                        </Td>
+                        <Td className="px-3 py-2.5 text-slate-600">{r.courier}{r.trackingNumber && <div className="font-mono text-[0.75rem] text-slate-500">{r.trackingNumber}</div>}</Td>
+                        <Td className="max-w-[14rem] truncate px-3 py-2.5 text-slate-600">{r.reason ?? '—'}</Td>
+                        <Td className="px-3 py-2.5 text-slate-600">{whenText(r.returnedAt)}{r.daysOut != null && <div className="text-[0.75rem] text-slate-400">{r.daysOut} din bahar raha</div>}</Td>
+                        <Td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 sm:px-5">{money(r.total)}</Td>
+                      </Tr>
                     ))}
-                  </tbody>
-                </table>
+                  </TBody>
+                </Table>
               </div>
             )}
           </section>
@@ -358,30 +355,30 @@ export default function CodPage() {
             <Card className="rounded-2xl lg:col-span-3" flush title="Courier-wise hisaab" description="Raste me, courier ke paas aur is mahine mila — RTO pichhle 30 din ka">
               {!s.couriers.length ? <Empty icon={Truck} title="Abhi koi parcel nahi bheja" text='Order par "Rider/courier ko de diya" me courier aur CN daalein — hisaab yahan banega.' /> : (
                 <div className="overflow-x-auto">
-                  <table className="w-full min-w-[36rem] text-[0.8125rem]">
-                    <thead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
-                      <tr><th className="px-4 py-2 sm:px-5">Courier</th><th className="px-3 py-2 text-right">Raste me</th><th className="px-3 py-2 text-right">Courier ke paas</th><th className="px-3 py-2 text-right">Mila</th><th className="px-4 py-2 text-right sm:px-5">RTO</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
+                  <Table minWidth="36rem" className="[&_table]:text-[0.8125rem]">
+                    <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                      <Tr><Th className="px-4 py-2 sm:px-5">Courier</Th><Th className="px-3 py-2 text-right">Raste me</Th><Th className="px-3 py-2 text-right">Courier ke paas</Th><Th className="px-3 py-2 text-right">Mila</Th><Th className="px-4 py-2 text-right sm:px-5">RTO</Th></Tr>
+                    </THead>
+                    <TBody className="divide-y divide-slate-100">
                       {s.couriers.map((c) => (
-                        <tr key={c.code} className="cursor-pointer hover:bg-slate-50/80" onClick={() => { setCourier(c.name); setTab('with'); }}>
-                          <td className="px-4 py-2.5 font-semibold text-slate-900 sm:px-5">{c.name}</td>
-                          <td className="px-3 py-2.5 text-right tabular-nums">{money(c.inTransitValue)} <span className="text-slate-400">· {c.inTransit}</span></td>
-                          <td className={cn('px-3 py-2.5 text-right tabular-nums', c.withCourierValue > 0 && 'font-semibold text-orange-700')}>{money(c.withCourierValue)} <span className="font-normal text-slate-400">· {c.withCourier}</span></td>
-                          <td className="px-3 py-2.5 text-right tabular-nums">{money(c.settledMonthValue)} <span className="text-slate-400">· {c.settledMonth}</span></td>
-                          <td className="px-4 py-2.5 text-right sm:px-5">
-                            <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', c.rtoRate >= 25 ? 'bg-rose-50 text-rose-700' : c.rtoRate >= 12 ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700')}>{c.rtoRate}%</span>
+                        <Tr key={c.code} className="cursor-pointer hover:bg-slate-50/80" onClick={() => { setCourier(c.name); setTab('with'); }}>
+                          <Td className="px-4 py-2.5 font-semibold text-slate-900 sm:px-5">{c.name}</Td>
+                          <Td className="px-3 py-2.5 text-right tabular-nums">{money(c.inTransitValue)} <span className="text-slate-400">· {c.inTransit}</span></Td>
+                          <Td className={cn('px-3 py-2.5 text-right tabular-nums', c.withCourierValue > 0 && 'font-semibold text-orange-700')}>{money(c.withCourierValue)} <span className="font-normal text-slate-400">· {c.withCourier}</span></Td>
+                          <Td className="px-3 py-2.5 text-right tabular-nums">{money(c.settledMonthValue)} <span className="text-slate-400">· {c.settledMonth}</span></Td>
+                          <Td className="px-4 py-2.5 text-right sm:px-5">
+                            <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', c.rtoRate >= 25 ? 'bg-rose-50 text-rose-700' : c.rtoRate >= 12 ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>{c.rtoRate}%</span>
                             <span className="ml-1.5 text-[0.75rem] text-slate-400">{c.returned30}/{c.dispatched30}</span>
-                          </td>
-                        </tr>
+                          </Td>
+                        </Tr>
                       ))}
-                    </tbody>
-                  </table>
+                    </TBody>
+                  </Table>
                 </div>
               )}
             </Card>
             <Card className="rounded-2xl lg:col-span-2" title="Paisa kis courier ke paas" description="Raste me aur deliver ho kar atka hua">
-              <div className="h-[260px]">
+              <div className="h-[16.25rem]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={s.couriers} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
                     <CartesianGrid stroke={theme.grid} vertical={false} />
@@ -439,8 +436,8 @@ function PasteSheet({ onClose, onPick }: { onClose: () => void; onPick: (text: s
     <Modal open onClose={onClose} size="md" title="Settlement sheet se milayein"
       description="Courier ki sheet (Excel ya PDF) se CN ya order number copy karke yahan paste karein. Jo list me milenge woh chun liye jayenge."
       footer={<div className="flex w-full justify-end gap-2"><Button variant="ghost" onClick={onClose}>Rehne dein</Button><Button disabled={!text.trim()} onClick={() => onPick(text)}>Orders chunein</Button></div>}>
-      <textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} rows={8} placeholder={'CN ya order number — har line par ek, ya comma se alag\nMaslan:\n12345678901\n#1042'}
-        className="w-full rounded-xl border border-slate-200 bg-white p-3 font-mono text-[0.8125rem] outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100" />
+      <Textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} rows={8} aria-label="CN ya order number" placeholder={'CN ya order number — har line par ek, ya comma se alag\nMaslan:\n12345678901\n#1042'}
+        className="font-mono text-[0.8125rem]" />
     </Modal>
   );
 }

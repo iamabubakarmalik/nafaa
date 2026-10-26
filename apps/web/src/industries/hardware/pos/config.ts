@@ -17,10 +17,11 @@ import { FACTS_KEY, TIERS_KEY, factLine, useHardwareFacts, useTiers } from '../h
 import { categoryLabel, isPaint, qty } from '../lib/meta';
 import { CounterRate } from './CounterRate';
 import { QtyRateModal } from './QtyRateModal';
-import { getRateMode, saleListener } from './rateMode';
+import { saleListener } from './rateMode';
+import { getCounterTier } from '@modules/pos/lib/priceTierStore';
+import { tierPrice } from '@core/lib/priceTiers';
 
 const BULK_NOTE = /Bulk rate (\d+(?:\.\d+)?)\+/;
-const WHOLESALE_NOTE = 'Thekedar rate';
 
 function useHardwareCatalog() {
   const facts = useHardwareFacts();
@@ -67,15 +68,11 @@ export const hardwarePos: PosIndustryConfig = {
     if (confirmed.includes('hw') || item.hasVariants || opts.variant || (opts.unit && opts.unit.conversionRate !== 1)) return 'continue';
     const tiers = (item.meta?.tiers as Tier[] | undefined) ?? [];
     const paint = !!item.meta?.paint;
-    const wholesale = getRateMode() === 'wholesale' && Number(item.product.wholesalePrice) > 0 && Number(item.product.wholesalePrice) < item.price
-      ? Number(item.product.wholesalePrice) : null;
-    const baseRate = wholesale ?? item.price;
-
-    if (!tiers.length && !paint) {
-      if (!wholesale) return 'continue';
-      api.addItem(item, { ...opts, price: wholesale, confirmed: [...confirmed, 'hw'], note: [opts.note, WHOLESALE_NOTE].filter(Boolean).join(' · ') });
-      return 'handled';
-    }
+    // Plain items take the bill's tier price in the engine (Thekedar rate = wholesale tier).
+    if (!tiers.length && !paint) return 'continue';
+    const tier = getCounterTier();
+    const baseRate = tierPrice({ ...item.product, price: item.price }, tier);
+    const wholesale = tier === 'WHOLESALE' && baseRate < item.price ? baseRate : null;
 
     api.openPicker(createElement(QtyRateModal, {
       item, tiers, baseRate, paint, startQty: opts.qty ?? 1,
@@ -85,10 +82,11 @@ export const hardwarePos: PosIndustryConfig = {
         api.closePicker();
         const note = [
           opts.note,
-          r.tier ? `Bulk rate ${r.tier.minQuantity}+` : wholesale ? WHOLESALE_NOTE : '',
+          r.tier ? `Bulk rate ${r.tier.minQuantity}+` : '',
           r.shade ? `Shade: ${r.shade}` : '',
         ].filter(Boolean).join(' · ') || undefined;
-        api.addItem(item, { ...opts, qty: r.qty, price: r.price !== item.price ? r.price : undefined, note, confirmed: [...confirmed, 'hw'] });
+        // A bulk rate is fixed for the line; otherwise the engine prices it at the bill's tier.
+        api.addItem(item, { ...opts, qty: r.qty, price: r.tier ? r.price : undefined, note, confirmed: [...confirmed, 'hw'] });
       },
     }));
     return 'handled';

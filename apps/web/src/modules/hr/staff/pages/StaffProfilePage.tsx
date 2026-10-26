@@ -11,12 +11,11 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  ArrowLeft, Clock, GraduationCap, KeyRound, LogIn, MessageCircle, Pencil, Phone, ShieldCheck, Undo2, UserMinus, Wallet,
+  Clock, GraduationCap, KeyRound, LogIn, MessageCircle, Pencil, Phone, ShieldCheck, Undo2, UserMinus, Wallet,
 } from 'lucide-react';
-import { Avatar, Button, PageShell, Skeleton, Tabs } from '@/design-system/components';
+import { Avatar, Button, Card, EmptyState, PageHero, PageShell, Skeleton, Tabs, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton, type PrintDoc } from '@core/print';
-import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { peopleApi, type Profile } from '../api/people.api';
@@ -89,13 +88,15 @@ export default function StaffProfilePage() {
   if (!p) {
     return (
       <PageShell>
-        <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
-          <p className="font-semibold text-slate-900">{q.isError ? 'Profile load nahi hui' : 'Yeh banda nahi mila'}</p>
-          <div className="mt-3 flex justify-center gap-2">
-            {q.isError && <Button variant="secondary" onClick={() => q.refetch()}>Dobara koshish</Button>}
-            <Button variant="ghost" onClick={() => navigate('/staff')}>Staff par wapas</Button>
-          </div>
-        </div>
+        <Card>
+          <EmptyState
+            title={q.isError ? 'Profile load nahi hui' : 'Yeh banda nahi mila'}
+            action={<>
+              {q.isError && <Button variant="secondary" onClick={() => q.refetch()}>Dobara koshish</Button>}
+              <Button variant="ghost" onClick={() => navigate('/staff')}>Staff par wapas</Button>
+            </>}
+          />
+        </Card>
       </PageShell>
     );
   }
@@ -111,48 +112,44 @@ export default function StaffProfilePage() {
 
   return (
     <PageShell>
-      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-6">
-        <div className="flex flex-wrap items-start gap-3">
-          <button type="button" onClick={() => navigate('/staff')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-          <Avatar name={person.fullName} url={person.avatarUrl} size={56} className="ring-2 ring-white/40" />
-          <div className="min-w-0 flex-1">
-            <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold">
-              {person.fullName}
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.75rem] font-semibold"><role.icon className="h-3.5 w-3.5" />{role.label}</span>
-              {person.status !== 'ACTIVE' && <span className="rounded-full bg-white/15 px-2 py-0.5 text-[0.75rem] font-medium">{st.label}</span>}
-            </h1>
-            <p className="text-[0.8125rem] text-white/75">{[person.designation, person.staffNumber, person.shop?.name ?? 'Sab branches'].filter(Boolean).join(' · ')}</p>
-            {onDuty && <p className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-emerald-400/20 px-2 py-0.5 text-[0.75rem] font-semibold text-emerald-100"><Clock className="h-3.5 w-3.5" />Duty par · {onDuty.label} · {time(onDuty.since)} se</p>}
-          </div>
-          {p.sales && (
-            <div className="text-right">
-              <p className="text-[0.75rem] text-white/70">Aaj ki sale</p>
-              <p className="text-3xl font-bold tabular-nums">{formatPKR(p.sales.today.sales)}</p>
-              <p className="text-[0.75rem] text-white/70">{p.sales.today.bills} bill · mahina {formatPKR(p.sales.month.sales)}</p>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {canEdit && <Link to={`/staff/${id}/edit`} title="Badlein (E)" className={heroBtn(true)}><Pencil className="h-4 w-4" /> Badlein</Link>}
-          {phone && <a href={`tel:${phone}`} className={heroBtn(false)}><Phone className="h-4 w-4" /> Call</a>}
-          {phone && <a href={waLink(phone)} target="_blank" rel="noreferrer" className={heroBtn(false)}><MessageCircle className="h-4 w-4" /> WhatsApp</a>}
-          {p.viewer.owner && !person.hasLogin && p.staff && person.status !== 'LEFT' && <button type="button" onClick={() => setModal('login')} className={heroBtn(false)}><LogIn className="h-4 w-4" /> Login dein</button>}
-          {p.viewer.owner && p.login && !ownerTarget && <button type="button" onClick={() => setModal('password')} className={heroBtn(false)}><KeyRound className="h-4 w-4" /> Naya password</button>}
-          {canStatus && (away
-            ? <button type="button" onClick={() => setModal('back')} className={heroBtn(false)}><Undo2 className="h-4 w-4" /> Wapas kaam par</button>
-            : <button type="button" onClick={() => setModal('leave')} className={heroBtn(false)}><UserMinus className="h-4 w-4" /> Chhutti / chhor gaya</button>)}
-          <span className="[&_button]:h-9 [&_button]:border-white/25 [&_button]:bg-white/15 [&_button]:text-white"><PrintButton doc={() => profileDoc(p)} size="sm" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroBtn(false)}><GraduationCap className="h-4 w-4" /> Guide</button>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
-          <Stat label="Kab se" value={tenure(person.joinDate)} hint={day(person.joinDate)} />
-          <Stat label="Aakhri login" value={p.login ? ago(p.login.lastLoginAt) : person.hasLogin ? '—' : 'Login nahi'} />
-          <Stat label="Is mahine haazri" value={p.attendance ? `${p.attendance.present} din` : '—'} hint={p.attendance?.absent ? `${p.attendance.absent} ghair haazir` : undefined} />
-          <Stat label="Tankhwah" value={p.salary ? (p.salary.salaryType === 'COMMISSION' ? 'Commission' : formatPKR(p.salary.baseSalary)) : '—'} hint={p.salary?.unpaid ? `${formatPKR(p.salary.unpaid)} baqi` : undefined} />
-        </div>
-      </div>
+      <PageHero
+        back={() => navigate('/staff')}
+        backLabel="Wapas (Esc)"
+        title={(
+          <span className="flex min-w-0 items-center gap-2.5">
+            <Avatar name={person.fullName} url={person.avatarUrl} size={36} className="shrink-0 ring-2 ring-white/40" />
+            <span className="truncate">{person.fullName}</span>
+          </span>
+        )}
+        chip={<><role.icon />{role.label}{person.status !== 'ACTIVE' && <span className="text-white/70">· {st.label}</span>}</>}
+        subtitle={(
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>{[person.designation, person.staffNumber, person.shop?.name ?? 'Sab branches'].filter(Boolean).join(' · ')}</span>
+            {onDuty && <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2 py-0.5 text-[0.75rem] font-semibold text-white ring-1 ring-white/20"><Clock className="h-3.5 w-3.5" />Duty par · {onDuty.label} · {time(onDuty.since)} se</span>}
+          </span>
+        )}
+        actions={(
+          <>
+            {canEdit && <Link to={`/staff/${id}/edit`} title="Badlein (E)" className={heroPrimaryButton}><Pencil className="h-4 w-4" /> Badlein</Link>}
+            {phone && <a href={`tel:${phone}`} className={heroButton}><Phone className="h-4 w-4" /> Call</a>}
+            {phone && <a href={waLink(phone)} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" /> WhatsApp</a>}
+            {p.viewer.owner && !person.hasLogin && p.staff && person.status !== 'LEFT' && <button type="button" onClick={() => setModal('login')} className={heroButton}><LogIn className="h-4 w-4" /> Login dein</button>}
+            {p.viewer.owner && p.login && !ownerTarget && <button type="button" onClick={() => setModal('password')} className={heroButton}><KeyRound className="h-4 w-4" /> Naya password</button>}
+            {canStatus && (away
+              ? <button type="button" onClick={() => setModal('back')} className={heroButton}><Undo2 className="h-4 w-4" /> Wapas kaam par</button>
+              : <button type="button" onClick={() => setModal('leave')} className={heroButton}><UserMinus className="h-4 w-4" /> Chhutti / chhor gaya</button>)}
+            <span className="[&_button]:h-9 [&_button]:border-white/25 [&_button]:bg-white/15 [&_button]:text-white"><PrintButton doc={() => profileDoc(p)} size="sm" /></span>
+            <button type="button" onClick={guide.open} title="Guide (G)" className={heroButton}><GraduationCap className="h-4 w-4" /> Guide</button>
+          </>
+        )}
+        stats={[
+          ...(p.sales ? [{ label: 'Aaj ki sale', value: formatPKR(p.sales.today.sales), hint: `${p.sales.today.bills} bill · mahina ${formatPKR(p.sales.month.sales)}` }] : []),
+          { label: 'Kab se', value: tenure(person.joinDate), hint: day(person.joinDate) },
+          { label: 'Aakhri login', value: p.login ? ago(p.login.lastLoginAt) : person.hasLogin ? '—' : 'Login nahi' },
+          { label: 'Is mahine haazri', value: p.attendance ? `${p.attendance.present} din` : '—', hint: p.attendance?.absent ? `${p.attendance.absent} ghair haazir` : undefined },
+          { label: 'Tankhwah', value: p.salary ? (p.salary.salaryType === 'COMMISSION' ? 'Commission' : formatPKR(p.salary.baseSalary)) : '—', hint: p.salary?.unpaid ? `${formatPKR(p.salary.unpaid)} baqi` : undefined },
+        ]}
+      />
 
       <Tabs value={tab} onChange={setTab} label="Profile"
         items={[
@@ -194,8 +191,3 @@ export default function StaffProfilePage() {
   );
 }
 
-const heroBtn = (primary: boolean) => cn('inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold transition',
-  primary ? 'bg-white text-brand-800 hover:bg-brand-50' : 'bg-white/15 text-white ring-1 ring-white/25 hover:bg-white/25');
-function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return <div><p className="text-[0.75rem] text-white/70">{label}</p><p className="font-semibold tabular-nums">{value}{hint && <span className="ml-1 text-[0.6875rem] font-normal text-white/60">{hint}</span>}</p></div>;
-}

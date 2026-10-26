@@ -7,7 +7,7 @@
 import { Link } from 'react-router-dom';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ArrowRight, ArrowRightLeft, Building2, Crown } from 'lucide-react';
-import { Card, Skeleton } from '@/design-system/components';
+import { Card, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -88,23 +88,23 @@ export function BranchView({ data, loading, money, cost, costHidden, onOpen }: {
 
       <Card className="rounded-2xl" title="Qeemti maal — har branch me kitna" description="Bechne ki qeemat par sab se bari 25 cheezein">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] text-[0.8125rem]">
-            <thead className="text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-              <tr><th className="py-2 pr-2">Cheez</th>{data.shops.map((s) => <th key={s.shopId} className="px-2 py-2 text-right">{s.name}</th>)}<th className="py-2 pl-2 text-right">Kul</th></tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <Table minWidth="36rem" className="[&>table]:text-[0.8125rem]">
+            <THead className="text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
+              <Tr><Th className="py-2 pr-2">Cheez</Th>{data.shops.map((s) => <Th key={s.shopId} className="px-2 py-2 text-right">{s.name}</Th>)}<Th className="py-2 pl-2 text-right">Kul</Th></Tr>
+            </THead>
+            <TBody className="divide-y divide-slate-100">
               {data.matrix.map((r) => (
-                <tr key={r.productId} className="cursor-pointer hover:bg-slate-50" onClick={() => onOpen(r.productId)}>
-                  <td className="py-2 pr-2 font-medium text-slate-900">{r.name}</td>
+                <Tr key={r.productId} className="cursor-pointer hover:bg-slate-50" onClick={() => onOpen(r.productId)}>
+                  <Td className="py-2 pr-2 font-medium text-slate-900">{r.name}</Td>
                   {data.shops.map((s) => {
                     const p = r.shops.find((x) => x.shopId === s.shopId);
-                    return <td key={s.shopId} className={cn('px-2 py-2 text-right tabular-nums', !p || p.stock <= 0 ? 'text-rose-600' : 'text-slate-800')}>{qty(p?.stock ?? 0)}{p?.sold ? <span className="block text-[0.6875rem] text-slate-400">biki {qty(p.sold)}</span> : null}</td>;
+                    return <Td key={s.shopId} className={cn('px-2 py-2 text-right tabular-nums', !p || p.stock <= 0 ? 'text-rose-600' : 'text-slate-800')}>{qty(p?.stock ?? 0)}{p?.sold ? <span className="block text-[0.6875rem] text-slate-400">biki {qty(p.sold)}</span> : null}</Td>;
                   })}
-                  <td className="py-2 pl-2 text-right font-semibold tabular-nums">{qty(r.stock)} {r.unit}</td>
-                </tr>
+                  <Td className="text-inherit py-2 pl-2 text-right font-semibold tabular-nums">{qty(r.stock)} {r.unit}</Td>
+                </Tr>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </div>
       </Card>
     </div>

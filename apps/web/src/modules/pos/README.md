@@ -45,6 +45,12 @@ move over when their industry flow is rebuilt.
   payments) use `TakePaymentModal` or `PaymentMethodPicker`.
 - Works offline (sales queue), auto-print to the thermal printer, customer
   display, cash drawer, WhatsApp bill.
+- Price tiers (Settings → POS counter): Retail / Wholesale / Credit price for
+  the bill (`lib/priceTierStore`, `components/PosTierBar`, Alt+T), one line at
+  its own tier (chip or T), the customer's default price, and the credit price
+  while an udhaar checkout is open. Each line sends `priceTier`; the server
+  checks `pos.price_tier` and does not count tier prices as a discount.
+  Hardware and meat rate switches use the same store.
 
 ## Layouts and keyboard
 

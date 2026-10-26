@@ -8,7 +8,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageCircle, PackageCheck, ShoppingCart, Store, X } from 'lucide-react';
-import { Button, Skeleton } from '@/design-system/components';
+import { Button, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { PrintButton } from '@core/print';
 import { waLink } from '@core/lib/whatsapp/templates';
 import type { LowRow } from '../api';
@@ -74,44 +74,44 @@ export function ReorderView({ rows, loading, qtyOf, setQty, removed, toggleRemov
               </div>
             </header>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[44rem] text-[0.8125rem]">
-                <thead>
-                  <tr className="border-b border-slate-100 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                    <th className="px-4 py-2">Cheez</th>
-                    <th className="px-3 py-2 text-right">Abhi</th>
-                    <th className="px-3 py-2 text-right">Roz sale</th>
-                    <th className="px-3 py-2 text-right">Kitne din</th>
-                    <th className="px-3 py-2 text-right">Order me</th>
-                    <th className="px-3 py-2 text-right">Mangwana</th>
-                    {!costHidden && <th className="px-3 py-2 text-right">Amount</th>}
-                    <th className="w-10 px-2 py-2" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table minWidth="44rem" className="[&>table]:text-[0.8125rem]">
+                <THead>
+                  <Tr className="border-b border-slate-100 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                    <Th className="px-4 py-2">Cheez</Th>
+                    <Th className="px-3 py-2 text-right">Abhi</Th>
+                    <Th className="px-3 py-2 text-right">Roz sale</Th>
+                    <Th className="px-3 py-2 text-right">Kitne din</Th>
+                    <Th className="px-3 py-2 text-right">Order me</Th>
+                    <Th className="px-3 py-2 text-right">Mangwana</Th>
+                    {!costHidden && <Th className="px-3 py-2 text-right">Amount</Th>}
+                    <Th className="w-10 px-2 py-2" />
+                  </Tr>
+                </THead>
+                <TBody className="divide-y divide-slate-100">
                   {g.rows.map((r) => {
                     const off = removed.has(r.key);
                     return (
-                      <tr key={r.key} className={off ? 'opacity-40' : undefined}>
-                        <td className="px-4 py-2"><span className="font-medium text-slate-900">{r.name}</span>{r.category && <span className="ml-1.5 text-[0.75rem] text-slate-400">{r.category.name}</span>}</td>
-                        <td className={`px-3 py-2 text-right tabular-nums ${r.stock <= 0 ? 'font-semibold text-rose-700' : ''}`}>{qty(r.stock)} {r.unit}</td>
-                        <td className="px-3 py-2 text-right tabular-nums">{r.perDay > 0 ? qty(r.perDay) : '—'}</td>
-                        <td className="px-3 py-2 text-right tabular-nums">{r.stock <= 0 ? 'Khatam' : daysText(r.daysLeft)}</td>
-                        <td className="px-3 py-2 text-right tabular-nums text-sky-700">{r.onOrder > 0 ? qty(r.onOrder) : '—'}</td>
-                        <td className="px-3 py-2 text-right">
+                      <Tr key={r.key} className={off ? 'opacity-40' : undefined}>
+                        <Td className="text-inherit px-4 py-2"><span className="font-medium text-slate-900">{r.name}</span>{r.category && <span className="ml-1.5 text-[0.75rem] text-slate-400">{r.category.name}</span>}</Td>
+                        <Td className={`px-3 py-2 text-right tabular-nums ${r.stock <= 0 ? 'font-semibold text-rose-700' : ''}`}>{qty(r.stock)} {r.unit}</Td>
+                        <Td className="text-inherit px-3 py-2 text-right tabular-nums">{r.perDay > 0 ? qty(r.perDay) : '—'}</Td>
+                        <Td className="text-inherit px-3 py-2 text-right tabular-nums">{r.stock <= 0 ? 'Khatam' : daysText(r.daysLeft)}</Td>
+                        <Td className="px-3 py-2 text-right tabular-nums text-sky-700">{r.onOrder > 0 ? qty(r.onOrder) : '—'}</Td>
+                        <Td className="text-inherit px-3 py-2 text-right">
                           <input type="number" min={0} step="any" value={qtyOf(r)} disabled={off} aria-label={`${r.name} kitna mangwana`}
                             onChange={(e) => setQty(r.key, Math.max(0, Number(e.target.value) || 0))}
                             className="h-8 w-20 rounded-lg border border-slate-200 px-2 text-right tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
                           <span className="ml-1 text-[0.75rem] text-slate-500">{r.unit}</span>
-                        </td>
-                        {!costHidden && <td className="px-3 py-2 text-right tabular-nums">{cost(qtyOf(r) * r.lastCost)}</td>}
-                        <td className="px-2 py-2">
+                        </Td>
+                        {!costHidden && <Td className="text-inherit px-3 py-2 text-right tabular-nums">{cost(qtyOf(r) * r.lastCost)}</Td>}
+                        <Td className="text-inherit px-2 py-2">
                           <button type="button" onClick={() => toggleRemoved(r.key)} title={off ? 'Wapas jorein' : 'Is order se hatayein'} className="flex h-7 w-7 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X className="h-4 w-4" /></button>
-                        </td>
-                      </tr>
+                        </Td>
+                      </Tr>
                     );
                   })}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             </div>
           </section>
         );

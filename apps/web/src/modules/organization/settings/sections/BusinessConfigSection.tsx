@@ -21,9 +21,9 @@ import {
 } from '@modules/organization/settings/api/business-config.api';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 import { BusinessTypeSelector } from '@modules/onboarding/components/BusinessTypeSelector';
-import { Button } from '@/design-system/components';
+import { Alert, Badge, Button, EmptyState, IconButton, Input, Skeleton } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
-import { SectionCard, Alert } from '../components/UI';
+import { SectionCard } from '../components/SettingsBlocks';
 import { SaveStatusBar } from './_SaveStatus';
 
 interface FeatureMeta {
@@ -145,21 +145,21 @@ const FEATURE_GROUPS = [
   'Gym & Fitness', 'Clinic & Healthcare', 'Carpet & Flooring', 'Construction & Projects',
 ];
 
-/* ─── Color map (light + dark) ─── */
+/* ─── Feature colors (dark mode is automatic through the palette) ─── */
 const colorClasses: Record<string, { bg: string; text: string; border: string; ring: string }> = {
-  violet:  { bg: 'bg-violet-100 dark:bg-violet-500/20',   text: 'text-violet-700 dark:text-violet-300',   border: 'border-violet-400 dark:border-violet-500/60',   ring: 'ring-violet-200 dark:ring-violet-500/30' },
-  pink:    { bg: 'bg-pink-100 dark:bg-pink-500/20',       text: 'text-pink-700 dark:text-pink-300',       border: 'border-pink-400 dark:border-pink-500/60',       ring: 'ring-pink-200 dark:ring-pink-500/30' },
-  emerald: { bg: 'bg-emerald-100 dark:bg-emerald-500/20', text: 'text-emerald-700 dark:text-emerald-300', border: 'border-emerald-400 dark:border-emerald-500/60', ring: 'ring-emerald-200 dark:ring-emerald-500/30' },
-  amber:   { bg: 'bg-amber-100 dark:bg-amber-500/20',     text: 'text-amber-700 dark:text-amber-300',     border: 'border-amber-400 dark:border-amber-500/60',     ring: 'ring-amber-200 dark:ring-amber-500/30' },
-  blue:    { bg: 'bg-blue-100 dark:bg-blue-500/20',       text: 'text-blue-700 dark:text-blue-300',       border: 'border-blue-400 dark:border-blue-500/60',       ring: 'ring-blue-200 dark:ring-blue-500/30' },
-  rose:    { bg: 'bg-rose-100 dark:bg-rose-500/20',       text: 'text-rose-700 dark:text-rose-300',       border: 'border-rose-400 dark:border-rose-500/60',       ring: 'ring-rose-200 dark:ring-rose-500/30' },
-  orange:  { bg: 'bg-orange-100 dark:bg-orange-500/20',   text: 'text-orange-700 dark:text-orange-300',   border: 'border-orange-400 dark:border-orange-500/60',   ring: 'ring-orange-200 dark:ring-orange-500/30' },
-  teal:    { bg: 'bg-teal-100 dark:bg-teal-500/20',       text: 'text-teal-700 dark:text-teal-300',       border: 'border-teal-400 dark:border-teal-500/60',       ring: 'ring-teal-200 dark:ring-teal-500/30' },
-  indigo:  { bg: 'bg-indigo-100 dark:bg-indigo-500/20',   text: 'text-indigo-700 dark:text-indigo-300',   border: 'border-indigo-400 dark:border-indigo-500/60',   ring: 'ring-indigo-200 dark:ring-indigo-500/30' },
-  cyan:    { bg: 'bg-cyan-100 dark:bg-cyan-500/20',       text: 'text-cyan-700 dark:text-cyan-300',       border: 'border-cyan-400 dark:border-cyan-500/60',       ring: 'ring-cyan-200 dark:ring-cyan-500/30' },
-  red:     { bg: 'bg-red-100 dark:bg-red-500/20',         text: 'text-red-700 dark:text-red-300',         border: 'border-red-400 dark:border-red-500/60',         ring: 'ring-red-200 dark:ring-red-500/30' },
-  purple:  { bg: 'bg-purple-100 dark:bg-purple-500/20',   text: 'text-purple-700 dark:text-purple-300',   border: 'border-purple-400 dark:border-purple-500/60',   ring: 'ring-purple-200 dark:ring-purple-500/30' },
-  green:   { bg: 'bg-green-100 dark:bg-green-500/20',     text: 'text-green-700 dark:text-green-300',     border: 'border-green-400 dark:border-green-500/60',     ring: 'ring-green-200 dark:ring-green-500/30' },
+  violet:  { bg: 'bg-violet-100',   text: 'text-violet-700',   border: 'border-violet-400',   ring: 'ring-violet-200' },
+  pink:    { bg: 'bg-pink-100',       text: 'text-pink-700',       border: 'border-pink-400',       ring: 'ring-pink-200' },
+  emerald: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-400', ring: 'ring-emerald-200' },
+  amber:   { bg: 'bg-amber-100',     text: 'text-amber-700',     border: 'border-amber-400',     ring: 'ring-amber-200' },
+  blue:    { bg: 'bg-blue-100',       text: 'text-blue-700',       border: 'border-blue-400',       ring: 'ring-blue-200' },
+  rose:    { bg: 'bg-rose-100',       text: 'text-rose-700',       border: 'border-rose-400',       ring: 'ring-rose-200' },
+  orange:  { bg: 'bg-orange-100',   text: 'text-orange-700',   border: 'border-orange-400',   ring: 'ring-orange-200' },
+  teal:    { bg: 'bg-teal-100',       text: 'text-teal-700',       border: 'border-teal-400',       ring: 'ring-teal-200' },
+  indigo:  { bg: 'bg-indigo-100',   text: 'text-indigo-700',   border: 'border-indigo-400',   ring: 'ring-indigo-200' },
+  cyan:    { bg: 'bg-cyan-100',       text: 'text-cyan-700',       border: 'border-cyan-400',       ring: 'ring-cyan-200' },
+  red:     { bg: 'bg-red-100',         text: 'text-red-700',         border: 'border-red-400',         ring: 'ring-red-200' },
+  purple:  { bg: 'bg-purple-100',   text: 'text-purple-700',   border: 'border-purple-400',   ring: 'ring-purple-200' },
+  green:   { bg: 'bg-green-100',     text: 'text-green-700',     border: 'border-green-400',     ring: 'ring-green-200' },
 };
 
 export function BusinessConfigSection() {
@@ -265,13 +265,11 @@ export function BusinessConfigSection() {
   if (isLoading || !config) {
     return (
       <div className="space-y-4" aria-busy="true">
-        <div className="h-36 animate-pulse rounded-2xl bg-slate-100" />
-        <div className="h-96 animate-pulse rounded-2xl bg-slate-100" />
+        <Skeleton className="h-36" />
+        <Skeleton className="h-96" />
       </div>
     );
   }
-
-  const chip = 'inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[0.75rem] font-medium text-slate-700';
 
   return (
     <div className="space-y-4">
@@ -285,23 +283,23 @@ export function BusinessConfigSection() {
           </Button>
         }>
         <div className="flex flex-wrap items-start gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-4xl leading-none">{config.template?.emoji || '🏬'}</div>
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-4xl leading-none">{config.template?.emoji || '🏬'}</div>
           <div className="min-w-0 flex-1">
             <p className="text-[0.75rem] font-medium text-slate-500">Abhi ka business type</p>
             <h3 className="text-xl font-semibold leading-tight text-slate-900">{config.template?.label || config.businessType}</h3>
             {config.template?.labelUrdu && <p className="mt-0.5 text-sm text-slate-500" dir="rtl">{config.template.labelUrdu}</p>}
             {config.template?.description && <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{config.template.description}</p>}
             <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className={chip}>Unit: {config.defaultUnit}</span>
-              <span className={chip}>{enabledCount} / {FEATURE_META.length} features chalu</span>
-              {config.currency && <span className={chip}>{config.currency}</span>}
+              <Badge>Unit: {config.defaultUnit}</Badge>
+              <Badge className="tabular-nums">{enabledCount} / {FEATURE_META.length} features chalu</Badge>
+              {config.currency && <Badge>{config.currency}</Badge>}
             </div>
           </div>
         </div>
 
         {showTypeSelector && (
-          <div className="mt-4 border-t border-slate-100 pt-4">
-            <Alert tone="amber" icon={AlertCircle} title="Type badalne se kya hoga?">
+          <div className="mt-4 border-t border-slate-200 pt-4">
+            <Alert tone="warning" title="Type badalne se kya hoga?" icon={<AlertCircle className="h-4 w-4" />}>
               Features is type ke hisaab se dobara set ho jayenge. Aap ka <strong>purana data</strong> (products, Sales, customers) waise hi rahega.
             </Alert>
             <div className="mt-4">
@@ -312,7 +310,7 @@ export function BusinessConfigSection() {
               />
             </div>
             {changeTypeMutation.isPending && (
-              <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-violet-700">
+              <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-brand-700">
                 <Loader2 className="h-4 w-4 animate-spin" /> Business type badal raha hai…
               </p>
             )}
@@ -321,20 +319,16 @@ export function BusinessConfigSection() {
       </SectionCard>
 
       <SectionCard title="Features" desc="Jo kaam aap ka store karta hai sirf wohi chalu rakhein — menu aur forms saaf rehte hain" icon={Sparkles} color="violet"
-        badge={<span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums text-emerald-700 ring-1 ring-emerald-200">{enabledCount} / {FEATURE_META.length} chalu</span>}>
+        badge={<Badge size="xs" variant="success" className="tabular-nums">{enabledCount} / {FEATURE_META.length} chalu</Badge>}>
         <div className="mb-4 space-y-3">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Feature search"
-              placeholder="Feature search karein (IMEI, expiry, warranty, tailoring…)"
-              className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/15" />
-            {search && (
-              <button type="button" onClick={() => setSearch('')} aria-label="Search saaf karein"
-                className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100">
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Feature search"
+            placeholder="Feature search karein (IMEI, expiry, warranty, tailoring…)"
+            leftIcon={<Search className="h-4 w-4" />}
+            rightIcon={search ? (
+              <IconButton label="Search saaf karein" size="sm" onClick={() => setSearch('')} className="-mr-2 h-7 w-7">
                 <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
+              </IconButton>
+            ) : undefined} />
           <p className="text-xs text-slate-500">Card dabane se feature foran chalu ya band hota hai. Group chun kar sirf us ke features dekhein.</p>
 
           <div className="flex flex-wrap gap-1.5">
@@ -352,14 +346,9 @@ export function BusinessConfigSection() {
         </div>
 
         {Object.keys(groupedFeatures).length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 p-10 text-center">
-            <Search className="mx-auto mb-2 h-8 w-8 text-slate-300" />
-            <p className="font-semibold text-slate-900">Kuch nahi mila</p>
-            <p className="mt-1 text-xs text-slate-500">"{search}" se koi feature nahi mila</p>
-            <button type="button" onClick={() => { setSearch(''); setActiveGroup(null); }} className="mt-3 text-xs font-semibold text-brand-700 hover:underline">
-              Filter hatayein
-            </button>
-          </div>
+          <EmptyState icon={<Search className="h-6 w-6" />} title="Kuch nahi mila"
+            description={search ? `"${search}" se koi feature nahi mila` : 'Is group me koi feature nahi'}
+            action={<Button size="sm" variant="secondary" onClick={() => { setSearch(''); setActiveGroup(null); }}>Filter hatayein</Button>} />
         ) : (
           <div className="space-y-6">
             {Object.entries(groupedFeatures).map(([group, features]) => (
@@ -367,7 +356,7 @@ export function BusinessConfigSection() {
                 {!activeGroup && (
                   <div className="mb-2.5 flex items-center gap-2">
                     <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">{group}</span>
-                    <span className="h-px flex-1 bg-slate-100" />
+                    <span className="h-px flex-1 bg-slate-200" />
                     <span className="text-[0.6875rem] font-semibold tabular-nums text-slate-500">{groupCounts[group]?.enabled}/{groupCounts[group]?.total}</span>
                   </div>
                 )}
@@ -378,8 +367,8 @@ export function BusinessConfigSection() {
                     const cls = colorClasses[f.color] || colorClasses.violet;
                     return (
                       <button key={f.key} type="button" role="switch" aria-checked={!!enabled} onClick={() => toggleFeature(f.key)} disabled={updateFeaturesMutation.isPending}
-                        className={['flex items-start gap-3 rounded-xl border p-3 text-left transition active:scale-[0.99] disabled:opacity-60',
-                          enabled ? `${cls.border} bg-white ring-1 ${cls.ring}` : 'border-slate-200 bg-white hover:border-slate-300'].join(' ')}>
+                        className={['flex items-start gap-3 rounded-lg border p-3 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.99] disabled:opacity-60',
+                          enabled ? `${cls.border} bg-white ring-1 ${cls.ring}` : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'].join(' ')}>
                         <span className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', enabled ? `${cls.bg} ${cls.text}` : 'bg-slate-100 text-slate-500'].join(' ')}>
                           <Icon className="h-4 w-4" />
                         </span>
@@ -387,7 +376,7 @@ export function BusinessConfigSection() {
                           <span className="block truncate text-sm font-semibold text-slate-900">{f.label}</span>
                           <span className="mt-0.5 block text-xs leading-snug text-slate-500">{f.description}</span>
                         </span>
-                        <span className={['mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full', enabled ? 'bg-emerald-500 text-white' : 'border border-slate-300'].join(' ')}>
+                        <span className={['mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full', enabled ? 'bg-brand-600 text-brand-fg' : 'border border-slate-300'].join(' ')}>
                           {enabled && <Check className="h-3 w-3" strokeWidth={3} />}
                         </span>
                       </button>
@@ -405,14 +394,14 @@ export function BusinessConfigSection() {
           {config.template?.suggestedCategories && config.template.suggestedCategories.length > 0 && (
             <SectionCard title="Mashwara: categories" desc="Is business type ke liye aam product categories" icon={Grid3x3} color="emerald">
               <div className="flex flex-wrap gap-1.5">
-                {config.template.suggestedCategories.map((cat) => <span key={cat} className={chip}>{cat}</span>)}
+                {config.template.suggestedCategories.map((cat) => <Badge key={cat}>{cat}</Badge>)}
               </div>
             </SectionCard>
           )}
           {config.template?.quickUnits && config.template.quickUnits.length > 0 && (
             <SectionCard title="Quick units" desc="POS par jaldi chunne wale units" icon={Ruler} color="blue">
               <div className="flex flex-wrap gap-1.5">
-                {config.template.quickUnits.map((unit) => <span key={unit} className={chip}>{unit}</span>)}
+                {config.template.quickUnits.map((unit) => <Badge key={unit}>{unit}</Badge>)}
               </div>
             </SectionCard>
           )}
@@ -423,8 +412,8 @@ export function BusinessConfigSection() {
         <SectionCard title="Khaas baatein" desc="Is business type ke liye sab se kaam ke features" icon={Zap} color="pink">
           <ul className="grid gap-2 sm:grid-cols-2">
             {config.template.highlights.map((h, i) => (
-              <li key={i} className="flex items-start gap-2 rounded-xl bg-slate-50 p-3">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" strokeWidth={3} />
+              <li key={i} className="flex items-start gap-2 rounded-lg bg-slate-50 p-3">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-success-600" strokeWidth={3} />
                 <span className="text-xs leading-relaxed text-slate-700">{h}</span>
               </li>
             ))}
@@ -438,10 +427,10 @@ export function BusinessConfigSection() {
 function GroupChip({ label, count, on, lit, onClick }: { label: string; count: string; on: boolean; lit?: boolean; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} aria-pressed={on}
-      className={['inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition',
+      className={['inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
         on ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'].join(' ')}>
       {label}
-      <span className={['rounded-full px-1.5 text-[0.6875rem] tabular-nums', on ? 'bg-white/20' : lit ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-slate-500'].join(' ')}>{count}</span>
+      <span className={['rounded-full px-1.5 text-[0.6875rem] tabular-nums', on ? 'bg-white/20' : lit ? 'bg-success-50 text-success-700' : 'bg-white text-slate-500'].join(' ')}>{count}</span>
     </button>
   );
 }

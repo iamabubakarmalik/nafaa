@@ -5,6 +5,7 @@ import { CodeBlock } from '@integrations/_core/components/CodeBlock';
 import { CopyField } from '../components/website/CopyField';
 import { snippets } from '../lib/snippets';
 import { docsUrl } from '../lib/docs';
+import { Alert, Badge, Button, Card, Segmented } from '@/design-system/components';
 import { publicFetch } from './publicApi';
 
 /* ═════════════════════════════════════════════════════════════
@@ -52,85 +53,70 @@ export default function DevInvitePage() {
   };
 
   if (err && !info) {
-    return <div className="flex min-h-screen items-center justify-center bg-slate-100 p-6"><div className="max-w-md rounded-2xl bg-white p-8 text-center shadow-sm"><p className="font-semibold text-slate-800">{err}</p></div></div>;
+    return <div className="flex min-h-screen items-center justify-center bg-slate-100 p-6"><Card className="max-w-md rounded-2xl text-center"><p className="font-semibold text-slate-800">{err}</p></Card></div>;
   }
-  if (!info) return <div className="flex min-h-screen items-center justify-center"><Loader2 className="h-7 w-7 animate-spin text-slate-400" /></div>;
+  if (!info) return <div className="flex min-h-screen items-center justify-center bg-slate-100"><Loader2 className="h-7 w-7 animate-spin text-slate-400" /></div>;
 
   const code = snippets(info.urls.orders, info.apiKey, info.secret);
   const live = !!info.lastOrder && !info.lastOrder.test;
+  const LANGS = ['php', 'node', 'python', 'curl', 'json'] as const;
 
   return (
     <div className="min-h-screen bg-slate-100 px-4 py-8">
       <div className="mx-auto max-w-3xl space-y-4">
-        <header className="rounded-2xl bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-[0.75rem] font-semibold uppercase tracking-wide text-emerald-700"><Terminal className="h-4 w-4" /> Developer setup · Nafaa POS</div>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">{info.business ?? info.channel} ki website ko Nafaa se jorein</h1>
+        <Card className="rounded-2xl">
+          <Badge variant="brand" size="sm" className="gap-1.5 uppercase tracking-wide"><Terminal className="h-3.5 w-3.5" /> Developer setup · Nafaa POS</Badge>
+          <h1 className="mt-2 text-2xl font-bold text-slate-900">{info.business ?? info.channel} ki website ko Nafaa se jorein</h1>
           <p className="mt-1 text-sm text-slate-600">Website par order confirm hote hi (server se) neeche wala ek POST bhejein. Bas — order Nafaa me aa jayega, ghanti bajegi, bill aur stock khud.</p>
-          <div className={`mt-4 flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold ${live ? 'bg-emerald-50 text-emerald-800' : info.lastOrder ? 'bg-sky-50 text-sky-800' : 'bg-amber-50 text-amber-800'}`}>
-            {live ? <CheckCircle2 className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
-            {live ? `Jur gaya ✅ — aakhri order #${info.lastOrder!.number ?? ''} aa chuka` : info.lastOrder ? 'Test order aa gaya — ab website ka asli order bhejein' : 'Intezar: pehla order abhi nahi aaya (ye safha khud update hota hai)'}
-          </div>
-        </header>
+          <Alert className="mt-4" tone={live ? 'success' : info.lastOrder ? 'info' : 'warning'}
+            icon={live ? <CheckCircle2 className="h-4 w-4 text-success-600" /> : <Clock className={info.lastOrder ? 'h-4 w-4 text-blue-600' : 'h-4 w-4 text-amber-600'} />}
+            title={live ? `Jur gaya ✅ — aakhri order #${info.lastOrder!.number ?? ''} aa chuka` : info.lastOrder ? 'Test order aa gaya — ab website ka asli order bhejein' : 'Intezar: pehla order abhi nahi aaya (ye safha khud update hota hai)'} />
+        </Card>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="font-bold text-slate-900">1. Keys</h2>
-          <p className="mt-0.5 text-sm text-slate-600">Sirf server par rakhein (.env) — browser ke JavaScript me kabhi nahi.</p>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <Card className="rounded-2xl" title="1. Keys" description="Sirf server par rakhein (.env) — browser ke JavaScript me kabhi nahi.">
+          <div className="grid gap-3 md:grid-cols-2">
             <CopyField label="Orders URL (POST)" value={info.urls.orders} />
             <CopyField label="Header: X-Nafaa-Key" value={info.apiKey} secret />
           </div>
           <div className="mt-3"><CopyField label="Signature secret (optional)" value={info.secret} secret hint="HMAC-SHA256(raw body, secret) → header X-Nafaa-Signature: sha256=<hex>" /></div>
-        </section>
+        </Card>
 
         {!!info.branches?.length && (
-          <section className="rounded-2xl bg-white p-6 shadow-sm">
-            <h2 className="font-bold text-slate-900">Kai branches — har branch ka URL</h2>
-            <p className="mt-0.5 text-sm text-slate-600">
+          <Card className="rounded-2xl" title="Kai branches — har branch ka URL"
+            description={<>
               Har branch ka order usi branch ke URL par bhejein — bill aur stock usi branch ka. Key sab ki ek hi.
               {info.platform === 'indolj' && <> Indolj: har branch ki General POS settings me <b>Call Back URL</b> aur <b>Cancel Call Back URL</b> dono yahi, <b>Token</b> = upar wali key.</>}
-            </p>
-            <div className="mt-3 space-y-2">
+            </>}>
+            <div className="space-y-2">
               {info.branches.map((b) => <CopyField key={b.id} label={b.name} value={b.ordersUrl} />)}
             </div>
-          </section>
+          </Card>
         )}
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="font-bold text-slate-900">2. Code (copy karein)</h2>
-          <div className="mb-2 mt-3 flex flex-wrap gap-1">
-            {(['php', 'node', 'python', 'curl', 'json'] as const).map((k) => (
-              <button key={k} onClick={() => setLang(k)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold ${lang === k ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                {k === 'node' ? 'Node.js' : k === 'json' ? 'JSON format' : k.toUpperCase()}
-              </button>
-            ))}
-          </div>
+        <Card className="rounded-2xl" title="2. Code (copy karein)">
+          <Segmented className="mb-2" label="Zubaan" value={lang} onChange={setLang}
+            items={LANGS.map((k) => ({ value: k, label: k === 'node' ? 'Node.js' : k === 'json' ? 'JSON format' : k.toUpperCase() }))} />
           <CodeBlock code={code[lang]} />
-        </section>
+        </Card>
 
-        <section className="rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="font-bold text-slate-900">3. Check karein</h2>
-          <p className="mt-0.5 text-sm text-slate-600">Pehle ye test order bhejein — dukandar ke Nafaa me ghanti bajegi. Phir website se ek asli order karke dekhein.</p>
-          <button onClick={test} disabled={testing} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">
-            {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Test order bhejo
-          </button>
+        <Card className="rounded-2xl" title="3. Check karein" description="Pehle ye test order bhejein — dukandar ke Nafaa me ghanti bajegi. Phir website se ek asli order karke dekhein.">
+          <Button onClick={test} loading={testing} leftIcon={<Send className="h-4 w-4" />}>Test order bhejo</Button>
           {testMsg && <p className="mt-2 text-sm font-semibold text-slate-700">{testMsg}</p>}
-        </section>
+        </Card>
 
-        <section className="rounded-2xl bg-white p-6 text-sm text-slate-700 shadow-sm">
-          <h2 className="font-bold text-slate-900">Aur (optional)</h2>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
+        <Card className="rounded-2xl" title="Aur (optional)">
+          <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">
             <li><code className="text-[0.78125rem]">GET {info.urls.products}?page=1&amp;limit=100</code> — Nafaa ke products + asli stock (website par dikhane ke liye)</li>
             <li><code className="text-[0.78125rem]">GET {info.urls.stock}?skus=SKU1,SKU2</code> — sirf stock</li>
             <li><code className="text-[0.78125rem]">POST {info.urls.base}/orders/&#123;orderId&#125;/status</code> — customer ne cancel kiya: <code>{'{"status":"cancelled"}'}</code></li>
             <li><code className="text-[0.78125rem]">GET {info.urls.verify}</code> — key check</li>
           </ul>
-          <p className="mt-3 text-sm">
+          <p className="mt-3 text-sm text-slate-700">
             Poori reference (saare fields, errors, status webhook, signature):{' '}
-            <a href={docsUrl('api')} target="_blank" rel="noreferrer" className="font-semibold text-emerald-700 underline">Developer API guide</a>
+            <a href={docsUrl('api')} target="_blank" rel="noreferrer" className="font-semibold text-brand-700 underline">Developer API guide</a>
           </p>
           <p className="mt-3 text-xs text-slate-500">Ye link 7 din chalega. Dukandar "Nayi key" banaye to ye link khud band ho jata hai.</p>
-        </section>
+        </Card>
       </div>
     </div>
   );

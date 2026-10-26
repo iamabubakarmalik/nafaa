@@ -12,7 +12,7 @@ import {
   ArrowDownRight, ArrowUpRight, CalendarDays, Clock, Crown, Flame, Layers, Medal, Package, Percent, Receipt, Target,
   TrendingUp, Trophy, UserPlus, Users, Wallet, type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Card, Segmented, Skeleton } from '@/design-system/components';
+import { Avatar, Card, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -392,33 +392,33 @@ export function SalesAnalytics({ data: raw, stats, loading, money, cost, costHid
         description="Har din ki sale, bill, ausat aur profit — sab se acha din hara">
         {salesHidden ? <p className="px-5 py-10 text-center text-[0.875rem] text-slate-500">Sale chhupi hui hai</p> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[34rem] text-[0.8125rem]">
-              <thead>
-                <tr className="border-y border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="px-5 py-2">{data.grouping === 'month' ? 'Mahina' : 'Din'}</th>
-                  <th className="px-3 py-2 text-right">Bill</th>
-                  <th className="px-3 py-2 text-right">Sale</th>
-                  <th className="px-3 py-2 text-right">Ausat</th>
-                  {!costHidden && <th className="px-3 py-2 text-right">Profit</th>}
-                  <th className="w-[28%] px-5 py-2" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table minWidth="34rem" className="[&>table]:text-[0.8125rem]">
+              <THead>
+                <Tr className="border-y border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                  <Th className="px-5 py-2">{data.grouping === 'month' ? 'Mahina' : 'Din'}</Th>
+                  <Th className="px-3 py-2 text-right">Bill</Th>
+                  <Th className="px-3 py-2 text-right">Sale</Th>
+                  <Th className="px-3 py-2 text-right">Ausat</Th>
+                  {!costHidden && <Th className="px-3 py-2 text-right">Profit</Th>}
+                  <Th className="w-[28%] px-5 py-2" />
+                </Tr>
+              </THead>
+              <TBody className="divide-y divide-slate-100">
                 {[...trendRows].reverse().filter((t) => t.bills > 0).slice(0, showAllDays ? undefined : 10).map((t) => {
                   const best = t.sales === dayMax && t.sales > 0;
                   return (
-                    <tr key={t.key} className={cn(best && 'bg-success-50/60')}>
-                      <td className="px-5 py-2 font-medium text-slate-900">{t.label}{best && <span className="ml-2 rounded-full bg-success-100 px-1.5 py-0.5 text-[0.625rem] font-semibold text-success-700">Behtareen</span>}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-600">{t.bills}</td>
-                      <td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-900">{money(t.sales)}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-slate-600">{money(t.average)}</td>
-                      {!costHidden && <td className="px-3 py-2 text-right tabular-nums text-success-700">{cost(t.profit)}</td>}
-                      <td className="px-5 py-2"><div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${dayMax ? (t.sales / dayMax) * 100 : 0}%` }} /></div></td>
-                    </tr>
+                    <Tr key={t.key} className={cn(best && 'bg-success-50/60')}>
+                      <Td className="px-5 py-2 font-medium text-slate-900">{t.label}{best && <span className="ml-2 rounded-full bg-success-100 px-1.5 py-0.5 text-[0.625rem] font-semibold text-success-700">Behtareen</span>}</Td>
+                      <Td className="px-3 py-2 text-right tabular-nums text-slate-600">{t.bills}</Td>
+                      <Td className="px-3 py-2 text-right font-semibold tabular-nums text-slate-900">{money(t.sales)}</Td>
+                      <Td className="px-3 py-2 text-right tabular-nums text-slate-600">{money(t.average)}</Td>
+                      {!costHidden && <Td className="px-3 py-2 text-right tabular-nums text-success-700">{cost(t.profit)}</Td>}
+                      <Td className="text-inherit px-5 py-2"><div className="h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${dayMax ? (t.sales / dayMax) * 100 : 0}%` }} /></div></Td>
+                    </Tr>
                   );
                 })}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
             {activeDays > 10 && (
               <button type="button" onClick={() => setShowAllDays((v) => !v)} className="w-full border-t border-slate-100 py-2.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
                 {showAllDays ? 'Kam dikhayein' : `Sab ${activeDays} dikhayein`}

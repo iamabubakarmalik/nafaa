@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { CheckCircle2, ClipboardCheck, FolderOpen, Info, Trash2 } from 'lucide-react';
-import { Button, FilterMenu, Modal } from '@/design-system/components';
+import { Button, FilterMenu, Modal, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useIsAllShops, useShopParam } from '@core/stores/auth.store';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
@@ -170,37 +170,37 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
             </div>
           ) : (
             <div className="overflow-x-auto rounded-2xl ring-1 ring-slate-200">
-              <table className="w-full min-w-[36rem] text-sm">
-                <thead className="bg-slate-50 text-left text-[0.75rem] text-slate-500">
-                  <tr><th className="px-3 py-2 font-medium">Cheez</th><th className="px-3 py-2 text-right font-medium">System</th><th className="px-3 py-2 text-right font-medium">Shelf par</th><th className="px-3 py-2 text-right font-medium">Farq</th><th className="px-3 py-2 text-right font-medium">Amount</th><th className="w-8" /></tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table minWidth="36rem" className="[&>table]:text-sm">
+                <THead className="bg-slate-50 text-left text-[0.75rem] text-slate-500">
+                  <Tr><Th className="px-3 py-2 font-medium">Cheez</Th><Th className="px-3 py-2 text-right font-medium">System</Th><Th className="px-3 py-2 text-right font-medium">Shelf par</Th><Th className="px-3 py-2 text-right font-medium">Farq</Th><Th className="px-3 py-2 text-right font-medium">Amount</Th><Th className="p-0 w-8" /></Tr>
+                </THead>
+                <TBody className="divide-y divide-slate-100">
                   {groups.map((g) => {
                     const remove = <button type="button" onClick={() => setPicked((prev) => prev.filter((p) => p.id !== g.source.id))} aria-label="Hatayein" className="rounded-md p-1 text-slate-400 hover:text-rose-600"><Trash2 className="h-3.5 w-3.5" /></button>;
-                    if (!g.rows) return <tr key={g.source.id}><td colSpan={5} className="px-3 py-2 text-slate-500">{g.source.name} — {g.failed ? 'load nahi hua' : 'load ho raha hai…'}</td><td>{remove}</td></tr>;
-                    if (!g.rows.length) return <tr key={g.source.id}><td colSpan={5} className="px-3 py-2 text-[0.8125rem] text-slate-500"><Info className="mr-1 inline h-3.5 w-3.5" />{g.source.name} — roll ya IMEI wala maal; is ki correction "Naya adjustment" se device / roll chun kar karein</td><td>{remove}</td></tr>;
+                    if (!g.rows) return <Tr key={g.source.id}><Td colSpan={5} className="px-3 py-2 text-slate-500">{g.source.name} — {g.failed ? 'load nahi hua' : 'load ho raha hai…'}</Td><Td className="p-0 text-inherit">{remove}</Td></Tr>;
+                    if (!g.rows.length) return <Tr key={g.source.id}><Td colSpan={5} className="px-3 py-2 text-[0.8125rem] text-slate-500"><Info className="mr-1 inline h-3.5 w-3.5" />{g.source.name} — roll ya IMEI wala maal; is ki correction "Naya adjustment" se device / roll chun kar karein</Td><Td className="p-0 text-inherit">{remove}</Td></Tr>;
                     return g.rows.map((r, j) => {
                       const v = counted[r.key];
                       const diff = v !== undefined && v !== '' ? Number(v) - r.system : null;
                       return (
-                        <tr key={r.key}>
-                          <td className="max-w-[16rem] truncate px-3 py-1.5 text-slate-800">{r.name}</td>
-                          <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">{qtyText(r.system)} <span className="text-[0.6875rem]">{r.unit}</span></td>
-                          <td className="px-3 py-1.5 text-right">
+                        <Tr key={r.key}>
+                          <Td className="max-w-[16rem] truncate px-3 py-1.5 text-slate-800">{r.name}</Td>
+                          <Td className="px-3 py-1.5 text-right tabular-nums text-slate-500">{qtyText(r.system)} <span className="text-[0.6875rem]">{r.unit}</span></Td>
+                          <Td className="text-inherit px-3 py-1.5 text-right">
                             <input inputMode="decimal" value={v ?? ''} onChange={(e) => setCounted((c) => ({ ...c, [r.key]: e.target.value.replace(/[^\d.]/g, '') }))} placeholder="—" aria-label={`${r.name} ginti`}
                               className="h-8 w-24 rounded-lg border border-slate-200 bg-white px-2 text-right tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-                          </td>
-                          <td className={cn('px-3 py-1.5 text-right font-semibold tabular-nums', diff === null ? 'text-slate-300' : diff > 0 ? 'text-emerald-700' : diff < 0 ? 'text-rose-700' : 'text-slate-500')}>
+                          </Td>
+                          <Td className={cn('px-3 py-1.5 text-right font-semibold tabular-nums', diff === null ? 'text-slate-300' : diff > 0 ? 'text-emerald-700' : diff < 0 ? 'text-rose-700' : 'text-slate-500')}>
                             {diff === null ? '—' : diff === 0 ? 'Theek' : `${diff > 0 ? '+' : ''}${qtyText(diff)}`}
-                          </td>
-                          <td className={cn('px-3 py-1.5 text-right tabular-nums', diff && diff > 0 ? 'text-emerald-700' : 'text-rose-700')}>{diff ? `${diff > 0 ? '+' : '−'}${money(Math.abs(diff * r.cost))}` : ''}</td>
-                          <td>{j === 0 && remove}</td>
-                        </tr>
+                          </Td>
+                          <Td className={cn('px-3 py-1.5 text-right tabular-nums', diff && diff > 0 ? 'text-emerald-700' : 'text-rose-700')}>{diff ? `${diff > 0 ? '+' : '−'}${money(Math.abs(diff * r.cost))}` : ''}</Td>
+                          <Td className="p-0 text-inherit">{j === 0 && remove}</Td>
+                        </Tr>
                       );
                     });
                   })}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             </div>
           )}
 

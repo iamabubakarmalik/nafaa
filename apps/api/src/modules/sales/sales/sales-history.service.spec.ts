@@ -1,6 +1,6 @@
-import { SalesHistoryService } from './sales-history.service';
+import { SalesHistoryService, billTier } from './sales-history.service';
 
-function setup() {
+function setup(tierLines: unknown[] = []) {
   const calls: Record<string, any[]> = {};
   const rec = (name: string, value: unknown) => jest.fn((args: unknown) => { (calls[name] ??= []).push(args); return Promise.resolve(value); });
   const prisma = {
@@ -10,7 +10,10 @@ function setup() {
       aggregate: rec('aggregate', { _sum: { total: 1000, paidAmount: 800, creditAmount: 200, costOfGoods: 600 }, _count: { _all: 4 } }),
       findFirst: rec('findFirst', null),
     },
-    saleItem: { aggregate: rec('itemAgg', { _sum: { quantity: 10, returnedQty: 1 }, _count: { _all: 6 } }) },
+    saleItem: {
+      aggregate: rec('itemAgg', { _sum: { quantity: 10, returnedQty: 1 }, _count: { _all: 6 } }),
+      groupBy: rec('tierGroup', tierLines),
+    },
   };
   const tz = { clock: jest.fn().mockResolvedValue({ tz: 'Asia/Karachi', dayStartHour: 0 }) };
   return { svc: new SalesHistoryService(prisma as never, tz as never), calls };
@@ -44,5 +47,31 @@ describe('SalesHistoryService.list', () => {
   it('rejects a range that ends before it starts', async () => {
     const { svc } = setup();
     await expect(svc.list(user, undefined, { from: '2026-10-10', to: '2026-10-01' })).rejects.toThrow('from is after to');
+  });
+});
+
+describe('price tiers in sales history', () => {
+  it('bill tier: null for old bills, MIXED when lines differ, null lines count as retail', () => {
+    expect(billTier([{ priceTier: null }, { priceTier: null }])).toBeNull();
+    expect(billTier([{ priceTier: 'WHOLESALE' }, { priceTier: 'WHOLESALE' }])).toBe('WHOLESALE');
+    expect(billTier([{ priceTier: 'RETAIL' }, { priceTier: null }])).toBe('RETAIL');
+    expect(billTier([{ priceTier: 'CREDIT' }, { priceTier: null }])).toBe('MIXED');
+  });
+
+  it('tier filter: retail matches null-or-retail lines; absent leaves the query unchanged', async () => {
+    const { svc, calls } = setup();
+    await svc.list(user, undefined, { tier: 'RETAIL' });
+    expect(JSON.stringify(calls.findMany[0].where.AND)).toContain('"none":{"priceTier":{"in":["WHOLESALE","CREDIT"]}}');
+    await svc.list(user, undefined, {});
+    expect(calls.findMany[1].where.AND).toBeUndefined();
+  });
+
+  it('per-tier totals are null when every line is retail, and counted when not', async () => {
+    const retailOnly = setup([{ priceTier: null, _sum: { total: 500 } }]);
+    expect((await retailOnly.svc.list(user, undefined, {})).tiers).toBeNull();
+
+    const mixed = setup([{ priceTier: null, _sum: { total: 500 } }, { priceTier: 'WHOLESALE', _sum: { total: 300 } }]);
+    const res = await mixed.svc.list(user, undefined, {});
+    expect(res.tiers).toMatchObject({ RETAIL: { total: 500 }, WHOLESALE: { total: 300 }, CREDIT: { total: 0 } });
   });
 });

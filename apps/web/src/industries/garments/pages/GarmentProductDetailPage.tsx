@@ -8,7 +8,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Grid3x3, PackagePlus, Ruler } from 'lucide-react';
-import { Card } from '@/design-system/components';
+import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { ProductDetailPage, type DetailConfig } from '@modules/inventory/products/detail/ProductDetailPage';
 import { collectionsApi, type GarmentCollection } from '../api/collections.api';
@@ -36,30 +36,28 @@ function GridTable({ grid }: { grid: SizeGrid }) {
     );
   }
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[24rem] text-[0.8125rem]">
-        <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-          <th className="px-4 py-2.5 sm:px-5">Size</th>{colors.map((c) => <th key={c} className="px-3 py-2.5 text-center">{c || 'Stock'}</th>)}
-        </tr></thead>
-        <tbody className="divide-y divide-slate-100">
-          {sizes.map((s) => (
-            <tr key={s}>
-              <td className="px-4 py-2 font-semibold sm:px-5">{s}</td>
-              {colors.map((c) => {
-                const v = cell(s, c);
-                if (!v) return <td key={c} className="px-3 py-2 text-center text-slate-300">—</td>;
-                return (
-                  <td key={c} className="px-3 py-2 text-center" title={v.byShop.map((b) => `${b.name}: ${b.stock}`).join(' · ')}>
-                    <span className={cn('inline-block min-w-[2.5rem] rounded-lg px-2 py-1 font-bold tabular-nums', v.stock <= 0 ? 'bg-rose-50 text-rose-700' : v.stock <= v.lowStockAlert ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>{Math.round(v.stock)}</span>
-                    <span className="block text-[0.6875rem] text-slate-500">{Math.round(v.sold30)} bike{v.reserved > 0 ? ` · ${Math.round(v.reserved)} hold` : ''}{grid.shops.length > 1 ? ` · kul ${Math.round(v.allStock)}` : ''}</span>
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table minWidth="24rem">
+      <THead><Tr>
+        <Th className="px-4 py-2.5 sm:px-5">Size</Th>{colors.map((c) => <Th align="center" key={c} className="px-3 py-2.5">{c || 'Stock'}</Th>)}
+      </Tr></THead>
+      <TBody>
+        {sizes.map((s) => (
+          <Tr key={s}>
+            <Td className="px-4 py-2 font-semibold sm:px-5">{s}</Td>
+            {colors.map((c) => {
+              const v = cell(s, c);
+              if (!v) return <Td align="center" key={c} className="px-3 py-2 text-slate-300">—</Td>;
+              return (
+                <Td align="center" key={c} className="px-3 py-2" title={v.byShop.map((b) => `${b.name}: ${b.stock}`).join(' · ')}>
+                  <span className={cn('inline-block min-w-[2.5rem] rounded-lg px-2 py-1 font-bold tabular-nums', v.stock <= 0 ? 'bg-rose-50 text-rose-700' : v.stock <= v.lowStockAlert ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>{Math.round(v.stock)}</span>
+                  <span className="block text-[0.6875rem] text-slate-500">{Math.round(v.sold30)} bike{v.reserved > 0 ? ` · ${Math.round(v.reserved)} hold` : ''}{grid.shops.length > 1 ? ` · kul ${Math.round(v.allStock)}` : ''}</span>
+                </Td>
+              );
+            })}
+          </Tr>
+        ))}
+      </TBody>
+    </Table>
   );
 }
 

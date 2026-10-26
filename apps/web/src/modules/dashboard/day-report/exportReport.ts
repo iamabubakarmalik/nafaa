@@ -30,6 +30,7 @@ export function reportText(r: DayReport, money: ReportMoney, shopName?: string) 
   lines.push('');
   lines.push(`Opening balance: ${money.sales(r.cash.opening)}`);
   lines.push(`Sales: ${money.sales(r.sales.total)} (${r.sales.bills} bill)`);
+  r.priceTiers?.forEach((t) => lines.push(`  ${t.label}: ${money.sales(t.total)} (${t.bills} bill)`));
   lines.push('');
   lines.push('*Kya bika*');
   for (const c of r.categories) {
@@ -79,6 +80,7 @@ export function dayReportDoc(r: DayReport, money: ReportMoney, branch?: string):
   if (r.sales.discount) salesRows.push({ label: 'Discount', value: money.sales(r.sales.discount) });
   if (r.sales.refunds) salesRows.push({ label: 'Return', value: money.sales(r.sales.refunds) });
   salesRows.push({ label: `Total sale (${r.sales.bills} bill)`, value: money.sales(r.sales.total), strong: true });
+  r.priceTiers?.forEach((t) => salesRows.push({ label: `${t.label} (${t.bills} bill)`, value: money.sales(t.total), sub: true }));
 
   const itemRows: string[][] = [];
   const groupRows: number[] = [];

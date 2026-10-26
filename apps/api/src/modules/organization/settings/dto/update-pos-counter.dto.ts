@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { ArrayMaxSize, IsArray, IsBoolean, IsIn, IsNumber, IsOptional, Max, Min } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsIn, IsNumber, IsOptional, Max, Min } from 'class-validator';
 import { POS_DENSITIES, POS_LAYOUTS } from '../constants/settings.constants';
+import { PRICE_TIERS } from '../../../../common/helpers/price-tier.helper';
 
 /** Settings → Counter & POS → POS counter. Every field optional. */
 export class UpdatePosCounterDto {
@@ -23,4 +24,15 @@ export class UpdatePosCounterDto {
   @ApiPropertyOptional({ type: [Number] })
   @IsOptional() @IsArray() @ArrayMaxSize(6) @IsNumber({}, { each: true }) @Min(0.5, { each: true }) @Max(100, { each: true })
   quickDiscounts?: number[];
+
+  // Price tiers
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() priceTiers?: boolean;
+  @ApiPropertyOptional({ enum: PRICE_TIERS, isArray: true })
+  @IsOptional() @IsArray() @ArrayMinSize(1) @ArrayMaxSize(3) @IsIn(PRICE_TIERS, { each: true })
+  priceTierList?: string[];
+  @ApiPropertyOptional({ enum: PRICE_TIERS }) @IsOptional() @IsIn(PRICE_TIERS) defaultPriceTier?: string;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() tierCreditOnUdhaar?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() tierFromCustomer?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() tierLineOverride?: boolean;
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() tierOnReceipt?: boolean;
 }

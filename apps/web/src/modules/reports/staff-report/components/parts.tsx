@@ -5,7 +5,7 @@
 
 import type { ReactNode } from 'react';
 import { ArrowDownRight, ArrowUpRight, Minus, type LucideIcon } from 'lucide-react';
-import { Card } from '@/design-system/components';
+import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { hourLabel } from './meta';
@@ -34,7 +34,7 @@ export function Delta({ now, before, up = 'good' }: { now: number; before: numbe
   const good = (change > 0) === (up === 'good');
   const Icon = change > 0 ? ArrowUpRight : ArrowDownRight;
   return (
-    <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-emerald-600' : 'text-rose-600')}>
+    <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-success-600' : 'text-rose-600')}>
       <Icon className="h-3.5 w-3.5" />{Math.abs(change).toFixed(0)}% pichli period se
     </span>
   );
@@ -52,32 +52,30 @@ export function HeatGrid({ rows, onRow }: {
   const hours = used.length ? Array.from({ length: used[used.length - 1] - used[0] + 1 }, (_, i) => used[0] + i) : [];
   if (!hours.length) return null;
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-separate border-spacing-[3px] text-[0.6875rem]">
-        <thead>
-          <tr>
-            <th />
-            {hours.map((h) => <th key={h} className="px-0.5 text-center font-medium text-slate-400">{h % 2 === hours[0] % 2 ? hourLabel(h) : ''}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.key}>
-              <th scope="row" className="max-w-[8rem] truncate pr-2 text-left font-medium text-slate-600">
-                {onRow ? <button type="button" onClick={() => onRow(r.key)} className="max-w-full truncate hover:text-brand-700 hover:underline">{r.label}</button> : r.label}
-              </th>
-              {hours.map((h) => {
-                const v = r.values[h] ?? 0;
-                return (
-                  <td key={h} title={`${hourLabel(h)}: ${v} bill`} className="h-6 min-w-[1.4rem] rounded-[5px]"
-                    style={{ backgroundColor: v ? theme.primary : theme.isDark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.12)', opacity: v ? 0.18 + 0.82 * (v / max) : 1 }} />
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table className="[&_table]:text-[0.6875rem] [&_table]:border-separate [&_table]:border-spacing-[0.1875rem]">
+      <THead className="border-0 bg-transparent normal-case tracking-normal">
+        <Tr>
+          <Th className="p-0" />
+          {hours.map((h) => <Th key={h} className="px-0.5 py-0.5 text-center font-medium text-slate-400">{h % 2 === hours[0] % 2 ? hourLabel(h) : ''}</Th>)}
+        </Tr>
+      </THead>
+      <TBody className="divide-y-0">
+        {rows.map((r) => (
+          <Tr key={r.key}>
+            <Th scope="row" className="max-w-[8rem] truncate py-0 pl-0 pr-2 text-left font-medium text-slate-600">
+              {onRow ? <button type="button" onClick={() => onRow(r.key)} className="max-w-full truncate hover:text-brand-700 hover:underline">{r.label}</button> : r.label}
+            </Th>
+            {hours.map((h) => {
+              const v = r.values[h] ?? 0;
+              return (
+                <Td key={h} title={`${hourLabel(h)}: ${v} bill`} className="h-6 min-w-[1.4rem] rounded-[0.3125rem] p-0"
+                  style={{ backgroundColor: v ? theme.primary : theme.isDark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.12)', opacity: v ? 0.18 + 0.82 * (v / max) : 1 }} />
+              );
+            })}
+          </Tr>
+        ))}
+      </TBody>
+    </Table>
   );
 }
 
@@ -87,7 +85,7 @@ export function Figure({ label, value, hint, tone }: { label: ReactNode; value: 
     <div className="min-w-0 rounded-xl bg-slate-50 px-3 py-2.5 ring-1 ring-slate-100">
       <p className="truncate text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">{label}</p>
       <p className={cn('mt-0.5 truncate text-[1.0625rem] font-bold tabular-nums',
-        tone === 'good' ? 'text-emerald-700' : tone === 'bad' ? 'text-rose-700' : tone === 'warn' ? 'text-amber-700' : 'text-slate-900')}>{value}</p>
+        tone === 'good' ? 'text-success-700' : tone === 'bad' ? 'text-rose-700' : tone === 'warn' ? 'text-amber-700' : 'text-slate-900')}>{value}</p>
       {hint && <p className="mt-0.5 truncate text-[0.6875rem] text-slate-500">{hint}</p>}
     </div>
   );

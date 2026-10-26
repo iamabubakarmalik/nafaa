@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Barcode, Cpu, Hash, ShieldCheck } from 'lucide-react';
-import { Card } from '@/design-system/components';
+import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { ProductDetailPage, type DetailConfig } from '@modules/inventory/products/detail/ProductDetailPage';
 import { electronicsProductsApi, type ElectronicsProductProfile } from '../api/products.api';
@@ -135,22 +135,20 @@ const config: DetailConfig<Extra> = {
           <Card className="rounded-2xl" flush title="Serial / IMEI" description={Object.entries(counts).map(([k, v]) => `${STATUS[k] ?? k}: ${v}`).join(' · ') || 'Abhi koi serial nahi'}
             actions={<Link to={`/electronics/serials?product=${product.id}`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Sab sambhalein →</Link>}>
             {list.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[42rem] text-[0.8125rem]">
-                  <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-5 py-2.5">Serial</th><th className="px-3 py-2.5">IMEI</th><th className="px-3 py-2.5">Halat</th><th className="px-3 py-2.5">Warranty tak</th><th className="px-5 py-2.5 text-right">Khareed</th></tr></thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {list.map((s) => (
-                      <tr key={s.id}>
-                        <td className="px-5 py-2 font-mono">{s.serialNumber}</td>
-                        <td className="px-3 py-2 font-mono text-slate-600">{[s.imei, s.imei2].filter(Boolean).join(' / ') || '—'}</td>
-                        <td className={cn('px-3 py-2 font-medium', s.status === 'IN_STOCK' ? 'text-success-700' : s.status === 'SOLD' ? 'text-slate-600' : 'text-amber-700')}>{STATUS[s.status] ?? s.status}</td>
-                        <td className="px-3 py-2 text-slate-600">{s.warrantyEndDate ? new Date(s.warrantyEndDate).toLocaleDateString('en-PK') : '—'}</td>
-                        <td className="px-5 py-2 text-right tabular-nums">{s.purchasePrice ? cost(s.purchasePrice) : '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table minWidth="42rem">
+                <THead><Tr><Th className="px-5 py-2.5">Serial</Th><Th className="px-3 py-2.5">IMEI</Th><Th className="px-3 py-2.5">Halat</Th><Th className="px-3 py-2.5">Warranty tak</Th><Th className="px-5 py-2.5 text-right">Khareed</Th></Tr></THead>
+                <TBody>
+                  {list.map((s) => (
+                    <Tr key={s.id}>
+                      <Td className="px-5 py-2 font-mono">{s.serialNumber}</Td>
+                      <Td className="px-3 py-2 font-mono text-slate-600">{[s.imei, s.imei2].filter(Boolean).join(' / ') || '—'}</Td>
+                      <Td className={cn('px-3 py-2 font-medium', s.status === 'IN_STOCK' ? 'text-success-700' : s.status === 'SOLD' ? 'text-slate-600' : 'text-amber-700')}>{STATUS[s.status] ?? s.status}</Td>
+                      <Td className="px-3 py-2 text-slate-600">{s.warrantyEndDate ? new Date(s.warrantyEndDate).toLocaleDateString('en-PK') : '—'}</Td>
+                      <Td className="px-5 py-2 text-right tabular-nums">{s.purchasePrice ? cost(s.purchasePrice) : '—'}</Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
             )}
           </Card>
         );

@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, ChefHat, Soup, Target, TrendingDown, Wallet } from 'lucide-react';
-import { Card, KpiCard, KpiRow, Segmented, Skeleton } from '@/design-system/components';
+import { Card, KpiCard, KpiRow, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { recipesApi } from '@industries/restaurant/api/recipes.api';
 import { menuItemsApi } from '@industries/restaurant/api/menu-items.api';
@@ -90,24 +90,24 @@ export function RestaurantPanel({ filters, fmt }: ProfitPanelProps) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[44rem] text-[0.8125rem]">
-              <thead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">Dish</th><th className="px-3 py-2 text-right">Rate</th><th className="px-3 py-2 text-right">Recipe cost</th><th className="px-3 py-2 text-right">Food cost</th><th className="px-3 py-2 text-right">Ek plate par</th><th className="px-3 py-2 text-right">Biki</th><th className="px-4 py-2 text-right">Kamai</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table minWidth="44rem" className="[&>table]:text-[0.8125rem]">
+              <THead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-4 py-2">Dish</Th><Th className="px-3 py-2 text-right">Rate</Th><Th className="px-3 py-2 text-right">Recipe cost</Th><Th className="px-3 py-2 text-right">Food cost</Th><Th className="px-3 py-2 text-right">Ek plate par</Th><Th className="px-3 py-2 text-right">Biki</Th><Th className="px-4 py-2 text-right">Kamai</Th></Tr>
+              </THead>
+              <TBody className="divide-y divide-slate-100">
                 {sorted.map((r) => (
-                  <tr key={r.recipeId}>
-                    <td className="px-4 py-2 font-medium text-slate-900">{r.name}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{fmt.money(r.price)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{fmt.cost(r.cost)}</td>
-                    <td className="px-3 py-2 text-right"><span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', r.g.c)}>{r.foodCostPct > 0 ? `${r.foodCostPct.toFixed(0)}%` : '—'} · {r.g.l}</span></td>
-                    <td className={cn('px-3 py-2 text-right tabular-nums', r.profit < 0 && 'text-rose-700')}>{fmt.cost(r.profit)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{qty(r.sold)}</td>
-                    <td className={cn('px-4 py-2 text-right font-semibold tabular-nums', r.earned < 0 && 'text-rose-700')}>{fmt.cost(r.earned)}</td>
-                  </tr>
+                  <Tr key={r.recipeId}>
+                    <Td className="px-4 py-2 font-medium text-slate-900">{r.name}</Td>
+                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{fmt.money(r.price)}</Td>
+                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{fmt.cost(r.cost)}</Td>
+                    <Td className="text-inherit px-3 py-2 text-right"><span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', r.g.c)}>{r.foodCostPct > 0 ? `${r.foodCostPct.toFixed(0)}%` : '—'} · {r.g.l}</span></Td>
+                    <Td className={cn('px-3 py-2 text-right tabular-nums', r.profit < 0 && 'text-rose-700')}>{fmt.cost(r.profit)}</Td>
+                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{qty(r.sold)}</Td>
+                    <Td className={cn('px-4 py-2 text-right font-semibold tabular-nums', r.earned < 0 && 'text-rose-700')}>{fmt.cost(r.earned)}</Td>
+                  </Tr>
                 ))}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         )}
       </Card>

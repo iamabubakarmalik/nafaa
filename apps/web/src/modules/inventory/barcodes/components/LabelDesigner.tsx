@@ -239,9 +239,9 @@ export function LabelDesigner({ config: c, set, saving, layout, skip, onSkip }: 
         <Section title="Qeemat aur likhai">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <Segmented label="Kaun si qeemat" value={c.priceSource === 'wholesale' ? 'wholesale' : 'retail'} onChange={(v) => set({ priceSource: v })}
-                items={[{ value: 'retail', label: 'Retail' }, { value: 'wholesale', label: 'Wholesale' }]} />
-              <Hint>Wholesale na likhi ho to retail qeemat chhapti hai</Hint>
+              <Segmented label="Kaun si qeemat" value={c.priceSource === 'wholesale' || c.priceSource === 'credit' ? c.priceSource : 'retail'} onChange={(v) => set({ priceSource: v })}
+                items={[{ value: 'retail', label: 'Retail' }, { value: 'wholesale', label: 'Wholesale' }, { value: 'credit', label: 'Credit' }]} />
+              <Hint>Wholesale ya Credit price na likhi ho to Retail price chhapti hai</Hint>
             </div>
             <div>
               <Segmented label="Likhai kis taraf" value={c.align} onChange={(v) => set({ align: v })}

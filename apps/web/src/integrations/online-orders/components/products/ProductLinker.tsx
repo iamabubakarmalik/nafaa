@@ -1,4 +1,4 @@
-import { confirmDialog } from '@/design-system/components';
+import { Alert, Badge, Button, Card, confirmDialog, controlClass, EmptyState, Segmented } from '@/design-system/components';
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -10,7 +10,6 @@ import {
   apiErrorMessage, onlineOrdersApi, type CatalogProduct, type CatalogVariant, type LinkInput,
 } from '../../api/online-orders.api';
 import { rs, timeAgo } from '../../lib/labels';
-import { Badge, Banner, Btn, Card, EmptyState, Segmented, inputCls } from '../ui/kit';
 import { ProductPicker, type PickedProduct } from './ProductPicker';
 import { cn } from '@core/lib/cn';
 
@@ -47,7 +46,7 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
     return <Card><div className="space-y-2">{[0, 1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" />)}</div></Card>;
   }
   if (error || !data) {
-    return <Banner tone="critical" title="Products nahi khule">{apiErrorMessage(error)}</Banner>;
+    return <Alert tone="danger" title="Products nahi khule">{apiErrorMessage(error)}</Alert>;
   }
 
   const s = data.stats;
@@ -58,7 +57,7 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
       {/* ─── Khulasa ─── */}
       <Card>
         <div className="flex flex-wrap items-center gap-4">
-          <div className="min-w-[220px] flex-1">
+          <div className="min-w-[13.75rem] flex-1">
             <div className="flex items-baseline justify-between gap-2">
               <div className="text-[0.875rem] font-semibold text-slate-900 dark:text-ink-white">
                 {data.canFetch ? `${s.linked} / ${s.variants} jure hue` : 'Jore hue products'}
@@ -67,21 +66,21 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
             </div>
             {data.canFetch && (
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-ink-800">
-                <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
+                <div className="h-full rounded-full bg-brand-500 transition-all" style={{ width: `${pct}%` }} />
               </div>
             )}
             <div className="mt-2 flex flex-wrap gap-1.5 text-[0.75rem]">
-              <Badge tone="success" dot>{s.linked} jure</Badge>
-              {s.suggested > 0 && <Badge tone="warning" dot>{s.suggested} salah</Badge>}
-              {s.unlinked > 0 && <Badge tone="neutral" dot>{s.unlinked} baqi</Badge>}
-              {data.kind !== 'indolj' && <Badge tone="info">{s.nafaaUnlisted} Nafaa me, website par nahi</Badge>}
+              <Badge size="xs" variant="success" dot>{s.linked} jure</Badge>
+              {s.suggested > 0 && <Badge size="xs" variant="warning" dot>{s.suggested} salah</Badge>}
+              {s.unlinked > 0 && <Badge size="xs" variant="default" dot>{s.unlinked} baqi</Badge>}
+              {data.kind !== 'indolj' && <Badge size="xs" variant="info">{s.nafaaUnlisted} Nafaa me, website par nahi</Badge>}
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {data.canFetch && (
-              <Btn size="sm" variant="secondary" loading={refresh.isPending || isFetching} onClick={() => refresh.mutate()} icon={<RefreshCw className="h-3.5 w-3.5" />}>
+              <Button size="xs" variant="secondary" loading={refresh.isPending || isFetching} onClick={() => refresh.mutate()} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>
                 Website se taaza
-              </Btn>
+              </Button>
             )}
             {s.suggested > 0 && <AcceptAll channelId={channelId} products={data.products} onDone={invalidate} />}
           </div>
@@ -95,8 +94,8 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
       </Card>
 
       {data.remoteError && (
-        <Banner tone="critical" icon={<TriangleAlert className="h-4 w-4 text-rose-600" />} title="Website ke products nahi aaye"
-          action={<Btn size="sm" onClick={() => refetch()}>Dobara</Btn>}>{data.remoteError}</Banner>
+        <Alert tone="danger" icon={<TriangleAlert className="h-4 w-4 text-rose-600" />} title="Website ke products nahi aaye"
+          action={<Button size="xs" onClick={() => refetch()}>Dobara</Button>}>{data.remoteError}</Alert>
       )}
 
       {data.orphans.length > 0 && <Orphans channelId={channelId} orphans={data.orphans} onDone={invalidate} />}
@@ -183,15 +182,15 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
           { value: 'todo', label: 'Jorna baqi', count: counts.todo },
           { value: 'linked', label: 'Jure hue', count: counts.linked },
         ]} />
-        <div className="relative min-w-[200px] flex-1">
+        <div className="relative min-w-[12.5rem] flex-1">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Naam ya SKU…" className={cn(inputCls, 'pl-8')} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Naam ya SKU…" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] pl-8')} />
         </div>
         {unlinkedIds.length > 0 && (
-          <Btn size="sm" variant="success" loading={importMut.isPending} icon={<CloudDownload className="h-3.5 w-3.5" />}
+          <Button size="xs" variant="success" loading={importMut.isPending} leftIcon={<CloudDownload className="h-3.5 w-3.5" />}
             onClick={async () => { if ((await confirmDialog({ title: `${unlinkedIds.length} products Nafaa me banayein?`, text: 'Naam, qeemat, tasveer aur variants sab aa jayenge. Jo naam Nafaa me pehle se hai wo nahi banega — usi se jur jayega.', danger: true }))) importMut.mutate(unlinkedIds); }}>
             Baqi {unlinkedIds.length} Nafaa me banao
-          </Btn>
+          </Button>
         )}
       </div>
 
@@ -200,16 +199,16 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
           <span className="text-[0.8125rem] font-semibold">{picked.size} chune</span>
           <span className="text-[0.75rem] text-white/70">— Nafaa me ban jayenge (naam, qeemat, tasveer, variants) aur jur jayenge · jo pehle se hai us se jurenge</span>
           <span className="flex-1" />
-          <Btn size="sm" variant="plain" className="text-white hover:bg-white/10" onClick={() => setPicked(new Set())}>Chhoro</Btn>
-          <Btn size="sm" variant="success" loading={importMut.isPending} onClick={() => importMut.mutate([...picked])} icon={<CloudDownload className="h-3.5 w-3.5" />}>
+          <Button size="xs" variant="ghost" className="text-white hover:bg-white/10" onClick={() => setPicked(new Set())}>Chhoro</Button>
+          <Button size="xs" variant="success" loading={importMut.isPending} onClick={() => importMut.mutate([...picked])} leftIcon={<CloudDownload className="h-3.5 w-3.5" />}>
             Nafaa me lao
-          </Btn>
+          </Button>
         </div>
       )}
 
       <div className="mt-3 border-t border-slate-100 dark:border-ink-800">
         {/* sar-khat */}
-        <div className="hidden grid-cols-[28px_minmax(0,1.3fr)_minmax(0,0.7fr)_24px_minmax(0,1.4fr)] items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40 md:grid sm:px-5">
+        <div className="hidden grid-cols-[1.75rem_minmax(0,1.3fr)_minmax(0,0.7fr)_1.5rem_minmax(0,1.4fr)] items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40 md:grid sm:px-5">
           <input type="checkbox" aria-label="Sab jorne baqi chuno" className="h-4 w-4 rounded border-slate-300"
             checked={unlinkedIds.length > 0 && unlinkedIds.every((id) => picked.has(id))}
             onChange={(e) => setPicked(e.target.checked ? new Set(unlinkedIds) : new Set())} />
@@ -220,9 +219,7 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
         </div>
 
         {rows.length === 0 ? (
-          <EmptyState icon={<Package className="h-5 w-5" />} title={products.length ? 'Is chaant me kuch nahi' : 'Website par koi product nahi mila'}>
-            {products.length ? 'Filter badal kar dekhein.' : '"Nafaa ke products" tab se apne products website par bhej sakte hain.'}
-          </EmptyState>
+          <EmptyState icon={<Package className="h-5 w-5" />} title={products.length ? 'Is chaant me kuch nahi' : 'Website par koi product nahi mila'} description={products.length ? 'Filter badal kar dekhein.' : '"Nafaa ke products" tab se apne products website par bhej sakte hain.'} />
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-ink-800">
             {rows.map((p) => {
@@ -233,7 +230,7 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
               return (
                 <li key={p.externalProductId}>
                   {p.hasVariants ? (
-                    <div className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-3 px-4 py-2.5 md:grid-cols-[28px_minmax(0,1.3fr)_minmax(0,0.7fr)_24px_minmax(0,1.4fr)] sm:px-5">
+                    <div className="grid grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-3 px-4 py-2.5 md:grid-cols-[1.75rem_minmax(0,1.3fr)_minmax(0,0.7fr)_1.5rem_minmax(0,1.4fr)] sm:px-5">
                       <input type="checkbox" disabled={!noneLinked} checked={picked.has(p.externalProductId)} onChange={() => togglePick(p.externalProductId)}
                         className="h-4 w-4 rounded border-slate-300 disabled:opacity-30" aria-label={`${p.title} chuno`} />
                       <button onClick={() => toggleOpen(p.externalProductId)} className="flex min-w-0 items-center gap-2.5 text-left">
@@ -247,16 +244,16 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
                       <span className="hidden text-[0.78125rem] text-slate-500 md:block">—</span>
                       <span className="hidden md:block" />
                       <span className="col-start-2 flex flex-wrap items-center gap-2 md:col-start-auto">
-                        <Badge tone={allLinked ? 'success' : noneLinked ? 'neutral' : 'warning'} dot>
+                        <Badge size="xs" variant={allLinked ? 'success' : noneLinked ? 'default' : 'warning'} dot>
                           {allLinked ? 'Sab variants jure' : `${linkedCount}/${p.variants.length} variants jure`}
                         </Badge>
                         {!allLinked && (
                           <>
                             {noneLinked && (
-                              <Btn size="sm" variant="success" loading={importMut.isPending && importMut.variables?.[0] === p.externalProductId}
-                                onClick={() => importMut.mutate([p.externalProductId])} icon={<CloudDownload className="h-3.5 w-3.5" />}>Naya banao</Btn>
+                              <Button size="xs" variant="success" loading={importMut.isPending && importMut.variables?.[0] === p.externalProductId}
+                                onClick={() => importMut.mutate([p.externalProductId])} leftIcon={<CloudDownload className="h-3.5 w-3.5" />}>Naya banao</Button>
                             )}
-                            <span className="min-w-[180px] flex-1">
+                            <span className="min-w-[11.25rem] flex-1">
                               <ProductPicker compact initialSearch={p.title.split(/\s+/).slice(0, 2).join(' ')} placeholder="Nafaa product me variants jorein"
                                 onPick={(x) => intoMut.mutate({ ext: p.externalProductId, productId: x.productId })} />
                             </span>
@@ -302,7 +299,7 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
   });
 
   return (
-    <div className={cn('grid grid-cols-[28px_minmax(0,1fr)] items-center gap-3 px-4 py-2.5 md:grid-cols-[28px_minmax(0,1.3fr)_minmax(0,0.7fr)_24px_minmax(0,1.4fr)] sm:px-5',
+    <div className={cn('grid grid-cols-[1.75rem_minmax(0,1fr)] items-center gap-3 px-4 py-2.5 md:grid-cols-[1.75rem_minmax(0,1.3fr)_minmax(0,0.7fr)_1.5rem_minmax(0,1.4fr)] sm:px-5',
       nested && 'bg-slate-50/50 dark:bg-ink-800/20')}>
       {nested ? <span /> : (
         <input type="checkbox" disabled={!!v.link} checked={picked} onChange={onTogglePick}
@@ -327,7 +324,7 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
       <div className="col-start-2 min-w-0 md:col-start-auto">
         {v.link && !changing ? (
           <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15"><Check className="h-3.5 w-3.5" /></span>
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-success-100 text-success-700"><Check className="h-3.5 w-3.5" /></span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-ink-white">
                 {v.link.name}{v.link.variantName ? <span className="text-slate-500"> — {v.link.variantName}</span> : null}
@@ -338,22 +335,22 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
                 {v.link.inactive && <span className="text-rose-600"> · Nafaa me band</span>}
               </span>
             </span>
-            <Btn size="sm" variant="plain" onClick={() => setChanging(true)}>Badlo</Btn>
-            <Btn size="sm" variant="plain" loading={unlink.isPending} onClick={() => unlink.mutate()} icon={<Link2Off className="h-3.5 w-3.5" />} aria-label="Link hatao" />
+            <Button size="xs" variant="ghost" onClick={() => setChanging(true)}>Badlo</Button>
+            <Button size="xs" variant="ghost" loading={unlink.isPending} onClick={() => unlink.mutate()} leftIcon={<Link2Off className="h-3.5 w-3.5" />} aria-label="Link hatao" />
           </div>
         ) : v.suggestion && !changing ? (
           <div className="flex flex-wrap items-center gap-2">
             <span className="min-w-0 flex-1">
-              <span className="flex items-center gap-1 text-[0.75rem] font-semibold text-amber-700 dark:text-amber-300"><Sparkles className="h-3.5 w-3.5" /> Salah ({v.suggestion.reason === 'sku' ? 'SKU mila' : 'naam mila'})</span>
+              <span className="flex items-center gap-1 text-[0.75rem] font-semibold text-amber-700"><Sparkles className="h-3.5 w-3.5" /> Salah ({v.suggestion.reason === 'sku' ? 'SKU mila' : 'naam mila'})</span>
               <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-ink-white">
                 {v.suggestion.name}{v.suggestion.variantName ? <span className="text-slate-500"> — {v.suggestion.variantName}</span> : null}
               </span>
             </span>
-            <Btn size="sm" variant="primary" loading={link.isPending}
+            <Button size="xs" variant="primary" loading={link.isPending}
               onClick={() => link.mutate({ productId: v.suggestion!.productId, variantId: v.suggestion!.variantId, label: v.suggestion!.name })}
-              icon={<Link2 className="h-3.5 w-3.5" />}>Jorein</Btn>
-            <Btn size="sm" variant="plain" onClick={() => setChanging(true)}>Aur chuno</Btn>
-            {onCreate && <Btn size="sm" variant="plain" loading={creating} onClick={onCreate}>Naya banao</Btn>}
+              leftIcon={<Link2 className="h-3.5 w-3.5" />}>Jorein</Button>
+            <Button size="xs" variant="ghost" onClick={() => setChanging(true)}>Aur chuno</Button>
+            {onCreate && <Button size="xs" variant="ghost" loading={creating} onClick={onCreate}>Naya banao</Button>}
           </div>
         ) : (
           <div className="flex items-center gap-2">
@@ -362,9 +359,9 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
                 placeholder={link.isPending ? 'Jor rahe hain…' : 'Nafaa product / variant chunein'} />
             </div>
             {!changing && onCreate && (
-              <Btn size="sm" variant="success" loading={creating} onClick={onCreate} icon={<CloudDownload className="h-3.5 w-3.5" />}>Naya banao</Btn>
+              <Button size="xs" variant="success" loading={creating} onClick={onCreate} leftIcon={<CloudDownload className="h-3.5 w-3.5" />}>Naya banao</Button>
             )}
-            {changing && <Btn size="sm" variant="plain" onClick={() => setChanging(false)}>Wapas</Btn>}
+            {changing && <Button size="xs" variant="ghost" onClick={() => setChanging(false)}>Wapas</Button>}
           </div>
         )}
       </div>
@@ -393,9 +390,9 @@ function AcceptAll({ channelId, products, onDone }: { channelId: string; product
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   return (
-    <Btn size="sm" variant="primary" loading={m.isPending} onClick={() => m.mutate()} icon={<Sparkles className="h-3.5 w-3.5" />}>
+    <Button size="xs" variant="primary" loading={m.isPending} onClick={() => m.mutate()} leftIcon={<Sparkles className="h-3.5 w-3.5" />}>
       Sab {links.length} salahen qubool
-    </Btn>
+    </Button>
   );
 }
 
@@ -429,13 +426,13 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
   return (
     <Card flush>
       <div className="flex flex-wrap items-center gap-2 px-4 sm:px-5">
-        <div className="relative min-w-[200px] flex-1">
+        <div className="relative min-w-[12.5rem] flex-1">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nafaa product search…" className={cn(inputCls, 'pl-8')} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nafaa product search…" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] pl-8')} />
         </div>
-        <Btn variant="success" disabled={!picked.size} loading={send.isPending} onClick={() => send.mutate()} icon={<CloudUpload className="h-4 w-4" />}>
+        <Button size="sm" variant="success" disabled={!picked.size} loading={send.isPending} onClick={() => send.mutate()} leftIcon={<CloudUpload className="h-4 w-4" />}>
           {picked.size ? `${picked.size} ${siteName} par bhejo` : `${siteName} par bhejo`}
-        </Btn>
+        </Button>
       </div>
       <p className="mt-2 px-4 text-[0.78125rem] text-slate-500 sm:px-5">
         Naam, qeemat, tasveerein, variants aur Nafaa ka stock website par ban jayega — aur har variant khud jur jayega.
@@ -444,7 +441,7 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
         {isLoading ? (
           <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" />)}</div>
         ) : items.length === 0 ? (
-          <EmptyState icon={<Check className="h-5 w-5" />} title="Sab products website par hain">Nafaa ka har active product is website se jura hua hai.</EmptyState>
+          <EmptyState icon={<Check className="h-5 w-5" />} title="Sab products website par hain" description="Nafaa ka har active product is website se jura hua hai." />
         ) : (
           <ul className="divide-y divide-slate-100 dark:divide-ink-800">
             <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40 sm:px-5">
@@ -494,12 +491,12 @@ function Orphans({ channelId, orphans, onDone }: { channelId: string; orphans: {
     onSuccess: () => { onDone(); toast.success('Purane links saaf'); },
   });
   return (
-    <Banner tone="warning" icon={<TriangleAlert className="h-4 w-4 text-amber-600" />}
+    <Alert tone="warning" icon={<TriangleAlert className="h-4 w-4 text-amber-600" />}
       title={`${orphans.length} link aise hain jin ka product website par ab nahi`}
-      action={<Btn size="sm" loading={m.isPending} onClick={() => m.mutate()}>Saaf karo</Btn>}>
+      action={<Button size="xs" loading={m.isPending} onClick={() => m.mutate()}>Saaf karo</Button>}>
       {orphans.slice(0, 3).map((o) => `${o.externalTitle ?? '—'} → ${o.name}${o.variantName ? ` (${o.variantName})` : ''}`).join(' · ')}
       {orphans.length > 3 ? ' …' : ''}
-    </Banner>
+    </Alert>
   );
 }
 
@@ -512,7 +509,7 @@ function CustomLinks({ channelId, links, onDone }: { channelId: string; links: {
   return (
     <Card title="Jore hue products" description="Apni banayi website ke products hum khud nahi dekh sakte. Order me pehli dafa product jorte hi yahan aa jata hai — ya Developer tab se CSV import karein.">
       {links.length === 0 ? (
-        <EmptyState icon={<Link2 className="h-5 w-5" />} title="Abhi koi link nahi">Website se order aaye ya CSV import karein — products khud jurte jayenge.</EmptyState>
+        <EmptyState icon={<Link2 className="h-5 w-5" />} title="Abhi koi link nahi" description="Website se order aaye ya CSV import karein — products khud jurte jayenge." />
       ) : (
         <ul className="-my-2 divide-y divide-slate-100 dark:divide-ink-800">
           {links.map((l) => (
@@ -523,7 +520,7 @@ function CustomLinks({ channelId, links, onDone }: { channelId: string; links: {
                 <span className="text-slate-700 dark:text-ink-200">{l.name}{l.variantName ? ` — ${l.variantName}` : ''}</span>
                 <span className="text-slate-500"> · stock {l.stock}</span>
               </span>
-              <Btn size="sm" variant="plain" loading={unlink.isPending && unlink.variables === l.mappingId} onClick={() => unlink.mutate(l.mappingId)} icon={<Link2Off className="h-3.5 w-3.5" />} />
+              <Button size="xs" variant="ghost" loading={unlink.isPending && unlink.variables === l.mappingId} onClick={() => unlink.mutate(l.mappingId)} leftIcon={<Link2Off className="h-3.5 w-3.5" />} />
             </li>
           ))}
         </ul>
@@ -551,7 +548,7 @@ function IndoljConnect({ channelId, onDone, connected }: { channelId: string; on
   }
   return (
     <Card title="Website Indolj par bani hai?" description="Indolj ki keys daalein — aap ka poora menu (sizes ke saath) yahan aa jayega aur har item Nafaa product se jur jayega, bilkul WooCommerce ki tarah."
-      actions={!open ? <Btn size="sm" onClick={() => setOpen(true)}>Indolj jorein</Btn> : undefined}>
+      actions={!open ? <Button size="xs" onClick={() => setOpen(true)}>Indolj jorein</Button> : undefined}>
       {open && (
         <div className="space-y-3">
           <p className="text-[0.78125rem] text-slate-500">Indolj ki team ye deti hai: <b>activation token</b> aur <b>JWT secret key</b> (Merchant Menu API key). Merchant ID ho to wo bhi.</p>
@@ -559,13 +556,13 @@ function IndoljConnect({ channelId, onDone, connected }: { channelId: string; on
             {([['activationToken', 'Activation token'], ['merchantId', 'Merchant ID (optional)'], ['secret', 'JWT secret key'], ['branchId', 'Branch ID (optional)'], ['baseUrl', 'API URL (khali = console.indolj.io)']] as const).map(([k, label]) => (
               <label key={k} className="block text-[0.78125rem] font-medium text-slate-700 dark:text-ink-200">
                 {label}
-                <input type={k === 'secret' ? 'password' : 'text'} autoComplete="off" value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value }))} className={cn(inputCls, 'mt-1 font-mono')} />
+                <input type={k === 'secret' ? 'password' : 'text'} autoComplete="off" value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value }))} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] mt-1 font-mono')} />
               </label>
             ))}
           </div>
           <div className="flex justify-end gap-2">
-            <Btn variant="plain" onClick={() => setOpen(false)}>Rehne dein</Btn>
-            <Btn variant="primary" loading={save.isPending} disabled={!f.activationToken || !f.secret} onClick={() => save.mutate()}>Menu check karke jorein</Btn>
+            <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Rehne dein</Button>
+            <Button size="sm" variant="primary" loading={save.isPending} disabled={!f.activationToken || !f.secret} onClick={() => save.mutate()}>Menu check karke jorein</Button>
           </div>
         </div>
       )}

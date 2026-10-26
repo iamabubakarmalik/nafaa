@@ -17,6 +17,10 @@ export type PlatformAppearance = Partial<{
   radius: 'sharp' | 'default' | 'round';
   reduceMotion: boolean;
   contrast: 'normal' | 'high';
+  heroStyle: 'modern' | 'simple' | 'soft' | 'dark' | 'aurora' | 'outline';
+  heroPattern: 'dots' | 'grid' | 'lines' | 'none';
+  heroSize: 'comfortable' | 'compact';
+  heroStats: 'inline' | 'cards';
 }>;
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;

@@ -49,6 +49,9 @@ import { isTempId } from '@core/lib/offline/db';
 import { normalizePosCounter, usePosUserLayout } from '../lib/posCounterConfig';
 import { bumpRecent, parseQtyPrefix, posBeep, topRecent } from '../lib/posKeys';
 import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem, PosSavedSale, PosUsedPhoneLine } from './types';
+import { PRICE_TIER_LABEL, isPriceTier, tierPrice, type PriceTier, type TierPriced } from '@core/lib/priceTiers';
+import { addTierToReceipt } from '@modules/sales/receipt/fromSale';
+import { getCounterTier, setCounterTier, useCounterTier } from '../lib/priceTierStore';
 
 /** Customers refresh after a sale (balances change). */
 const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
@@ -78,6 +81,42 @@ const BASE_VOICE_ALIASES: Record<string, string> = {
 };
 
 export type PosView = 'products' | 'combos' | 'quickkeys';
+
+const positive = (v: unknown) => (Number(v) > 0 ? Number(v) : null);
+
+/**
+ * Retail, wholesale and credit price of one unit of an item. The base unit
+ * uses the product's prices (a variant's own prices first, like the server);
+ * a pack uses its own tier prices, else the product's tier price times the
+ * pack size. A tier with no price falls back to retail when priced.
+ */
+export function tierSrcFor(item: PosItem, unit: PosUnitOption, variant?: AddOptions['variant']): TierPriced {
+  const p = item.product as PosItem['product'] & { wholesalePrice?: number | null; creditPrice?: number | null };
+  const rate = Number(unit.conversionRate) || 1;
+  if (rate === 1 && variant?.price != null) {
+    return {
+      price: Number(variant.price),
+      wholesalePrice: positive(variant.wholesalePrice) ?? positive(p.wholesalePrice),
+      creditPrice: positive(variant.creditPrice) ?? positive(p.creditPrice),
+    };
+  }
+  if (unit.isBase || rate === 1) {
+    return { price: unit.price, wholesalePrice: positive(unit.wholesalePrice) ?? positive(p.wholesalePrice), creditPrice: positive(unit.creditPrice) ?? positive(p.creditPrice) };
+  }
+  const scaled = (v: unknown) => { const n = positive(v); return n == null ? null : Number((n * rate).toFixed(2)); };
+  return {
+    price: unit.price,
+    wholesalePrice: positive(unit.wholesalePrice) ?? scaled(p.wholesalePrice),
+    creditPrice: positive(unit.creditPrice) ?? scaled(p.creditPrice),
+  };
+}
+
+/** A line at the bill's tier; fixed, hand-priced and line-picked lines keep their rate. */
+function retier(l: PosCartLine, tier: PriceTier): PosCartLine {
+  if (l.type !== 'product' || !l.tierSrc || l.fixedPrice || l.priceEdited || l.tierLocked || l.priceTier === tier) return l;
+  const price = tierPrice(l.tierSrc, tier);
+  return { ...l, priceTier: tier, unitPrice: price, basePrice: price, lineTotal: l.quantity * price };
+}
 
 export interface PosLastSaleFull extends PosLastSale {
   printPayload: ReceiptPayload;
@@ -249,8 +288,50 @@ export function usePosEngine(config: PosIndustryConfig) {
   /** The line last added or changed; "+", "-" and "3*" work on it when no line is selected. */
   const [lastLineId, setLastLineId] = useState<string | null>(null);
 
+  /* ── Price tier (Retail / Wholesale / Credit) ── */
+  // The bill's tier lives in a shared store (hardware and meat rate switches use it too).
+  // An udhaar checkout may put the bill on the credit price while the dialog is open.
+  const tiersOn = counter.priceTiers;
+  const defaultTier: PriceTier = tiersOn ? counter.defaultPriceTier : 'RETAIL';
+  const billTier = useCounterTier();
+  const [udhaarTier, setUdhaarTier] = useState(false);
+  const activeTier: PriceTier = udhaarTier ? 'CREDIT' : billTier;
+  const activeTierRef = useRef(activeTier);
+  activeTierRef.current = activeTier;
+  const tierTrusted = hasPermission(user?.role, (user as { permissions?: string[] } | null)?.permissions, PERMISSIONS.POS_PRICE_TIER);
+  /** Tiers this cashier may pick by hand; the default is always open. */
+  const tierChoices = tiersOn ? counter.priceTierList : (['RETAIL'] as PriceTier[]);
+  const canPickTier = (t: PriceTier) => t === defaultTier || tierTrusted;
+  // Every counter starts at the shop's default tier.
+  useEffect(() => { setCounterTier(defaultTier); }, [defaultTier]);
+  // A tier change re-prices the bill.
+  useEffect(() => {
+    setCart((prev) => {
+      let changed = false;
+      const next = prev.map((l) => { const r = retier(l, activeTier); if (r !== l) changed = true; return r; });
+      return changed ? next : prev;
+    });
+  }, [activeTier]);
+
   // A new customer must not inherit the previous customer's receiver.
   useEffect(() => { setReceiver(emptyReceiver()); }, [customerId]);
+
+  // A customer with their own default price brings it to the bill (the owner's rule, no permission needed).
+  const tierFromCustomer = useRef(false);
+  const customerTier = selectedCustomer?.priceTier as string | null | undefined;
+  useEffect(() => {
+    if (!tiersOn || !counter.tierFromCustomer) return;
+    if (isPriceTier(customerTier) && counter.priceTierList.includes(customerTier)) {
+      if (getCounterTier() !== customerTier) {
+        setCounterTier(customerTier);
+        toast.info(`${selectedCustomer?.name ?? 'Customer'}: ${PRICE_TIER_LABEL[customerTier]} price lag gayi`, { duration: 2500 });
+      }
+      tierFromCustomer.current = true;
+    } else if (tierFromCustomer.current) {
+      tierFromCustomer.current = false;
+      setCounterTier(defaultTier);
+    }
+  }, [customerId, customerTier, tiersOn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const subtotal = useMemo(() => cart.reduce((s, l) => s + l.lineTotal, 0), [cart]);
   const discountAmount = discountMode === 'pct' ? (subtotal * discountPct) / 100 : Math.min(discountRs || 0, subtotal);
@@ -314,6 +395,11 @@ export function usePosEngine(config: PosIndustryConfig) {
   const [variantPicker, setVariantPicker] = useState<{ item: PosItem; variants: ProductVariant[]; opts: AddOptions } | null>(null);
   const [picker, setPicker] = useState<ReactNode>(null);
   const [checkout, setCheckout] = useState<{ mode: PosCheckoutMode; method?: PaymentMethod } | null>(null);
+  // Udhaar puts the bill on the credit price only while checkout is open (Settings → POS counter).
+  const udhaarCredit = useCallback((onCredit: boolean) => {
+    setUdhaarTier(onCredit && counter.priceTiers && counter.tierCreditOnUdhaar && counter.priceTierList.includes('CREDIT'));
+  }, [counter.priceTiers, counter.tierCreditOnUdhaar, counter.priceTierList]);
+  useEffect(() => { if (!checkout) setUdhaarTier(false); }, [checkout]);
   const [lastSale, setLastSale] = useState<PosLastSaleFull | null>(null);
   const [lastBill, setLastBill] = useState<{ number: string; total: number; change: number; printPayload: ReceiptPayload; lines: PosCartLine[]; customerId: string } | null>(null);
   const [recentTick, setRecentTick] = useState(0);
@@ -330,12 +416,15 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (opts.imei) qty = 1;
     const limit = opts.imei ? 1 : limitFor(item, opts);
     const baseQty = qty * unit.conversionRate;
-    const price = opts.price != null && unit.conversionRate === 1 ? Number(opts.price)
-      : opts.variant?.price != null && unit.conversionRate === 1 ? Number(opts.variant.price) : unit.price;
+    // A price given by the industry (a phone's own price, a bulk rate) is fixed; otherwise the bill's tier prices the line.
+    const fixedPrice = opts.price != null && unit.conversionRate === 1;
+    const src = fixedPrice ? undefined : tierSrcFor(item, unit, opts.variant);
+    const tier = activeTierRef.current;
+    const price = fixedPrice ? Number(opts.price) : tierPrice(src!, tier);
     setCart((prev) => {
       if (opts.imei && prev.some((l) => l.imeiId === opts.imei!.id)) { toast.info('Ye phone pehle se bill mein hai'); return prev; }
       const existing = !single && prev.find((l) =>
-        l.productId === item.id && l.unitName === unit.unitName && l.unitPrice === price && (l.variantId ?? '') === (opts.variant?.id ?? '') && !l.serialId && !l.imeiId);
+        l.productId === item.id && l.unitName === unit.unitName && l.unitPrice === price && (l.priceTier ?? 'RETAIL') === tier && (l.variantId ?? '') === (opts.variant?.id ?? '') && !l.serialId && !l.imeiId);
       if (existing) {
         const nq = Number((existing.quantity + qty).toFixed(3));
         const nb = nq * unit.conversionRate;
@@ -367,6 +456,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         serialId: opts.serial?.id, serialNumber: opts.serial?.serialNumber, imei: opts.imei?.imei1 ?? opts.serial?.imei ?? undefined,
         imeiId: opts.imei?.id,
         warrantyMonths: opts.warrantyMonths, lockQty: single,
+        priceTier: tier, tierSrc: src, fixedPrice: fixedPrice || undefined,
       }];
     });
   }, [beep]);
@@ -517,8 +607,33 @@ export function usePosEngine(config: PosIndustryConfig) {
     return [atQty(l, qty, nb)];
   }));
   const setPrice = (id: string, price: number) => {
-    setCart((prev) => prev.map((l) => (l.id === id ? { ...l, unitPrice: Math.max(price, 0), lineTotal: l.quantity * Math.max(price, 0) } : l)));
+    setCart((prev) => prev.map((l) => (l.id === id
+      ? { ...l, unitPrice: Math.max(price, 0), lineTotal: l.quantity * Math.max(price, 0), priceEdited: Math.abs(Math.max(price, 0) - (Number(l.basePrice) || 0)) > 0.001 }
+      : l)));
     setPriceEditId(null);
+  };
+  /** One line at its own tier (line menu). Picking the bill's tier again follows the bill. */
+  const setLineTier = (id: string, tier: PriceTier) => {
+    if (!tiersOn || !counter.tierLineOverride) return;
+    if (!canPickTier(tier)) { toast.error('Price tier badalne ki permission nahi'); return; }
+    setCart((prev) => prev.map((l) => {
+      if (l.id !== id) return l;
+      if (l.fixedPrice || !l.tierSrc) { toast.info('Is line ka rate fixed hai'); return l; }
+      const price = tierPrice(l.tierSrc, tier);
+      return { ...l, priceTier: tier, tierLocked: tier !== activeTierRef.current, priceEdited: false, unitPrice: price, basePrice: price, lineTotal: l.quantity * price };
+    }));
+  };
+  /** Switch the bill's tier by hand (switcher, Alt+T). */
+  const pickTier = (tier: PriceTier) => {
+    if (!tiersOn || !tierChoices.includes(tier)) return;
+    if (!canPickTier(tier)) { toast.error('Price tier badalne ki permission nahi'); return; }
+    setCounterTier(tier);
+  };
+  const cycleTier = () => {
+    if (!tiersOn) return;
+    const open = tierChoices.filter(canPickTier);
+    if (open.length < 2) { toast.error(tierTrusted ? 'Settings me sirf ek price tier on hai' : 'Price tier badalne ki permission nahi'); return; }
+    pickTier(open[(open.indexOf(billTier) + 1) % open.length]);
   };
   const removeLine = (id: string) => setCart((prev) => prev.filter((l) => l.id !== id));
   const setLineNote = (id: string, note: string) =>
@@ -532,20 +647,26 @@ export function usePosEngine(config: PosIndustryConfig) {
     const line = [...cart].reverse().find((l) => l.productId === productId);
     if (line) changeQty(line.id, -1);
   };
+  const defaultTierRef = useRef(defaultTier);
+  defaultTierRef.current = defaultTier;
   const clearCart = useCallback(() => {
     setCart([]); setCustomerId(''); setDiscountPct(0); setDiscountRs(0);
     setDelivery(emptyDelivery()); setReceiver(emptyReceiver()); setPromo(null); setPointsWanted(0);
+    setCounterTier(defaultTierRef.current);
   }, []);
 
   const hold = () => {
     if (!cart.length) return;
-    setHeldCarts((p) => [...p, { id: posHeldId(), lines: cart, customerId, total, heldAt: Date.now() }]);
+    setHeldCarts((p) => [...p, { id: posHeldId(), lines: cart, customerId, total, heldAt: Date.now(), tier: billTier }]);
     clearCart();
     toast.success('Bill hold ho gaya');
   };
   const resume = (h: PosHeldCart) => {
-    if (cart.length) setHeldCarts((p) => [...p.filter((x) => x.id !== h.id), { id: posHeldId(), lines: cart, customerId, total, heldAt: Date.now() }]);
+    if (cart.length) setHeldCarts((p) => [...p.filter((x) => x.id !== h.id), { id: posHeldId(), lines: cart, customerId, total, heldAt: Date.now(), tier: billTier }]);
     else setHeldCarts((p) => p.filter((x) => x.id !== h.id));
+    // The held lines keep their prices: the bill goes back to the tier it was held at.
+    activeTierRef.current = h.tier ?? defaultTier;
+    setCounterTier(h.tier ?? defaultTier);
     setCart(h.lines);
     setCustomerId(h.customerId);
     toast.success('Bill wapas aa gaya');
@@ -571,7 +692,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         const rate = Number(pack.conversionRate) || 1;
         const unit: PosUnitOption = {
           id: pack.id, unitName: pack.unitName, label: (pack.unitLabel || pack.unitName).toUpperCase(), emoji: unitEmoji(pack.unitName),
-          conversionRate: rate, price: Number(pack.price) || it.price * rate, wholesalePrice: pack.wholesalePrice ?? null,
+          conversionRate: rate, price: Number(pack.price) || it.price * rate, wholesalePrice: pack.wholesalePrice ?? null, creditPrice: pack.creditPrice ?? null,
         };
         void addItem(it, { unit, ...withQty });
         return;
@@ -720,6 +841,12 @@ export function usePosEngine(config: PosIndustryConfig) {
     footerNote: config.receiptFooter,
   }), [tenant, user, selectedCustomer, receiver, cart, subtotal, discountAmount, codeDiscount, loyaltyDiscount, total, deliveryFee, delivery, config.receiptFooter]);
 
+  /** The printed bill; the tier is added when the shop prints it (Settings → POS counter). */
+  const receiptWithTier = useCallback((p: ReceiptPayload): ReceiptPayload => {
+    if (counter.tierOnReceipt) addTierToReceipt(p, cart.map((l) => (l.productId ? l.priceTier : null)));
+    return p;
+  }, [counter.tierOnReceipt, cart]);
+
   /**
    * Which rule needs the owner's PIN for this bill: a string to ask for it,
    * null when nothing does, false when the bill cannot go through.
@@ -798,6 +925,7 @@ export function usePosEngine(config: PosIndustryConfig) {
             variantId: l.variantId,
             quantity: l.baseQuantity,
             priceOverride: l.unitPrice / l.conversionRate,
+            ...(l.priceTier && { priceTier: l.priceTier }),
             note: [l.note, l.customNote].filter(Boolean).join(' • ') || undefined,
             ...(l.serialId ? { serialId: l.serialId } : {}),
             ...(l.imeiId ? { imeiId: l.imeiId } : {}),
@@ -829,7 +957,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       const s = sale as { id: string; saleNumber: string };
       const credit = Math.max(total - paidAmount, 0);
       const change = Math.max(d.paidAmount - total, 0);
-      const printPayload = receiptFor(s, paidAmount, d.paymentMethod, credit, d.payments);
+      const printPayload = receiptWithTier(receiptFor(s, paidAmount, d.paymentMethod, credit, d.payments));
       setLastSale({ id: s.id, number: s.saleNumber, change, total, deposited, credit, printPayload, customerPhone: selectedCustomer?.phone });
       setLastBill({ number: s.saleNumber, total, change: deposited ? 0 : change, printPayload, lines: cart, customerId });
       cart.forEach((l) => { if (l.productId) bumpRecent(config.id, l.productId); });
@@ -910,8 +1038,20 @@ export function usePosEngine(config: PosIndustryConfig) {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
   }, [lastSale]);
 
+  /** What the udhaar credit price adds to the bill, while it is on. */
+  const udhaarExtra = udhaarTier && billTier !== 'CREDIT'
+    ? cart.reduce((s, l) => s + (l.priceTier === 'CREDIT' && l.tierSrc && !l.tierLocked && !l.priceEdited && !l.fixedPrice
+      ? (l.unitPrice - tierPrice(l.tierSrc, billTier)) * l.quantity : 0), 0)
+    : 0;
+  /** Price on the product cards: the bill's tier price when tiers are in use. */
+  const shownPrice = useCallback((it: PosItem) => (activeTier === 'RETAIL' ? it.price
+    : tierPrice({ ...(it.product as TierPriced), price: it.price }, activeTier)), [activeTier]);
+
   return {
     config, prefs, shopId, tenant, counter, shopCounter, userLayout, autoPrint, canEditPrice, beep, user,
+    // price tiers
+    tiersOn, billTier, activeTier, defaultTier, tierChoices, canPickTier, pickTier, cycleTier, setLineTier, udhaarCredit, udhaarTier, udhaarExtra, shownPrice,
+    lineTierOverride: tiersOn && counter.tierLineOverride,
     // catalog
     items, loading, filtered, visible, setVisible, categories, filterCounts, bundles, filteredBundles, quickKeys, groupedQuickKeys,
     search, setSearch, submitSearch, isCode, recentItems, categoryId, setCategoryId, filterId, setFilterId, view, setView, inCartBy,

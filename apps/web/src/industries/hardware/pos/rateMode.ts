@@ -1,26 +1,17 @@
 /**
  * Counter rate for the current bill: the shop's normal (retail) rate or the
- * wholesale rate for contractors and shopkeepers. Kept outside React so the
- * POS hooks (beforeAdd) and the bill panel read the same value.
+ * wholesale rate for contractors and shopkeepers. Backed by the shared POS
+ * price tier, so the bill, the receipt and reports see the same tier.
  */
 
-import { useSyncExternalStore } from 'react';
 import type { PosSavedSale } from '@modules/pos/engine';
+import { getCounterTier, setCounterTier, useCounterTier } from '@modules/pos/lib/priceTierStore';
 
 export type RateMode = 'retail' | 'wholesale';
 
-let mode: RateMode = 'retail';
-const subs = new Set<() => void>();
-
-export const getRateMode = () => mode;
-export function setRateMode(next: RateMode) {
-  if (next === mode) return;
-  mode = next;
-  subs.forEach((f) => f());
-}
-export function useRateMode() {
-  return useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, getRateMode, getRateMode);
-}
+export const getRateMode = (): RateMode => (getCounterTier() === 'WHOLESALE' ? 'wholesale' : 'retail');
+export const setRateMode = (next: RateMode) => setCounterTier(next === 'wholesale' ? 'WHOLESALE' : 'RETAIL');
+export const useRateMode = (): RateMode => (useCounterTier() === 'WHOLESALE' ? 'wholesale' : 'retail');
 
 /** Set by the bill panel (inside the router) to offer a challan after a bill. */
 export const saleListener: { current: ((sale: PosSavedSale) => void) | null } = { current: null };

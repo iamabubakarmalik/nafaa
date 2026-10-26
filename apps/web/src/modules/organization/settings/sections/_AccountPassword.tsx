@@ -10,10 +10,10 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, KeyRound, Mail, ShieldCheck } from 'lucide-react';
 import { cn } from '@core/lib/cn';
-import { Button } from '@/design-system/components';
+import { Alert, Button, controlClass } from '@/design-system/components';
 import { authApi } from '@modules/auth/api/auth.api';
 import { useAuthStore } from '@core/stores/auth.store';
-import { Alert, Field, SectionCard } from '../components/UI';
+import { Field, SectionCard } from '../components/SettingsBlocks';
 
 /** A simple strength measure: length, mixed case, digits, symbols. */
 function strengthOf(pw: string) {
@@ -27,11 +27,11 @@ function strengthOf(pw: string) {
   if (s <= 1) return { score: 1, label: 'Bohat kamzor', color: 'bg-rose-500', text: 'text-rose-600' };
   if (s === 2) return { score: 2, label: 'Kamzor', color: 'bg-orange-500', text: 'text-orange-600' };
   if (s === 3) return { score: 3, label: 'Theek hai', color: 'bg-amber-500', text: 'text-amber-600' };
-  if (s === 4) return { score: 4, label: 'Mazboot', color: 'bg-emerald-500', text: 'text-emerald-600' };
-  return { score: 5, label: 'Bohat mazboot', color: 'bg-emerald-600', text: 'text-emerald-700' };
+  if (s === 4) return { score: 4, label: 'Mazboot', color: 'bg-success-500', text: 'text-success-600' };
+  return { score: 5, label: 'Bohat mazboot', color: 'bg-success-600', text: 'text-success-700' };
 }
 
-const inputCls = 'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15';
+const inputCls = cn(controlClass(), 'h-10 px-3 pr-10 text-sm');
 
 export function AccountPasswordCard() {
   const user = useAuthStore((s: any) => s.user);
@@ -80,7 +80,7 @@ export function AccountPasswordCard() {
     <SectionCard title="Account password" desc="Is se aap app me login karte hain — PIN se alag cheez hai" icon={KeyRound} color="emerald">
       <div className="space-y-4">
         {isGoogleOnly && (
-          <Alert tone="amber" icon={AlertTriangle} title="Abhi koi password nahi hai">
+          <Alert tone="warning" title="Abhi koi password nahi hai" icon={<AlertTriangle className="h-4 w-4" />}>
             Aap Google se login karte hain. Ek password bana lein — Google na chale to bhi login ho sakega, aur PIN bhool jane par kaam aayega.
           </Alert>
         )}
@@ -115,15 +115,13 @@ export function AccountPasswordCard() {
               <input type={show ? 'text' : 'password'} value={confirm} autoComplete="new-password" placeholder="••••••••" className={inputCls}
                 onChange={(e) => { setConfirm(e.target.value); setError(''); }}
                 onKeyDown={(e) => e.key === 'Enter' && submit()} />
-              {confirm && next === confirm && <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />}
+              {confirm && next === confirm && <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-success-500" />}
             </div>
           </Field>
         </div>
 
         {error && (
-          <p className="flex items-center gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 ring-1 ring-rose-100">
-            <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {error}
-          </p>
+          <Alert tone="danger">{error}</Alert>
         )}
 
         <div className="flex flex-wrap items-center gap-2">

@@ -13,7 +13,7 @@ import {
   Activity, AlertTriangle, CalendarCheck, CloudOff, ArrowDownWideNarrow, BarChart3, BookOpen, Cake, Check, Crown, Download, GraduationCap, LayoutGrid,
   MapPin, MessageCircle, Plus, Search, Snowflake, Table2, ToggleRight, Trophy, UserPlus, Users, Wallet, X, type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Button, Card, DateRangeMenu, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption, PageShell } from '@/design-system/components';
+import { Avatar, Button, Card, DateRangeMenu, FilterMenu, Kbd, Modal, PageHero, Skeleton, Table, TBody, THead, Th, Tr, heroButton, heroIconButton, heroPrimaryButton, type FilterOption, PageShell } from '@/design-system/components';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
 import { usePermission } from '@core/hooks/usePermission';
@@ -264,7 +264,7 @@ export function CustomersPage() {
         </div>
         {tab === 'list' && d.items.length > 0 && (
           <button type="button" onClick={selectVisible} className="inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-600 hover:text-slate-900">
-            <span className={cn('flex h-5 w-5 items-center justify-center rounded border-2', allVisible ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300')}><Check className="h-3 w-3" strokeWidth={3} /></span>
+            <span className={cn('flex h-5 w-5 items-center justify-center rounded border-2', allVisible ? 'border-brand-600 bg-brand-600 text-brand-fg' : 'border-slate-300')}><Check className="h-3 w-3" strokeWidth={3} /></span>
             {allVisible ? 'Chunna khatam' : `Nazar aane wale ${d.items.length} chunein`}
           </button>
         )}
@@ -292,20 +292,20 @@ export function CustomersPage() {
           {d.items.map((c) => <CustomerCard key={c.id} c={c} money={money} shop={tenantName} selected={d.selected.has(c.id)} selecting={d.selected.size > 0} onToggle={() => d.toggle(c.id)} canEdit={can.edit} />)}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-          <table className="w-full min-w-[56rem]">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <th className="w-10 py-2.5 pl-4"><button type="button" onClick={selectVisible} aria-label="Sab chunein" className={cn('flex h-6 w-6 items-center justify-center rounded-md border-2', allVisible ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-transparent')}><Check className="h-3.5 w-3.5" strokeWidth={3} /></button></th>
-                <th className="py-2.5 pr-3">Customer</th><th className="px-3 py-2.5">Sheher</th><th className="px-3 py-2.5 text-right">Aaya</th><th className="px-3 py-2.5 text-right">Khareeda</th>
-                <th className="px-3 py-2.5 text-right">Ausat</th><th className="px-3 py-2.5">Aakhri dafa</th><th className="px-3 py-2.5 text-right">Hisaab</th><th className="py-2.5 pr-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+        <Card flush className="overflow-hidden rounded-3xl">
+          <Table minWidth="56rem">
+            <THead className="text-[0.6875rem]">
+              <Tr>
+                <Th className="w-10 py-2.5 pl-4 pr-0"><button type="button" onClick={selectVisible} aria-label="Sab chunein" className={cn('flex h-6 w-6 items-center justify-center rounded-md border-2', allVisible ? 'border-brand-600 bg-brand-600 text-brand-fg' : 'border-slate-300 text-transparent')}><Check className="h-3.5 w-3.5" strokeWidth={3} /></button></Th>
+                <Th className="pl-0 pr-3">Customer</Th><Th className="px-3">Sheher</Th><Th align="right" className="px-3">Aaya</Th><Th align="right" className="px-3">Khareeda</Th>
+                <Th align="right" className="px-3">Ausat</Th><Th className="px-3">Aakhri dafa</Th><Th align="right" className="px-3">Hisaab</Th><Th className="pl-0 pr-3" />
+              </Tr>
+            </THead>
+            <TBody>
               {d.items.map((c) => <CustomerRow key={c.id} c={c} money={money} shop={tenantName} selected={d.selected.has(c.id)} selecting={d.selected.size > 0} onToggle={() => d.toggle(c.id)} canEdit={can.edit} />)}
-            </tbody>
-          </table>
-        </div>
+            </TBody>
+          </Table>
+        </Card>
       )}
 
       {tab === 'list' && d.hasMore && (
@@ -328,7 +328,7 @@ function CustomersAnalytics({ stats, activity, cities, money, onFilter }: {
 }) {
   const aging = [
     { k: 'd0' as const, l: '7 din se kam', c: 'bg-success-500' }, { k: 'd7' as const, l: '7–30 din', c: 'bg-amber-400' },
-    { k: 'd30' as const, l: '30–90 din', c: 'bg-orange-500' }, { k: 'd90' as const, l: '90 din se zyada', c: 'bg-rose-600' },
+    { k: 'd30' as const, l: '30–90 din', c: 'bg-orange-500' }, { k: 'd90' as const, l: '90 din se zyada', c: 'bg-rose-500' },
   ];
   const agingMax = Math.max(1, ...aging.map((a) => stats.aging[a.k].amount));
   const life = [

@@ -10,8 +10,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, Building2, Eye, EyeOff, KeyRound, MapPin, Phone, RefreshCw, Star, UserPlus } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch } from '@/design-system/components';
+import { AlertTriangle, Building2, Eye, EyeOff, KeyRound, MapPin, Phone, RefreshCw, Star, UserPlus } from 'lucide-react';
+import { Button, Card, EmptyState, Input, Kbd, PageHero, PageShell, Skeleton, Switch } from '@/design-system/components';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { pakistanPhoneError } from '@core/lib/phone';
@@ -122,21 +122,20 @@ export default function ShopFormPage() {
   });
 
   if (!canManage) {
-    return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Branch banane ya badalne ke liye "Branches sambhalna" ki permission chahiye</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button></div></PageShell>;
+    return <PageShell><Card><EmptyState title={'Branch banane ya badalne ke liye "Branches sambhalna" ki permission chahiye'} action={<Button variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button>} /></Card></PageShell>;
   }
   if (editing && shopQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-80 rounded-2xl" /><Skeleton className="h-80 rounded-2xl" /></div></PageShell>;
-  if (editing && !shop) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Yeh branch nahi mili</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button></div></PageShell>;
+  if (editing && !shop) return <PageShell><Card><EmptyState title="Yeh branch nahi mili" action={<Button variant="secondary" onClick={() => navigate('/shops')}>Branches par wapas</Button>} /></Card></PageShell>;
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${shop?.name} — badlein` : 'Nayi branch'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{editing ? 'Jo badalna hai badlein — stock aur hisaab waise hi rahega' : 'Dukaan, warehouse ya godown. Manager ka login bhi yahin de sakte hain.'}</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-      </div>
+      <PageHero
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        title={editing ? `${shop?.name} — badlein` : 'Nayi branch'}
+        subtitle={editing ? 'Jo badalna hai badlein — stock aur hisaab waise hi rahega' : 'Dukaan, warehouse ya godown. Manager ka login bhi yahin de sakte hain.'}
+        actions={<span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">

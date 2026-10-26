@@ -9,10 +9,8 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  ArrowLeft, CalendarClock, HeartPulse, Home, Pencil, Plus, ShieldCheck, ShoppingCart, Skull, Stethoscope, Tag, Undo2, Wallet,
-} from 'lucide-react';
-import { Button, Card, Input, Modal, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { CalendarClock, HeartPulse, Home, Pencil, Plus, ShieldCheck, ShoppingCart, Skull, Stethoscope, Tag, Undo2, Wallet } from 'lucide-react';
+import { Button, Card, Input, Modal, PageHero, PageShell, Select, Skeleton, Switch, Textarea, heroButton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { PrintButton } from '@core/print/PrintButton';
 import type { PrintDoc } from '@core/print/types';
@@ -83,16 +81,18 @@ export default function LiveAnimalDetailPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate('/petshop/live-animals')} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{title} <span className="font-mono text-[0.875rem] font-normal text-white/70">{a.animalNumber}</span></h1>
-          <p className="text-[0.8125rem] text-white/75">{[speciesLabel(a.species), a.breed, a.gender, ageText(a.ageMonths)].filter(Boolean).join(' · ')}</p>
-        </div>
-        <Pill tone={ANIMAL_STATUS[a.status]?.tone ?? ''}>{ANIMAL_STATUS[a.status]?.label}</Pill>
-        <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={card} label="Card print" /></span>
-        {canEdit && onSale && <Link to={`/petshop/live-animals/${a.id}/edit`} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-3 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Pencil className="h-4 w-4" />Badlein</Link>}
-      </div>
+      <PageHero
+        title={<>{title} <span className="font-mono text-[0.875rem] font-normal text-white/70">{a.animalNumber}</span></>}
+        subtitle={[speciesLabel(a.species), a.breed, a.gender, ageText(a.ageMonths)].filter(Boolean).join(' · ')}
+        back="/petshop/live-animals"
+        actions={(
+          <>
+            <Pill tone={ANIMAL_STATUS[a.status]?.tone ?? ''}>{ANIMAL_STATUS[a.status]?.label}</Pill>
+            <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={card} label="Card print" /></span>
+            {canEdit && onSale && <Link to={`/petshop/live-animals/${a.id}/edit`} className={heroButton}><Pencil className="h-4 w-4" />Badlein</Link>}
+          </>
+        )}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <div className="space-y-4">
@@ -111,7 +111,7 @@ export default function LiveAnimalDetailPage() {
             <div className="grid grid-cols-2 gap-2">
               <Stat label={a.status === 'SOLD' ? 'Bika' : 'Rate'} value={money(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice)} />
               {!costHidden && <Stat label="Cost" value={costMoney(a.costPrice ?? 0)} />}
-              {!costHidden && <Stat label="Profit" value={costMoney((a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) - (a.costPrice ?? 0))} tone={(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) >= (a.costPrice ?? 0) ? 'text-emerald-700' : 'text-rose-700'} />}
+              {!costHidden && <Stat label="Profit" value={costMoney((a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) - (a.costPrice ?? 0))} tone={(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) >= (a.costPrice ?? 0) ? 'text-success-700' : 'text-rose-700'} />}
               <Stat label="Dukaan me" value={inStore === null ? '—' : `${-inStore} din`} tone={inStore !== null && -inStore > 60 && onSale ? 'text-amber-700' : undefined} />
             </div>
             {a.status === 'SOLD' && <p className="mt-3 text-[0.8125rem] text-slate-600">{longDate(a.soldAt)}{a.soldToCustomerName ? ` · ${a.soldToCustomerName}` : ''}</p>}
@@ -130,9 +130,9 @@ export default function LiveAnimalDetailPage() {
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <Info icon={ShieldCheck} title="Vaccine / deworming">
-              <p className={a.isVaccinated ? 'font-semibold text-emerald-700' : 'font-semibold text-rose-700'}>{a.isVaccinated ? 'Vaccine lagi' : 'Vaccine nahi lagi'}</p>
+              <p className={a.isVaccinated ? 'font-semibold text-success-700' : 'font-semibold text-rose-700'}>{a.isVaccinated ? 'Vaccine lagi' : 'Vaccine nahi lagi'}</p>
               {a.vaccinationDetails && <p className="whitespace-pre-line text-[0.8125rem] text-slate-600">{a.vaccinationDetails}</p>}
-              <p className={a.isDewormed ? 'mt-1 font-semibold text-emerald-700' : 'mt-1 font-semibold text-amber-700'}>{a.isDewormed ? 'Deworming hui' : 'Deworming baqi'}</p>
+              <p className={a.isDewormed ? 'mt-1 font-semibold text-success-700' : 'mt-1 font-semibold text-amber-700'}>{a.isDewormed ? 'Deworming hui' : 'Deworming baqi'}</p>
               {nextDue && <p className="mt-1 inline-flex items-center gap-1 text-[0.8125rem] text-slate-700"><CalendarClock className="h-3.5 w-3.5" />Agli baar {shortDate(nextDue)}</p>}
             </Info>
             <Info icon={Home} title="Dukaan me">

@@ -21,10 +21,10 @@ export async function fetchAllProducts(filters: CatalogFilters, max = 10_000): P
 }
 
 export function productsCsv(items: CatalogItem[], header: string[], withCost: boolean) {
-  const head = ['Naam', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Rate', 'Wholesale', ...(withCost ? ['Cost', 'Stock ki cost'] : []),
+  const head = ['Naam', 'SKU', 'Barcode', 'Category', 'Brand', 'Unit', 'Retail price', 'Wholesale price', 'Credit price', ...(withCost ? ['Cost price', 'Stock ki cost'] : []),
     'Stock', 'Kam ki had', 'Halat', '30 din bika', 'Kitne din ka stock', 'Expiry', 'Chalu'];
   const rows = items.map((p) => [
-    p.name, p.sku ?? '', p.barcode ?? '', p.category?.name ?? '', p.brand?.name ?? '', p.unit, p.price.toFixed(2), p.wholesalePrice?.toFixed(2) ?? '',
+    p.name, p.sku ?? '', p.barcode ?? '', p.category?.name ?? '', p.brand?.name ?? '', p.unit, p.price.toFixed(2), p.wholesalePrice?.toFixed(2) ?? '', p.creditPrice?.toFixed(2) ?? '',
     ...(withCost ? [p.costPrice.toFixed(2), (Math.max(0, p.stock) * p.costPrice).toFixed(2)] : []),
     fmt(p.stock), fmt(p.lowStockAlert), p.status === 'out' ? 'Khatam' : p.status === 'low' ? 'Kam' : 'Theek',
     fmt(p.sold30), p.daysLeft ?? '', p.expiry ? new Date(p.expiry).toLocaleDateString('en-PK') : '', p.isActive ? 'Haan' : 'Nahi',

@@ -3,27 +3,26 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, ExternalLink, Loader2, Printer, RefreshCw, Truck, X, Zap } from 'lucide-react';
-import { Button, Modal, confirmDialog } from '@/design-system/components';
+import { Alert, Badge, Button, Card, confirmDialog, controlClass, Field, Input, Modal, Segmented, type BadgeVariant } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage, couriersApi, type CourierState, type OnlineOrderDetail } from '../api/online-orders.api';
 import { rs, whenText } from '../lib/labels';
-import { inputCls } from './ui/kit';
 
 import { COURIERS_KEY } from './couriers/CourierForms';
 export { COURIERS_KEY };
 
-const STATE_LABEL: Record<CourierState | 'BOOKING', { label: string; tone: string }> = {
-  BOOKING: { label: 'Book ho raha…', tone: 'bg-slate-100 text-slate-600' },
-  BOOKED: { label: 'Book ho gaya — pickup ka intezar', tone: 'bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300' },
-  PICKED_UP: { label: 'Courier le gaya', tone: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-300' },
-  IN_TRANSIT: { label: 'Raste me', tone: 'bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300' },
-  OUT_FOR_DELIVERY: { label: 'Aaj deliver hoga', tone: 'bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300' },
-  ATTEMPTED: { label: 'Customer nahi mila — dobara koshish', tone: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300' },
-  DELIVERED: { label: 'Deliver ho gaya', tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300' },
-  RETURNING: { label: 'Wapas aa raha hai', tone: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-500/15 dark:text-fuchsia-300' },
-  RETURNED: { label: 'Wapas aa gaya (RTO)', tone: 'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-500/15 dark:text-fuchsia-300' },
-  CANCELLED: { label: 'Booking cancel', tone: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300' },
-  UNKNOWN: { label: 'Status nahi mila', tone: 'bg-slate-100 text-slate-600' },
+const STATE_LABEL: Record<CourierState | 'BOOKING', { label: string; tone: BadgeVariant }> = {
+  BOOKING: { label: 'Book ho raha…', tone: 'default' },
+  BOOKED: { label: 'Book ho gaya — pickup ka intezar', tone: 'info' },
+  PICKED_UP: { label: 'Courier le gaya', tone: 'info' },
+  IN_TRANSIT: { label: 'Raste me', tone: 'accent' },
+  OUT_FOR_DELIVERY: { label: 'Aaj deliver hoga', tone: 'accent' },
+  ATTEMPTED: { label: 'Customer nahi mila — dobara koshish', tone: 'warning' },
+  DELIVERED: { label: 'Deliver ho gaya', tone: 'success' },
+  RETURNING: { label: 'Wapas aa raha hai', tone: 'danger' },
+  RETURNED: { label: 'Wapas aa gaya (RTO)', tone: 'danger' },
+  CANCELLED: { label: 'Booking cancel', tone: 'danger' },
+  UNKNOWN: { label: 'Status nahi mila', tone: 'default' },
 };
 
 /**
@@ -61,21 +60,22 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
     const st = STATE_LABEL[(o.courierStatus ?? 'BOOKED') as CourierState] ?? STATE_LABEL.UNKNOWN;
     const history = o.courierTrail?.history ?? [];
     return (
-      <section className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
+      <Card>
         <div className="flex items-start gap-3">
           <Truck className="mt-0.5 h-5 w-5 text-slate-400" />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-black text-slate-900 dark:text-ink-white">{o.courierLabel ?? 'Courier'}</span>
+              <span className="text-sm font-bold text-slate-900">{o.courierLabel ?? 'Courier'}</span>
               <button
-                className="inline-flex items-center gap-1 font-mono text-[0.8125rem] font-bold text-slate-700 hover:underline dark:text-ink-200"
+                type="button"
+                className="inline-flex items-center gap-1 font-mono text-[0.8125rem] font-bold text-slate-700 hover:underline"
                 onClick={() => navigator.clipboard?.writeText(o.trackingNumber!).then(() => toast.success('CN copy ho gaya'))}
               >
                 {o.trackingNumber} <Copy className="h-3 w-3" />
               </button>
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <span className={cn('rounded-md px-2 py-0.5 text-[0.6875rem] font-black', st.tone)}>{st.label}</span>
+              <Badge size="xs" variant={st.tone}>{st.label}</Badge>
               {o.courierTrail?.label && <span className="text-[0.6875rem] text-slate-500">“{o.courierTrail.label}”</span>}
               {o.courierStatusAt && <span className="text-[0.6875rem] text-slate-400">· {whenText(o.courierStatusAt)}</span>}
             </div>
@@ -85,9 +85,9 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
         {history.length > 1 && (
           <details className="mt-3 text-xs">
             <summary className="cursor-pointer font-bold text-slate-500">Courier ka safar ({history.length})</summary>
-            <ol className="mt-2 space-y-1 border-l border-slate-200 pl-3 dark:border-ink-700">
+            <ol className="mt-2 space-y-1 border-l border-slate-200 pl-3">
               {[...history].reverse().map((h, i) => (
-                <li key={i} className="text-slate-600 dark:text-ink-300">
+                <li key={i} className="text-slate-600">
                   {h.label}{h.at ? <span className="text-slate-400"> · {h.at}</span> : null}
                 </li>
               ))}
@@ -111,7 +111,7 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
           )}
           {o.courierStatus === 'BOOKED' && canCancel && (
             <Button
-              size="xs" variant="ghost" className="text-rose-600" loading={cancel.isPending}
+              size="xs" variant="critical" loading={cancel.isPending}
               onClick={async () => { if ((await confirmDialog({ title: 'Courier booking cancel karein?', text: 'CN khatam ho jayega.', danger: true }))) cancel.mutate(); }}
               leftIcon={<X className="h-3.5 w-3.5" />}
             >
@@ -120,7 +120,7 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
           )}
         </div>
         <p className="mt-2 text-[0.6875rem] text-slate-400">Nafaa har 30 minute courier se status leta hai — deliver ya wapas (RTO) hote hi order khud update hota hai.</p>
-      </section>
+      </Card>
     );
   }
 
@@ -128,28 +128,30 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
 
   if (!connected.length) {
     return (
-      <section className="flex items-center gap-3 rounded-2xl border border-dashed border-slate-300 p-4 dark:border-ink-700">
+      <section className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 p-4">
         <Zap className="h-5 w-5 text-slate-400" />
         <div className="flex-1 text-xs text-slate-500">
-          <span className="font-bold text-slate-700 dark:text-ink-200">PostEx ya Leopards jorein</span> — phir yahin se ek click me booking, CN aur label.
+          <span className="font-bold text-slate-700">PostEx ya Leopards jorein</span> — phir yahin se ek click me booking, CN aur label.
         </div>
-        <Link to="/online-store/couriers" className="text-xs font-bold text-emerald-700 hover:underline dark:text-emerald-400">Jorein →</Link>
+        <Link to="/online-store/couriers" className="text-xs font-bold text-brand-700 hover:underline">Jorein →</Link>
       </section>
     );
   }
 
   return (
     <>
-      <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
+      <Card>
+        <div className="flex flex-wrap items-center gap-3">
         <Truck className="h-5 w-5 text-slate-400" />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-black text-slate-900 dark:text-ink-white">Courier par book karein</div>
+          <div className="text-sm font-bold text-slate-900">Courier par book karein</div>
           <div className="text-xs text-slate-500">CN aur label khud banega · COD {o.paymentStatus === 'PAID' ? 'nahi (paid)' : rs(o.total)}</div>
         </div>
         <Button size="sm" variant="primary" onClick={() => setBookOpen(true)} leftIcon={<Zap className="h-3.5 w-3.5" />}>
           {connected.length === 1 ? `${connected[0].name} par book` : 'Book karein'}
         </Button>
-      </section>
+        </div>
+      </Card>
       {bookOpen && (
         <BookModal
           order={o}
@@ -239,68 +241,42 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
     >
       <div className="space-y-4">
         {current.missing.length > 0 && (
-          <div className="rounded-lg bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+          <Alert tone="warning">
             {current.name} ki settings poori karein: {current.missing.join(', ')} —{' '}
             <Link to={`/online-store/couriers/${current.code.toLowerCase()}?tab=settings`} className="font-semibold underline">Settings kholein</Link>
-          </div>
+          </Alert>
         )}
         {couriers.length > 1 && (
-          <div className="flex flex-wrap gap-1.5">
-            {couriers.map((c) => (
-              <button
-                key={c.code}
-                onClick={() => setCourier(c.code)}
-                className={cn('rounded-lg border px-3 py-1.5 text-sm font-bold',
-                  c.code === courier ? 'border-slate-900 bg-slate-900 text-white dark:border-ink-white dark:bg-ink-white dark:text-ink-900' : 'border-slate-200 text-slate-700 dark:border-ink-700 dark:text-ink-200')}
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
+          <Segmented label="Courier" value={courier} onChange={setCourier} items={couriers.map((c) => ({ value: c.code, label: c.name }))} />
         )}
 
-        <label className="block">
-          <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">
-            Shehar {o.customerCity ? <span className="font-normal text-slate-400">(customer ne likha: {o.customerCity})</span> : null}
-          </span>
-          {optsLoading ? (
+        <Field label={<>Shehar {o.customerCity ? <span className="font-normal text-slate-400">(customer ne likha: {o.customerCity})</span> : null}</>}>
+          {(id) => optsLoading ? (
             <div className="flex items-center gap-2 text-xs text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {current.name} ke shehar aa rahe hain…</div>
           ) : optsError ? (
             <div className="text-xs text-rose-600">{apiErrorMessage(optsError)}</div>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2">
-              <input value={cityQ} onChange={(e) => setCityQ(e.target.value)} placeholder="Shehar search…" className={inputCls} />
-              <select value={cityId} onChange={(e) => setCityId(e.target.value)} className={inputCls}>
+              <input value={cityQ} onChange={(e) => setCityQ(e.target.value)} placeholder="Shehar search…" aria-label="Shehar search" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')} />
+              <select id={id} value={cityId} onChange={(e) => setCityId(e.target.value)} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')}>
                 <option value="">— chunein —</option>
                 {cityId && !cities.some((c) => c.id === cityId) && cityName && <option value={cityId}>{cityName}</option>}
                 {cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
           )}
-        </label>
+        </Field>
 
         <div className="grid grid-cols-3 gap-2">
-          <label className="block">
-            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">Wazan (kg)</span>
-            <input type="number" min="0.01" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} className={inputCls} />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">Pieces</span>
-            <input type="number" min="1" step="1" value={pieces} onChange={(e) => setPieces(e.target.value)} className={inputCls} />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">COD (Rs)</span>
-            <input type="number" min="0" step="1" value={cod} onChange={(e) => setCod(e.target.value)} className={inputCls} />
-          </label>
+          <Input size="sm" label="Wazan (kg)" type="number" min="0.01" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} />
+          <Input size="sm" label="Pieces" type="number" min="1" step="1" value={pieces} onChange={(e) => setPieces(e.target.value)} />
+          <Input size="sm" label="COD (Rs)" type="number" min="0" step="1" value={cod} onChange={(e) => setCod(e.target.value)} />
         </div>
         {Number(cod) !== Math.round(o.total) && o.paymentStatus !== 'PAID' && (
-          <p className="-mt-2 text-[0.6875rem] font-semibold text-amber-600">Order ka total {rs(o.total)} hai — COD alag rakh rahe hain</p>
+          <p className="-mt-2 text-[0.6875rem] font-semibold text-amber-700">Order ka total {rs(o.total)} hai — COD alag rakh rahe hain</p>
         )}
 
-        <label className="block">
-          <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">Courier ke liye note (optional)</span>
-          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Fragile, call karke aayein…" className={inputCls} maxLength={200} />
-        </label>
+        <Input size="sm" label="Courier ke liye note (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Fragile, call karke aayein…" maxLength={200} />
       </div>
     </Modal>
   );

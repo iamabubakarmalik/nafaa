@@ -2,9 +2,19 @@
 
 import { apiClient } from '@core/api/client';
 import type { PaymentMethod, SalePaymentPart, TenderMethod } from '@modules/sales/sales/api/sales.api';
+import { tierOf, type PriceTier } from '@core/lib/priceTiers';
 
 export type HistoryStatus = 'all' | 'active' | 'credit' | 'returned' | 'voided';
 export type HistorySort = 'new' | 'old' | 'high' | 'low';
+/** How a bill was priced: one tier, or MIXED when its lines use different tiers. */
+export type BillTier = PriceTier | 'MIXED';
+
+/** Bill tier from its lines, as the server computes it: null when no line has a tier. */
+export function billTierOf(lines: Array<{ priceTier?: string | null }>): BillTier | null {
+  if (!lines.some((l) => l.priceTier)) return null;
+  const tiers = new Set(lines.map((l) => tierOf(l.priceTier)));
+  return tiers.size > 1 ? 'MIXED' : [...tiers][0];
+}
 
 export interface HistoryFilters {
   /** Business-day keys (YYYY-MM-DD); from = 'all' for no lower bound. */
@@ -16,12 +26,20 @@ export interface HistoryFilters {
   staffId?: string;
   customerId?: string;
   search?: string;
+  /** Price tier of the bill; undefined = every bill. */
+  tier?: BillTier;
   sort: HistorySort;
 }
 
 export interface HistoryItem {
   id: string; productId: string | null; name: string; variant: string | null; unit: string; barcode: string | null;
   quantity: number; returnedQty: number; price: number; total: number;
+  /** Tier the line was sold at; null on lines sold before price tiers. */
+  priceTier?: PriceTier | null;
+  /** Retail price per unit for a wholesale/credit line; null on retail lines. */
+  retailPrice?: number | null;
+  /** True when retailPrice is today's product price, since the sale did not store one. */
+  retailPriceIsToday?: boolean;
 }
 
 export interface HistorySale {
@@ -34,6 +52,8 @@ export interface HistorySale {
   customer: { id: string; name: string; phone: string | null } | null;
   shop: { id: string; name: string } | null;
   items: HistoryItem[];
+  /** Bill tier; null on bills sold before price tiers. */
+  priceTier?: BillTier | null;
   /** Saved on this device, waiting for internet. */
   pending?: boolean;
 }
@@ -48,6 +68,15 @@ export interface HistoryStats {
 export interface HistoryPage {
   from: string | null; to: string; page: number; limit: number; count: number; hasMore: boolean;
   items: HistorySale[]; stats: HistoryStats;
+  /** Bills and line totals per tier for the filter; null when every line is retail. */
+  tiers?: HistoryTierTotals | null;
+}
+
+export interface HistoryTierTotals {
+  RETAIL: { bills: number; total: number };
+  WHOLESALE: { bills: number; total: number };
+  CREDIT: { bills: number; total: number };
+  mixedBills: number;
 }
 
 export interface HistoryAnalytics {
@@ -73,7 +102,7 @@ export interface HistoryAnalytics {
 
 const params = (f: HistoryFilters, page?: number, limit?: number) => ({
   from: f.from, to: f.to, method: f.method, status: f.status === 'all' ? undefined : f.status,
-  source: f.source, staffId: f.staffId, customerId: f.customerId, search: f.search?.trim() || undefined, sort: f.sort, page, limit,
+  source: f.source, staffId: f.staffId, customerId: f.customerId, search: f.search?.trim() || undefined, tier: f.tier, sort: f.sort, page, limit,
 });
 
 export const salesHistoryApi = {

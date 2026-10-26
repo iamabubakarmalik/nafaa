@@ -18,7 +18,8 @@ const P = PERMISSIONS;
 
 /** Tarteeb maina rakhti hai — khaas pehle, aam baad me */
 const RULES: Array<[RegExp, PermissionKey]> = [
-  // Bakery
+  // Bakery: taking or changing an order needs the manage right.
+  [/^\/bakery\/(cake-orders|bulk-orders)\/(new|[^/]+\/edit)$/, P.BAKERY_ORDERS_MANAGE],
   [/^\/bakery\/(cake-orders|bulk-orders)/, P.BAKERY_ORDERS_VIEW],
   [/^\/bakery\/(production|freshness)/, P.BAKERY_PRODUCTION_VIEW],
   [/^\/bakery\/ingredients/, P.BAKERY_INGREDIENTS_VIEW],
@@ -42,6 +43,7 @@ const RULES: Array<[RegExp, PermissionKey]> = [
   [/^\/gaming\/topups/, P.PRODUCTS_VIEW],
 
   // Electronics
+  [/^\/electronics\/bundles/, P.PRODUCTS_VIEW],
   [/^\/electronics\/serials/, P.ELECTRONICS_SERIALS_VIEW],
   [/^\/electronics\/warranty/, P.ELECTRONICS_WARRANTY_VIEW],
 
@@ -58,6 +60,14 @@ const RULES: Array<[RegExp, PermissionKey]> = [
   [/^\/restaurant\/(orders|tables|delivery|riders)/, P.RESTAURANT_ORDERS_VIEW],
   [/^\/restaurant\/(kot|stations|recipes)/, P.RESTAURANT_KITCHEN_VIEW],
   [/^\/restaurant\/(menu|modifiers|happy-hours)/, P.RESTAURANT_MENU_VIEW],
+
+  // Retail
+  [/^\/retail\/barcode-labels/, P.PRODUCTS_VIEW],
+
+  // Salon services and hotel room types are edited like products.
+  [/^\/(salon-services|hotel-room-types)\/new$/, P.PRODUCTS_CREATE],
+  [/^\/(salon-services|hotel-room-types)\/[^/]+\/edit$/, P.PRODUCTS_EDIT],
+  [/^\/(salon-services|hotel-room-types)/, P.PRODUCTS_VIEW],
 
   // Hotel (bookings are covered by the general rule below)
   [/^\/hotel\/(housekeeping|rooms)/, P.SERVICE_BOOKINGS_VIEW],

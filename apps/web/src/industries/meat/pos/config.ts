@@ -11,27 +11,24 @@ import { useProductCatalog, type PosFilter, type PosIndustryConfig, type PosItem
 import { useMeatProfiles } from '../hooks/useMeatProfiles';
 import { KEYS, animalOf, cutLabel } from '../lib/meta';
 import { CounterRate } from './CounterRate';
-import { saleListener, useRateMode } from './rateMode';
+import { saleListener } from './rateMode';
 
 const OFFAL = ['LIVER', 'KIDNEY', 'HEART', 'BRAIN', 'TONGUE', 'TROTTERS', 'HEAD', 'OFFAL', 'TAIL'];
 
 function useMeatCatalog() {
   const profiles = useMeatProfiles();
-  const mode = useRateMode();
   const catalog = useProductCatalog((it): PosItem => {
     const p = profiles.get(it.id);
-    const wholesale = Number(it.product.wholesalePrice) || 0;
-    const rate = mode === 'wholesale' && wholesale > 0 ? wholesale : it.price;
-    if (!p && rate === it.price) return it;
-    const animal = p ? animalOf(p.animalType) : null;
+    if (!p) return it;
+    const animal = animalOf(p.animalType);
+    // The restaurant rate is the wholesale tier; the engine prices lines and cards by the bill's tier.
     return {
       ...it,
-      price: rate,
-      subline: [animal ? `${animal.emoji} ${animal.label}` : null, p ? cutLabel(p.cutCategory) : null, rate !== it.price ? 'Restaurant rate' : null].filter(Boolean).join(' · ') || undefined,
-      searchText: [it.searchText, animal?.label, p ? cutLabel(p.cutCategory) : null].filter(Boolean).join(' '),
-      meta: { ...it.meta, animal: p?.animalType, cut: p?.cutCategory },
+      subline: [animal ? `${animal.emoji} ${animal.label}` : null, cutLabel(p.cutCategory)].filter(Boolean).join(' · ') || undefined,
+      searchText: [it.searchText, animal?.label, cutLabel(p.cutCategory)].filter(Boolean).join(' '),
+      meta: { ...it.meta, animal: p.animalType, cut: p.cutCategory },
     };
-  }, [profiles, mode]);
+  }, [profiles]);
   return { ...catalog, refreshKeys: [...catalog.refreshKeys, KEYS.daySheet] };
 }
 

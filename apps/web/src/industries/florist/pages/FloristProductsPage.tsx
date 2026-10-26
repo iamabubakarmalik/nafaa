@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Flower2, Layers, Leaf, Truck } from 'lucide-react';
-import { heroButton } from '@/design-system/components';
+import { Badge, heroButton } from '@/design-system/components';
 import { ProductsPage } from '@modules/inventory/products/list/ProductsPage';
 import type { ProductsPageConfig } from '@modules/inventory/products/list/types';
 import { floristProductsApi, type FloristProductProfile } from '../api/products.api';
@@ -24,7 +24,6 @@ function HeroLinks() {
   );
 }
 
-const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold';
 const line = (p?: FloristProductProfile) => (p ? [p.flowerType, p.color, p.stemCount ? `${p.stemCount} phool` : null, p.bouquetSize].filter(Boolean).join(' · ') : '');
 
 function useFloristProfiles() {
@@ -47,7 +46,7 @@ export default function FloristProductsPage() {
       return {
         line: line(p) || undefined,
         ribbon: left === null ? undefined : left < 0 ? { text: 'Murjha gaya', tone: 'red' } : left <= 1 ? { text: left === 0 ? 'Aaj tak fresh' : 'Kal tak fresh', tone: 'amber' } : undefined,
-        badges: p?.isPreArranged ? <span className={`${chip} bg-pink-600 text-white`}><Flower2 className="h-3 w-3" />Tayyar</span> : undefined,
+        badges: p?.isPreArranged ? <Badge size="xs" variant="brand" className="gap-1 shadow-sm"><Flower2 className="h-3 w-3" />Tayyar</Badge> : undefined,
         chips: p?.categoryType ? <span className="rounded-md bg-pink-50 px-1.5 py-0.5 text-[0.6875rem] text-pink-700">{categoryLabel(p.categoryType)}</span> : undefined,
       };
     },

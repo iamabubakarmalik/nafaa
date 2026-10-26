@@ -7,9 +7,10 @@ import { Eye, MessageCircle, Printer, RotateCcw, Store, Undo2, User, UserCheck, 
 import { Button, IconButton } from '@/design-system/components';
 import { PAYMENT_LABELS } from '@modules/dashboard/engine/useChartTheme';
 import { SaleSourceBadge } from '@modules/sales/sales/components/SaleSourceBadge';
-import type { HistorySale } from '../api';
+import type { HistoryItem, HistorySale } from '../api';
 import { receiptLink } from '../receiptPrefs';
 import { qtyText, StatusBadge } from './SaleRow';
+import { BillTierBadge, LineTierBadge } from './PriceTierBadge';
 
 const full = (v: string) => new Intl.DateTimeFormat('en-PK', { dateStyle: 'full', timeStyle: 'short' }).format(new Date(v));
 
@@ -19,6 +20,19 @@ function Row({ label, value, strong, tone }: { label: string; value: ReactNode; 
       <dt className={strong ? 'font-semibold text-slate-900' : 'text-slate-500'}>{label}</dt>
       <dd className={`tabular-nums ${strong ? 'text-xl font-bold text-slate-900' : `font-medium ${tone ?? 'text-slate-900'}`}`}>{value}</dd>
     </div>
+  );
+}
+
+/** For a wholesale/credit line: the retail price it would have sold at, and the gap per unit. */
+function RetailCompare({ item, money }: { item: HistoryItem; money: (n: number) => string }) {
+  if (!item.priceTier || item.priceTier === 'RETAIL' || item.retailPrice == null) return null;
+  const gap = item.retailPrice - item.price;
+  const diff = Math.abs(gap) < 0.005 ? 'barabar' : `${money(Math.abs(gap))} ${gap > 0 ? 'kam' : 'zyada'}`;
+  return (
+    <span className="block text-[0.75rem] text-slate-500">
+      Retail {money(item.retailPrice)}{item.retailPriceIsToday && <span className="text-slate-400"> (aaj ka retail)</span>}
+      {' · '}<span className={gap > 0.005 ? 'font-medium text-blue-700' : 'font-medium text-slate-700'}>{diff}</span>
+    </span>
   );
 }
 
@@ -51,6 +65,7 @@ export function SaleDrawer({ sale, money, cost, costHidden, waLink, extra, onRet
             <div className="flex flex-wrap items-center gap-1.5">
               <h2 className="font-mono text-lg font-semibold text-slate-900">{sale.saleNumber}</h2>
               <SaleSourceBadge sale={sale as never} />
+              <BillTierBadge tier={sale.priceTier} size="sm" />
               <StatusBadge sale={sale} />
             </div>
             <p className="mt-0.5 text-[0.8125rem] text-slate-500">{full(sale.soldAt)}</p>
@@ -82,8 +97,12 @@ export function SaleDrawer({ sale, money, cost, costHidden, waLink, extra, onRet
                 <li key={it.id} className="flex items-start gap-3 px-3 py-2.5 text-[0.8125rem]">
                   <span className="w-10 shrink-0 text-right font-bold tabular-nums text-slate-900">{qtyText(it.quantity)}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-medium text-slate-900">{it.name}{it.variant && <span className="text-slate-500"> · {it.variant}</span>}</span>
+                    <span className="flex flex-wrap items-center gap-1.5 font-medium text-slate-900">
+                      <span>{it.name}{it.variant && <span className="text-slate-500"> · {it.variant}</span>}</span>
+                      <LineTierBadge tier={it.priceTier} />
+                    </span>
                     <span className="block text-[0.75rem] text-slate-500">{money(it.price)} / {it.unit}{it.returnedQty > 0 && <span className="text-rose-600"> · {qtyText(it.returnedQty)} wapas</span>}</span>
+                    <RetailCompare item={it} money={money} />
                   </span>
                   <span className="shrink-0 font-semibold tabular-nums text-slate-900">{money(it.total)}</span>
                 </li>

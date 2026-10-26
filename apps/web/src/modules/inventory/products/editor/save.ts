@@ -35,7 +35,9 @@ function productPayload(core: CoreDraft, isEdit: boolean) {
     unit: core.unit,
     price: Number(core.price) || 0,
     costPrice: Number(core.costPrice) || 0,
-    wholesalePrice: core.wholesalePrice ?? undefined,
+    // null clears a price on edit, so the retail price applies again.
+    wholesalePrice: core.wholesalePrice || null,
+    creditPrice: core.creditPrice || null,
     taxRate: Number(core.taxRate) || 0,
     lowStockAlert: Number(core.lowStockAlert) || 0,
     isActive: core.isActive,
@@ -60,7 +62,7 @@ const variantPayload = (v: VariantDraft, core: CoreDraft, i: number, withStock: 
 const unitPayload = (u: UnitDraft, productId: string, i: number) => ({
   productId, unitName: u.unitName.trim(), conversionType: u.conversionType, conversionRate: Number(u.conversionRate) || 1,
   isBase: u.isBase, isDefault: u.isBase, price: Number(u.price) || 0, costPrice: Number(u.costPrice) || 0,
-  wholesalePrice: u.wholesalePrice ?? undefined, mrpPrice: u.mrpPrice ?? undefined, barcode: blank(u.barcode), sku: blank(u.sku),
+  wholesalePrice: u.wholesalePrice || null, creditPrice: u.creditPrice || null, mrpPrice: u.mrpPrice ?? undefined, barcode: blank(u.barcode), sku: blank(u.sku),
   isActive: true, sortOrder: i,
 });
 

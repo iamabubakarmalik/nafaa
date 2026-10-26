@@ -11,13 +11,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, Eye, Info, MessageCircle, RotateCcw, Save, Send, Smartphone } from 'lucide-react';
 import { cn } from '@core/lib/cn';
-import { Button } from '@/design-system/components';
+import { Alert, Button, IconButton, Input, Textarea } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import {
   TEMPLATE_META, FIELD_HELP, DEFAULT_TEMPLATES, resolveTemplates, fillTemplate, waLink, type TemplateKey,
 } from '@core/lib/whatsapp/templates';
 import { settingsApi, type TenantSettings } from '../api/settings.api';
-import { Alert, Field, SectionCard, TextInput } from '../components/UI';
+import { Field, SectionCard } from '../components/SettingsBlocks';
 import { HeaderActions } from '../components/SettingsFrame';
 import { SaveStatusBar } from './_SaveStatus';
 
@@ -82,7 +82,7 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
         </HeaderActions>
       )}
 
-      <Alert tone="emerald" icon={Smartphone} title="Koi API ya fees nahi">
+      <Alert tone="success" title="Koi API ya fees nahi" icon={<Smartphone className="h-4 w-4" />}>
         Bhejte waqt aap ke phone ya computer par <strong>WhatsApp khud khulta hai</strong> aur message pehle se likha hota hai — bas <strong>Send</strong> dabana hai.
       </Alert>
 
@@ -90,8 +90,8 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
         <div role="tablist" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {TEMPLATE_META.map((m) => (
             <button key={m.key} type="button" role="tab" aria-selected={active === m.key} onClick={() => setActive(m.key)}
-              className={cn('rounded-xl border p-3 text-left transition',
-                active === m.key ? 'border-brand-500 bg-brand-50/60 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300')}>
+              className={cn('rounded-lg border p-3 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+                active === m.key ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50')}>
               <span className="text-xl leading-none">{m.emoji}</span>
               <span className="mt-1 block text-sm font-semibold text-slate-900">{m.label}</span>
               <span className="mt-0.5 block text-xs leading-snug text-slate-500">{m.hint}</span>
@@ -103,16 +103,14 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
       <div className="grid gap-4 xl:grid-cols-2">
         <SectionCard title={`${meta.label} ka message`} desc="Apne alfaaz me likhein; {{khane}} me har customer ki asal maloomat aati hai" icon={Info} color="blue"
           action={<Button size="sm" variant="ghost" onClick={resetOne} leftIcon={<RotateCcw className="h-3.5 w-3.5" />}>Tayyar message</Button>}>
-          <Field label="Message" hint="Lambi line theek hai — WhatsApp khud tod deta hai.">
-            <textarea value={drafts[active]} onChange={(e) => setDrafts((d) => ({ ...d, [active]: e.target.value }))} rows={12}
-              className="w-full resize-y rounded-xl border border-slate-200 bg-white p-3 text-sm leading-relaxed text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-          </Field>
+          <Textarea label="Message" hint="Lambi line theek hai — WhatsApp khud tod deta hai." className="leading-relaxed"
+            value={drafts[active]} onChange={(e) => setDrafts((d) => ({ ...d, [active]: e.target.value }))} rows={12} />
           <div className="mt-3">
-            <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">Khane — dabayein to message me jur jata hai</p>
+            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Khane — dabayein to message me jur jata hai</p>
             <div className="flex flex-wrap gap-1.5">
               {meta.fields.map((f) => (
                 <button key={f} type="button" onClick={() => insertField(f)} title={FIELD_HELP[f]}
-                  className="rounded-lg bg-slate-100 px-2.5 py-1.5 font-mono text-[0.75rem] font-medium text-slate-700 transition hover:bg-brand-50 hover:text-brand-700">
+                  className="rounded-md bg-slate-100 px-2.5 py-1.5 font-mono text-[0.75rem] font-medium text-slate-700 transition hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40">
                   {`{{${f}}}`}
                 </button>
               ))}
@@ -122,12 +120,12 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
         </SectionCard>
 
         <SectionCard title="Customer ko aisa jayega" desc="Misaal ki maloomat ke saath — asal me har customer ka naam aur Amount aata hai" icon={Eye} color="emerald">
-          <div className="min-h-[16rem] rounded-xl bg-[#e5ddd5] p-4 dark:bg-ink-800">
-            <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-sm bg-[#dcf8c6] p-3 shadow-sm dark:bg-emerald-900/60">
-              <pre className="whitespace-pre-wrap break-words font-sans text-[0.8125rem] leading-relaxed text-slate-900 dark:text-ink-100">
+          <div className="min-h-[16rem] rounded-lg bg-slate-100 p-4">
+            <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-sm bg-success-100 p-3 shadow-sm">
+              <pre className="whitespace-pre-wrap break-words font-sans text-[0.8125rem] leading-relaxed text-slate-900">
                 {preview || <span className="text-slate-400">Message khaali hai…</span>}
               </pre>
-              <div className="mt-1 text-right text-[0.6875rem] text-slate-500 dark:text-ink-400">
+              <div className="mt-1 text-right text-[0.6875rem] text-slate-500">
                 {new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date())} ✓✓
               </div>
             </div>
@@ -135,16 +133,16 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
           <div className="mt-4">
             <Field label="Khud par test karein" hint="Apna number likhein — WhatsApp yahi message le kar khulega.">
               <div className="flex gap-2">
-                <div className="min-w-0 flex-1"><TextInput value={testPhone} onChange={setTestPhone} placeholder="0300 1234567" /></div>
+                <Input value={testPhone} onChange={(e) => setTestPhone(e.target.value)} placeholder="0300 1234567" aria-label="Test ke liye number" type="tel" wrapperClassName="min-w-0 flex-1" />
                 {testLink ? (
                   <a href={testLink} target="_blank" rel="noreferrer"
-                    className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                    className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-success-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-success-700">
                     <Send className="h-4 w-4" /> Bhejein
                   </a>
                 ) : (
                   <Button variant="secondary" disabled leftIcon={<Send className="h-4 w-4" />}>Bhejein</Button>
                 )}
-                <Button variant="secondary" size="icon" onClick={copy} aria-label="Message copy karein" title="Message copy karein"><Copy className="h-4 w-4" /></Button>
+                <IconButton label="Message copy karein" variant="secondary" onClick={copy} className="h-10 w-10"><Copy className="h-4 w-4" /></IconButton>
               </div>
             </Field>
           </div>
@@ -152,10 +150,9 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
       </div>
 
       {dirty && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-sm text-amber-900 ring-1 ring-amber-100">
-          <Info className="h-4 w-4 shrink-0" /> Tabdeeli abhi save nahi hui.
-          <Button size="sm" className="ml-auto" loading={saveMut.isPending} onClick={() => saveMut.mutate()} leftIcon={<Save className="h-4 w-4" />}>Save karein</Button>
-        </div>
+        <Alert tone="warning" action={<Button size="sm" loading={saveMut.isPending} onClick={() => saveMut.mutate()} leftIcon={<Save className="h-4 w-4" />}>Save karein</Button>}>
+          Tabdeeli abhi save nahi hui.
+        </Alert>
       )}
     </div>
   );

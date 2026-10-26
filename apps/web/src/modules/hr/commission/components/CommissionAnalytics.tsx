@@ -7,7 +7,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { BarChart3, CalendarRange, Gauge, HandCoins, Percent, Users, Wallet, type LucideIcon } from 'lucide-react';
-import { Card, Skeleton } from '@/design-system/components';
+import { Card, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -90,25 +90,23 @@ export function CommissionAnalytics({ period, onPerson }: { period: string; onPe
           </Card>
 
           <Card className="rounded-2xl" title={<Title icon={Users}>Bande</Title>} description="Click karein to us ka is mahine ka statement khulega" flush>
-            <div className="mt-3 overflow-x-auto">
-              <table className="w-full min-w-[28rem] text-[0.8125rem]">
-                <thead><tr className="border-b border-slate-100 text-left text-[0.75rem] text-slate-500">
-                  <th className="px-4 py-2 font-medium">Banda</th><th className="px-2 py-2 text-right font-medium">Sale</th>
-                  <th className="px-2 py-2 text-right font-medium">Commission</th><th className="px-2 py-2 text-right font-medium">%</th><th className="px-4 py-2 text-right font-medium">Ada</th>
-                </tr></thead>
-                <tbody className="divide-y divide-slate-50">
-                  {d.people.map((p) => (
-                    <tr key={p.userId} className="cursor-pointer hover:bg-slate-50" onClick={() => onPerson(p.userId, p.name)}>
-                      <td className="max-w-[10rem] truncate px-4 py-2 font-medium text-slate-900">{p.name}</td>
-                      <td className="px-2 py-2 text-right tabular-nums">{axisMoney(p.sale)}</td>
-                      <td className="px-2 py-2 text-right font-semibold tabular-nums">{signed(p.earned)}</td>
-                      <td className="px-2 py-2 text-right tabular-nums text-slate-500">{p.rate}%</td>
-                      <td className="px-4 py-2 text-right tabular-nums">{formatPKR(p.paid)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table minWidth="28rem" className="mt-3 [&_table]:text-[0.8125rem]">
+              <THead><Tr>
+                <Th className="px-4 py-2">Banda</Th><Th className="px-2 py-2 text-right">Sale</Th>
+                <Th className="px-2 py-2 text-right">Commission</Th><Th className="px-2 py-2 text-right">%</Th><Th className="px-4 py-2 text-right">Ada</Th>
+              </Tr></THead>
+              <TBody>
+                {d.people.map((p) => (
+                  <Tr key={p.userId} interactive onClick={() => onPerson(p.userId, p.name)}>
+                    <Td className="max-w-[10rem] truncate px-4 py-2 font-medium text-slate-900">{p.name}</Td>
+                    <Td className="px-2 py-2 text-right tabular-nums">{axisMoney(p.sale)}</Td>
+                    <Td className="px-2 py-2 text-right font-semibold tabular-nums">{signed(p.earned)}</Td>
+                    <Td className="px-2 py-2 text-right tabular-nums text-slate-500">{p.rate}%</Td>
+                    <Td className="px-4 py-2 text-right tabular-nums">{formatPKR(p.paid)}</Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
           </Card>
         </div>
       </>)}
@@ -121,7 +119,7 @@ function Title({ icon: I, children }: { icon: LucideIcon; children: string }) {
 }
 
 function Kpi({ icon: I, label, value, sub, tone = 'brand' }: { icon: LucideIcon; label: string; value: string; sub?: string; tone?: 'brand' | 'emerald' | 'amber' }) {
-  const toneCls = { emerald: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', brand: 'bg-brand-50 text-brand-700' }[tone];
+  const toneCls = { emerald: 'bg-success-50 text-success-700', amber: 'bg-amber-50 text-amber-700', brand: 'bg-brand-50 text-brand-700' }[tone];
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center gap-2"><span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', toneCls)}><I className="h-4 w-4" /></span><span className="text-[0.8125rem] text-slate-500">{label}</span></div>

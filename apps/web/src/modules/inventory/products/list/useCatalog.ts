@@ -12,10 +12,17 @@ export const CATALOG_KEY = 'product-catalog';
 const PREF_KEY = 'nafaa-products';
 
 type View = 'grid' | 'table';
-interface Prefs { view: View; sort: CatalogSort }
+/** Table columns that are hidden until the owner turns them on. */
+export type OptionalColumn = 'wholesale' | 'credit';
+export const OPTIONAL_COLUMNS: OptionalColumn[] = ['wholesale', 'credit'];
+interface Prefs { view: View; sort: CatalogSort; cols: OptionalColumn[] }
 
 function readPrefs(): Prefs {
-  try { return { view: 'grid', sort: 'name', ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}') }; } catch { return { view: 'grid', sort: 'name' }; }
+  const base: Prefs = { view: 'grid', sort: 'name', cols: [] };
+  try {
+    const saved = { ...base, ...JSON.parse(localStorage.getItem(PREF_KEY) || '{}') };
+    return { ...saved, cols: Array.isArray(saved.cols) ? saved.cols.filter((c: string) => OPTIONAL_COLUMNS.includes(c as OptionalColumn)) : [] };
+  } catch { return base; }
 }
 
 const EMPTY: Omit<CatalogFilters, 'sort'> = { stock: 'all', active: 'active' };
@@ -26,12 +33,13 @@ export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandI
   const saved = useMemo(readPrefs, []);
   const [view, setView] = useState<View>(saved.view);
   const [sort, setSort] = useState<CatalogSort>(saved.sort);
+  const [cols, setCols] = useState<OptionalColumn[]>(saved.cols);
   const [f, setF] = useState<Omit<CatalogFilters, 'sort' | 'search'>>(() => ({ ...EMPTY, ...initial }));
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   useEffect(() => { const t = setTimeout(() => setQuery(search), 250); return () => clearTimeout(t); }, [search]);
-  useEffect(() => { try { localStorage.setItem(PREF_KEY, JSON.stringify({ view, sort })); } catch { /* storage blocked */ } }, [view, sort]);
+  useEffect(() => { try { localStorage.setItem(PREF_KEY, JSON.stringify({ view, sort, cols })); } catch { /* storage blocked */ } }, [view, sort, cols]);
 
   const filters: CatalogFilters = { ...f, search: query, sort };
   const list = useInfiniteQuery({
@@ -50,6 +58,7 @@ export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandI
 
   return {
     filters, f, set, search, setSearch, sort, setSort, view, setView,
+    cols, toggleCol: (col: OptionalColumn) => setCols((cur) => (cur.includes(col) ? cur.filter((x) => x !== col) : [...cur, col])),
     setStock: (s: CatalogStock) => set('stock', s),
     clear: () => { setF(EMPTY); setSearch(''); setSelected(new Set()); },
     hasFilters,

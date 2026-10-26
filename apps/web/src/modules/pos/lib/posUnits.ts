@@ -19,6 +19,7 @@ export interface PosUnitOption {
   conversionRate: number;
   price: number;
   wholesalePrice?: number | null;
+  creditPrice?: number | null;
   isBase?: boolean;
   /** Is unit ka apna barcode — scan par seedha yehi line banti hai. */
   barcode?: string | null;
@@ -72,6 +73,7 @@ interface UnitSourceProduct {
   unit?: string | null;
   price: number;
   wholesalePrice?: number | null;
+  creditPrice?: number | null;
   barcode?: string | null;
   sku?: string | null;
 }
@@ -97,6 +99,7 @@ export function derivePosUnits(
     conversionRate: 1,
     price: product.price,
     wholesalePrice: product.wholesalePrice ?? null,
+    creditPrice: product.creditPrice ?? null,
     isBase: true,
     barcode: product.barcode ?? null,
     sku: product.sku ?? null,
@@ -112,6 +115,7 @@ export function derivePosUnits(
       conversionRate: Number(u.conversionRate) || 1,
       price: Number(u.price) || product.price,
       wholesalePrice: u.wholesalePrice ?? null,
+      creditPrice: u.creditPrice ?? null,
       barcode: u.barcode ?? null,
       sku: u.sku ?? null,
     });

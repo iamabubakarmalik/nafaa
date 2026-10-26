@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Circle, Copy, ExternalLink, Loader2, Search, XCircle } from 'lucide-react';
+import { Button, Card, IconButton, Input } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { publicFetch } from './publicApi';
 import { Shell, type Catalog } from './PublicOrderPage';
 
@@ -54,35 +56,34 @@ export default function PublicTrackPage() {
     <Shell embed={embed} onClose={() => window.parent?.postMessage('nafaa:close', '*')} title={shop?.shop ?? 'Order ka haal'} logo={shop?.logoUrl} accent={accent}
       right={<Link to={`/order/${key}${embed ? '?embed=1' : ''}`} className="rounded-lg px-2 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">Shopping</Link>}>
       <div className="space-y-4 p-4 pb-16">
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <div className="text-sm font-bold text-slate-900">Mera order kahan hai?</div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_140px_auto]">
-            <input value={no} onChange={(e) => setNo(e.target.value.toUpperCase())} placeholder="Order # (jaise NF1A2B3C4D)"
-              className="rounded-xl border border-slate-300 px-3 py-2.5 font-mono text-[0.9375rem] uppercase outline-none focus:border-slate-500" />
-            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone ke aakhri 4" inputMode="numeric" maxLength={11}
-              onKeyDown={(e) => { if (e.key === 'Enter') check(); }}
-              className="rounded-xl border border-slate-300 px-3 py-2.5 text-[0.9375rem] outline-none focus:border-slate-500" />
-            <button onClick={check} disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60" style={{ background: accent }}>
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Dekhein
-            </button>
+        <Card className="rounded-2xl" title="Mera order kahan hai?">
+          <div className="grid gap-2 sm:grid-cols-[1fr_8.75rem_auto]">
+            <Input size="lg" value={no} onChange={(e) => setNo(e.target.value.toUpperCase())} placeholder="Order # (jaise NF1A2B3C4D)" aria-label="Order number"
+              className="font-mono uppercase" />
+            <Input size="lg" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone ke aakhri 4" aria-label="Phone ke aakhri 4" inputMode="numeric" maxLength={11}
+              onKeyDown={(e) => { if (e.key === 'Enter') check(); }} />
+            <Button size="lg" onClick={check} disabled={busy} className="text-white" style={{ background: accent }}
+              leftIcon={busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}>
+              Dekhein
+            </Button>
           </div>
           {err && <p className="mt-2 text-sm font-semibold text-rose-600">{err}</p>}
-        </div>
+        </Card>
 
         {data && (
-          <div className="rounded-2xl border border-slate-200 p-5">
+          <Card className="rounded-2xl">
             <div className="flex items-center gap-2">
               {data.closed ? <XCircle className="h-6 w-6 text-rose-500" /> : <CheckCircle2 className="h-6 w-6" style={{ color: accent }} />}
               <div className="text-lg font-bold text-slate-900">{data.label}</div>
             </div>
-            <div className="mt-1 text-sm text-slate-500">Total Rs {Math.round(data.total).toLocaleString('en-PK')} · {data.paid ? 'Paisa mil gaya' : 'Cash on delivery'}</div>
+            <div className="mt-1 text-sm text-slate-500">Total <span className="tabular-nums">Rs {Math.round(data.total).toLocaleString('en-PK')}</span> · {data.paid ? <span className="font-semibold text-success-700">Paisa mil gaya</span> : 'Cash on delivery'}</div>
 
             {!data.closed && (
               <ol className="mt-5 space-y-3">
                 {data.steps.map((s, i) => (
                   <li key={s.key} className="flex items-center gap-3">
-                    {s.at ? <CheckCircle2 className="h-5 w-5 shrink-0" style={{ color: accent }} /> : <Circle className={`h-5 w-5 shrink-0 ${i === reached ? 'text-slate-400' : 'text-slate-200'}`} />}
-                    <div className={`flex-1 text-sm font-semibold ${s.at ? 'text-slate-900' : 'text-slate-400'}`}>{s.label}</div>
+                    {s.at ? <CheckCircle2 className="h-5 w-5 shrink-0" style={{ color: accent }} /> : <Circle className={cn('h-5 w-5 shrink-0', i === reached ? 'text-slate-400' : 'text-slate-300')} />}
+                    <div className={cn('flex-1 text-sm font-semibold', s.at ? 'text-slate-900' : 'text-slate-400')}>{s.label}</div>
                     <div className="text-xs text-slate-400">{when(s.at)}</div>
                   </li>
                 ))}
@@ -94,7 +95,7 @@ export default function PublicTrackPage() {
                 <div className="text-xs font-semibold text-slate-500">{data.courier.name} · tracking number</div>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="font-mono text-base font-bold text-slate-900">{data.courier.trackingNumber}</span>
-                  <button onClick={() => navigator.clipboard?.writeText(data.courier!.trackingNumber)} className="rounded p-1 text-slate-500 hover:bg-white" aria-label="Copy"><Copy className="h-4 w-4" /></button>
+                  <IconButton size="sm" label="Copy" onClick={() => navigator.clipboard?.writeText(data.courier!.trackingNumber)}><Copy className="h-4 w-4" /></IconButton>
                   {data.courier.site && (
                     <a href={data.courier.site} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-semibold" style={{ color: accent }}>
                       {data.courier.name} par dekhein <ExternalLink className="h-3.5 w-3.5" />
@@ -103,7 +104,7 @@ export default function PublicTrackPage() {
                 </div>
               </div>
             )}
-          </div>
+          </Card>
         )}
       </div>
     </Shell>

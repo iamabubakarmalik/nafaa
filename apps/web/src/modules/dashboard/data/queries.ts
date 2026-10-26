@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { dashboardApi, type DashboardOverview } from '../api/dashboard.api';
 import { retailDashboardApi } from '@industries/retail/api/dashboard.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
+import type { PriceTier } from '@core/lib/priceTiers';
 
 const MINUTE = 60_000;
 
@@ -112,6 +113,11 @@ export interface DayReport {
     countedClosing: number | null; difference: number | null; allClosed: boolean;
   };
   staff: Array<{ userId: string; name: string; total: number; bills: number }>;
+  /**
+   * The day's bills split by price tier at full value (adds up to sales.total);
+   * a bill mixing tiers counts in each. Null or missing when every line was retail.
+   */
+  priceTiers?: Array<{ tier: PriceTier; label: string; bills: number; total: number }> | null;
 }
 
 /** `date` is YYYY-MM-DD; omit for the current business day. */

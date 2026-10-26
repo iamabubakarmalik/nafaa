@@ -14,7 +14,8 @@ import {
   PackageX, ShieldAlert, Snowflake, Truck,
 } from 'lucide-react';
 import {
-  FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs, heroButton, heroIconButton,
+  FilterBar, FilterChip, FilterMenu, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td, Th, THead, Tr, ViewTabs,
+  heroButton, heroIconButton,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { PERMISSIONS } from '@core/lib/permissions';
@@ -171,43 +172,41 @@ export default function ExpiringPage() {
             <p className="mt-1 text-[0.875rem] text-slate-500">Purchase me batch number aur expiry likhenge to yahan dikhegi.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[56rem] text-[0.875rem]">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="px-5 py-2.5">Dawai</th><th className="px-3 py-2.5">Batch</th><th className="px-3 py-2.5">Expiry</th>
-                  <th className="px-3 py-2.5 text-right">Stock</th><th className="px-3 py-2.5 text-right">Cost value</th><th className="px-3 py-2.5 text-right">Sale value</th><th className="px-5 py-2.5" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {items.map((r) => (
-                  <tr key={r.id} className={cn(r.daysLeft < 0 && 'bg-rose-50/40')}>
-                    <td className="px-5 py-2.5">
-                      <Link to={`/pharmacy-medicines/${r.product.id}`} className="font-semibold text-slate-900 hover:text-brand-700">{r.product.name}</Link>
-                      <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
-                        {r.generic && <span>{r.generic}</span>}
-                        {r.medicine?.isNarcotic && <span className="inline-flex items-center gap-0.5 font-semibold text-rose-700"><ShieldAlert className="h-3 w-3" />Register</span>}
-                        {r.medicine?.requiresPrescription && !r.medicine.isNarcotic && <span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><FileText className="h-3 w-3" />Rx</span>}
-                        {r.medicine?.requiresColdChain && <span className="inline-flex items-center gap-0.5 font-semibold text-sky-700"><Snowflake className="h-3 w-3" />Fridge</span>}
-                        {r.shop && <span>· {r.shop.name}</span>}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 font-mono text-[0.8125rem] text-slate-700">{r.batchNumber}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="text-slate-800">{shortDate(r.expiryDate)}</div>
-                      <span className={cn('mt-0.5 inline-block rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', tone(r.daysLeft))}>{daysLabel(r.daysLeft)}</span>
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{Number(r.quantity.toFixed(2))} <span className="text-slate-500">{r.product.unit}</span></td>
-                    <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{cost(r.value)}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{money(r.saleValue)}</td>
-                    <td className="px-5 py-2.5 text-right">
-                      {canAct && <button type="button" onClick={() => setAction(r)} className="inline-flex h-8 items-center gap-1 rounded-lg bg-slate-900 px-2.5 text-[0.75rem] font-semibold text-white hover:bg-slate-800">Kya karein</button>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table minWidth="56rem">
+            <THead>
+              <Tr>
+                <Th className="px-5 py-2.5">Dawai</Th><Th className="px-3 py-2.5">Batch</Th><Th className="px-3 py-2.5">Expiry</Th>
+                <Th align="right" className="px-3 py-2.5">Stock</Th><Th align="right" className="px-3 py-2.5">Cost value</Th><Th align="right" className="px-3 py-2.5">Sale value</Th><Th className="px-5 py-2.5"/>
+              </Tr>
+            </THead>
+            <TBody>
+              {items.map((r) => (
+                <Tr key={r.id} className={cn(r.daysLeft < 0 && 'bg-rose-50/40')}>
+                  <Td className="px-5 py-2.5">
+                    <Link to={`/pharmacy-medicines/${r.product.id}`} className="font-semibold text-slate-900 hover:text-brand-700">{r.product.name}</Link>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
+                      {r.generic && <span>{r.generic}</span>}
+                      {r.medicine?.isNarcotic && <span className="inline-flex items-center gap-0.5 font-semibold text-rose-700"><ShieldAlert className="h-3 w-3" />Register</span>}
+                      {r.medicine?.requiresPrescription && !r.medicine.isNarcotic && <span className="inline-flex items-center gap-0.5 font-semibold text-amber-700"><FileText className="h-3 w-3" />Rx</span>}
+                      {r.medicine?.requiresColdChain && <span className="inline-flex items-center gap-0.5 font-semibold text-sky-700"><Snowflake className="h-3 w-3" />Fridge</span>}
+                      {r.shop && <span>· {r.shop.name}</span>}
+                    </div>
+                  </Td>
+                  <Td className="px-3 py-2.5 font-mono text-[0.8125rem] text-slate-700">{r.batchNumber}</Td>
+                  <Td className="px-3 py-2.5">
+                    <div className="text-slate-800">{shortDate(r.expiryDate)}</div>
+                    <span className={cn('mt-0.5 inline-block rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', tone(r.daysLeft))}>{daysLabel(r.daysLeft)}</span>
+                  </Td>
+                  <Td align="right" className="px-3 py-2.5 tabular-nums">{Number(r.quantity.toFixed(2))} <span className="text-slate-500">{r.product.unit}</span></Td>
+                  <Td align="right" className="px-3 py-2.5 font-semibold tabular-nums">{cost(r.value)}</Td>
+                  <Td align="right" className="px-3 py-2.5 tabular-nums text-slate-600">{money(r.saleValue)}</Td>
+                  <Td align="right" className="px-5 py-2.5">
+                    {canAct && <button type="button" onClick={() => setAction(r)} className="inline-flex h-8 items-center gap-1 rounded-lg bg-slate-900 px-2.5 text-[0.75rem] font-semibold text-white hover:bg-slate-800">Kya karein</button>}
+                  </Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
         )}
         {data && data.total > LIMIT && (
           <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">

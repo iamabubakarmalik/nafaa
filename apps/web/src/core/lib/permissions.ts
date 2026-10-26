@@ -5,6 +5,7 @@
 export const PERMISSIONS = {
   POS_USE: 'pos.use',
   POS_DISCOUNT_OVERRIDE: 'pos.discount_override',
+  POS_PRICE_TIER: 'pos.price_tier',
   SALES_VIEW: 'sales.view',
   SALES_VOID: 'sales.void',
   RETURNS_VIEW: 'returns.view',
@@ -158,6 +159,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
     PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
     PERMISSIONS.POS_USE,
+    PERMISSIONS.POS_PRICE_TIER,
     PERMISSIONS.SALES_VIEW,
     PERMISSIONS.SALES_VOID,
     PERMISSIONS.RETURNS_VIEW,
@@ -317,7 +319,7 @@ export function isOwnerOnlyPath(path: string): boolean {
 // ═══ LABELS ═══
 
 export const PERMISSION_LABELS: Record<string, string> = {
-  'pos.use': 'POS Counter Use', 'pos.discount_override': 'Discount above limit (no PIN)', 'sales.view': 'View Sales', 'sales.void': 'Void Sales',
+  'pos.use': 'POS Counter Use', 'pos.discount_override': 'Discount above limit (no PIN)', 'pos.price_tier': 'Change price tier (Wholesale / Credit)', 'sales.view': 'View Sales', 'sales.void': 'Void Sales',
   'returns.view': 'View Returns', 'returns.create': 'Create Returns',
   'customers.view': 'View Customers', 'customers.edit': 'Edit Customers',
   'khata.view': 'View Udhaar/Khata', 'khata.manage': 'Manage Udhaar/Khata',
@@ -431,7 +433,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
   {
     title: 'POS & Sales', label: 'POS & Sales', emoji: '🛒', color: '#10b981',
     permissions: [
-      PERMISSIONS.POS_USE, PERMISSIONS.POS_DISCOUNT_OVERRIDE, PERMISSIONS.SALES_VIEW, PERMISSIONS.SALES_VOID,
+      PERMISSIONS.POS_USE, PERMISSIONS.POS_DISCOUNT_OVERRIDE, PERMISSIONS.POS_PRICE_TIER, PERMISSIONS.SALES_VIEW, PERMISSIONS.SALES_VOID,
       PERMISSIONS.RETURNS_VIEW, PERMISSIONS.RETURNS_CREATE,
     ],
   },

@@ -1,8 +1,11 @@
 // apps/web/src/modules/inventory/products/pages/ProductFormGate.tsx
+import { lazy, Suspense } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
-import ProductFormPage from './ProductFormPage';
 import GeneralProductEditor from '../editor/general/GeneralProductEditor';
+
+const GymProductEditor = lazy(() => import('@industries/gym/products/GymProductEditor'));
+const ServicesBizProductEditor = lazy(() => import('@industries/services-biz/products/ServicesBizProductEditor'));
 
 /**
  * ProductFormGate — routes /products/new and /products/:id/edit to the
@@ -72,12 +75,15 @@ export default function ProductFormGate() {
     case 'toystore':
       return <Navigate to={edit ? `/toystore-products/${id}/edit` : '/toystore-products/new'} replace />;
 
-    case undefined:
-      // No industry: the shared product editor.
-      return <GeneralProductEditor />;
+    // Shelf goods on the shared editor with the industry's units.
+    case 'gym':
+      return <Suspense fallback={null}><GymProductEditor /></Suspense>;
+    case 'services-biz':
+      return <Suspense fallback={null}><ServicesBizProductEditor /></Suspense>;
 
     default:
-      // gym, services-biz — no wizard yet; this form carries their plugin sections.
-      return <ProductFormPage />;
+      // No industry, hotel (minibar, laundry and other counter items) and any
+      // industry without its own editor: the shared product editor.
+      return <GeneralProductEditor />;
   }
 }

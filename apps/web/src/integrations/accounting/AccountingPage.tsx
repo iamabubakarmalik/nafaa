@@ -1,4 +1,4 @@
-import { confirmDialog } from '@/design-system/components';
+import { Alert, Badge, Button, Card, confirmDialog, controlClass, EmptyState, PageHero, PageShell, Switch, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { BookOpen, CheckCircle2, Eye, RefreshCw, Send, Unplug, XCircle, Zap } from 'lucide-react';
 import { expenseCategoriesApi } from '@modules/finance/expenses/api/expenses.api';
 import { apiErrorMessage } from '@integrations/online-orders/api/online-orders.api';
-import { Badge, Banner, Btn, Card, EmptyState, Page, SettingRow, Toggle, inputCls } from '@integrations/online-orders/components/ui/kit';
 import { accountingApi, type AccountMapping, type AcctAccount, type PayMethod } from './accounting.api';
 import { cn } from '@core/lib/cn';
 import { TallyCard } from './TallyCard';
@@ -46,9 +45,10 @@ export default function AccountingPage() {
   });
 
   return (
-    <Page title="Accounting" subtitle="Har din ka hisaab khud aap ke accounting software me — sale, udhaar, refund, expenses.">
+    <PageShell>
+      <PageHero title="Accounting" subtitle="Har din ka hisaab khud aap ke accounting software me — sale, udhaar, refund, expenses." />
       {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
-        : error || !data ? <Card><EmptyState title="Accounting nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
+        : error || !data ? <Card><EmptyState title="Accounting nahi khula" description={apiErrorMessage(error)} /></Card>
         : !data.connected ? (
           <>
             <Card title="Kaise kaam karta hai">
@@ -62,16 +62,16 @@ export default function AccountingPage() {
               {data.providers.map((p) => (
                 <Card key={p.code} title={<span className="flex items-center gap-2"><BookOpen className="h-4 w-4 text-slate-400" /> {p.name}</span>}>
                   {!p.configured && <p className="mb-3 text-[0.78125rem] text-amber-700">Server par {p.name} app ki keys abhi nahi lagi (Nafaa admin).</p>}
-                  <Btn variant="primary" disabled={!p.configured} loading={start.isPending && start.variables === p.code} onClick={() => start.mutate(p.code)} icon={<Zap className="h-4 w-4" />}>
+                  <Button size="sm" variant="primary" disabled={!p.configured} loading={start.isPending && start.variables === p.code} onClick={() => start.mutate(p.code)} leftIcon={<Zap className="h-4 w-4" />}>
                     {p.name} jorein
-                  </Btn>
+                  </Button>
                 </Card>
               ))}
             </div>
           </>
         ) : <Connected data={data.connected} onChange={() => qc.invalidateQueries({ queryKey: KEY })} />}
       <TallyCard />
-    </Page>
+    </PageShell>
   );
 }
 
@@ -109,25 +109,22 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
 
   return (
     <>
-      <Card title={<span className="flex items-center gap-2">{c.name} <Badge tone="success" dot>Jura hua</Badge></span>}
+      <Card title={<span className="flex items-center gap-2">{c.name} <Badge size="xs" variant="success" dot>Jura hua</Badge></span>}
         description={`${c.companyName ?? ''}${c.currency ? ` · ${c.currency}` : ''}`}
-        actions={<Btn size="sm" variant="plain" className="text-rose-600" loading={disconnect.isPending} icon={<Unplug className="h-3.5 w-3.5" />}
-          onClick={async () => { if ((await confirmDialog({ title: `${c.name} hatayein?`, text: 'Bheje hue journals wahin rahenge.', danger: true }))) disconnect.mutate(); }}>Hatayein</Btn>}>
-        {c.lastError && <Banner tone="critical" title="Aakhri sync me masla">{c.lastError}</Banner>}
+        actions={<Button size="xs" variant="critical" loading={disconnect.isPending} leftIcon={<Unplug className="h-3.5 w-3.5" />}
+          onClick={async () => { if ((await confirmDialog({ title: `${c.name} hatayein?`, text: 'Bheje hue journals wahin rahenge.', danger: true }))) disconnect.mutate(); }}>Hatayein</Button>}>
+        {c.lastError && <Alert tone="danger" title="Aakhri sync me masla">{c.lastError}</Alert>}
         <div className="divide-y divide-slate-100 dark:divide-ink-800">
-          <SettingRow title="Har raat khud bhejo" help="Raat ~12:40 baje kal ka journal; fail hue din 7 din tak dobara"
-            control={<Toggle checked={c.autoSync} onChange={(v) => save.mutate({ autoSync: v })} />} />
-          <SettingRow title="Expenses bhi bhejo" help="Nafaa ke expenses (category ke hisaab se)"
-            control={<Toggle checked={c.includeExpenses} onChange={(v) => save.mutate({ includeExpenses: v })} />} />
-          <SettingRow title="Cost of goods (COGS) bhi" help="Bika hua maal ki cost: Dr COGS / Cr Inventory — agar accountant chahe"
-            control={<Toggle checked={c.includeCogs} onChange={(v) => save.mutate({ includeCogs: v })} />} />
+          <Switch size="sm" checked={c.autoSync} onChange={(e) => save.mutate({ autoSync: e.target.checked })} label="Har raat khud bhejo" description="Raat ~12:40 baje kal ka journal; fail hue din 7 din tak dobara" className="py-3 first:pt-0 last:pb-0" />
+          <Switch size="sm" checked={c.includeExpenses} onChange={(e) => save.mutate({ includeExpenses: e.target.checked })} label="Expenses bhi bhejo" description="Nafaa ke expenses (category ke hisaab se)" className="py-3 first:pt-0 last:pb-0" />
+          <Switch size="sm" checked={c.includeCogs} onChange={(e) => save.mutate({ includeCogs: e.target.checked })} label="Cost of goods (COGS) bhi" description="Bika hua maal ki cost: Dr COGS / Cr Inventory — agar accountant chahe" className="py-3 first:pt-0 last:pb-0" />
         </div>
       </Card>
 
       <Card title="Kaun sa hisaab kis account me" description="Ek dafa chunein. Udhaar ke liye system ka 'Accounts Receivable' nahi — ek alag current asset account (jaise 'POS Udhaar') behtar hai."
-        actions={<Btn size="sm" variant="plain" onClick={() => refetch()} icon={<RefreshCw className="h-3.5 w-3.5" />}>Accounts taaza</Btn>}>
+        actions={<Button size="xs" variant="ghost" onClick={() => refetch()} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>Accounts taaza</Button>}>
         {c.provider === 'XERO' && (
-          <div className="mb-3"><Banner tone="info" title="Xero ka qaida">Xero manual journal me Bank aur system accounts nahi leta — is liye list me nahi dikhte. Har payment tareeqe (Cash, Card, JazzCash…) ke liye Xero me ek "Current" type ka clearing account banayein (jaise "POS Cash clearing"), phir yahan chunein.</Banner></div>
+          <div className="mb-3"><Alert tone="info" title="Xero ka qaida">Xero manual journal me Bank aur system accounts nahi leta — is liye list me nahi dikhte. Har payment tareeqe (Cash, Card, JazzCash…) ke liye Xero me ek "Current" type ka clearing account banayein (jaise "POS Cash clearing"), phir yahan chunein.</Alert></div>
         )}
         {accLoading ? <div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" />
           : accErr ? <p className="text-[0.8125rem] text-rose-600">{apiErrorMessage(accErr)}</p>
@@ -145,7 +142,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
                 ))}
                 <label className="block">
                   <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300">Udhaar return kis tareeqe se aati hai</span>
-                  <select value={map.collectionMethod ?? 'CASH'} onChange={(e) => set({ collectionMethod: e.target.value as PayMethod })} className={inputCls}>
+                  <select value={map.collectionMethod ?? 'CASH'} onChange={(e) => set({ collectionMethod: e.target.value as PayMethod })} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]')}>
                     {METHODS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
                   </select>
                 </label>
@@ -165,7 +162,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
                 </Group>
               )}
               <div className="flex justify-end">
-                <Btn variant="primary" disabled={!dirty} loading={save.isPending} onClick={() => save.mutate({ mapping: map })}>Mapping save karein</Btn>
+                <Button size="sm" variant="primary" disabled={!dirty} loading={save.isPending} onClick={() => save.mutate({ mapping: map })}>Mapping save karein</Button>
               </div>
             </div>
           )}
@@ -173,15 +170,15 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
 
       <Card title="Bhejein" description="Kisi bhi din ka journal pehle dekhein, phir bhejein. Ek din ek hi dafa jata hai.">
         <div className="flex flex-wrap items-center gap-2">
-          <input type="date" value={day} max={yesterday()} onChange={(e) => setDay(e.target.value)} className={cn(inputCls, 'w-auto')} />
-          <Btn loading={preview.isFetching} onClick={() => preview.refetch()} icon={<Eye className="h-4 w-4" />}>Dekhein</Btn>
-          <Btn variant="primary" loading={sync.isPending} disabled={dirty} onClick={() => sync.mutate(false)} icon={<Send className="h-4 w-4" />}>{c.name} me bhejein</Btn>
+          <input type="date" value={day} max={yesterday()} onChange={(e) => setDay(e.target.value)} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-auto')} />
+          <Button size="sm" loading={preview.isFetching} onClick={() => preview.refetch()} leftIcon={<Eye className="h-4 w-4" />}>Dekhein</Button>
+          <Button size="sm" variant="primary" loading={sync.isPending} disabled={dirty} onClick={() => sync.mutate(false)} leftIcon={<Send className="h-4 w-4" />}>{c.name} me bhejein</Button>
           {dirty && <span className="text-[0.75rem] text-amber-700">Pehle mapping save karein</span>}
         </div>
         {preview.error && <p className="mt-3 text-[0.8125rem] text-rose-600">{apiErrorMessage(preview.error)}</p>}
         {preview.data && (
           <div className="mt-4">
-            {preview.data.missing.length > 0 && <Banner tone="warning" title="Ye accounts abhi nahi chune">{preview.data.missing.join(', ')}</Banner>}
+            {preview.data.missing.length > 0 && <Alert tone="warning" title="Ye accounts abhi nahi chune">{preview.data.missing.join(', ')}</Alert>}
             <div className="mt-2 grid grid-cols-2 gap-2 text-[0.78125rem] text-slate-600 dark:text-ink-300 sm:grid-cols-4">
               <span>{preview.data.totals.bills} bill · {rs(preview.data.totals.sales)}</span>
               <span>Udhaar {rs(preview.data.totals.credit)}</span>
@@ -189,18 +186,18 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
               <span>Expenses {rs(preview.data.totals.expenses)}</span>
             </div>
             {preview.data.lines.length === 0 ? <p className="mt-3 text-[0.8125rem] text-slate-500">Is din koi entry nahi.</p> : (
-              <table className="mt-3 w-full text-[0.8125rem]">
-                <thead className="text-left text-[0.71875rem] uppercase tracking-wide text-slate-500"><tr><th className="py-1">Account</th><th className="py-1 text-right">Debit</th><th className="py-1 text-right">Credit</th></tr></thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
+              <Table className="mt-3 [&_table]:text-[0.8125rem]">
+                <THead className="text-left text-[0.71875rem] uppercase tracking-wide text-slate-500"><Tr><Th className="py-1">Account</Th><Th className="py-1 text-right">Debit</Th><Th className="py-1 text-right">Credit</Th></Tr></THead>
+                <TBody className="divide-y divide-slate-100 dark:divide-ink-800">
                   {preview.data.lines.map((l, i) => (
-                    <tr key={i}>
-                      <td className="py-1.5"><div className="font-medium text-slate-900 dark:text-ink-white">{nameOf(l.accountId)}</div><div className="text-[0.71875rem] text-slate-400">{l.description}</div></td>
-                      <td className="py-1.5 text-right tabular-nums">{l.side === 'debit' ? rs(l.amount) : ''}</td>
-                      <td className="py-1.5 text-right tabular-nums">{l.side === 'credit' ? rs(l.amount) : ''}</td>
-                    </tr>
+                    <Tr key={i}>
+                      <Td className="py-1.5"><div className="font-medium text-slate-900 dark:text-ink-white">{nameOf(l.accountId)}</div><div className="text-[0.71875rem] text-slate-400">{l.description}</div></Td>
+                      <Td className="py-1.5 text-right tabular-nums">{l.side === 'debit' ? rs(l.amount) : ''}</Td>
+                      <Td className="py-1.5 text-right tabular-nums">{l.side === 'credit' ? rs(l.amount) : ''}</Td>
+                    </Tr>
                   ))}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             )}
           </div>
         )}
@@ -211,12 +208,12 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
           <ul className="divide-y divide-slate-100 dark:divide-ink-800">
             {c.history.map((h) => (
               <li key={h.day} className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
-                {h.status === 'SUCCESS' ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : h.status === 'FAILED' ? <XCircle className="h-4 w-4 text-rose-600" /> : <span className="h-4 w-4 rounded-full border border-slate-300" />}
+                {h.status === 'SUCCESS' ? <CheckCircle2 className="h-4 w-4 text-success-600" /> : h.status === 'FAILED' ? <XCircle className="h-4 w-4 text-rose-600" /> : <span className="h-4 w-4 rounded-full border border-slate-300" />}
                 <span className="w-24 font-semibold text-slate-900 dark:text-ink-white">{h.day}</span>
                 <span className="min-w-0 flex-1 truncate text-slate-600 dark:text-ink-300">
                   {h.status === 'SUCCESS' ? `Bheja${h.totals ? ` · ${h.totals.bills} bill, ${rs(h.totals.sales)}` : ''}${h.journalId ? ` · #${h.journalId}` : ''}` : h.error}
                 </span>
-                {h.status !== 'SUCCESS' && <Btn size="sm" variant="plain" onClick={() => { setDay(h.day); setTimeout(() => sync.mutate(false), 0); }}>Dobara</Btn>}
+                {h.status !== 'SUCCESS' && <Button size="xs" variant="ghost" onClick={() => { setDay(h.day); setTimeout(() => sync.mutate(false), 0); }}>Dobara</Button>}
               </li>
             ))}
           </ul>
@@ -239,7 +236,7 @@ function Pick({ label, hint, value, onChange, options, placeholder }: { label: s
   return (
     <label className="block">
       <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300">{label}{hint ? <span className="font-normal text-slate-400"> · {hint}</span> : null}</span>
-      <select value={value ?? ''} onChange={(e) => onChange(e.target.value || null)} className={cn(inputCls, !value && 'text-slate-400')}>
+      <select value={value ?? ''} onChange={(e) => onChange(e.target.value || null)} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]', !value && 'text-slate-400')}>
         <option value="">{placeholder ?? '— chunein —'}</option>
         {options.map((a) => <option key={a.id} value={a.id}>{a.code ? `${a.code} · ` : ''}{a.name} ({a.type})</option>)}
       </select>

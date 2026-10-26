@@ -64,8 +64,8 @@ export function OnboardingSyncBanner() {
           <Button loading={resetMutation.isPending} onClick={() => resetMutation.mutate()}>Haan, dobara chalayein</Button>
         </>}>
         <ul className="space-y-1.5 text-sm text-slate-700">
-          <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Products, customers aur Sales waise hi rahenge</li>
-          <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Settings baad me bhi yahan se badal sakte hain</li>
+          <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success-600" /> Products, customers aur Sales waise hi rahenge</li>
+          <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success-600" /> Settings baad me bhi yahan se badal sakte hain</li>
           <li className="flex items-center gap-2"><Shield className="h-4 w-4 text-amber-600" /> Sirf bari tabdeeli (jaise business type) ke liye</li>
         </ul>
       </Modal>

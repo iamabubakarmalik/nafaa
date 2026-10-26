@@ -12,10 +12,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Ban, Cake, CheckCircle2, ChefHat, Clock, Heart, History, ImageIcon, MapPin, MessageCircle, PartyPopper, Pencil, Phone, Printer,
+  Ban, Cake, CheckCircle2, ChefHat, Clock, Heart, History, ImageIcon, MapPin, MessageCircle, PartyPopper, Pencil, Phone, Printer,
   Receipt, Star, StickyNote, Undo2, User, Wallet,
 } from 'lucide-react';
-import { Button, Card, Kbd, Modal, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { Button, Card, Kbd, Modal, PageHero, PageShell, Skeleton, Textarea, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -75,37 +75,34 @@ export default function CakeOrderDetailPage() {
 
   return (
     <PageShell>
-      <div className="rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={() => navigate('/bakery/cake-orders')} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-xl font-bold">{o.customerName}</h1>
-              <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-[0.75rem] font-semibold ring-1 ring-white/25">{st.label}</span>
-              <span className="font-mono text-[0.75rem] text-white/70">{o.orderNumber}</span>
-            </div>
-            <p className={cn('mt-0.5 flex items-center gap-1.5 text-[0.8125rem]', late ? 'font-semibold text-rose-200' : 'text-white/80')}>
-              <Clock className="h-3.5 w-3.5" />{closed ? dateTime(o.neededBy) : `${leftText(left)} · ${dateTime(o.neededBy)}`} · <Del className="h-3.5 w-3.5" />{deliveryOf(o.deliveryType).label}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <button type="button" onClick={() => printCakeSlip(o, shopName)} title="Customer parchi (P)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Printer className="h-4 w-4" />Parchi</button>
-            <button type="button" onClick={() => printCakeSlip(o, shopName, true)} title="Kitchen parchi (K)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><ChefHat className="h-4 w-4" />Kitchen</button>
-            {wa && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-            {canManage && !closed && <Link to={`/bakery/cake-orders/${o.id}/edit`} title="Badlein (E)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-bold text-brand-800 hover:bg-brand-50"><Pencil className="h-4 w-4" />Badlein</Link>}
-          </div>
-        </div>
-        {o.status !== 'CANCELLED' && o.status !== 'REFUNDED' && (
-          <ol className="mt-4 grid grid-cols-5 gap-1.5">
-            {CAKE_FLOW.map((s, i) => (
-              <li key={s} className="min-w-0">
-                <div className={cn('h-1.5 rounded-full', i <= idx ? 'bg-white' : 'bg-white/25')} />
-                <p className={cn('mt-1 truncate text-[0.6875rem]', i === idx ? 'font-bold text-white' : 'text-white/60')}>{statusOf(s).label}</p>
-              </li>
-            ))}
-          </ol>
-        )}
-      </div>
+      <PageHero
+        back="/bakery/cake-orders"
+        backLabel="Wapas (Esc)"
+        title={o.customerName}
+        chip={st.label}
+        meta={<span className="font-mono">{o.orderNumber}</span>}
+        subtitle={
+          <span className={cn('flex flex-wrap items-center gap-1.5', late ? 'font-semibold text-rose-200' : 'text-white/80')}>
+            <Clock className="h-3.5 w-3.5" />{closed ? dateTime(o.neededBy) : `${leftText(left)} · ${dateTime(o.neededBy)}`} · <Del className="h-3.5 w-3.5" />{deliveryOf(o.deliveryType).label}
+          </span>
+        }
+        actions={<>
+          <button type="button" onClick={() => printCakeSlip(o, shopName)} title="Customer parchi (P)" className={heroButton}><Printer className="h-4 w-4" />Parchi</button>
+          <button type="button" onClick={() => printCakeSlip(o, shopName, true)} title="Kitchen parchi (K)" className={heroButton}><ChefHat className="h-4 w-4" />Kitchen</button>
+          {wa && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+          {canManage && !closed && <Link to={`/bakery/cake-orders/${o.id}/edit`} title="Badlein (E)" className={heroPrimaryButton}><Pencil className="h-4 w-4" />Badlein</Link>}
+        </>}
+      />
+      {o.status !== 'CANCELLED' && o.status !== 'REFUNDED' && (
+        <ol className="grid grid-cols-5 gap-1.5 rounded-2xl bg-white px-4 py-3 shadow-sm ring-1 ring-slate-200/80" aria-label="Order kahan tak pohncha">
+          {CAKE_FLOW.map((s, i) => (
+            <li key={s} className="min-w-0">
+              <div className={cn('h-1.5 rounded-full', i <= idx ? 'bg-brand-600' : 'bg-slate-200')} />
+              <p className={cn('mt-1 truncate text-[0.6875rem]', i === idx ? 'font-bold text-brand-700' : 'text-slate-500')}>{statusOf(s).label}</p>
+            </li>
+          ))}
+        </ol>
+      )}
 
       {canManage && !closed && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">

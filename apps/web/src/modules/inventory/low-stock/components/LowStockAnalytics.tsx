@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { CalendarClock, Clock, HandCoins, PackageX, PieChart as PieIcon, ShoppingCart, TrendingDown, Truck } from 'lucide-react';
-import { Card, Segmented, Skeleton } from '@/design-system/components';
+import { Card, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
@@ -122,14 +122,14 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="rounded-2xl" title="Sab se zyada ruki sale" description="Khatam maal × roz ki sale × rate — andaza">
           {!data.topLost.length ? <Empty text="Koi bikta hua maal khatam nahi" /> : (
-            <Table head={['Cheez', 'Kab se', 'Roz', 'Ruki sale']} rows={data.topLost.map((r) => [
+            <RankTable head={['Cheez', 'Kab se', 'Roz', 'Ruki sale']} rows={data.topLost.map((r) => [
               <span key="n" className="font-medium text-slate-900">{r.name}</span>, r.outDays !== null ? `${r.outDays} din` : '—', money(r.lostPerDay), <b key="v">{money(r.lostSales)}</b>,
             ])} />
           )}
         </Card>
         <Card className="rounded-2xl" title="Jaldi khatam hone wale" description="Jo abhi hai, kitne din chalega">
           {!data.runningOut.length ? <Empty text="Kuch jaldi khatam nahi ho raha" /> : (
-            <Table head={['Cheez', 'Abhi', 'Roz sale', 'Chalega']} rows={data.runningOut.map((r) => [
+            <RankTable head={['Cheez', 'Abhi', 'Roz sale', 'Chalega']} rows={data.runningOut.map((r) => [
               <span key="n" className="font-medium text-slate-900">{r.name}</span>, `${qty(r.stock)} ${r.unit}`, qty(r.perDay),
               <b key="d" className={cn((r.daysLeft ?? 99) <= 3 && 'text-rose-700')}>{daysText(r.daysLeft)}</b>,
             ])} />
@@ -168,17 +168,17 @@ function Kpi({ icon: I, label, value, sub, tone }: { icon: typeof Truck; label: 
   );
 }
 
-function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
+function RankTable({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[22rem] text-sm">
-        <thead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
-          <tr>{head.map((h, i) => <th key={h} className={cn('py-2', i > 0 && 'text-right')}>{h}</th>)}</tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={cn('py-2 tabular-nums', j > 0 && 'text-right')}>{c}</td>)}</tr>)}
-        </tbody>
-      </table>
+      <Table minWidth="22rem" className="[&>table]:text-sm">
+        <THead className="text-left text-[0.75rem] uppercase tracking-wide text-slate-500">
+          <Tr>{head.map((h, i) => <Th key={h} className={cn('px-0', 'py-2', i > 0 && 'text-right')}>{h}</Th>)}</Tr>
+        </THead>
+        <TBody className="divide-y divide-slate-100">
+          {rows.map((r, i) => <Tr key={i}>{r.map((c, j) => <Td key={j} className={cn('px-0 text-inherit', 'py-2 tabular-nums', j > 0 && 'text-right')}>{c}</Td>)}</Tr>)}
+        </TBody>
+      </Table>
     </div>
   );
 }

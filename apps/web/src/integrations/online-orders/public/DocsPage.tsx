@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { BookOpen, CheckCircle2, ChevronRight, Info, LifeBuoy, TriangleAlert } from 'lucide-react';
+import { BookOpen, CheckCircle2, ChevronRight, LifeBuoy } from 'lucide-react';
+import { Alert, Table as DsTable, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { CodeBlock } from '@integrations/_core/components/CodeBlock';
 import { SAMPLE_ORDER } from '../lib/snippets';
 import { cn } from '@core/lib/cn';
@@ -59,25 +60,25 @@ export default function DocsPage() {
     <div className="min-h-screen bg-white text-slate-800">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white"><BookOpen className="h-4 w-4" /></span>
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-brand-fg"><BookOpen className="h-4 w-4" /></span>
           <div className="min-w-0 flex-1">
             <div className="text-[0.875rem] font-bold text-slate-900">Nafaa — Online store guide</div>
             <div className="truncate text-[0.75rem] text-slate-500">Website, Indolj, WooCommerce, Shopify — khud jorein, khud chalayein</div>
           </div>
-          <a href="/online-store/channels" className="rounded-lg bg-slate-900 px-3 py-1.5 text-[0.78125rem] font-semibold text-white">Nafaa kholein</a>
+          <a href="/online-store/channels" className="inline-flex h-8 items-center rounded-md bg-slate-900 px-3 text-xs font-semibold text-white shadow-sm hover:bg-slate-800">Nafaa kholein</a>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[13.75rem_minmax(0,1fr)]">
         <nav className="hidden lg:block">
           <ul className="sticky top-20 space-y-0.5 text-[0.8125rem]">
             {TOC.map((t) => (
               <li key={t.id}>
-                <a href={`#${t.id}`} className={cn('block rounded-md px-2 py-1.5', active === t.id ? 'bg-emerald-50 font-semibold text-emerald-800' : 'text-slate-600 hover:bg-slate-50')}>{t.label}</a>
+                <a href={`#${t.id}`} className={cn('block rounded-md px-2 py-1.5', active === t.id ? 'bg-brand-50 font-semibold text-brand-800' : 'text-slate-600 hover:bg-slate-50')}>{t.label}</a>
                 {t.sub && (
                   <ul className="ml-3 border-l border-slate-200 pl-2">
                     {t.sub.map((s) => (
-                      <li key={s.id}><a href={`#${s.id}`} className={cn('block rounded-md px-2 py-1 text-[0.78125rem]', active === s.id ? 'font-semibold text-emerald-800' : 'text-slate-500 hover:text-slate-800')}>{s.label}</a></li>
+                      <li key={s.id}><a href={`#${s.id}`} className={cn('block rounded-md px-2 py-1 text-[0.78125rem]', active === s.id ? 'font-semibold text-brand-800' : 'text-slate-500 hover:text-slate-800')}>{s.label}</a></li>
                     ))}
                   </ul>
                 )}
@@ -88,9 +89,9 @@ export default function DocsPage() {
 
         <main className="min-w-0 max-w-3xl space-y-14 pb-24 text-[0.90625rem] leading-relaxed">
           {/* Mobile par upar chhota menu */}
-          <details className="rounded-xl border border-slate-200 p-3 lg:hidden">
+          <details className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm lg:hidden">
             <summary className="cursor-pointer text-[0.8125rem] font-semibold">Is guide me kya hai</summary>
-            <ul className="mt-2 space-y-1 text-[0.8125rem]">{TOC.map((t) => <li key={t.id}><a className="text-emerald-700" href={`#${t.id}`}>{t.label}</a></li>)}</ul>
+            <ul className="mt-2 space-y-1 text-[0.8125rem]">{TOC.map((t) => <li key={t.id}><a className="text-brand-700" href={`#${t.id}`}>{t.label}</a></li>)}</ul>
           </details>
 
           <Section id="shuru" title="Online store kaise kaam karta hai">
@@ -306,8 +307,8 @@ export default function DocsPage() {
           </Section>
 
           <Section id="madad" title="Phir bhi madad chahiye">
-            <div className="flex items-start gap-3 rounded-xl border border-slate-200 p-4">
-              <LifeBuoy className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <LifeBuoy className="mt-0.5 h-5 w-5 shrink-0 text-brand-600" />
               <p>Pehle channel ka <b>Activity</b> tab dekhein — har ghalti ki wajah wahin likhi hoti hai. Phir bhi na bane to <a href="mailto:support@nafaa.pk">support@nafaa.pk</a> par channel ka naam aur Activity ka screenshot bhejein.</p>
             </div>
           </Section>
@@ -340,7 +341,7 @@ function Steps({ items }: { items: Array<[string, ReactNode]> }) {
     <ol className="space-y-3">
       {items.map(([t, d], n) => (
         <li key={t} className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-[0.75rem] font-bold text-white">{n + 1}</span>
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[0.75rem] font-bold text-brand-800">{n + 1}</span>
           <div className="min-w-0"><div className="font-semibold text-slate-900">{t}</div><div className="text-slate-600">{d}</div></div>
         </li>
       ))}
@@ -350,30 +351,25 @@ function Steps({ items }: { items: Array<[string, ReactNode]> }) {
 
 function Note({ children, tone = 'info' }: { children: ReactNode; tone?: 'info' | 'warning' }) {
   return (
-    <div className={cn('flex items-start gap-2 rounded-xl px-4 py-3 text-[0.84375rem]', tone === 'warning' ? 'bg-amber-50 text-amber-900' : 'bg-sky-50 text-sky-900')}>
-      {tone === 'warning' ? <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /> : <Info className="mt-0.5 h-4 w-4 shrink-0" />}
-      <div>{children}</div>
-    </div>
+    <Alert tone={tone}>{children}</Alert>
   );
 }
 
 function Table({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200">
-      <table className="w-full min-w-[520px] text-left text-[0.8125rem]">
-        <thead className="bg-slate-50 text-slate-600"><tr>{head.map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}</tr></thead>
-        <tbody className="divide-y divide-slate-100">
-          {rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={cn('px-3 py-2 align-top', j === 0 && 'font-medium text-slate-900')}>{c}</td>)}</tr>)}
-        </tbody>
-      </table>
-    </div>
+    <DsTable minWidth="32.5rem" className="rounded-xl border border-slate-200 bg-white">
+      <THead><Tr>{head.map((h) => <Th key={h} className="px-3">{h}</Th>)}</Tr></THead>
+      <TBody>
+        {rows.map((r, i) => <Tr key={i}>{r.map((c, j) => <Td key={j} className={cn('px-3 py-2 align-top text-[0.8125rem]', j === 0 && 'font-medium text-slate-900')}>{c}</Td>)}</Tr>)}
+      </TBody>
+    </DsTable>
   );
 }
 
 function Setting({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <div id={id} className="scroll-mt-20 rounded-xl border border-slate-200 p-4">
-      <div className="flex items-center gap-2 font-semibold text-slate-900"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> {title}</div>
+    <div id={id} className="scroll-mt-20 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center gap-2 font-semibold text-slate-900"><CheckCircle2 className="h-4 w-4 text-brand-600" /> {title}</div>
       <p className="mt-1 text-slate-600">{children}</p>
     </div>
   );
@@ -381,7 +377,7 @@ function Setting({ id, title, children }: { id: string; title: string; children:
 
 function Faq({ q, children }: { q: string; children: ReactNode }) {
   return (
-    <details className="group rounded-xl border border-slate-200 p-4 open:bg-slate-50/60">
+    <details className="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm open:bg-slate-50">
       <summary className="flex cursor-pointer list-none items-center gap-2 font-semibold text-slate-900">
         <ChevronRight className="h-4 w-4 shrink-0 transition group-open:rotate-90" /> {q}
       </summary>

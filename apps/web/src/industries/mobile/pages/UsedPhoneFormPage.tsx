@@ -11,10 +11,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  AlertTriangle, ArrowLeft, BadgeCheck, Camera, GraduationCap, IdCard, Lock, Recycle, ScanLine, ShieldCheck, Smartphone, Sparkles, UserRound, Wallet,
-} from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { AlertTriangle, BadgeCheck, Camera, GraduationCap, IdCard, Lock, Recycle, ScanLine, ShieldCheck, Smartphone, Sparkles, UserRound, Wallet } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Skeleton, Switch, Textarea, heroIconButton } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -190,15 +188,14 @@ export default function UsedPhoneFormPage() {
   return (
     <PageShell>
       {scan && <BarcodeScanner onDetected={(c: string) => { const x = digits(c); if (x.length === 15) { set({ [scan]: x } as Partial<Draft>); setScan(null); } }} onClose={() => setScan(null)} />}
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${d?.usedPhoneCode} — badlein` : 'Used phone lein'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{closed ? 'Bika ya hataya hua phone — sirf note aur tasveerein badalti hain' : editing ? 'Diye hue paise aur trade-in bill ke baad qeemat nahi badalti' : 'Khareedein, exchange me lein, ya customer ki taraf se bechein'}</p>
-        </div>
-        <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-      </div>
+      <PageHero
+        title={editing ? `${d?.usedPhoneCode} — badlein` : 'Used phone lein'}
+        subtitle={closed ? 'Bika ya hataya hua phone — sirf note aur tasveerein badalti hain' : editing ? 'Diye hue paise aur trade-in bill ke baad qeemat nahi badalti' : 'Khareedein, exchange me lein, ya customer ki taraf se bechein'}
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
@@ -297,10 +294,10 @@ export default function UsedPhoneFormPage() {
                 <Button variant="secondary" disabled={!(n(f.referencePrice) > 0)} loading={estimate.isPending} onClick={() => estimate.mutate()}>Andaza</Button>
               </div>
               {estimate.data && (
-                <div className="rounded-xl bg-emerald-50 p-3 text-[0.8125rem] ring-1 ring-emerald-200">
-                  <p className="font-semibold text-emerald-900">Khareed ka andaza: {formatPKR(estimate.data.suggestedBuyback)}</p>
-                  <p className="mt-0.5 text-emerald-800">{estimate.data.reasoning.join(' · ')}</p>
-                  {!moneyLocked && <button type="button" onClick={() => set({ buybackPrice: String(estimate.data!.suggestedBuyback) })} className="mt-1 font-semibold text-emerald-900 hover:underline">Yahi rakhein</button>}
+                <div className="rounded-xl bg-brand-50 p-3 text-[0.8125rem] ring-1 ring-brand-200">
+                  <p className="font-semibold text-brand-900">Khareed ka andaza: {formatPKR(estimate.data.suggestedBuyback)}</p>
+                  <p className="mt-0.5 text-brand-800">{estimate.data.reasoning.join(' · ')}</p>
+                  {!moneyLocked && <button type="button" onClick={() => set({ buybackPrice: String(estimate.data!.suggestedBuyback) })} className="mt-1 font-semibold text-brand-900 hover:underline">Yahi rakhein</button>}
                 </div>
               )}
             </div>
@@ -315,7 +312,7 @@ export default function UsedPhoneFormPage() {
               <Input label="Kitne ka bechna hai" inputMode="decimal" value={f.resalePrice} onChange={(e) => set({ resalePrice: money(e.target.value) })} hint="POS par yahi qeemat aayegi" />
               <dl className="space-y-1 rounded-xl bg-slate-50 p-3 text-[0.8125rem]">
                 <div className="flex justify-between"><dt className="text-slate-500">Kul cost</dt><dd className="font-semibold tabular-nums">{formatPKR(cost)}</dd></div>
-                <div className="flex justify-between"><dt className="text-slate-500">Bechne par profit</dt><dd className={cn('font-bold tabular-nums', margin < 0 ? 'text-rose-600' : 'text-emerald-700')}>{n(f.resalePrice) ? formatPKR(margin) : '—'}</dd></div>
+                <div className="flex justify-between"><dt className="text-slate-500">Bechne par profit</dt><dd className={cn('font-bold tabular-nums', margin < 0 ? 'text-rose-600' : 'text-success-700')}>{n(f.resalePrice) ? formatPKR(margin) : '—'}</dd></div>
               </dl>
               {!editing && (
                 <Switch checked={f.ready} onChange={(e) => set({ ready: e.target.checked })} label="Check ho chuka — seedha bikne ko tayyar"

@@ -1,5 +1,10 @@
-import { confirmDialog } from '@/design-system/components';
-import { useEffect, useState } from 'react';
+/**
+ * Right-side drawer listing offline sales and other changes that are still
+ * waiting to upload, with a retry-all action and per-item delete.
+ */
+
+import { useEffect, useState, type ReactNode } from 'react';
+import { Badge, Button, EmptyState, IconButton, confirmDialog, type BadgeVariant } from '@/design-system/components';
 import { X, RefreshCw, Trash2, AlertTriangle, Clock, CheckCircle2, Package } from 'lucide-react';
 import { db, type PendingSale, type SyncQueueItem } from '@core/lib/offline/db';
 import { uploadPendingChanges } from '@core/lib/offline/syncEngine';
@@ -32,7 +37,7 @@ export function PendingSalesDrawer({ open, onClose }: Props) {
   const [pendingSales, setPendingSales] = useState<PendingSale[]>([]);
   const [queueItems, setQueueItems] = useState<SyncQueueItem[]>([]);
 
-  // Poll Dexie while open (simple, no external hooks)
+  // Poll the local database while the drawer is open.
   useEffect(() => {
     if (!open) return;
     let mounted = true;
@@ -96,43 +101,31 @@ export function PendingSalesDrawer({ open, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-[60] flex justify-end">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md bg-white shadow-2xl flex flex-col">
-        <div className="p-4 border-b bg-gradient-to-r from-slate-50 to-white flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-slate-800">Pending Changes</h2>
-            <p className="text-xs text-slate-500">{totalCount} items sync ke liye taiyar</p>
+      <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={onClose} />
+      <aside role="dialog" aria-modal="true" aria-label="Pending changes" className="relative flex w-full max-w-md flex-col bg-white shadow-2xl">
+        <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+          <div className="min-w-0">
+            <h2 className="text-[1.0625rem] font-semibold text-slate-900">Pending Changes</h2>
+            <p className="text-[0.75rem] text-slate-500">{totalCount} items sync ke liye taiyar</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 transition">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          <IconButton label="Band karein" onClick={onClose}><X className="h-5 w-5" /></IconButton>
+        </header>
 
-        <div className="p-3 border-b bg-slate-50 flex gap-2">
-          <button
-            onClick={handleRetryAll}
-            disabled={busy || totalCount === 0 || !navigator.onLine}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            <RefreshCw className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} />
+        <div className="border-b border-slate-200 bg-slate-50 p-3">
+          <Button fullWidth onClick={handleRetryAll} disabled={busy || totalCount === 0 || !navigator.onLine}
+            leftIcon={<RefreshCw className={busy ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />}>
             {busy ? 'Sync ho raha hai…' : 'Sabko Sync Karo'}
-          </button>
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {totalCount === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
-              <CheckCircle2 className="w-14 h-14 mb-3 text-emerald-300" />
-              <p className="text-sm font-medium">Sab kuch synced hai 🎉</p>
-              <p className="text-xs mt-1">Koi pending change nahi</p>
-            </div>
+            <EmptyState className="h-full" icon={<CheckCircle2 className="h-6 w-6 text-success-600" />} title="Sab kuch synced hai" description="Koi pending change nahi" />
           ) : (
-            <div className="p-3 space-y-4">
+            <div className="space-y-4 p-3">
               {salesCount > 0 && (
                 <section>
-                  <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2 px-1">
-                    Sales ({salesCount})
-                  </h3>
+                  <h3 className="mb-2 px-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Sales ({salesCount})</h3>
                   <div className="space-y-2">
                     {pendingSales.map((sale) => (
                       <PendingSaleCard key={sale.id} sale={sale} onDelete={() => handleDeleteSale(sale.id)} />
@@ -142,9 +135,7 @@ export function PendingSalesDrawer({ open, onClose }: Props) {
               )}
               {queueCount > 0 && (
                 <section>
-                  <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2 px-1">
-                    Other Changes ({queueCount})
-                  </h3>
+                  <h3 className="mb-2 px-1 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Other Changes ({queueCount})</h3>
                   <div className="space-y-2">
                     {queueItems.map((item) => (
                       <QueueItemCard key={item.id} item={item} onDelete={() => handleDeleteQueueItem(item.id)} />
@@ -155,52 +146,46 @@ export function PendingSalesDrawer({ open, onClose }: Props) {
             </div>
           )}
         </div>
-      </div>
+      </aside>
     </div>
   );
 }
 
-function PendingSaleCard({ sale, onDelete }: { sale: PendingSale; onDelete: () => void }) {
-  const statusStyles: Record<string, string> = {
-    pending: 'bg-amber-50 text-amber-700 border-amber-200',
-    syncing: 'bg-blue-50 text-blue-700 border-blue-200',
-    failed: 'bg-rose-50 text-rose-700 border-rose-200',
-    synced: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  };
-  const icons: Record<string, React.ReactNode> = {
-    pending: <Clock className="w-3 h-3" />,
-    syncing: <RefreshCw className="w-3 h-3 animate-spin" />,
-    failed: <AlertTriangle className="w-3 h-3" />,
-    synced: <CheckCircle2 className="w-3 h-3" />,
-  };
+const STATUS_TONE: Record<string, BadgeVariant> = { pending: 'warning', syncing: 'info', failed: 'danger', synced: 'success' };
+const STATUS_ICON: Record<string, ReactNode> = {
+  pending: <Clock className="h-3 w-3" />,
+  syncing: <RefreshCw className="h-3 w-3 animate-spin" />,
+  failed: <AlertTriangle className="h-3 w-3" />,
+  synced: <CheckCircle2 className="h-3 w-3" />,
+};
 
+function SyncError({ children }: { children: ReactNode }) {
+  return <div className="mt-2 rounded-lg bg-rose-50 px-2 py-1 text-[0.6875rem] text-rose-700 ring-1 ring-inset ring-rose-200">{children}</div>;
+}
+
+function PendingSaleCard({ sale, onDelete }: { sale: PendingSale; onDelete: () => void }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-3 hover:shadow-sm transition">
-      <div className="flex items-start justify-between gap-2 mb-2">
+    <div className="rounded-xl border border-slate-200 bg-white p-3 transition hover:shadow-sm">
+      <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-bold text-slate-800 truncate">{sale.saleNumber}</span>
-            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border text-[0.6875rem] font-medium ${statusStyles[sale.status]}`}>
-              {icons[sale.status]}
-              {sale.status}
-            </span>
+            <span className="truncate font-mono text-[0.75rem] font-bold text-slate-800">{sale.saleNumber}</span>
+            <Badge size="xs" variant={STATUS_TONE[sale.status] ?? 'default'} className="gap-1">{STATUS_ICON[sale.status]}{sale.status}</Badge>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">{new Date(sale.createdAt).toLocaleString()}</p>
+          <p className="mt-0.5 text-[0.75rem] text-slate-500">{new Date(sale.createdAt).toLocaleString()}</p>
         </div>
-        <button onClick={onDelete} className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition shrink-0" title="Delete">
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <IconButton label="Delete" size="sm" onClick={onDelete} className="text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></IconButton>
       </div>
 
-      <div className="text-xs space-y-1 text-slate-700">
+      <div className="space-y-1 text-[0.75rem] text-slate-700">
         {sale.customerSnapshot && (
           <div className="flex items-center gap-1">
             <span className="text-slate-500">Customer:</span>
-            <span className="font-medium truncate">{sale.customerSnapshot.name}</span>
+            <span className="truncate font-medium">{sale.customerSnapshot.name}</span>
           </div>
         )}
         <div className="flex items-center gap-1">
-          <Package className="w-3 h-3 text-slate-400" />
+          <Package className="h-3 w-3 text-slate-400" />
           <span className="text-slate-500">{sale.itemsSnapshot.length} items</span>
           <span className="mx-1 text-slate-300">•</span>
           <span className="font-semibold text-slate-800">Rs {sale.total.toFixed(0)}</span>
@@ -209,45 +194,26 @@ function PendingSaleCard({ sale, onDelete }: { sale: PendingSale; onDelete: () =
       </div>
 
       {sale.syncError && (
-        <div className="mt-2 text-[0.6875rem] bg-rose-50 border border-rose-200 rounded px-2 py-1 text-rose-700">
-          <strong>Error:</strong> {sale.syncError}
-          {sale.retryCount > 0 && <span className="ml-1">({sale.retryCount} tries)</span>}
-        </div>
+        <SyncError><strong>Error:</strong> {sale.syncError}{sale.retryCount > 0 && <span className="ml-1">({sale.retryCount} tries)</span>}</SyncError>
       )}
     </div>
   );
 }
 
 function QueueItemCard({ item, onDelete }: { item: SyncQueueItem; onDelete: () => void }) {
-  const statusStyles: Record<string, string> = {
-    pending: 'bg-amber-50 text-amber-700 border-amber-200',
-    syncing: 'bg-blue-50 text-blue-700 border-blue-200',
-    failed: 'bg-rose-50 text-rose-700 border-rose-200',
-    synced: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  };
-
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-3 hover:shadow-sm transition">
+    <div className="rounded-xl border border-slate-200 bg-white p-3 transition hover:shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-slate-800">{typeLabels[item.type] || item.type}</span>
-            <span className={`px-1.5 py-0.5 rounded-full border text-[0.6875rem] font-medium ${statusStyles[item.status]}`}>
-              {item.status}
-            </span>
+            <Badge size="xs" variant={STATUS_TONE[item.status] ?? 'default'}>{item.status}</Badge>
           </div>
-          <p className="text-[0.6875rem] text-slate-500 mt-0.5 font-mono truncate">{item.method} {item.endpoint}</p>
-          <p className="text-[0.6875rem] text-slate-400 mt-0.5">{new Date(item.createdAt).toLocaleString()}</p>
-          {item.syncError && (
-            <div className="mt-1.5 text-[0.6875rem] bg-rose-50 border border-rose-200 rounded px-2 py-1 text-rose-700">
-              {item.syncError}
-              {item.retryCount > 0 && ` (${item.retryCount} tries)`}
-            </div>
-          )}
+          <p className="mt-0.5 truncate font-mono text-[0.6875rem] text-slate-500">{item.method} {item.endpoint}</p>
+          <p className="mt-0.5 text-[0.6875rem] text-slate-400">{new Date(item.createdAt).toLocaleString()}</p>
+          {item.syncError && <SyncError>{item.syncError}{item.retryCount > 0 && ` (${item.retryCount} tries)`}</SyncError>}
         </div>
-        <button onClick={onDelete} className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition shrink-0">
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <IconButton label="Delete" size="sm" onClick={onDelete} className="text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></IconButton>
       </div>
     </div>
   );

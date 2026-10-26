@@ -21,13 +21,13 @@ export function TaxAuthorityReceiptBadge({ saleId, className }: { saleId?: strin
   const svg = useMemo(() => (data?.qrText ? qrSvg(data.qrText, 110) : ''), [data?.qrText]);
   if (!data) return null;
   if (data.status !== 'SUCCESS') {
-    return <div className={cn('text-center text-[10px] font-bold', className)}>{data.authority} invoice: bheja ja raha hai</div>;
+    return <div className={cn('text-center text-[0.625rem] font-bold', className)}>{data.authority} invoice: bheja ja raha hai</div>;
   }
   return (
     <div className={cn('mt-2 border-t border-dashed border-black pt-2 text-center', className)}>
-      <div className="text-[11px] font-black uppercase tracking-wide">{data.label}</div>
-      <div className="font-mono text-[12px] font-bold break-all">{data.fiscalNumber}</div>
-      <div className="text-[10px] font-bold">Tax {data.taxRate}% · Rs {data.taxAmount.toLocaleString('en-PK')}</div>
+      <div className="text-[0.6875rem] font-black uppercase tracking-wide">{data.label}</div>
+      <div className="font-mono text-[0.75rem] font-bold break-all">{data.fiscalNumber}</div>
+      <div className="text-[0.625rem] font-bold">Tax {data.taxRate}% · Rs {data.taxAmount.toLocaleString('en-PK')}</div>
       {svg && <div className="mx-auto mt-1 inline-block bg-white" dangerouslySetInnerHTML={{ __html: svg }} />}
     </div>
   );

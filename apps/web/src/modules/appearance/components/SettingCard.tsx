@@ -7,7 +7,8 @@
 
 import type { ComponentProps, ReactNode } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { SectionCard } from '@modules/organization/settings/components/UI';
+import { Badge, Button } from '@/design-system/components';
+import { SectionCard } from '@modules/organization/settings/components/SettingsBlocks';
 import type { ValueSource } from '../hooks/useAppearanceEditor';
 
 const SOURCE_LABEL: Record<ValueSource, string> = {
@@ -36,12 +37,9 @@ export function SettingCard({ id, title, description, icon, color, source, onRes
     <SectionCard id={id} title={title} desc={description} icon={icon} color={color}
       action={(source || onReset) && (
         <div className="flex items-center gap-1.5">
-          {source && <span className="hidden rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-medium text-slate-600 sm:inline">{SOURCE_LABEL[source]}</span>}
+          {source && <Badge size="xs" className="hidden sm:inline-flex">{SOURCE_LABEL[source]}</Badge>}
           {onReset && (
-            <button type="button" onClick={onReset}
-              className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[0.75rem] font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
-              <RotateCcw className="h-3.5 w-3.5" /> Reset
-            </button>
+            <Button size="xs" variant="ghost" onClick={onReset} leftIcon={<RotateCcw className="h-3.5 w-3.5" />}>Reset</Button>
           )}
         </div>
       )}>

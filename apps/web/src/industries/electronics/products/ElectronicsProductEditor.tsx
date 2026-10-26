@@ -17,6 +17,7 @@ import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@modules/i
 import { stockAdjustmentsApi } from '@modules/inventory/stock-adjustments/api/stock-adjustments.api';
 import { electronicsProductsApi } from '../api/products.api';
 import { serialTrackingApi } from '../api/serial-tracking.api';
+import { TBody, THead, Table, Td, Th, Tr } from '@/design-system/components';
 import {
   BOX_CONTENT_OPTIONS, CATEGORY_GROUPS, CATEGORY_META, CONDITION_META, CONDITION_TYPES, SERIAL_SUGGESTED,
   categoryTypeFromName, type CategoryType, type ConditionType,
@@ -312,23 +313,23 @@ function Serials({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
             )}
           </details>
           {x.serials.length > 0 && (
-            <div className="overflow-x-auto rounded-xl ring-1 ring-slate-200">
-              <table className="w-full min-w-[36rem] text-[0.8125rem]">
-                <thead><tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500"><th className="px-3 py-2">Serial</th>{x.hasImei && <><th className="px-2 py-2">IMEI</th><th className="px-2 py-2">IMEI 2</th></>}<th className="px-2 py-2">MAC</th><th /></tr></thead>
-                <tbody className="divide-y divide-slate-100">
+            <div className="overflow-hidden rounded-xl ring-1 ring-slate-200">
+              <Table minWidth="36rem">
+                <THead><Tr><Th className="px-3 py-2">Serial</Th>{x.hasImei && <><Th className="px-2 py-2">IMEI</Th><Th className="px-2 py-2">IMEI 2</Th></>}<Th className="px-2 py-2">MAC</Th><Th /></Tr></THead>
+                <TBody>
                   {x.serials.map((s, i) => (
-                    <tr key={i}>
-                      <td className="px-3 py-1.5"><input value={s.serialNumber} onChange={(e) => update(i, { serialNumber: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></td>
+                    <Tr key={i}>
+                      <Td className="px-3 py-1.5"><input value={s.serialNumber} onChange={(e) => update(i, { serialNumber: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></Td>
                       {x.hasImei && <>
-                        <td className="px-2 py-1.5"><input value={s.imei} onChange={(e) => update(i, { imei: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></td>
-                        <td className="px-2 py-1.5"><input value={s.imei2} onChange={(e) => update(i, { imei2: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></td>
+                        <Td className="px-2 py-1.5"><input value={s.imei} onChange={(e) => update(i, { imei: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></Td>
+                        <Td className="px-2 py-1.5"><input value={s.imei2} onChange={(e) => update(i, { imei2: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></Td>
                       </>}
-                      <td className="px-2 py-1.5"><input value={s.macAddress} onChange={(e) => update(i, { macAddress: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></td>
-                      <td className="px-2 py-1.5"><button type="button" onClick={() => ctx.setExtra({ serials: x.serials.filter((_, j) => j !== i) })} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button></td>
-                    </tr>
+                      <Td className="px-2 py-1.5"><input value={s.macAddress} onChange={(e) => update(i, { macAddress: e.target.value })} className={cn(inputClass, 'h-9 font-mono text-[0.8125rem]')} /></Td>
+                      <Td className="px-2 py-1.5"><button type="button" onClick={() => ctx.setExtra({ serials: x.serials.filter((_, j) => j !== i) })} aria-label="Hatayein" className="flex h-9 w-9 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button></Td>
+                    </Tr>
                   ))}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             </div>
           )}
           {ctx.errors.serials && <p className="text-[0.8125rem] font-medium text-rose-600">{ctx.errors.serials}</p>}

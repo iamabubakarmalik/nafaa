@@ -5,7 +5,7 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Building2, Crown, Store } from 'lucide-react';
-import { Card } from '@/design-system/components';
+import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -50,7 +50,7 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
               <p className="text-[0.75rem] text-slate-500">Net sale · kul ka {share.toFixed(0)}%</p>
               <div className="mt-2 flex items-center justify-between text-[0.8125rem]">
                 <span className="text-slate-500">Net profit</span>
-                <span className={cn('font-semibold tabular-nums', (s.netProfit ?? 0) < 0 ? 'text-rose-600' : 'text-emerald-700')}>{s.netProfit == null ? '—' : fmt.cost(s.netProfit)}</span>
+                <span className={cn('font-semibold tabular-nums', (s.netProfit ?? 0) < 0 ? 'text-rose-600' : 'text-success-700')}>{s.netProfit == null ? '—' : fmt.cost(s.netProfit)}</span>
               </div>
               <div className="flex items-center justify-between text-[0.8125rem]">
                 <span className="text-slate-500">Kharchay</span><span className="tabular-nums text-slate-800">{fmt.sales(s.expenses.total)}</span>
@@ -85,34 +85,32 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
       </Card>
 
       <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-max text-[0.8125rem]">
-            <thead className="bg-slate-50/70 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="sticky left-0 z-10 bg-slate-50 px-4 py-2.5 text-left sm:px-5">Details</th>
-                {list.map((b) => <th key={b.id} className="px-3 py-2.5 text-right">{b.name}</th>)}
-                <th className="bg-slate-100/70 px-4 py-2.5 text-right">Kul</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lines.map((l) => {
-                if (l.kind === 'head') {
-                  return <tr key={l.id}><td className="sticky left-0 z-10 bg-white px-4 pb-1 pt-3 text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500 sm:px-5">{l.label}</td><td colSpan={list.length + 1} /></tr>;
-                }
-                const cell = (v: number | null) => (l.cost && fmt.costHidden ? fmt.cost(0) : lineText(l, v));
-                return (
-                  <tr key={l.id} className={cn((l.kind === 'total' || l.kind === 'grand') && 'font-semibold', l.kind === 'grand' && 'bg-brand-50/50', l.kind === 'sub' && 'text-slate-500', l.kind === 'total' && 'border-t border-slate-200')}>
-                    <td className={cn('sticky left-0 z-10 max-w-[14rem] truncate px-4 py-1.5 sm:px-5', l.kind === 'grand' ? 'bg-brand-50' : 'bg-white', l.kind === 'sub' && 'pl-8')} title={l.hint ?? l.label}>
-                      {l.minus && <span className="mr-1 text-slate-400">−</span>}{l.label}
-                    </td>
-                    {list.map((b) => <td key={b.id} className="whitespace-nowrap px-3 py-1.5 text-right tabular-nums">{cell(l.value(b.statement))}</td>)}
-                    <td className="whitespace-nowrap bg-slate-50/70 px-4 py-1.5 text-right tabular-nums">{cell(l.value(data.total))}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <Table minWidth="max-content" className="[&_table]:text-[0.8125rem]">
+          <THead>
+            <Tr>
+              <Th className="sticky left-0 z-10 bg-slate-50 px-4 py-2.5 text-left sm:px-5">Details</Th>
+              {list.map((b) => <Th key={b.id} className="px-3 py-2.5 text-right">{b.name}</Th>)}
+              <Th className="bg-slate-100/70 px-4 py-2.5 text-right">Kul</Th>
+            </Tr>
+          </THead>
+          <TBody className="divide-y-0">
+            {lines.map((l) => {
+              if (l.kind === 'head') {
+                return <Tr key={l.id}><Td className="sticky left-0 z-10 bg-white px-4 pb-1 pt-3 text-[0.6875rem] font-bold uppercase tracking-wide text-slate-500 sm:px-5">{l.label}</Td><Td colSpan={list.length + 1} /></Tr>;
+              }
+              const cell = (v: number | null) => (l.cost && fmt.costHidden ? fmt.cost(0) : lineText(l, v));
+              return (
+                <Tr key={l.id} className={cn((l.kind === 'total' || l.kind === 'grand') && 'font-semibold', l.kind === 'grand' && 'bg-brand-50/50', l.kind === 'sub' && 'text-slate-500', l.kind === 'total' && 'border-t border-slate-200')}>
+                  <Td className={cn('sticky left-0 z-10 max-w-[14rem] truncate px-4 py-1.5 text-inherit sm:px-5', l.kind === 'grand' ? 'bg-brand-50' : 'bg-white', l.kind === 'sub' && 'pl-8')} title={l.hint ?? l.label}>
+                    {l.minus && <span className="mr-1 text-slate-400">−</span>}{l.label}
+                  </Td>
+                  {list.map((b) => <Td key={b.id} className="whitespace-nowrap px-3 py-1.5 text-right tabular-nums text-inherit">{cell(l.value(b.statement))}</Td>)}
+                  <Td className="whitespace-nowrap bg-slate-50/70 px-4 py-1.5 text-right tabular-nums text-inherit">{cell(l.value(data.total))}</Td>
+                </Tr>
+              );
+            })}
+          </TBody>
+        </Table>
         {list.some((b) => b.id === '-') && (
           <p className="border-t border-slate-100 px-4 py-2.5 text-[0.75rem] text-slate-500 sm:px-5">"Bina branch" me wo kharchay aur tankhwah hain jin par branch nahi likhi — purane record ya poori dukaan ke kharch.</p>
         )}

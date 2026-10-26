@@ -7,9 +7,9 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { BarChart3, Bell, BellRing, Calendar, Mail, MessageCircle, Package } from 'lucide-react';
-import { Button } from '@/design-system/components';
+import { Button, Badge, Alert } from '@/design-system/components';
 import { settingsApi, type TenantSettings } from '../api/settings.api';
-import { Alert, PageLink, SectionCard, StatPill, Toggle } from '../components/UI';
+import { PageLink, SectionCard, Toggle } from '../components/SettingsBlocks';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { SaveStatusBar } from './_SaveStatus';
 
@@ -35,7 +35,7 @@ export function NotificationsSection({ settings }: { settings: TenantSettings })
       <SaveStatusBar saving={saving} dirty={dirty} />
 
       <SectionCard title="Email notifications" desc="Malik ke email par store ki khabrein" icon={Mail} color="rose"
-        badge={<StatPill label="" value={email ? 'Chalu' : 'Band'} tone={email ? 'emerald' : 'slate'} />}>
+        badge={<Badge size="xs" variant={email ? 'success' : 'default'}>{email ? 'Chalu' : 'Band'}</Badge>}>
         <Toggle checked={email} onChange={(v) => set('emailNotifications', v)} icon={Mail}
           label="Email bhejein" desc="Band karein to neeche wali koi email nahi jayegi. Email tasdeeq shuda honi chahiye." />
       </SectionCard>
@@ -46,7 +46,7 @@ export function NotificationsSection({ settings }: { settings: TenantSettings })
         <Toggle checked={draft.notifyDailySummary} onChange={(v) => set('notifyDailySummary', v)} icon={BarChart3}
           label="Rozana Sale ki email (closing report)"
           desc={`Roz ${clock(draft.dailySummaryTime)} par: aaj ki Sale, Profit aur udhaar. Waqt aur log 'Reports & daily summary' me.`} />
-        {!email && <Alert tone="amber">Email band hai — kam stock ki email nahi jayegi. Closing report phir bhi app ki ghanti me aati hai.</Alert>}
+        {!email && <Alert className="mt-3" tone="warning">Email band hai — kam stock ki email nahi jayegi. Closing report phir bhi app ki ghanti me aati hai.</Alert>}
       </SectionCard>
 
       <SectionCard title="Test notification" desc="Dekhein ke notifications pohnch rahi hain" icon={BellRing} color="blue"

@@ -2,6 +2,7 @@ import {
   Banknote, Smartphone, Zap, CreditCard, Building2,
 } from 'lucide-react';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
+import type { PriceTier, TierPriced } from '@core/lib/priceTiers';
 
 /* ═════════════════════════════════════════════════════════════
    POS CART — ek hi shakal, har industry ke liye
@@ -83,6 +84,17 @@ export interface PosCartLine {
   /** Batch picked at the counter; left out, the sale takes the earliest expiry. */
   batchId?: string;
   batchNumber?: string;
+
+  /** Price tier the line is sold at (saved on the sale line). */
+  priceTier?: PriceTier;
+  /** Retail, wholesale and credit price of this line's unit, to re-price it when the tier changes. */
+  tierSrc?: TierPriced;
+  /** Tier picked for this line only; the bill's tier does not change it. */
+  tierLocked?: boolean;
+  /** Rate typed by the cashier; kept when the tier changes. */
+  priceEdited?: boolean;
+  /** Rate fixed by the industry (bulk rate, a phone's own price); never re-priced. */
+  fixedPrice?: boolean;
 }
 
 export interface PosHeldCart {
@@ -91,6 +103,8 @@ export interface PosHeldCart {
   customerId: string;
   total: number;
   heldAt: number;
+  /** Bill tier when it was held. */
+  tier?: PriceTier;
 }
 
 export const posLineId = () => `l-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;

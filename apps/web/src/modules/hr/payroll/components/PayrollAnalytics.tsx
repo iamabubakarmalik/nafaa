@@ -6,7 +6,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Bar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { BarChart3, Briefcase, CalendarRange, HandCoins, Percent, Store, TrendingDown, TrendingUp, Users, Wallet, type LucideIcon } from 'lucide-react';
-import { Card, Skeleton } from '@/design-system/components';
+import { Card, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -84,32 +84,30 @@ export function PayrollAnalytics({ month, shopId }: { month: string; shopId?: st
       </div>
 
       <Card className="rounded-2xl" title={<Title icon={CalendarRange}>Mahine ba mahine</Title>} description="Kamai, katauti, ada aur baqi" flush>
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[44rem] text-[0.75rem]">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-500">
-                {['Mahina', 'Staff', 'Kul kamai', 'Katauti', 'Net', 'Ada', 'Baqi', 'Sale', '%'].map((h, i) => (
-                  <th key={h} className={cn('px-3 py-2 font-medium', i === 0 ? 'sticky left-0 bg-white px-4 text-left' : 'text-right')}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[...d.months].reverse().map((m) => (
-                <tr key={m.key} className="border-b border-slate-50">
-                  <td className="sticky left-0 bg-white px-4 py-1.5 font-medium text-slate-800">{m.label}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{m.staff || '·'}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{m.gross ? axisMoney(m.gross) : '·'}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums text-rose-700">{m.cuts ? axisMoney(m.cuts) : '·'}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{m.net ? axisMoney(m.net) : '·'}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums text-emerald-700">{m.paid ? axisMoney(m.paid) : '·'}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums text-amber-700">{m.due ? axisMoney(m.due) : '·'}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{m.sales ? axisMoney(m.sales) : '·'}</td>
-                  <td className="px-4 py-1.5 text-right tabular-nums">{m.pct == null ? '·' : `${m.pct}%`}</td>
-                </tr>
+        <Table minWidth="44rem" className="mt-3 [&_table]:text-[0.75rem]">
+          <THead>
+            <Tr>
+              {['Mahina', 'Staff', 'Kul kamai', 'Katauti', 'Net', 'Ada', 'Baqi', 'Sale', '%'].map((h, i) => (
+                <Th key={h} className={cn('px-3 py-2', i === 0 ? 'sticky left-0 bg-slate-50 px-4 text-left' : 'text-right')}>{h}</Th>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </Tr>
+          </THead>
+          <TBody>
+            {[...d.months].reverse().map((m) => (
+              <Tr key={m.key}>
+                <Td className="sticky left-0 bg-white px-4 py-1.5 font-medium text-slate-800">{m.label}</Td>
+                <Td className="px-3 py-1.5 text-right tabular-nums">{m.staff || '·'}</Td>
+                <Td className="px-3 py-1.5 text-right tabular-nums">{m.gross ? axisMoney(m.gross) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-right tabular-nums text-rose-700">{m.cuts ? axisMoney(m.cuts) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-right tabular-nums">{m.net ? axisMoney(m.net) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-right tabular-nums text-success-700">{m.paid ? axisMoney(m.paid) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-right tabular-nums text-amber-700">{m.due ? axisMoney(m.due) : '·'}</Td>
+                <Td className="px-3 py-1.5 text-right tabular-nums">{m.sales ? axisMoney(m.sales) : '·'}</Td>
+                <Td className="px-4 py-1.5 text-right tabular-nums">{m.pct == null ? '·' : `${m.pct}%`}</Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
         <p className="px-4 py-3 text-[0.75rem] text-slate-500 sm:px-5">Kul kamai = asal tankhwah + overtime + commission + bonus. Advance pehle diya ja chuka hota hai, is liye jis mahine katta hai us ki Net me se nikal kar aata hai.</p>
       </Card>
     </div>
@@ -147,7 +145,7 @@ function Ranked({ icon, title, description, rows, empty }: {
 }
 
 function Kpi({ icon: I, label, value, sub, tone = 'brand' }: { icon: LucideIcon; label: string; value: string; sub?: string; tone?: 'brand' | 'rose' | 'emerald' | 'amber' }) {
-  const toneCls = { rose: 'bg-rose-50 text-rose-700', emerald: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', brand: 'bg-brand-50 text-brand-700' }[tone];
+  const toneCls = { rose: 'bg-rose-50 text-rose-700', emerald: 'bg-success-50 text-success-700', amber: 'bg-amber-50 text-amber-700', brand: 'bg-brand-50 text-brand-700' }[tone];
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center gap-2"><span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', toneCls)}><I className="h-4 w-4" /></span><span className="text-[0.8125rem] text-slate-500">{label}</span></div>

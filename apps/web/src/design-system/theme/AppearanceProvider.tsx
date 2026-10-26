@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useRef, type ReactNode } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useSettings } from '@modules/organization/settings/hooks/useSettings';
@@ -22,7 +22,7 @@ import { getElectron } from '@core/lib/desktop/electron';
 import { industryIdentity, MARKETPLACE_IDENTITY } from '../industries/identities';
 import { normalizeMode, type AppearanceLayer } from './appearance';
 import { applyAppearance } from './apply';
-import { appearanceApi, APPEARANCE_QUERY_KEY } from './appearance.api';
+import { appearanceApi, APPEARANCE_QUERY_KEY, type StoredAppearance } from './appearance.api';
 import { useAppearanceStore } from './store';
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
@@ -72,6 +72,7 @@ export function AppearanceBridge() {
   const industry = useCurrentIndustry();
   const { setIndustryColor, setBusiness, setPlatform, replacePersonal } = useAppearanceStore.getState();
   const isMarketplace = useLocation().pathname.startsWith('/marketplace');
+  const qc = useQueryClient();
 
   const { data: stored } = useQuery({
     queryKey: APPEARANCE_QUERY_KEY,
@@ -128,18 +129,22 @@ export function AppearanceBridge() {
   }, [settings, stored?.business, setBusiness]);
 
   // Save personal changes (debounced) once the server copy has been loaded.
+  // The cached server copy is updated at once: the query cache is persisted,
+  // and a stale copy would otherwise replace the new choice on the next launch
+  // (or while offline, when the save cannot reach the server).
   useEffect(() => {
     if (!isAuthenticated) return;
     let timer: number | undefined;
     const unsubscribe = useAppearanceStore.subscribe((state, prev) => {
       if (state.personal === prev.personal || applyingRemote.current || !synced.current) return;
+      qc.setQueryData<StoredAppearance>(APPEARANCE_QUERY_KEY, (old) => (old ? { ...old, personal: state.personal ?? {} } : old));
       window.clearTimeout(timer);
       timer = window.setTimeout(() => {
         appearanceApi.savePersonal(useAppearanceStore.getState().personal ?? {}).catch(() => undefined);
       }, SAVE_DELAY_MS);
     });
     return () => { unsubscribe(); window.clearTimeout(timer); };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, qc]);
 
   return null;
 }

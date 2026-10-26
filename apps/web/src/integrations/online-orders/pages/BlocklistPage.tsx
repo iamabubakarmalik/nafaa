@@ -4,8 +4,8 @@ import { toast } from 'sonner';
 import { Search, ShieldBan, Trash2 } from 'lucide-react';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
 import { whenText } from '../lib/labels';
-import { Btn, Card, EmptyState, Field, Page, inputCls } from '../components/ui/kit';
 import { cn } from '@core/lib/cn';
+import { Button, Card, controlClass, EmptyState, Input, PageHero, PageShell } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    BLOCK LIST — fake / baar baar RTO karne wale numbers. Is number se
@@ -36,16 +36,17 @@ export default function BlocklistPage() {
   const rows = (data ?? []).filter((b) => !q.trim() || b.key.includes(term) || (b.name ?? '').toLowerCase().includes(q.trim().toLowerCase()));
 
   return (
-    <Page back={{ to: '/online-orders/reports', label: 'Online reports' }} title="Block list" narrow
-      subtitle="Fake ya RTO karne wale numbers. In se aane wale order khud accept nahi hote — ⛔ nishan ke saath 'Naya' me rukte hain.">
+    <PageShell className="max-w-3xl">
+      <PageHero back="/online-orders/reports" backLabel="Online reports" title="Block list"
+        subtitle="Fake ya RTO karne wale numbers. In se aane wale order khud accept nahi hote — ⛔ nishan ke saath 'Naya' me rukte hain." />
       <Card title="Number block karein">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Phone"><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="03xxxxxxxxx" className={inputCls} /></Field>
-          <Field label="Naam (optional)"><input value={name} onChange={(e) => setName(e.target.value)} className={inputCls} maxLength={80} /></Field>
-          <Field label="Wajah (optional)"><input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Fake order" className={inputCls} maxLength={200} /></Field>
+          <Input size="sm" label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="03xxxxxxxxx" />
+          <Input size="sm" label="Naam (optional)" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} />
+          <Input size="sm" label="Wajah (optional)" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Fake order" maxLength={200} />
         </div>
         <div className="mt-3 flex justify-end">
-          <Btn variant="critical" disabled={phone.replace(/\D/g, '').length < 10} loading={add.isPending} onClick={() => add.mutate()} icon={<ShieldBan className="h-4 w-4" />}>Block</Btn>
+          <Button size="sm" variant="critical" disabled={phone.replace(/\D/g, '').length < 10} loading={add.isPending} onClick={() => add.mutate()} leftIcon={<ShieldBan className="h-4 w-4" />}>Block</Button>
         </div>
       </Card>
 
@@ -53,13 +54,13 @@ export default function BlocklistPage() {
         <div className="px-4 sm:px-5">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Number ya naam…" className={cn(inputCls, 'pl-8')} />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Number ya naam…" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] pl-8')} />
           </div>
         </div>
         <div className="mt-3 border-t border-slate-100 dark:border-ink-800">
           {isLoading ? <div className="p-5"><div className="h-16 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" /></div>
-            : error ? <EmptyState title="List nahi khuli">{apiErrorMessage(error)}</EmptyState>
-            : rows.length === 0 ? <EmptyState icon={<ShieldBan className="h-5 w-5" />} title="Koi number block nahi">Order ke andar "Number block" se bhi block kar sakte hain.</EmptyState>
+            : error ? <EmptyState title="List nahi khuli" description={apiErrorMessage(error)} />
+            : rows.length === 0 ? <EmptyState icon={<ShieldBan className="h-5 w-5" />} title="Koi number block nahi" description={<>Order ke andar "Number block" se bhi block kar sakte hain.</>} />
             : (
               <ul className="divide-y divide-slate-100 dark:divide-ink-800">
                 {rows.map((b) => (
@@ -68,13 +69,13 @@ export default function BlocklistPage() {
                       <div className="font-mono text-[0.8125rem] font-semibold text-slate-900 dark:text-ink-white">{b.phone}{b.name ? <span className="ml-2 font-sans font-normal text-slate-500">{b.name}</span> : null}</div>
                       <div className="text-[0.75rem] text-slate-500">{b.reason ?? 'Wajah nahi likhi'} · {whenText(b.at)}</div>
                     </div>
-                    <Btn size="sm" variant="plain" loading={remove.isPending && remove.variables === b.phone} onClick={() => remove.mutate(b.phone)} icon={<Trash2 className="h-3.5 w-3.5" />}>Unblock</Btn>
+                    <Button size="xs" variant="ghost" loading={remove.isPending && remove.variables === b.phone} onClick={() => remove.mutate(b.phone)} leftIcon={<Trash2 className="h-3.5 w-3.5" />}>Unblock</Button>
                   </li>
                 ))}
               </ul>
             )}
         </div>
       </Card>
-    </Page>
+    </PageShell>
   );
 }

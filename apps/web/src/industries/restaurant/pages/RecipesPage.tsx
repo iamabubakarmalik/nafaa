@@ -19,8 +19,8 @@ import {
   Search, Trash2, TrendingDown, Truck, Wheat,
 } from 'lucide-react';
 import {
-  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
-  heroButton, heroIconButton, heroPrimaryButton,
+  Button, FilterBar, FilterChip, FilterMenu, Input, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td,
+  Textarea, Th, THead, Tr, ViewTabs, heroButton, heroIconButton, heroPrimaryButton, controlClass,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide, type GuideStep } from '@core/components/PageGuide';
 import { usePermission } from '@core/hooks/usePermission';
@@ -253,26 +253,24 @@ export default function RecipesPage() {
             {usageQ.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}</div> : !usageRows.length ? (
               <p className="px-6 py-12 text-center text-[0.875rem] text-slate-500">Is period me recipe se koi saamaan nahi laga</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-[0.8125rem]">
-                  <thead className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                    <tr><th className="px-4 py-2.5">Saamaan</th><th className="px-3 py-2.5 text-right">Recipe me laga</th><th className="px-3 py-2.5 text-right">Value</th><th className="px-3 py-2.5 text-right">Khareeda</th><th className="px-3 py-2.5 text-right">Stock</th><th className="px-3 py-2.5 text-right">Roz</th><th className="px-4 py-2.5 text-right">Kitne din</th></tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {usageRows.map((r) => (
-                      <tr key={r.productId}>
-                        <td className="px-4 py-2.5"><Link to={`/restaurant-menu-items/${r.productId}`} className="font-medium text-slate-900 hover:text-brand-700">{r.name}</Link></td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">{fmt(r.used)} {r.unit}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">{cost(r.usedValue)}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">{r.bought ? `${fmt(r.bought)} ${r.unit}` : '—'}</td>
-                        <td className={cn('px-3 py-2.5 text-right tabular-nums', r.stock <= r.lowStockAlert && 'font-semibold text-rose-700')}>{fmt(r.stock)} {r.unit}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">{fmt(r.perDay)}</td>
-                        <td className={cn('px-4 py-2.5 text-right font-semibold tabular-nums', r.daysLeft !== null && r.daysLeft <= 2 ? 'text-rose-700' : 'text-slate-800')}>{r.daysLeft === null ? '—' : `${r.daysLeft} din`}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table>
+                <THead>
+                  <Tr><Th className="px-4 py-2.5">Saamaan</Th><Th align="right" className="px-3 py-2.5">Recipe me laga</Th><Th align="right" className="px-3 py-2.5">Value</Th><Th align="right" className="px-3 py-2.5">Khareeda</Th><Th align="right" className="px-3 py-2.5">Stock</Th><Th align="right" className="px-3 py-2.5">Roz</Th><Th align="right" className="px-4 py-2.5">Kitne din</Th></Tr>
+                </THead>
+                <TBody>
+                  {usageRows.map((r) => (
+                    <Tr key={r.productId}>
+                      <Td className="px-4 py-2.5"><Link to={`/restaurant-menu-items/${r.productId}`} className="font-medium text-slate-900 hover:text-brand-700">{r.name}</Link></Td>
+                      <Td align="right" className="px-3 py-2.5 tabular-nums">{fmt(r.used)} {r.unit}</Td>
+                      <Td align="right" className="px-3 py-2.5 tabular-nums">{cost(r.usedValue)}</Td>
+                      <Td align="right" className="px-3 py-2.5 tabular-nums">{r.bought ? `${fmt(r.bought)} ${r.unit}` : '—'}</Td>
+                      <Td className={cn('px-3 py-2.5 text-right tabular-nums', r.stock <= r.lowStockAlert && 'font-semibold text-rose-700')}>{fmt(r.stock)} {r.unit}</Td>
+                      <Td align="right" className="px-3 py-2.5 tabular-nums text-slate-600">{fmt(r.perDay)}</Td>
+                      <Td className={cn('px-4 py-2.5 text-right font-semibold tabular-nums', r.daysLeft !== null && r.daysLeft <= 2 ? 'text-rose-700' : 'text-slate-800')}>{r.daysLeft === null ? '—' : `${r.daysLeft} din`}</Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
             )}
           </section>
           <p className="text-[0.75rem] text-slate-500">"Recipe me laga" bikne wali dishes ki recipe se nikla saamaan hai. Stock ginti me farq ho to Stock adjustment se theek karein — wahan wajah ke saath record rehta hai.</p>
@@ -339,7 +337,7 @@ function PickDish({ dishes, onClose, onPick }: { dishes: RestaurantMenuItem[]; o
     <Modal open onClose={onClose} size="md" title="Kis dish ki recipe?" description="Yahan woh dishes hain jin ki recipe abhi nahi bani">
       <label className="relative block">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dish ka naam…" className="h-10 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-[0.875rem]" />
+        <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Dish ka naam…" className={cn(controlClass(), 'h-10 pl-9 pr-3 text-[0.875rem]')} />
       </label>
       <ul className="mt-3 max-h-[50vh] space-y-1 overflow-y-auto">
         {rows.map((m) => (
@@ -398,14 +396,10 @@ function RecipeModal({ target, canSave, onClose, onSaved }: { target: Target; ca
             sizes={sizes.map((v) => ({ name: v.name, price: Number(v.price) || target.price }))} />
           {draft.lines.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(0,1fr)]">
-              <label className="block text-[0.8125rem] font-medium text-slate-700">Banane ka tareeqa (marzi)
-                <textarea value={draft.preparationSteps} onChange={(e) => setDraft({ ...draft, preparationSteps: e.target.value.slice(0, 5000) })} rows={3}
-                  className="mt-1.5 block w-full rounded-xl border border-slate-200 px-3 py-2 text-[0.875rem]" placeholder="1. …" />
-              </label>
-              <label className="block text-[0.8125rem] font-medium text-slate-700">Pakne me (min)
-                <input inputMode="numeric" value={draft.cookingTime ?? ''} onChange={(e) => setDraft({ ...draft, cookingTime: e.target.value ? Number(e.target.value.replace(/\D/g, '')) : null })}
-                  className="mt-1.5 block h-10 w-full rounded-xl border border-slate-200 px-3 text-right text-[0.875rem]" />
-              </label>
+              <Textarea label="Banane ka tareeqa (marzi)" value={draft.preparationSteps} onChange={(e) => setDraft({ ...draft, preparationSteps: e.target.value.slice(0, 5000) })} rows={3}
+                placeholder="1. …" />
+              <Input label="Pakne me (min)" inputMode="numeric" value={draft.cookingTime ?? ''} onChange={(e) => setDraft({ ...draft, cookingTime: e.target.value ? Number(e.target.value.replace(/\D/g, '')) : null })}
+                className="text-right" />
             </div>
           )}
         </div>

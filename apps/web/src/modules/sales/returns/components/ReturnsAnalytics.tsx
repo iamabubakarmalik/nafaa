@@ -34,13 +34,13 @@ export function ReturnsAnalytics({ filters, money }: { filters: Omit<ReturnQuery
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={RotateCcw} label="Kul wapas" value={money(t.refunded)} sub={`${t.count} return · ${t.bills} bill`} tone="rose" />
         <Kpi icon={Percent} label="Return ki sharah" value={`${t.rate}%`} sub={`Sale ${money(t.salesTotal)} me se · ${t.billRate}% bill`} tone="amber" />
-        <Kpi icon={Package} label="Stock me wapas" value={qtyText(t.restockedQty)} sub={t.writtenOffQty ? `${qtyText(t.writtenOffQty)} kharab — stock me nahi` : 'Sab dobara bikne layak'} tone="emerald" />
+        <Kpi icon={Package} label="Stock me wapas" value={qtyText(t.restockedQty)} sub={t.writtenOffQty ? `${qtyText(t.writtenOffQty)} kharab — stock me nahi` : 'Sab dobara bikne layak'} tone="success" />
         <Kpi icon={BookOpen} label="Khate se kam" value={money(t.khata)} sub={`Haath me diye ${money(t.payout)}`} />
       </div>
 
       <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Roz ki return</span>} description="Har karobari din kitna paisa wapas gaya">
         {!trend.some((x) => x.count) ? <Empty text="Is period me koi return nahi" /> : (
-          <div className="h-[260px]">
+          <div className="h-[16.25rem]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trend} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke={theme.grid} vertical={false} />
@@ -58,7 +58,7 @@ export function ReturnsAnalytics({ filters, money }: { filters: Omit<ReturnQuery
         <Ranked icon={MessageSquareText} title="Wajah" description="Maal kyun wapas aa raha hai" rows={d.byReason} money={money} sub={(r) => `${r.count} return · ${qtyText(r.qty)} cheezein`} />
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><Wallet className="h-4 w-4 text-brand-600" />Paisa kaise wapas gaya</span>} description="Cash, wallet, bank ya card">
           {!methods.length ? <Empty text="Koi return nahi" /> : (
-            <div className="h-[220px]">
+            <div className="h-[13.75rem]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={methods} layout="vertical" margin={{ top: 0, right: 8, left: 8, bottom: 0 }}>
                   <CartesianGrid stroke={theme.grid} horizontal={false} />
@@ -125,8 +125,8 @@ function Ranked({ icon: I, title, description, rows, money, sub }: {
   );
 }
 
-function Kpi({ icon: I, label, value, sub, tone = 'brand' }: { icon: LucideIcon; label: string; value: string; sub?: string; tone?: 'brand' | 'rose' | 'emerald' | 'amber' }) {
-  const toneCls = { rose: 'bg-rose-50 text-rose-700', emerald: 'bg-emerald-50 text-emerald-700', amber: 'bg-amber-50 text-amber-700', brand: 'bg-brand-50 text-brand-700' }[tone];
+function Kpi({ icon: I, label, value, sub, tone = 'brand' }: { icon: LucideIcon; label: string; value: string; sub?: string; tone?: 'brand' | 'rose' | 'success' | 'amber' }) {
+  const toneCls = { rose: 'bg-rose-50 text-rose-700', success: 'bg-success-50 text-success-700', amber: 'bg-amber-50 text-amber-700', brand: 'bg-brand-50 text-brand-700' }[tone];
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
       <div className="flex items-center gap-2"><span className={cn('flex h-8 w-8 items-center justify-center rounded-lg', toneCls)}><I className="h-4 w-4" /></span><span className="text-[0.8125rem] text-slate-500">{label}</span></div>

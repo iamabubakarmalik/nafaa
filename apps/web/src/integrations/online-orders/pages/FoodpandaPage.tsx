@@ -6,8 +6,8 @@ import { Copy, Plus, Save, Trash2, UtensilsCrossed } from 'lucide-react';
 import { apiErrorMessage } from '../api/online-orders.api';
 import { foodpandaApi, type FoodpandaChannel, type FoodpandaOverview, type FoodpandaVendor } from '../api/foodpanda.api';
 import { whenText } from '../lib/labels';
-import { Badge, Banner, Btn, Card, EmptyState, Field, Page, SettingRow, Toggle, inputCls } from '../components/ui/kit';
 import { cn } from '@core/lib/cn';
+import { Alert, Badge, Button, Card, controlClass, EmptyState, Field, Input, PageHero, PageShell, Select, Switch } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    FOODPANDA — orders seedha Nafaa me (Delivery Hero POS integration).
@@ -22,12 +22,13 @@ const copy = (s: string) => navigator.clipboard.writeText(s).then(() => toast.su
 export default function FoodpandaPage() {
   const { data, isLoading, error } = useQuery({ queryKey: KEY, queryFn: foodpandaApi.overview });
   return (
-    <Page back={{ to: '/online-store/channels', label: 'Sales channels' }} title="Foodpanda"
-      subtitle="Foodpanda ke orders seedha Nafaa me — accept, reject, ready, sab yahin se.">
+    <PageShell>
+      <PageHero back="/online-store/channels" backLabel="Sales channels" title="Foodpanda"
+        subtitle="Foodpanda ke orders seedha Nafaa me — accept, reject, ready, sab yahin se." />
       {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
-        : error || !data ? <Card><EmptyState title="Safha nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
+        : error || !data ? <Card><EmptyState title="Safha nahi khula" description={apiErrorMessage(error)} /></Card>
         : <Body data={data} />}
-    </Page>
+    </PageShell>
   );
 }
 
@@ -35,9 +36,9 @@ function Body({ data }: { data: FoodpandaOverview }) {
   return (
     <>
       {!data.configured && (
-        <Banner tone="warning" title="Foodpanda abhi Nafaa ke liye chalu nahi hua">
+        <Alert tone="warning" title="Foodpanda abhi Nafaa ke liye chalu nahi hua">
           Nafaa ki Foodpanda partnership ki keys server par lagni baqi hain. Aap apne codes abhi save kar sakte hain — chalu hote hi orders aane lagenge.
-        </Banner>
+        </Alert>
       )}
       <Card title="Kaise kaam karta hai">
         <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-ink-200 sm:grid-cols-3">
@@ -51,10 +52,10 @@ function Body({ data }: { data: FoodpandaOverview }) {
       <Card title="Foodpanda team ke liye (technical)">
         <div className="space-y-2 text-[0.8125rem]">
           <Field label="POS plugin base URL">
-            <div className="flex gap-2">
-              <input readOnly value={data.pluginBaseUrl} className={cn(inputCls, 'font-mono text-[0.75rem]')} />
-              <Btn icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(data.pluginBaseUrl)}>Copy</Btn>
-            </div>
+            {(id) => (<div className="flex gap-2">
+              <input id={id} readOnly value={data.pluginBaseUrl} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] font-mono text-[0.75rem]')} />
+              <Button size="sm" leftIcon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(data.pluginBaseUrl)}>Copy</Button>
+            </div>)}
           </Field>
           <p className="text-slate-500">Mahol: <b>{data.environment === 'staging' ? 'Staging (test)' : 'Production'}</b> · Integration: Nafaa POS</p>
         </div>
@@ -84,52 +85,45 @@ function ChannelForm({ data, channel }: { data: FoodpandaOverview; channel?: Foo
 
   return (
     <Card title={<span className="flex items-center gap-2"><UtensilsCrossed className="h-4 w-4 text-pink-600" /> {channel?.displayName ?? 'Foodpanda jorein'}
-      {channel && (channel.isActive ? <Badge tone="success" dot>Chalu</Badge> : <Badge tone="neutral">Band</Badge>)}</span>}
-      actions={channel ? <Toggle checked={channel.isActive} onChange={(v) => active.mutate(v)} disabled={active.isPending} /> : undefined}>
+      {channel && (channel.isActive ? <Badge size="xs" variant="success" dot>Chalu</Badge> : <Badge size="xs" variant="default">Band</Badge>)}</span>}
+      actions={channel ? <Switch size="sm" checked={channel.isActive} onChange={(e) => active.mutate(e.target.checked)} disabled={active.isPending} /> : undefined}>
       <div className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Chain code" help="Foodpanda ka diya (jaise brookee-pk)">
-            <input value={chainCode} onChange={(e) => setChain(e.target.value)} className={cn(inputCls, 'font-mono')} />
-          </Field>
-          <Field label="Tayyari ka waqt (minute)" help="Accept par Foodpanda ko itna waqt batate hain">
-            <input type="number" value={prep} onChange={(e) => setPrep(e.target.value)} className={cn(inputCls, 'w-28')} />
-          </Field>
+          <Input size="sm" label="Chain code" hint="Foodpanda ka diya (jaise brookee-pk)" value={chainCode} onChange={(e) => setChain(e.target.value)} className="font-mono" />
+          <Input size="sm" label="Tayyari ka waqt (minute)" hint="Accept par Foodpanda ko itna waqt batate hain" type="number" value={prep} onChange={(e) => setPrep(e.target.value)} className="w-28" />
         </div>
-        <SettingRow title="Order khud accept" help="Bill khud ban jaye (sab items Nafaa products se jure hon). Band ho to 15 minute ke andar khud accept karein — warna Foodpanda cancel kar deta hai."
-          control={<Toggle checked={autoAccept} onChange={setAuto} />} />
+        <Switch size="sm" checked={autoAccept} onChange={(e) => setAuto(e.target.checked)} label="Order khud accept" description="Bill khud ban jaye (sab items Nafaa products se jure hon). Band ho to 15 minute ke andar khud accept karein — warna Foodpanda cancel kar deta hai." className="py-3 first:pt-0 last:pb-0" />
         <div className="space-y-2">
           <div className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">Branches</div>
           {vendors.map((v, i) => {
             const closed = v.remoteId ? channel?.availability?.[v.remoteId]?.closures?.length : 0;
             return (
               <div key={i} className="flex flex-wrap items-end gap-2 rounded-xl border border-slate-200 p-3 dark:border-ink-800">
-                <Field label="Vendor code"><input value={v.vendorCode ?? ''} onChange={(e) => setV(i, { vendorCode: e.target.value })} className={cn(inputCls, 'w-40 font-mono')} /></Field>
-                <Field label="Nafaa branch">
-                  <select value={v.shopId ?? ''} onChange={(e) => setV(i, { shopId: e.target.value || null })} className={cn(inputCls, 'w-48')}>
+                <Input size="sm" label="Vendor code" value={v.vendorCode ?? ''} onChange={(e) => setV(i, { vendorCode: e.target.value })} className="w-40 font-mono" />
+                <Select size="sm" label="Nafaa branch" value={v.shopId ?? ''} onChange={(e) => setV(i, { shopId: e.target.value || null })} className="w-48">
                     <option value="">—</option>
                     {data.shops.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </Field>
+                  </Select>
                 {v.remoteId && (
                   <div className="text-[0.75rem]">
                     <div className="text-slate-500">Remote ID (Foodpanda ko dein)</div>
                     <button type="button" onClick={() => copy(v.remoteId!)} className="font-mono font-semibold text-slate-900 hover:underline dark:text-ink-white">{v.remoteId}</button>
-                    {closed ? <Badge tone="warning">Foodpanda par band</Badge> : null}
+                    {closed ? <Badge size="xs" variant="warning">Foodpanda par band</Badge> : null}
                   </div>
                 )}
-                {vendors.length > 1 && <Btn size="sm" variant="plain" className="text-rose-600" icon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => setVendors((x) => x.filter((_, j) => j !== i))}>Hatayein</Btn>}
+                {vendors.length > 1 && <Button size="xs" variant="critical" leftIcon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => setVendors((x) => x.filter((_, j) => j !== i))}>Hatayein</Button>}
               </div>
             );
           })}
-          <Btn size="sm" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setVendors((x) => [...x, { vendorCode: '', shopId: null }])}>Aur branch</Btn>
+          <Button size="xs" leftIcon={<Plus className="h-3.5 w-3.5" />} onClick={() => setVendors((x) => [...x, { vendorCode: '', shopId: null }])}>Aur branch</Button>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-ink-800">
           <div className="flex flex-wrap gap-2">
-            {channel && <Btn size="sm" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(shareText)}>Foodpanda ke liye details copy</Btn>}
-            {channel && <Link to={`/online-orders?channel=${channel.id}`}><Btn size="sm" variant="plain">Is ke orders</Btn></Link>}
+            {channel && <Button size="xs" leftIcon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(shareText)}>Foodpanda ke liye details copy</Button>}
+            {channel && <Link to={`/online-orders?channel=${channel.id}`}><Button size="xs" variant="ghost">Is ke orders</Button></Link>}
             {channel?.lastMenuImportRequest && <span className="text-[0.75rem] text-slate-500">Menu darkhwast {whenText(channel.lastMenuImportRequest.at)} — menu Foodpanda portal se chalta hai</span>}
           </div>
-          <Btn variant="primary" loading={save.isPending} icon={<Save className="h-4 w-4" />} onClick={() => save.mutate()}>Mehfooz karein</Btn>
+          <Button size="sm" variant="primary" loading={save.isPending} leftIcon={<Save className="h-4 w-4" />} onClick={() => save.mutate()}>Mehfooz karein</Button>
         </div>
       </div>
     </Card>

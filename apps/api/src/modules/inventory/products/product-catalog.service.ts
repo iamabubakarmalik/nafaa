@@ -219,7 +219,7 @@ export class ProductCatalogService {
       this.prisma.product.findMany({
         where: { id: { in: ids } },
         select: {
-          id: true, slug: true, wholesalePrice: true, taxRate: true,
+          id: true, slug: true, wholesalePrice: true, creditPrice: true, taxRate: true,
           category: { select: { id: true, name: true, color: true } },
           brand: { select: { id: true, name: true } },
           images: { orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], take: 1, select: { url: true } },
@@ -238,7 +238,7 @@ export class ProductCatalogService {
       const perDay = r.sold / WINDOW_DAYS;
       return {
         id: r.id, name: r.name, sku: r.sku, barcode: r.barcode, unit: r.unit, productType: r.productType, isRawMaterial: r.isRawMaterial,
-        price: r.price, costPrice: r.costPrice, wholesalePrice: d?.wholesalePrice ?? null, taxRate: d?.taxRate ?? 0,
+        price: r.price, costPrice: r.costPrice, wholesalePrice: d?.wholesalePrice ?? null, creditPrice: d?.creditPrice ?? null, taxRate: d?.taxRate ?? 0,
         stock: r.stock, lowStockAlert: r.lowStockAlert, isActive: r.isActive, isFeatured: r.isFeatured,
         hasVariants: r.hasVariants, expiryTracked: r.expiryTracked, createdAt: r.createdAt,
         category: d?.category ?? null, brand: d?.brand ?? null, image: d?.images[0]?.url ?? null,

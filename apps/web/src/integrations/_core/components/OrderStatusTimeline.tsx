@@ -1,4 +1,4 @@
-import { confirmDialog } from '@/design-system/components';
+import { Alert, Button, confirmDialog } from '@/design-system/components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -9,22 +9,20 @@ import { integrationsApi } from '../api/integrations.api';
 import { cn } from '@core/lib/cn';
 
 const STATUS_FLOW = [
-  { key: 'PENDING',          label: 'Pending',      icon: Clock,        color: 'amber' },
-  { key: 'CONFIRMED',        label: 'Confirmed',    icon: CheckCircle2, color: 'blue' },
-  { key: 'PREPARING',        label: 'Preparing',    icon: ChefHat,      color: 'purple' },
-  { key: 'READY',            label: 'Ready',        icon: Package,      color: 'cyan' },
-  { key: 'OUT_FOR_DELIVERY', label: 'Out for Del.', icon: Bike,         color: 'orange' },
-  { key: 'DELIVERED',        label: 'Delivered',    icon: PackageCheck, color: 'emerald' },
+  { key: 'PENDING',          label: 'Pending',      icon: Clock },
+  { key: 'CONFIRMED',        label: 'Confirmed',    icon: CheckCircle2 },
+  { key: 'PREPARING',        label: 'Preparing',    icon: ChefHat },
+  { key: 'READY',            label: 'Ready',        icon: Package },
+  { key: 'OUT_FOR_DELIVERY', label: 'Out for Del.', icon: Bike },
+  { key: 'DELIVERED',        label: 'Delivered',    icon: PackageCheck },
 ];
 
-const COLOR_CLASSES: Record<string, string> = {
-  amber:   'bg-amber-500 text-white',
-  blue:    'bg-blue-500 text-white',
-  purple:  'bg-purple-500 text-white',
-  cyan:    'bg-cyan-500 text-white',
-  orange:  'bg-orange-500 text-white',
-  emerald: 'bg-emerald-500 text-white',
-};
+/** Step colours: finished steps are a brand tint, the current step is solid, a delivered order is success. */
+const stepClass = (key: string, done: boolean, current: boolean) => cn(
+  !done && 'bg-slate-100 text-slate-400',
+  done && !current && 'bg-brand-100 text-brand-700',
+  current && (key === 'DELIVERED' ? 'bg-success-100 text-success-700 ring-success-500/30' : 'bg-brand-600 text-brand-fg ring-brand-500/25'),
+);
 
 export function OrderStatusTimeline({
   orderId,
@@ -68,25 +66,11 @@ export function OrderStatusTimeline({
           const isCurrent = i === currentIdx;
           return (
             <div key={s.key} className="flex items-center gap-1">
-              <div
-                className={cn(
-                  'h-6 w-6 rounded-full flex items-center justify-center transition',
-                  isDone
-                    ? COLOR_CLASSES[s.color]
-                    : 'bg-slate-100 dark:bg-ink-800 text-slate-400',
-                  isCurrent && 'ring-2 ring-offset-1 ring-' + s.color + '-500 animate-pulse',
-                )}
-                title={s.label}
-              >
+              <div className={cn('flex h-6 w-6 items-center justify-center rounded-full transition', stepClass(s.key, isDone, isCurrent), isCurrent && 'ring-2')} title={s.label}>
                 <Icon className="h-3 w-3" />
               </div>
               {i < STATUS_FLOW.length - 1 && (
-                <div
-                  className={cn(
-                    'h-0.5 w-3 transition',
-                    i < currentIdx ? COLOR_CLASSES[s.color] : 'bg-slate-200 dark:bg-ink-700',
-                  )}
-                />
+                <div className={cn('h-0.5 w-3 rounded-full transition', i < currentIdx ? 'bg-brand-300' : 'bg-slate-200')} />
               )}
             </div>
           );
@@ -97,40 +81,23 @@ export function OrderStatusTimeline({
 
   return (
     <div className="space-y-3">
-      {/* Timeline */}
       <div className="flex items-center justify-between">
         {STATUS_FLOW.map((s, i) => {
           const Icon = s.icon;
           const isDone = i <= currentIdx;
           const isCurrent = i === currentIdx;
           return (
-            <div key={s.key} className="flex items-center flex-1">
+            <div key={s.key} className="flex flex-1 items-center">
               <div className="flex flex-col items-center gap-1">
-                <div
-                  className={cn(
-                    'h-10 w-10 rounded-full flex items-center justify-center transition-all',
-                    isDone
-                      ? COLOR_CLASSES[s.color] + ' shadow-lg'
-                      : 'bg-slate-100 dark:bg-ink-800 text-slate-400',
-                    isCurrent && 'ring-4 ring-offset-2 ring-' + s.color + '-200 dark:ring-' + s.color + '-900/50 animate-pulse',
-                  )}
-                >
+                <div className={cn('flex h-10 w-10 items-center justify-center rounded-full transition-all', stepClass(s.key, isDone, isCurrent), isCurrent && 'shadow-sm ring-4')}>
                   <Icon className="h-5 w-5" />
                 </div>
-                <div className={cn(
-                  'text-[0.625rem] font-black uppercase tracking-wider text-center',
-                  isDone ? 'text-slate-800 dark:text-ink-white' : 'text-slate-400',
-                )}>
+                <div className={cn('text-center text-[0.625rem] font-semibold uppercase tracking-wider', isDone ? 'text-slate-800' : 'text-slate-400')}>
                   {s.label}
                 </div>
               </div>
               {i < STATUS_FLOW.length - 1 && (
-                <div
-                  className={cn(
-                    'flex-1 h-1 mx-1 rounded-full transition',
-                    i < currentIdx ? COLOR_CLASSES[s.color] : 'bg-slate-200 dark:bg-ink-700',
-                  )}
-                />
+                <div className={cn('mx-1 h-1 flex-1 rounded-full transition', i < currentIdx ? 'bg-brand-300' : 'bg-slate-200')} />
               )}
             </div>
           );
@@ -138,36 +105,18 @@ export function OrderStatusTimeline({
       </div>
 
       {isTerminated ? (
-        <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 flex items-center gap-2">
-          <XCircle className="h-5 w-5 text-rose-600" />
-          <span className="text-sm font-black text-rose-700 dark:text-rose-400">
-            Order {currentStatus.toLowerCase()}
-          </span>
-        </div>
+        <Alert tone="danger" icon={<XCircle className="h-4 w-4 text-rose-600" />} title={`Order ${currentStatus.toLowerCase()}`} />
       ) : (
         <div className="flex items-center gap-2">
           {nextStatus && (
-            <button
-              onClick={() => updateMutation.mutate(nextStatus.key)}
-              disabled={updateMutation.isPending}
-              className={cn(
-                'flex-1 h-10 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition',
-                COLOR_CLASSES[nextStatus.color],
-                'hover:shadow-lg active:scale-95 disabled:opacity-50',
-              )}
-            >
-              Move to {nextStatus.label}
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            <Button className="flex-1" loading={updateMutation.isPending} onClick={() => updateMutation.mutate(nextStatus.key)} rightIcon={<ChevronRight className="h-4 w-4" />}>
+              Aage: {nextStatus.label}
+            </Button>
           )}
-          <button
-            onClick={async () => {
-              if (await confirmDialog({ title: 'Ye order cancel karein?', danger: true })) cancelMutation.mutate();
-            }}
-            className="h-10 px-4 rounded-xl bg-rose-100 dark:bg-rose-950/30 text-rose-600 hover:bg-rose-200 text-xs font-black"
-          >
+          <Button variant="critical" loading={cancelMutation.isPending}
+            onClick={async () => { if (await confirmDialog({ title: 'Ye order cancel karein?', danger: true })) cancelMutation.mutate(); }}>
             Cancel
-          </button>
+          </Button>
         </div>
       )}
     </div>

@@ -82,6 +82,7 @@ export class ProductsService {
           price: dto.price,
           costPrice: dto.costPrice ?? 0,
           wholesalePrice: dto.wholesalePrice,
+          creditPrice: dto.creditPrice ?? null,
           taxRate: dto.taxRate ?? 0,
           // Set by the opening-stock movement below.
           stock: 0,
@@ -1087,6 +1088,7 @@ export class ProductsService {
         price,
         costPrice,
         wholesalePrice: row.wholesalePrice ? Number(row.wholesalePrice) : undefined,
+        creditPrice: row.creditPrice ? Number(row.creditPrice) : undefined,
         taxRate: Number(row.taxRate ?? 0),
         stock,
         lowStockAlert,
@@ -1250,6 +1252,7 @@ export class ProductsService {
               price: Number(row.price ?? 0),
               costPrice: Number(row.costPrice ?? 0),
               wholesalePrice: row.wholesalePrice ? Number(row.wholesalePrice) : null,
+              creditPrice: row.creditPrice ? Number(row.creditPrice) : null,
               taxRate: Number(row.taxRate ?? 0),
               stock: 0,
               lowStockAlert: Number(row.lowStockAlert ?? 5),

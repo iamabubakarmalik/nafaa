@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Filter, Gauge, Users, X } from 'lucide-react';
-import { Button, IconButton, Skeleton } from '@/design-system/components';
+import { Button, IconButton, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { AUDIT_KEY, auditApi, type AuditEvent, type AuditFilters, type StaffRisk } from '../api';
@@ -49,41 +49,39 @@ export function StaffView({ staff, loading, fmt, onOpen }: { staff: StaffRisk[] 
       )}
 
       <Panel icon={Users} title="Har staff" hint="Bande par dabayein: un ke numbers dukaan ke ausat ke saath aur un ke zaroori waqiye." flush>
-        <div className="hidden overflow-x-auto lg:block">
-          <table className="w-full min-w-[60rem] text-[0.8125rem]">
-            <thead className="border-y border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-5 py-2">Staff</th><th className="px-2 py-2 text-right">Bill</th><th className="px-2 py-2 text-right">Void</th>
-                <th className="px-2 py-2 text-right">Return</th><th className="px-2 py-2 text-right">Discount</th><th className="px-2 py-2 text-right">Drawer kam</th>
-                {!fmt.costHidden && <th className="px-2 py-2 text-right">Stock nuqsan</th>}
-                <th className="px-2 py-2 text-right">Waqiye</th><th className="px-5 py-2">Sab se zyada</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rows.map((s) => (
-                <tr key={s.id ?? 'none'} onClick={() => onOpen(s)} className="cursor-pointer hover:bg-slate-50">
-                  <td className="px-5 py-2.5">
-                    <div className="flex items-center gap-3">
-                      <ScoreRing score={s.score} size={38} />
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold text-slate-900">{s.name}</p>
-                        <p className="truncate text-[0.75rem] text-slate-500">{[s.role && (ROLE_LABEL[s.role] ?? s.role), s.shop].filter(Boolean).join(' · ') || '—'}</p>
-                      </div>
+        <Table minWidth="60rem" className="hidden lg:block [&_table]:text-[0.8125rem]">
+          <THead>
+            <Tr>
+              <Th className="px-5 py-2">Staff</Th><Th className="px-2 py-2 text-right">Bill</Th><Th className="px-2 py-2 text-right">Void</Th>
+              <Th className="px-2 py-2 text-right">Return</Th><Th className="px-2 py-2 text-right">Discount</Th><Th className="px-2 py-2 text-right">Drawer kam</Th>
+              {!fmt.costHidden && <Th className="px-2 py-2 text-right">Stock nuqsan</Th>}
+              <Th className="px-2 py-2 text-right">Waqiye</Th><Th className="px-5 py-2">Sab se zyada</Th>
+            </Tr>
+          </THead>
+          <TBody>
+            {rows.map((s) => (
+              <Tr key={s.id ?? 'none'} interactive onClick={() => onOpen(s)}>
+                <Td className="px-5 py-2.5">
+                  <div className="flex items-center gap-3">
+                    <ScoreRing score={s.score} size={38} />
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-900">{s.name}</p>
+                      <p className="truncate text-[0.75rem] text-slate-500">{[s.role && (ROLE_LABEL[s.role] ?? s.role), s.shop].filter(Boolean).join(' · ') || '—'}</p>
                     </div>
-                  </td>
-                  <td className="px-2 text-right tabular-nums">{s.bills}</td>
-                  <td className="px-2 text-right tabular-nums">{s.voids}{s.bills > 0 && <span className="block text-[0.6875rem] text-slate-500">{rate(s.voids, s.bills + s.voids).toFixed(1)}%</span>}</td>
-                  <td className="px-2 text-right tabular-nums">{fmt.money(s.refundValue)}<span className="block text-[0.6875rem] text-slate-500">{s.refunds} · {s.cashRefunds} cash</span></td>
-                  <td className="px-2 text-right tabular-nums">{fmt.money(s.discountValue)}<span className="block text-[0.6875rem] text-slate-500">{s.discounts} bill</span></td>
-                  <td className={cn('px-2 text-right tabular-nums', s.drawerShort > 0 && 'text-rose-600')}>{fmt.money(s.drawerShort)}<span className="block text-[0.6875rem] text-slate-500">{s.shortCount} dafa</span></td>
-                  {!fmt.costHidden && <td className="px-2 text-right tabular-nums">{fmt.cost(s.cost ?? 0)}</td>}
-                  <td className="px-2 text-right tabular-nums">{s.events}{s.high > 0 && <span className="block text-[0.6875rem] font-semibold text-rose-600">{s.high} zaroori</span>}</td>
-                  <td className="px-5">{s.topType ? <span className="inline-flex items-center gap-1.5 text-slate-700"><span className="h-2 w-2 rounded-full" style={{ background: TYPE_META[s.topType].color }} />{TYPE_META[s.topType].label}</span> : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </Td>
+                <Td className="px-2 py-2.5 text-right tabular-nums">{s.bills}</Td>
+                <Td className="px-2 py-2.5 text-right tabular-nums">{s.voids}{s.bills > 0 && <span className="block text-[0.6875rem] text-slate-500">{rate(s.voids, s.bills + s.voids).toFixed(1)}%</span>}</Td>
+                <Td className="px-2 py-2.5 text-right tabular-nums">{fmt.money(s.refundValue)}<span className="block text-[0.6875rem] text-slate-500">{s.refunds} · {s.cashRefunds} cash</span></Td>
+                <Td className="px-2 py-2.5 text-right tabular-nums">{fmt.money(s.discountValue)}<span className="block text-[0.6875rem] text-slate-500">{s.discounts} bill</span></Td>
+                <Td className={cn('px-2 py-2.5 text-right tabular-nums', s.drawerShort > 0 && 'text-rose-600')}>{fmt.money(s.drawerShort)}<span className="block text-[0.6875rem] text-slate-500">{s.shortCount} dafa</span></Td>
+                {!fmt.costHidden && <Td className="px-2 py-2.5 text-right tabular-nums">{fmt.cost(s.cost ?? 0)}</Td>}
+                <Td className="px-2 py-2.5 text-right tabular-nums">{s.events}{s.high > 0 && <span className="block text-[0.6875rem] font-semibold text-rose-600">{s.high} zaroori</span>}</Td>
+                <Td className="px-5 py-2.5">{s.topType ? <span className="inline-flex items-center gap-1.5 text-slate-700"><span className="h-2 w-2 rounded-full" style={{ background: TYPE_META[s.topType].color }} />{TYPE_META[s.topType].label}</span> : '—'}</Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
         <ul className="divide-y divide-slate-100 lg:hidden">
           {rows.map((s) => (
             <li key={s.id ?? 'none'}>

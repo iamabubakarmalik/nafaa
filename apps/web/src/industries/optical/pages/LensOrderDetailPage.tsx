@@ -8,8 +8,8 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, CheckCircle2, Eye, FlaskConical, Glasses, MessageCircle, Printer, Receipt, Wallet, Wrench, XCircle } from 'lucide-react';
-import { Button, Card, PageShell, Skeleton } from '@/design-system/components';
+import { CheckCircle2, Eye, FlaskConical, Glasses, MessageCircle, Printer, Receipt, Wallet, Wrench, XCircle } from 'lucide-react';
+import { Button, Card, PageHero, PageShell, Skeleton, heroButton } from '@/design-system/components';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
 import { usePrinter } from '@core/print';
@@ -64,23 +64,25 @@ export default function LensOrderDetailPage() {
   return (
     <PageShell>
       <OrderDialogs dialog={dialog} close={() => setDialog(null)} actions={actions} />
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-bold">{o.orderNumber}</h1>
+      <PageHero
+        title={(
+          <span className="inline-flex items-center gap-2">
+            {o.orderNumber}
             <Pill meta={orderStatusOf(o.status)} className="bg-white/90" />
             {repair && <span className="rounded-full bg-amber-300/90 px-2 py-0.5 text-[0.6875rem] font-semibold text-amber-950">Repair</span>}
             {o.computed.isOverdue && <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[0.6875rem] font-semibold">Late</span>}
-          </div>
-          <p className="text-[0.8125rem] text-white/75">{o.customerName} · {o.customerPhone} · order {dayOnly(o.orderedAt)} · {o.computed.daysWaiting} din se</p>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {wa && !closed && <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><MessageCircle className="h-4 w-4" />WhatsApp</a>}
-          <button type="button" onClick={() => void print(orderDoc(o, repair))} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><Printer className="h-4 w-4" />Parchi</button>
-          {!repair && <button type="button" onClick={() => void print(labDoc(o))} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><FlaskConical className="h-4 w-4" />Lab parchi</button>}
-        </div>
-      </div>
+          </span>
+        )}
+        subtitle={<>{o.customerName} · {o.customerPhone} · order {dayOnly(o.orderedAt)} · {o.computed.daysWaiting} din se</>}
+        back={() => navigate(-1)}
+        actions={(
+          <>
+            {wa && !closed && <a href={wa} target="_blank" rel="noreferrer" className={heroButton}><MessageCircle className="h-4 w-4" />WhatsApp</a>}
+            <button type="button" onClick={() => void print(orderDoc(o, repair))} className={heroButton}><Printer className="h-4 w-4" />Parchi</button>
+            {!repair && <button type="button" onClick={() => void print(labDoc(o))} className={heroButton}><FlaskConical className="h-4 w-4" />Lab parchi</button>}
+          </>
+        )}
+      />
 
       {o.status !== 'CANCELLED' && (
         <ol className="grid grid-cols-5 gap-1 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80">
@@ -88,7 +90,7 @@ export default function LensOrderDetailPage() {
             const done = s.done(o.status);
             return (
               <li key={s.key} className="text-center">
-                <span className={`mx-auto block h-2 rounded-full ${done ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                <span className={`mx-auto block h-2 rounded-full ${done ? 'bg-success-500' : 'bg-slate-200'}`} />
                 <span className={`mt-1 block text-[0.75rem] ${done ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>{s.label}</span>
               </li>
             );
@@ -144,13 +146,13 @@ export default function LensOrderDetailPage() {
             </dl>
             <dl className="mt-3 grid grid-cols-3 gap-2">
               <Box label="Kul" value={money(o.totalPrice)} />
-              <Box label="Mila" value={money(o.paidAmount)} tone="text-emerald-700" />
+              <Box label="Mila" value={money(o.paidAmount)} tone="text-success-700" />
               <Box label={o.status === 'DELIVERED' ? 'Khata me' : 'Baqi'} value={money(o.remainingAmount)} tone={o.remainingAmount > 0 ? 'text-amber-700' : 'text-slate-900'} />
             </dl>
             {o.booking && <p className="mt-3 text-[0.75rem] text-slate-500">Advance aur payments booking {o.booking.bookingNumber} par — har payment usi din ke cash me.</p>}
             {o.sale && (
-              <Link to={`/sales?search=${o.sale.saleNumber}`} className="mt-3 flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2.5 text-[0.875rem] ring-1 ring-emerald-200 hover:bg-emerald-100">
-                <span className="inline-flex items-center gap-2 font-semibold text-emerald-800"><Receipt className="h-4 w-4" />Bill {o.sale.saleNumber}</span>
+              <Link to={`/sales?search=${o.sale.saleNumber}`} className="mt-3 flex items-center justify-between rounded-xl bg-success-50 px-3 py-2.5 text-[0.875rem] ring-1 ring-success-200 hover:bg-success-100">
+                <span className="inline-flex items-center gap-2 font-semibold text-success-800"><Receipt className="h-4 w-4" />Bill {o.sale.saleNumber}</span>
                 <span className="tabular-nums">{money(o.sale.total)}{o.sale.status === 'VOIDED' && <span className="ml-1 text-rose-600">void</span>}</span>
               </Link>
             )}

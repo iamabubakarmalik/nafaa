@@ -10,8 +10,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, HeartPulse, Home, Image as ImageIcon, PawPrint, Wallet, X } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { AlertTriangle, HeartPulse, Home, Image as ImageIcon, PawPrint, Wallet, X } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -110,14 +110,13 @@ export default function LiveAnimalFormPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${animalQ.data?.animalNumber} — badlein` : 'Naya janwar'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Darj hote hi counter par iska card aa jata hai'}</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
-      </div>
+      <PageHero
+        title={editing ? `${animalQ.data?.animalNumber} — badlein` : 'Naya janwar'}
+        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Darj hote hi counter par iska card aa jata hai'}
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+      />
 
       {locked && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">Ye janwar {animalQ.data?.status === 'SOLD' ? 'bik chuka' : 'record se band'} hai — badla nahi ja sakta.</p>}
 
@@ -180,7 +179,7 @@ export default function LiveAnimalFormPage() {
             <div className="space-y-3">
               <Input label="Bechne ka rate (Rs)" required inputMode="decimal" value={d.askingPrice} onChange={(e) => set('askingPrice', e.target.value)} error={err('askingPrice')} hint="Counter par yahi rate aata hai; bill par kam kar sakte hain" />
               {!costHidden && <Input label="Cost (Rs)" inputMode="decimal" value={d.costPrice} onChange={(e) => set('costPrice', e.target.value)} error={err('costPrice')} hint="Kitne ka liya — profit aur mar jane par loss isi se" />}
-              {!costHidden && margin !== null && <p className={cn('text-[0.8125rem] font-semibold', margin >= 0 ? 'text-emerald-700' : 'text-rose-700')}>Profit: {costMoney(margin)}</p>}
+              {!costHidden && margin !== null && <p className={cn('text-[0.8125rem] font-semibold', margin >= 0 ? 'text-success-700' : 'text-rose-700')}>Profit: {costMoney(margin)}</p>}
               <Switch label="Counter par upar dikhayein" checked={d.isFeatured} onChange={(e) => set('isFeatured', e.target.checked)} />
             </div>
           </Card>

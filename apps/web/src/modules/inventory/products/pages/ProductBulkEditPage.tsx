@@ -37,12 +37,14 @@ import { SheetGrid, type GridColumn, type RowMark } from '../import/grid/SheetGr
 import { SheetTools } from '../import/grid/SheetTools';
 import { useSheetRows } from '../import/grid/useSheetRows';
 
-type Key = 'name' | 'variant' | 'category' | 'brand' | 'price' | 'costPrice' | 'unit' | 'barcode' | 'lowStockAlert' | 'isActive' | 'stock';
+type Key = 'name' | 'variant' | 'category' | 'brand' | 'price' | 'wholesalePrice' | 'creditPrice' | 'costPrice' | 'unit' | 'barcode' | 'lowStockAlert' | 'isActive' | 'stock';
 
 const NUMERIC: Key[] = ['price', 'costPrice', 'lowStockAlert', 'stock'];
+/** Numbers that may be left empty: an empty tier price means the retail price. */
+const OPTIONAL_NUMERIC: Key[] = ['wholesalePrice', 'creditPrice'];
 const PRODUCT_ONLY: Key[] = ['name', 'category', 'brand', 'unit', 'isActive'];
 const LABEL: Record<Key, string> = {
-  name: 'Name', variant: 'Variant', category: 'Category', brand: 'Brand', price: 'Price', costPrice: 'Cost Price', unit: 'Unit',
+  name: 'Name', variant: 'Variant', category: 'Category', brand: 'Brand', price: 'Retail Price', wholesalePrice: 'Wholesale Price', creditPrice: 'Credit Price', costPrice: 'Cost Price', unit: 'Unit',
   barcode: 'Barcode', lowStockAlert: 'Low Stock Alert', isActive: 'Status', stock: 'Stock',
 };
 const ACTIVE = 'Active';
@@ -63,6 +65,7 @@ const fmt = (n: number) => String(Math.round(n * 10_000) / 10_000);
 function cellsOf(r: BulkEditRow): Record<string, string> {
   return {
     name: r.name, variant: r.variant, category: r.category, brand: r.brand, price: fmt(r.price),
+    wholesalePrice: Number(r.wholesalePrice) > 0 ? fmt(Number(r.wholesalePrice)) : '', creditPrice: Number(r.creditPrice) > 0 ? fmt(Number(r.creditPrice)) : '',
     costPrice: r.costPrice === undefined ? '' : fmt(r.costPrice), unit: r.unit, barcode: r.barcode,
     lowStockAlert: fmt(r.lowStockAlert), isActive: r.isActive ? ACTIVE : OFF, stock: fmt(r.stock),
   };
@@ -78,6 +81,11 @@ function cellError(key: Key, value: string): string | null {
     if (n === null) return `"${v}" number nahi`;
     if (n < 0) return 'Minus nahi ho sakta';
     if (key === 'price' && n === 0) return 'Price 0 nahi ho sakti';
+  }
+  if (OPTIONAL_NUMERIC.includes(key) && v) {
+    const n = num(v);
+    if (n === null) return `"${v}" number nahi`;
+    if (n < 0) return 'Minus nahi ho sakta';
   }
   if (key === 'isActive' && ![ACTIVE, OFF].map((x) => x.toLowerCase()).includes(v.toLowerCase())) return `"${ACTIVE}" ya "${OFF}" likhein`;
   if (key === 'barcode' && /\s/.test(v)) return 'Barcode me khali jagah nahi';
@@ -196,16 +204,16 @@ export default function ProductBulkEditPage() {
 
   const categories = useMemo(() => (sheetQ.data?.categories ?? []).map((c) => c.name), [sheetQ.data]);
   const columns = useMemo<GridColumn[]>(() => {
-    const keys: Key[] = ['name', 'variant', 'category', 'brand', 'price', ...(costHidden ? [] : ['costPrice' as const]), 'unit', 'barcode', 'lowStockAlert', 'isActive', 'stock'];
-    const width: Partial<Record<Key, number>> = { name: 240, variant: 120, category: 140, brand: 120, barcode: 140, unit: 80, isActive: 90, lowStockAlert: 110 };
+    const keys: Key[] = ['name', 'variant', 'category', 'brand', 'price', 'wholesalePrice', 'creditPrice', ...(costHidden ? [] : ['costPrice' as const]), 'unit', 'barcode', 'lowStockAlert', 'isActive', 'stock'];
+    const width: Partial<Record<Key, number>> = { name: 240, variant: 120, category: 140, brand: 120, wholesalePrice: 125, creditPrice: 110, barcode: 140, unit: 80, isActive: 90, lowStockAlert: 110 };
     return keys.map((k) => ({
       key: k,
       label: k === 'stock' ? `Stock${sheetQ.data?.shop ? ` (${sheetQ.data.shop.name})` : ''}` : LABEL[k],
       width: k === 'stock' ? 150 : width[k] ?? 100,
-      numeric: NUMERIC.includes(k),
+      numeric: NUMERIC.includes(k) || OPTIONAL_NUMERIC.includes(k),
       lock: lockOf(k),
       options: k === 'category' ? categories : k === 'brand' ? sheetQ.data?.brands : k === 'unit' ? [...new Set([...(quickUnits ?? []), ...UNITS])] : k === 'isActive' ? [ACTIVE, OFF] : undefined,
-      hint: k === 'stock' ? 'Badalne par farq ka Stock adjustment ("Bulk edit") banta hai' : undefined,
+      hint: k === 'stock' ? 'Badalne par farq ka Stock adjustment ("Bulk edit") banta hai' : OPTIONAL_NUMERIC.includes(k) ? 'Khaali ho to Retail price lagegi' : undefined,
     }));
   }, [costHidden, lockOf, categories, sheetQ.data, quickUnits]);
 
@@ -231,6 +239,7 @@ export default function ProductBulkEditPage() {
         }
         const ch = byProduct.get(key) ?? { productId: src.productId, ...(src.variantId && { variantId: src.variantId }) };
         if (k === 'price' || k === 'costPrice' || k === 'lowStockAlert') ch[k] = num(to)!;
+        else if (k === 'wholesalePrice' || k === 'creditPrice') ch[k] = to.trim() && Number(num(to)) > 0 ? num(to) : null;
         else if (k === 'isActive') ch.isActive = to.trim().toLowerCase() === ACTIVE.toLowerCase();
         else if (k === 'name' || k === 'category' || k === 'brand' || k === 'unit' || k === 'barcode') ch[k] = to.trim();
         byProduct.set(key, ch);
@@ -422,6 +431,7 @@ function show(key: Key, v: string, cost: (n: number) => string) {
   if (!v) return 'khaali';
   if (key === 'price') return formatPKR(num(v) ?? 0);
   if (key === 'costPrice') return cost(num(v) ?? 0);
+  if (key === 'wholesalePrice' || key === 'creditPrice') return formatPKR(num(v) ?? 0);
   return v;
 }
 

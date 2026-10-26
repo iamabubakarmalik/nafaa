@@ -12,6 +12,7 @@ import { cn } from '@core/lib/cn';
 import {
   DEFAULT_ROLE_PERMISSIONS, POS_REQUIRED_PERMISSIONS, permissionGroupsFor, type PermissionGroup,
 } from '@core/lib/permissions';
+import { Input } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { teamApi } from '@modules/organization/team/api/team.api';
@@ -95,11 +96,8 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
         </div>
       )}
 
-      <label className="relative block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Permission search — maslan: khata, void, expense"
-          className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-      </label>
+      <Input size="sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Permission search — maslan: khata, void, expense"
+        aria-label="Permission search" leftIcon={<Search className="h-4 w-4" />} />
 
       <div className="space-y-2">
         {groups.map((g) => {
@@ -131,12 +129,12 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
                     return (
                       <li key={p} className="bg-white">
                         <label className={cn('flex items-start gap-2.5 px-3 py-2', readOnly ? 'cursor-default' : 'cursor-pointer hover:bg-slate-50')}>
-                          <input type="checkbox" checked={checked} disabled={readOnly} onChange={() => toggle(p)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+                          <input type="checkbox" checked={checked} disabled={readOnly} onChange={() => toggle(p)} className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 accent-brand-600 focus:ring-2 focus:ring-brand-500/30" />
                           <span className="min-w-0">
                             <span className="flex flex-wrap items-center gap-1.5 text-[0.8125rem] font-medium text-slate-800">
                               {label}
                               {preset.has(p) && <span className="rounded bg-slate-100 px-1 text-[0.625rem] font-semibold text-slate-500">{ROLES[role].label}</span>}
-                              {checked && !preset.has(p) && <span className="rounded bg-violet-50 px-1 text-[0.625rem] font-semibold text-violet-700">Zyada</span>}
+                              {checked && !preset.has(p) && <span className="rounded bg-brand-50 px-1 text-[0.625rem] font-semibold text-brand-700">Zyada</span>}
                               {!checked && preset.has(p) && <span className="rounded bg-amber-50 px-1 text-[0.625rem] font-semibold text-amber-800">Hataya</span>}
                             </span>
                             {hint && <span className="block text-[0.6875rem] text-slate-500">{hint}</span>}

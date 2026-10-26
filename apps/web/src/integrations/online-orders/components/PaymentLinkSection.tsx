@@ -3,17 +3,16 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Copy, CreditCard, MessageCircle } from 'lucide-react';
-import { Button } from '@/design-system/components';
+import { Alert, Badge, Button, Card, controlClass, Segmented, type BadgeVariant } from '@/design-system/components';
 import { apiErrorMessage, paymentsApi, type OnlineOrderDetail, type OrderPaymentLink } from '../api/online-orders.api';
 import { rs, waNumber, whenText } from '../lib/labels';
-import { inputCls } from './ui/kit';
 import { cn } from '@core/lib/cn';
 
-const STATUS: Record<OrderPaymentLink['status'], { label: string; tone: string }> = {
-  PENDING: { label: 'Intezar', tone: 'bg-amber-100 text-amber-800' },
-  PAID: { label: 'Mil gaya ✓', tone: 'bg-emerald-100 text-emerald-800' },
-  FAILED: { label: 'Nahi hua', tone: 'bg-rose-100 text-rose-700' },
-  EXPIRED: { label: 'Khatam', tone: 'bg-slate-100 text-slate-600' },
+const STATUS: Record<OrderPaymentLink['status'], { label: string; tone: BadgeVariant }> = {
+  PENDING: { label: 'Intezar', tone: 'warning' },
+  PAID: { label: 'Mil gaya ✓', tone: 'success' },
+  FAILED: { label: 'Nahi hua', tone: 'danger' },
+  EXPIRED: { label: 'Khatam', tone: 'default' },
 };
 
 /**
@@ -46,19 +45,19 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
   const msg = last ? encodeURIComponent(`Assalam o Alaikum ${o.customerName.split(' ')[0]}! Order #${o.externalOrderNumber ?? o.externalOrderId} ke ${last.kind === 'ADVANCE' ? 'advance' : ''} Rs ${last.amount.toLocaleString('en-PK')} yahan se pay karein (card / wallet): ${last.url}`) : '';
 
   return (
-    <section className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
+    <Card>
       <div className="flex items-center gap-2">
         <CreditCard className="h-5 w-5 text-slate-400" />
-        <div className="flex-1 text-sm font-black text-slate-900 dark:text-ink-white">Online payment</div>
-        {advance > 0 && <span className="text-xs font-bold text-emerald-700">{rs(advance)} mil chuka</span>}
+        <div className="flex-1 text-sm font-bold text-slate-900">Online payment</div>
+        {advance > 0 && <span className="text-xs font-bold text-success-700">{rs(advance)} mil chuka</span>}
       </div>
 
       {links.length > 0 && (
         <ul className="mt-2 space-y-1 text-xs">
           {links.slice().reverse().map((l) => (
             <li key={l.ref} className="flex items-center gap-2">
-              <span className={cn('rounded px-1.5 py-0.5 font-bold', STATUS[l.status].tone)}>{STATUS[l.status].label}</span>
-              <span className="font-semibold text-slate-700 dark:text-ink-200">{rs(l.amount)} {l.kind === 'ADVANCE' ? 'advance' : ''}</span>
+              <Badge size="xs" variant={STATUS[l.status].tone}>{STATUS[l.status].label}</Badge>
+              <span className="font-semibold text-slate-700">{rs(l.amount)} {l.kind === 'ADVANCE' ? 'advance' : ''}</span>
               <span className="text-slate-400">· {whenText(l.paidAt ?? l.createdAt)}</span>
             </li>
           ))}
@@ -67,26 +66,20 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
 
       {o.paymentStatus !== 'PAID' && due > 0 && (
         !ready.length ? (
-          <p className="mt-2 text-xs text-slate-500">Customer se card / JazzCash / Easypaisa se advance lein — pehle <Link to="/online-store/payments" className="font-bold text-emerald-700 hover:underline">payment gateway jorein</Link>.</p>
+          <p className="mt-2 text-xs text-slate-500">Customer se card / JazzCash / Easypaisa se advance lein — pehle <Link to="/online-store/payments" className="font-bold text-brand-700 hover:underline">payment gateway jorein</Link>.</p>
         ) : (
           <div className="mt-3 space-y-2">
             {(o.risk?.level === 'HIGH' || o.risk?.level === 'WATCH') && (
-              <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-semibold text-amber-800">⚠ Is customer ka RTO khatra — bhejne se pehle advance le lein</p>
+              <Alert tone="warning" title="Is customer ka RTO khatra — bhejne se pehle advance le lein" />
             )}
-            <div className="flex flex-wrap gap-1.5">
-              {([['full', `Poori · ${rs(due)}`], ...(o.deliveryFee > 0 ? [['delivery', `Delivery · ${rs(Math.min(due, o.deliveryFee))}`]] : []), ['custom', 'Apni amount']] as [typeof mode, string][]).map(([k, label]) => (
-                <button key={k} onClick={() => setMode(k)}
-                  className={cn('rounded-lg border px-2.5 py-1 text-xs font-bold', mode === k ? 'border-slate-900 bg-slate-900 text-white dark:border-ink-white dark:bg-ink-white dark:text-ink-900' : 'border-slate-200 text-slate-700 dark:border-ink-700 dark:text-ink-200')}>
-                  {label}
-                </button>
-              ))}
-            </div>
+            <Segmented label="Kitni amount" value={mode} onChange={setMode}
+              items={([['full', `Poori · ${rs(due)}`], ...(o.deliveryFee > 0 ? [['delivery', `Delivery · ${rs(Math.min(due, o.deliveryFee))}`]] : []), ['custom', 'Apni amount']] as [typeof mode, string][]).map(([k, label]) => ({ value: k, label }))} />
             {ready.length > 1 && (
-              <select value={provider.code} onChange={(e) => setGw(e.target.value)} className={cn(inputCls, 'h-8 w-48')}>
+              <select value={provider.code} onChange={(e) => setGw(e.target.value)} aria-label="Gateway" className={cn(controlClass(), 'h-8 w-48 px-3 text-[0.8125rem]')}>
                 {ready.map((g) => <option key={g.code} value={g.code}>{g.name}</option>)}
               </select>
             )}
-            {mode === 'custom' && <input type="number" min={1} max={due} value={custom} onChange={(e) => setCustom(e.target.value)} placeholder={`1 se ${due} tak`} className={cn(inputCls, 'h-8 w-40')} />}
+            {mode === 'custom' && <input type="number" min={1} max={due} value={custom} onChange={(e) => setCustom(e.target.value)} placeholder={`1 se ${due} tak`} aria-label="Amount" className={cn(controlClass(), 'h-8 w-40 px-3 text-[0.8125rem]')} />}
             <Button size="xs" variant="primary" loading={make.isPending} disabled={!(amount >= 1 && amount <= due)} onClick={() => make.mutate()} leftIcon={<CreditCard className="h-3.5 w-3.5" />}>
               {rs(amount || 0)} ka link banayein ({provider.name})
             </Button>
@@ -98,13 +91,13 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
         <div className="mt-3 flex flex-wrap gap-2">
           {wa && (
             <a href={`https://wa.me/${wa}?text=${msg}`} target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700">
+              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand-600 px-2.5 text-xs font-semibold text-brand-fg shadow-sm hover:bg-brand-700">
               <MessageCircle className="h-3.5 w-3.5" /> WhatsApp par bhejein
             </a>
           )}
           <Button size="xs" variant="outline" onClick={() => navigator.clipboard?.writeText(last.url).then(() => toast.success('Link copy ho gaya'))} leftIcon={<Copy className="h-3.5 w-3.5" />}>Link copy</Button>
         </div>
       )}
-    </section>
+    </Card>
   );
 }

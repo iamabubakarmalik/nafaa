@@ -12,8 +12,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, Briefcase, IdCard, KeyRound, Landmark, Phone, ShieldCheck, UserRound, Wallet } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { AlertTriangle, Briefcase, IdCard, KeyRound, Landmark, Phone, ShieldCheck, UserRound, Wallet } from 'lucide-react';
+import { Alert, Button, Card, EmptyState, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -182,7 +182,7 @@ export default function StaffFormPage() {
   });
 
   if (editing && profileQ.isLoading) return <PageShell><Skeleton className="h-24 rounded-3xl" /><div className="grid gap-4 lg:grid-cols-2"><Skeleton className="h-96 rounded-2xl" /><Skeleton className="h-96 rounded-2xl" /></div></PageShell>;
-  if (editing && !prof) return <PageShell><div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80"><p className="font-semibold text-slate-900">Yeh banda nahi mila</p><Button className="mt-3" variant="secondary" onClick={() => navigate('/staff')}>Staff par wapas</Button></div></PageShell>;
+  if (editing && !prof) return <PageShell><Card><EmptyState title="Yeh banda nahi mila" action={<Button variant="secondary" onClick={() => navigate('/staff')}>Staff par wapas</Button>} /></Card></PageShell>;
 
   const salary = Number(hr.baseSalary) || 0;
   const st = salaryTypeOf(hr.salaryType);
@@ -190,16 +190,15 @@ export default function StaffFormPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${prof?.person.fullName} — badlein` : 'Naya banda'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Naam, kaam aur tankhwah. App chalana hai to login bhi yahin dein.'}</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-      </div>
+      <PageHero
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        title={editing ? `${prof?.person.fullName} — badlein` : 'Naya banda'}
+        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Naam, kaam aur tankhwah. App chalana hai to login bhi yahin dein.'}
+        actions={<span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+      />
 
-      {hrLocked && <p className="rounded-2xl bg-amber-50 px-4 py-2.5 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">HR record badalne ke liye "Staff sambhalna" ki permission chahiye. Aap sirf dekh sakte hain.</p>}
+      {hrLocked && <Alert tone="warning">HR record badalne ke liye "Staff sambhalna" ki permission chahiye. Aap sirf dekh sakte hain.</Alert>}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">

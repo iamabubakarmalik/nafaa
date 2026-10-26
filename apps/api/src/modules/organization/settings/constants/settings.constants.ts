@@ -1,3 +1,4 @@
+import { PRICE_TIERS, isPriceTier, type PriceTier } from '../../../../common/helpers/price-tier.helper';
 export const RECEIPT_SIZES = ['THERMAL_58MM', 'THERMAL_80MM', 'A4_BASIC', 'A4_DETAILED'] as const;
 export const PAYMENT_METHODS = ['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK_TRANSFER', 'RAAST', 'SADAPAY', 'NAYAPAY'] as const;
 export const STOCK_METHODS = ['FIFO', 'LIFO', 'AVERAGE'] as const;
@@ -149,6 +150,20 @@ export const POS_COUNTER_DEFAULTS = {
   changeDue: true,
   /** Discount % buttons a cashier can tap; only those within their limit are shown. */
   quickDiscounts: [5, 10] as number[],
+  /** Retail / Wholesale / Credit price switcher on the counter. Off: the counter sells at retail as before. */
+  priceTiers: false,
+  /** Tiers offered on the switcher; always holds the default tier. */
+  priceTierList: [...PRICE_TIERS] as PriceTier[],
+  /** Tier every new bill starts at. */
+  defaultPriceTier: 'RETAIL' as PriceTier,
+  /** Udhaar (credit) payment switches the bill to the credit price. */
+  tierCreditOnUdhaar: true,
+  /** A customer with their own default price brings that tier to the bill. */
+  tierFromCustomer: true,
+  /** A single bill line may use a different tier. */
+  tierLineOverride: true,
+  /** Print the tier on the receipt. */
+  tierOnReceipt: false,
 };
 
 export type PosCounterConfig = typeof POS_COUNTER_DEFAULTS;
@@ -165,5 +180,13 @@ export function normalizePosCounter(raw: unknown): PosCounterConfig {
   if (Array.isArray(s.quickDiscounts)) {
     out.quickDiscounts = [...new Set(s.quickDiscounts.map(Number).filter((n) => Number.isFinite(n) && n > 0 && n <= 100))].sort((a, b) => a - b).slice(0, 6);
   }
+  if (isPriceTier(s.defaultPriceTier)) out.defaultPriceTier = s.defaultPriceTier;
+  let list: PriceTier[] = [...PRICE_TIERS];
+  if (Array.isArray(s.priceTierList)) {
+    const picked = PRICE_TIERS.filter((t) => (s.priceTierList as unknown[]).includes(t));
+    if (picked.length) list = picked;
+  }
+  // The default tier is always offered.
+  out.priceTierList = PRICE_TIERS.filter((t) => t === out.defaultPriceTier || list.includes(t));
   return out as PosCounterConfig;
 }

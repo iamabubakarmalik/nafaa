@@ -1,11 +1,13 @@
 import { addCartNeed, claimShopStock } from './stock-claim.helper';
 import { priceCutTotal } from './price-cut.helper';
+import { isPriceTier, tierPrice, type PriceTier } from '../../../common/helpers/price-tier.helper';
+import { normalizePosCounter } from '../../organization/settings/constants/settings.constants';
 import { tidyCustomerBalance } from '../returns/returns.helpers';
 import {
   CARPET_SALE_NOTE, hasCarpetNote, isCarpetBusiness, isCarpetLine, productsSoldWithoutStock, productsThatTookStock,
 } from './carpet-line.helper';
 import {
-  BadRequestException, Injectable, NotFoundException,
+  BadRequestException, ForbiddenException, Injectable, NotFoundException,
 } from '@nestjs/common';
 import { addMonths, startOfDay, startOfMonth } from 'date-fns';
 import { SaleSource, TenantSettings } from '@prisma/client';
@@ -38,6 +40,10 @@ export interface SaleOrigin {
 const n0 = (v: unknown) => Number(v ?? 0);
 /** Rupees to 2 decimals, so stored money carries no float noise. */
 const r2 = (v: number) => Math.round((Number(v) || 0) * 100) / 100;
+
+/** A line's price tier: `priceTier`, or WHOLESALE for older clients that send `useWholesale`. */
+const tierOfItem = (item: { priceTier?: string; useWholesale?: boolean }): PriceTier | null =>
+  isPriceTier(item.priceTier) ? item.priceTier : item.useWholesale ? 'WHOLESALE' : null;
 
 /** Runs after a void commits; an industry that keeps its own records for a bill settles them here. */
 type VoidListener = (tenantId: string, saleId: string) => Promise<unknown>;
@@ -345,13 +351,16 @@ export class SalesService {
           : product!.name;
 
       // ─── Resolve unit price ─────────────────────────────────
+      const lineTier = tierOfItem(item);
       let unitPrice: number;
       if (item.priceOverride !== undefined && item.priceOverride !== null) {
         unitPrice = item.priceOverride;
       } else if (isUsedPhoneItem) {
         unitPrice = Number(usedPhone!.resalePrice) || 0;
-      } else if (item.useWholesale) {
+      } else if (lineTier === 'WHOLESALE') {
         unitPrice = (variant?.wholesalePrice ?? product!.wholesalePrice ?? variant?.price ?? product!.price);
+      } else if (lineTier === 'CREDIT') {
+        unitPrice = (variant?.creditPrice ?? product!.creditPrice ?? variant?.price ?? product!.price);
       } else {
         unitPrice = variant?.price ?? product!.price;
       }
@@ -430,9 +439,16 @@ export class SalesService {
         total: lineTotal,
         note: item.note,
         internalNote: item.internalNote,
+        // Product lines always carry a tier; used phones have none.
+        priceTier: product ? (lineTier ?? 'RETAIL') : null,
+        retailPrice: null as number | null,
       };
     });
     subtotal = r2(subtotal);
+
+    // ─── Price tiers ─────────────────────────────────────────
+    const tierSetup = normalizePosCounter((settings?.receiptConfig as Record<string, unknown> | null)?.posCounter);
+    await this.fillRetailPrices(user.tenantId, normalizedItems, productMap, variantMap);
     totalLineDiscount = r2(totalLineDiscount);
 
     // ─── Discount code ────────────────────────────────────────
@@ -522,11 +538,13 @@ export class SalesService {
             return [{
               productId: item.productId, variantId: item.variantId ?? null,
               quantity: normalizedItems[idx].quantity, price: Number(item.priceOverride), note: item.note,
-              productPrice: Number(product.price) || 0, productWholesale: product.wholesalePrice,
-              variantPrice: variant?.price ?? null, variantWholesale: variant?.wholesalePrice ?? null,
+              productPrice: Number(product.price) || 0, productWholesale: product.wholesalePrice, productCredit: product.creditPrice,
+              variantPrice: variant?.price ?? null, variantWholesale: variant?.wholesalePrice ?? null, variantCredit: variant?.creditPrice ?? null,
+              tier: (normalizedItems[idx].priceTier as PriceTier | null) ?? null,
             }];
           }))
         : 0;
+      if (opts.counter) await this.checkPriceTiers(user, tierSetup, dto, normalizedItems, creditAmount);
       await this.enforceCounterRules(user, settings, dto, {
         manualDiscount: (dto.discount ?? 0) + totalLineDiscount, priceCut, subtotal, creditAmount,
       });
@@ -598,6 +616,8 @@ export class SalesService {
               total: item.total,
               note: item.note,
               internalNote: item.internalNote,
+              priceTier: item.priceTier,
+              retailPrice: item.retailPrice,
               ...(item.variantId && {
                 variantLink: { create: { variantId: item.variantId } },
               }),
@@ -1193,6 +1213,61 @@ export class SalesService {
    * off, a ceiling the owner's PIN can lift, a PIN for any discount), credit
    * (on or off, each customer's limit that only the PIN can lift).
    */
+  /**
+   * Retail price per base unit on wholesale and credit lines, kept on the
+   * line so history can show what the item would have cost at retail. A pack
+   * sold at its own tier price compares with that pack's retail price.
+   */
+  private async fillRetailPrices(
+    tenantId: string,
+    lines: Array<{ productId: string | null; variantId?: string; price: number; priceTier: string | null; retailPrice: number | null }>,
+    productMap: Map<string, { price: number }>,
+    variantMap: Map<string, { price: number }>,
+  ) {
+    const tiered = lines.filter((l) => l.productId && (l.priceTier === 'WHOLESALE' || l.priceTier === 'CREDIT'));
+    if (!tiered.length) return;
+    const units = await this.prisma.productUnit.findMany({
+      where: { tenantId, isActive: true, productId: { in: [...new Set(tiered.map((l) => l.productId!))] } },
+      select: { productId: true, variantId: true, conversionRate: true, price: true, wholesalePrice: true, creditPrice: true },
+    });
+    for (const l of tiered) {
+      const variant = l.variantId ? variantMap.get(l.variantId) : undefined;
+      let retail = Number(variant?.price ?? productMap.get(l.productId!)?.price) || 0;
+      for (const u of units) {
+        if (u.productId !== l.productId || (u.variantId && u.variantId !== l.variantId)) continue;
+        const rate = Number(u.conversionRate) || 1;
+        if (rate === 1 || !(u.price > 0)) continue;
+        if (Math.abs(tierPrice(u, l.priceTier as PriceTier) / rate - l.price) < 0.01) { retail = u.price / rate; break; }
+      }
+      l.retailPrice = retail > 0 ? r2(retail * 10000) / 10000 : null;
+    }
+  }
+
+  /**
+   * With price tiers on, a line away from the shop's default tier needs the
+   * pos.price_tier permission, unless the owner's own rules chose it: the
+   * customer's default price, or the credit price on an udhaar bill.
+   */
+  private async checkPriceTiers(
+    user: AuthenticatedUser,
+    setup: ReturnType<typeof normalizePosCounter>,
+    dto: CreateSaleDto,
+    lines: Array<{ priceTier: string | null }>,
+    creditAmount: number,
+  ) {
+    if (!setup.priceTiers || hasPermission(user.role, user.permissions, PERMISSIONS.POS_PRICE_TIER)) return;
+    const off = lines.filter((l) => l.priceTier && l.priceTier !== setup.defaultPriceTier);
+    if (!off.length) return;
+    const customer = setup.tierFromCustomer && dto.customerId
+      ? await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId: user.tenantId }, select: { priceTier: true } })
+      : null;
+    for (const l of off) {
+      if (customer?.priceTier && l.priceTier === customer.priceTier) continue;
+      if (l.priceTier === 'CREDIT' && creditAmount > 0 && setup.tierCreditOnUdhaar) continue;
+      throw new ForbiddenException('Price tier badalne ki permission nahi (Price tier badalna). Owner se poochein.');
+    }
+  }
+
   private async enforceCounterRules(
     user: AuthenticatedUser,
     s: TenantSettings,

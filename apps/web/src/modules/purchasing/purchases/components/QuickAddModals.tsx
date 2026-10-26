@@ -1,65 +1,23 @@
+/**
+ * Quick-add dialogs used while entering a purchase: a new supplier or a new
+ * product can be created without leaving the bill. Only the fields the bill
+ * needs are asked for; the full forms fill in the rest later.
+ */
+
 import { useState, useRef, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  CheckCircle2, AlertTriangle, Sparkles,
-} from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CheckCircle2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatPKR } from '@core/lib/format';
-import { Button, Modal } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
+import { Alert, Button, IconButton, Input, Modal, Select } from '@/design-system/components';
 import { suppliersApi } from '../../suppliers/api/suppliers.api';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
-import { useQuery } from '@tanstack/react-query';
 
-/* ═════════════════════════════════════════════════════════════
-   QUICK ADD — kharidari rukne na paye
-   ─────────────────────────────────────────────────────────────
-   Supplier truck le kar khara hai aur us ka naam list me nahi —
-   ya koi nayi cheez laya hai jo system me hai hi nahi. Purani
-   soorat me dukaan-daar ko doosre page par jana parta tha, aur
-   adhoora bill zaya ho jata tha.
+const UNITS = ['pcs', 'kg', 'gram', 'litre', 'ml', 'meter', 'foot', 'box', 'pack', 'dozen', 'set', 'unit'];
 
-   Ab dono cheezein yahin, isi safhe par ban jati hain. Sirf woh
-   khanay mangte hain jin ke baghair kaam nahi chalta — baqi
-   tafseel baad me poori form se.
-   ═════════════════════════════════════════════════════════════ */
-
-const inp = (extra = '', bad = false) =>
-  [
-    'w-full rounded-xl border-2 px-3 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white',
-    'placeholder:text-slate-400 focus:outline-none focus:ring-2 transition',
-    bad ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
-        : 'border-slate-200 dark:border-ink-700 focus:border-teal-500 focus:ring-teal-200 dark:focus:ring-teal-500/30',
-    extra,
-  ].join(' ');
-
-function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string; req?: boolean }) {
-  return (
-    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">
-      {children}{req && <span className="text-rose-500 ml-0.5">*</span>}
-      {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
-    </label>
-  );
-}
-
-/** Shared frame for the quick-add dialogs. */
-function Shell({ title, subtitle, onClose, children, footer }: {
-  title: React.ReactNode;
-  subtitle?: React.ReactNode;
-  onClose: () => void;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-}) {
-  return (
-    <Modal open onClose={onClose} size="md" title={title} description={subtitle} footer={footer}>
-      {children}
-    </Modal>
-  );
-}
-
-/* ═════════════════════════════════════════════════════════════
-   🚚 QUICK SUPPLIER
-   ═════════════════════════════════════════════════════════════ */
+/** New supplier with an optional opening balance. */
 export function QuickSupplierModal({ initialName, onClose, onCreated }: {
   initialName?: string;
   onClose: () => void;
@@ -71,7 +29,7 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
   const [phone, setPhone] = useState('');
   const [contactPerson, setContactPerson] = useState('');
   const [city, setCity] = useState('');
-  /** Purana hisab — paper register se aane walon ke liye */
+  /** Opening balance carried over from a paper register. */
   const [opening, setOpening] = useState('');
 
   useEffect(() => { setTimeout(() => nameRef.current?.focus(), 80); }, []);
@@ -85,7 +43,7 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
         ...(city.trim() ? { city: city.trim() } : {}),
       } as any);
 
-      // Purana hisab bhi usi waqt — warna baad me yaad nahi rehta
+      // Record the opening balance now; it is easy to forget later.
       const open = Number(opening) || 0;
       if (open > 0) {
         const { supplierLedgerApi } = await import('../../suppliers/api/supplier-ledger.api');
@@ -109,9 +67,11 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
   const ok = !!name.trim();
 
   return (
-    <Shell
+    <Modal
+      open
+      size="md"
       title="Naya Supplier"
-      subtitle="Sirf naam zaroori hai — baqi details baad me"
+      description="Sirf naam zaroori hai — baqi details baad me"
       onClose={onClose}
       footer={
         <>
@@ -123,59 +83,35 @@ export function QuickSupplierModal({ initialName, onClose, onCreated }: {
       }
     >
       <div className="space-y-3" onKeyDown={(e) => { if (e.key === 'Enter' && ok && !mut.isPending) { e.preventDefault(); mut.mutate(); } }}>
-        <div>
-          <Lbl req>Supplier ka naam</Lbl>
-          <input ref={nameRef} data-autofocus className={inp('h-12 text-base font-extrabold')} maxLength={120}
-            placeholder="Akbari Mandi Wholesale" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input ref={nameRef} data-autofocus label="Supplier ka naam" required size="lg" className="font-semibold" maxLength={120}
+          placeholder="Akbari Mandi Wholesale" value={name} onChange={(e) => setName(e.target.value)} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input label="Phone" hint="WhatsApp ke liye" className="font-mono" inputMode="tel"
+            placeholder="0300-1234567" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <Input label="Banda (optional)" placeholder="Asif sb"
+            value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} />
         </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Lbl hint="WhatsApp ke liye">Phone</Lbl>
-            <input className={inp('h-11 font-bold font-mono')} inputMode="tel"
-              placeholder="0300-1234567" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
-          <div>
-            <Lbl hint="optional">Banda</Lbl>
-            <input className={inp('h-11 font-bold')} placeholder="Asif sb"
-              value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} />
-          </div>
-        </div>
-        <div>
-          <Lbl hint="optional">Sheher</Lbl>
-          <input className={inp('h-11 font-bold')} placeholder="Lahore" value={city} onChange={(e) => setCity(e.target.value)} />
-        </div>
+        <Input label="Sheher (optional)" placeholder="Lahore" value={city} onChange={(e) => setCity(e.target.value)} />
 
-        <div className="rounded-2xl bg-violet-50 dark:bg-violet-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-3">
-          <Lbl hint="purani copy se">📖 Purana hisab — pehle se kitna dena tha</Lbl>
-          <input type="number" min={0} className={inp('h-11 font-extrabold tabular-nums')}
+        <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200">
+          <Input type="number" min={0} label="Purana hisab — pehle se kitna dena tha" className="tabular-nums"
+            hint={Number(opening) > 0
+              ? <strong className="text-slate-700">Khata {formatPKR(Number(opening))} se shuru hoga</strong>
+              : 'Is supplier ka purana baqi hai to abhi daal dein — baad me yaad nahi rehta.'}
             placeholder="0" value={opening} onChange={(e) => setOpening(e.target.value)} />
-          <div className="mt-1.5 text-[0.6875rem] font-semibold text-violet-800 dark:text-violet-300">
-            Agar is supplier ka purana baqi hai to abhi daal dein — baad me yaad nahi rehta.
-            {Number(opening) > 0 && (
-              <strong className="block mt-0.5">Khata {formatPKR(Number(opening))} se shuru hoga</strong>
-            )}
-          </div>
         </div>
 
-        <div className="text-center text-[0.6875rem] font-bold text-slate-400">
-          Bank details, NTN, payment terms waghera baad me poori form se
-        </div>
+        <p className="text-center text-[0.75rem] text-slate-500">Bank details, NTN, payment terms waghera baad me poori form se</p>
       </div>
-    </Shell>
+    </Modal>
   );
 }
 
-/* ═════════════════════════════════════════════════════════════
-   📦 QUICK PRODUCT
-   ═════════════════════════════════════════════════════════════
-   Har industry ki apni poori wizard hai (specs, warranty waghera).
-   Yahan sirf BUNYADI cheezein banti hain taake bill ruk na jaye —
-   tafseel baad me wizard se poori ki ja sakti hai.
-   ═════════════════════════════════════════════════════════════ */
+/** New product with the basics only; stock starts at 0 and the bill adds to it. */
 export function QuickProductModal({ initialName, initialBarcode, wizardPath, onClose, onCreated }: {
   initialName?: string;
   initialBarcode?: string;
-  /** Industry ki apni wizard ka raasta — "poori tafseel" link ke liye */
+  /** Path of the industry's full product form. */
   wizardPath?: string;
   onClose: () => void;
   onCreated: (p: any) => void;
@@ -236,9 +172,11 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
   const ok = !!name.trim() && cost >= 0;
 
   return (
-    <Shell
+    <Modal
+      open
+      size="md"
       title="Naya Product"
-      subtitle="Bunyadi details — baqi baad me poori wizard se"
+      description="Bunyadi details — baqi baad me poori wizard se"
       onClose={onClose}
       footer={
         <>
@@ -250,99 +188,58 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
       }
     >
       <div className="space-y-3">
-        <div>
-          <Lbl req>Product ka naam</Lbl>
-          <input ref={nameRef} data-autofocus className={inp('h-12 text-base font-extrabold')} maxLength={160}
-            placeholder="Dalda Cooking Oil 5L" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input ref={nameRef} data-autofocus label="Product ka naam" required size="lg" className="font-semibold" maxLength={160}
+          placeholder="Dalda Cooking Oil 5L" value={name} onChange={(e) => setName(e.target.value)} />
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex items-end gap-1.5">
+            <Input label="SKU (optional)" wrapperClassName="min-w-0 flex-1" className="font-mono" placeholder="DAL-1234"
+              value={sku} onChange={(e) => setSku(e.target.value)} />
+            <IconButton label="Khud bana dein" variant="secondary" onClick={autoSku}><Sparkles className="h-4 w-4" /></IconButton>
+          </div>
+          <Input label="Barcode" hint="Dabbay par jo likha hai" className="font-mono" placeholder="8964000..."
+            value={barcode} onChange={(e) => setBarcode(e.target.value)} />
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Lbl hint="optional">SKU</Lbl>
-            <div className="flex gap-1.5">
-              <input className={inp('h-11 font-bold font-mono')} placeholder="DAL-1234"
-                value={sku} onChange={(e) => setSku(e.target.value)} />
-              <button type="button" onClick={autoSku} title="Khud bana dein"
-                className="h-11 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-slate-600 dark:text-ink-300 shrink-0 transition">
-                <Sparkles className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-          <div>
-            <Lbl hint="dabbay par jo hai">Barcode</Lbl>
-            <input className={inp('h-11 font-bold font-mono')} placeholder="8964000..."
-              value={barcode} onChange={(e) => setBarcode(e.target.value)} />
-          </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Select label="Unit" value={unit} onChange={(e) => setUnit(e.target.value)} options={UNITS.map((u) => ({ value: u, label: u }))} />
+          <Select label="Category (optional)" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+            <option value="">Koi nahi</option>
+            {(cats as any[]).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </Select>
         </div>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Lbl>Unit</Lbl>
-            <select className={inp('h-11 text-sm font-extrabold')} value={unit} onChange={(e) => setUnit(e.target.value)}>
-              {['pcs', 'kg', 'gram', 'litre', 'ml', 'meter', 'foot', 'box', 'pack', 'dozen', 'set', 'unit'].map((u) => (
-                <option key={u} value={u}>{u}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <Lbl hint="optional">Category</Lbl>
-            <select className={inp('h-11 text-sm font-extrabold')} value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-              <option value="">Koi nahi</option>
-              {(cats as any[]).map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <Lbl req hint="supplier se kitne ka">Cost</Lbl>
-            <input type="number" min={0} className={inp('h-12 text-base font-extrabold tabular-nums')}
-              placeholder="0" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
-          </div>
-          <div>
-            <Lbl hint="khali = cost ke barabar">Bechne ka rate</Lbl>
-            <input type="number" min={0} className={inp('h-12 text-base font-extrabold tabular-nums', loss)}
-              placeholder={costPrice || '0'} value={price} onChange={(e) => setPrice(e.target.value)} />
-          </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Input type="number" min={0} label="Cost" required hint="Supplier se kitne ka" size="lg" className="font-semibold tabular-nums"
+            placeholder="0" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} />
+          <Input type="number" min={0} label="Bechne ka rate" hint={loss ? undefined : 'Khali = cost ke barabar'} error={loss ? 'Cost se kam hai' : undefined}
+            size="lg" className="font-semibold tabular-nums" placeholder={costPrice || '0'} value={price} onChange={(e) => setPrice(e.target.value)} />
         </div>
 
         {cost > 0 && (
-          <div className="flex gap-1.5 flex-wrap">
+          <div className="flex flex-wrap gap-1.5">
             {[10, 15, 20, 25, 30].map((p) => (
-              <button key={p} type="button" onClick={() => markup(p)}
-                className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-blue-400 transition">
-                +{p}%
-              </button>
+              <Button key={p} size="xs" variant="secondary" onClick={() => markup(p)}>+{p}%</Button>
             ))}
           </div>
         )}
 
         {sale > 0 && cost > 0 && (
-          <div className={`rounded-xl border-2 p-3 flex items-center justify-between text-xs font-extrabold ${
-            loss ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-300'
-                 : 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
-          }`}>
-            <span>{loss ? '⚠️ Nuqsan par bech rahe hain' : 'Har unit par profit'}</span>
+          <div className={cn('flex items-center justify-between rounded-lg px-3 py-2.5 text-[0.8125rem] font-semibold ring-1 ring-inset',
+            loss ? 'bg-rose-50 text-rose-700 ring-rose-200' : 'bg-success-50 text-success-700 ring-success-200')}>
+            <span>{loss ? 'Nuqsan par bech rahe hain' : 'Har unit par profit'}</span>
             <span className="tabular-nums">{formatPKR(sale - cost)} · {margin.toFixed(0)}%</span>
           </div>
         )}
 
-        <div>
-          <Lbl hint="is se neeche jaye to alert">Alert level</Lbl>
-          <input type="number" min={0} className={inp('h-11 font-bold tabular-nums')}
-            placeholder="0" value={lowStockAlert} onChange={(e) => setLowStockAlert(e.target.value)} />
-        </div>
+        <Input type="number" min={0} label="Alert level" hint="Stock is se neeche jaye to alert" className="tabular-nums"
+          placeholder="0" value={lowStockAlert} onChange={(e) => setLowStockAlert(e.target.value)} />
 
-        <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3 flex items-start gap-2">
-          <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
-          <div className="text-[0.6875rem] font-bold text-blue-900 dark:text-blue-200">
-            Stock <strong>0</strong> se shuru hoga — is bill se khud barh jayega.
-            {wizardPath && (
-              <> Poori details (warranty, specs waghera) baad me <strong>poori wizard</strong> se bhar lein.</>
-            )}
-          </div>
-        </div>
+        <Alert tone="info">
+          Stock <strong>0</strong> se shuru hoga — is bill se khud barh jayega.
+          {wizardPath && <> Poori details (warranty, specs waghera) baad me <strong>poori form</strong> se bhar lein.</>}
+        </Alert>
       </div>
-    </Shell>
+    </Modal>
   );
 }

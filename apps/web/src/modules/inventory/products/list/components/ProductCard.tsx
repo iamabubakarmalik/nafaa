@@ -83,6 +83,8 @@ interface CardProps {
   onStock: () => void;
   onDeleted: () => void;
   can: { edit: boolean; delete: boolean; stock: boolean };
+  /** Optional table columns the owner turned on. */
+  cols?: { wholesale: boolean; credit: boolean };
 }
 
 function Select({ selected, onToggle, className }: { selected: boolean; onToggle: () => void; className?: string }) {
@@ -162,7 +164,7 @@ export function ProductCard({ item, config, extras, tagNames, money, cost, costH
   );
 }
 
-export function ProductRow({ item, config, extras, tagNames, money, cost, costHidden, days, selected, onToggle, onStock, onDeleted, can }: CardProps) {
+export function ProductRow({ item, config, extras, tagNames, money, cost, costHidden, days, selected, onToggle, onStock, onDeleted, can, cols }: CardProps) {
   const value = Math.max(0, item.stock) * item.costPrice;
   const ribbon = stockRibbon(item, extras);
   return (
@@ -184,6 +186,8 @@ export function ProductRow({ item, config, extras, tagNames, money, cost, costHi
       <td className="px-3 py-2.5"><CategoryChip item={item} /></td>
       {!costHidden && <td className="px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-500">{item.costPrice ? cost(item.costPrice) : '—'}</td>}
       <td className="px-3 py-2.5 text-right text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(item.price)}</td>
+      {cols?.wholesale && <td className="px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-700">{Number(item.wholesalePrice) > 0 ? money(Number(item.wholesalePrice)) : <span className="text-slate-400" title="Retail price lagegi">—</span>}</td>}
+      {cols?.credit && <td className="px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-700">{Number(item.creditPrice) > 0 ? money(Number(item.creditPrice)) : <span className="text-slate-400" title="Retail price lagegi">—</span>}</td>}
       <td className="px-3 py-2.5 text-right">
         <button type="button" onClick={can.stock ? onStock : undefined} disabled={!can.stock} title={can.stock ? 'Stock badlein' : undefined}
           className={cn('rounded-lg px-2 py-1 text-[0.8125rem] font-bold tabular-nums transition enabled:hover:ring-2 enabled:hover:ring-brand-200',

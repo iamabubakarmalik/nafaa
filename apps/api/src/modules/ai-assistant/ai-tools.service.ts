@@ -168,7 +168,7 @@ const P = PERMISSIONS;
 export const TOOL_SPECS: ToolSpec[] = [
   {
     name: 'sales_summary',
-    description: 'Sales of a period: net sale (after returns), bills, average bill, cash received, udhaar given, discount, refunds, customers; split by payment method, busiest hours and weekdays, day-by-day trend, and the previous period of equal length for comparison.',
+    description: 'Sales of a period: net sale (after returns), bills, average bill, cash received, udhaar given, discount, refunds, customers; split by payment method, by price tier (Retail, Wholesale, Credit; only when non-retail prices were used), busiest hours and weekdays, day-by-day trend, and the previous period of equal length for comparison.',
     properties: { ...periodProps },
     needs: [P.REPORTS_VIEW],
     status: 'Sale dekh raha hoon…',
@@ -513,6 +513,10 @@ export class AiToolsService {
       previousPeriod: s.previous ? { netSale: s.previous.net, bills: s.previous.bills, averageBill: s.previous.average, profit: s.previous.profit } : null,
       changePercent: s.previous ? { netSale: pct(t.net, s.previous.net), bills: pct(t.bills, s.previous.bills) } : null,
       byPayment: s.payments.map((m) => ({ method: m.method, net: m.net, bills: m.bills })),
+      // Bills count once per tier they hold; net sale and profit add up to the totals.
+      byPriceTier: s.priceTiers?.mixed
+        ? s.priceTiers.tiers.filter((x) => x.bills > 0).map((x) => ({ tier: x.label, bills: x.bills, itemsSold: x.qty, netSale: x.net, profit: x.profit, margin: x.margin }))
+        : undefined,
       busiestHours: hours,
       byWeekday: s.from !== s.to ? weekdays : undefined,
       daily: s.trend.length > 1 ? s.trend.slice(-31).map((d) => ({ day: d.key, net: d.net, bills: d.bills })) : undefined,

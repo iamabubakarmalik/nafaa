@@ -7,7 +7,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Hash, Smartphone } from 'lucide-react';
-import { Card } from '@/design-system/components';
+import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { ProductDetailPage, type DetailConfig } from '@modules/inventory/products/detail/ProductDetailPage';
 import { imeiApi, type ImeiRow } from '../api/imei.api';
@@ -72,31 +72,29 @@ const config: DetailConfig<Extra> = {
           <Card className="rounded-2xl" flush title="Har phone IMEI ke saath" description={summary || 'Abhi koi IMEI nahi'}
             actions={<Link to={`/products/${product.id}/imei`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">IMEI daalein / badlein →</Link>}>
             {rows.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[46rem] text-[0.8125rem]">
-                  <thead>
-                    <tr className="bg-slate-50 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                      <th className="px-5 py-2.5">IMEI</th><th className="px-3 py-2.5">Variant</th><th className="px-3 py-2.5">PTA</th>
-                      <th className="px-3 py-2.5">Halat</th><th className="px-3 py-2.5">Bill</th><th className="px-5 py-2.5 text-right">Cost / Sale</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {rows.map((r) => (
-                      <tr key={r.id}>
-                        <td className="px-5 py-2 font-mono">{r.imei1}{r.imei2 && <span className="block text-[0.6875rem] text-slate-400">{r.imei2}</span>}</td>
-                        <td className="px-3 py-2 text-slate-600">{r.variant?.name ?? '—'}</td>
-                        <td className="px-3 py-2"><span className="font-medium" style={{ color: ptaOf(r.ptaStatus).color }}>{ptaOf(r.ptaStatus).label}</span></td>
-                        <td className="px-3 py-2">
-                          <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', imeiStatusOf(r.status).tone)}>{imeiStatusOf(r.status).label}</span>
-                          {r.status === 'IN_STOCK' && <span className="ml-1.5 text-[0.6875rem] text-slate-500">{ageText(r.daysInStock)}</span>}
-                        </td>
-                        <td className="px-3 py-2 text-slate-600">{r.sale ? <span className="font-mono">{r.sale.saleNumber}{r.sale.customer ? ` · ${r.sale.customer.name}` : ''}</span> : r.purchasedAt ? `Aaya ${dayOnly(r.purchasedAt)}` : '—'}</td>
-                        <td className="px-5 py-2 text-right tabular-nums">{cost(r.costPrice)}{r.soldPrice ? <span className="block text-[0.6875rem] text-slate-500">{money(r.soldPrice)}</span> : null}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table minWidth="46rem">
+                <THead>
+                  <Tr>
+                    <Th className="px-5 py-2.5">IMEI</Th><Th className="px-3 py-2.5">Variant</Th><Th className="px-3 py-2.5">PTA</Th>
+                    <Th className="px-3 py-2.5">Halat</Th><Th className="px-3 py-2.5">Bill</Th><Th className="px-5 py-2.5 text-right">Cost / Sale</Th>
+                  </Tr>
+                </THead>
+                <TBody>
+                  {rows.map((r) => (
+                    <Tr key={r.id}>
+                      <Td className="px-5 py-2 font-mono">{r.imei1}{r.imei2 && <span className="block text-[0.6875rem] text-slate-400">{r.imei2}</span>}</Td>
+                      <Td className="px-3 py-2 text-slate-600">{r.variant?.name ?? '—'}</Td>
+                      <Td className="px-3 py-2"><span className="font-medium" style={{ color: ptaOf(r.ptaStatus).color }}>{ptaOf(r.ptaStatus).label}</span></Td>
+                      <Td className="px-3 py-2">
+                        <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', imeiStatusOf(r.status).tone)}>{imeiStatusOf(r.status).label}</span>
+                        {r.status === 'IN_STOCK' && <span className="ml-1.5 text-[0.6875rem] text-slate-500">{ageText(r.daysInStock)}</span>}
+                      </Td>
+                      <Td className="px-3 py-2 text-slate-600">{r.sale ? <span className="font-mono">{r.sale.saleNumber}{r.sale.customer ? ` · ${r.sale.customer.name}` : ''}</span> : r.purchasedAt ? `Aaya ${dayOnly(r.purchasedAt)}` : '—'}</Td>
+                      <Td className="px-5 py-2 text-right tabular-nums">{cost(r.costPrice)}{r.soldPrice ? <span className="block text-[0.6875rem] text-slate-500">{money(r.soldPrice)}</span> : null}</Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
             )}
           </Card>
         );

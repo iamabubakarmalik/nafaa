@@ -7,7 +7,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Building2, Globe, Image as ImageIcon, Mail, MapPin, MessageCircle, Phone, Receipt, Store } from 'lucide-react';
-import { Alert, Field, SectionCard, TextInput } from '../components/UI';
+import { Field, SectionCard } from '../components/SettingsBlocks';
+import { Alert, Input } from '@/design-system/components';
 import { SyncedBadge } from '../components/SyncedBadge';
 import LogoUploader from '../components/LogoUploader';
 import { useAutoSave } from '../hooks/useAutoSave';
@@ -36,54 +37,34 @@ export function BusinessProfileSection({ settings }: { settings: TenantSettings 
 
         <SectionCard title="Business ki pehchaan" desc="Naam jo customer bill par parhta hai, aur kaghazi naam" icon={Store} color="blue">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Store ka naam" required badge={<SyncedBadge />} hint="Bill ke upar sab se bara yahi likha jata hai.">
-              <TextInput value={draft.shopName} onChange={(v) => set('shopName', v)} placeholder="Ahmad Bakery" maxLength={80} />
-            </Field>
-            <Field label="Legal naam" hint="FBR ya trade license wala naam — A4 invoice par chhapta hai.">
-              <TextInput value={draft.legalName} onChange={(v) => set('legalName', v)} placeholder="Ahmad Foods (Pvt) Ltd" maxLength={200} />
-            </Field>
+            <Input label={<span className="inline-flex items-center gap-1.5">Store ka naam<SyncedBadge /></span>} required hint="Bill ke upar sab se bara yahi likha jata hai." value={draft.shopName ?? ''} onChange={(e) => set('shopName', e.target.value)} placeholder="Ahmad Bakery" maxLength={80} />
+            <Input label="Legal naam" hint="FBR ya trade license wala naam — A4 invoice par chhapta hai." value={draft.legalName ?? ''} onChange={(e) => set('legalName', e.target.value)} placeholder="Ahmad Foods (Pvt) Ltd" maxLength={200} />
             <Field label="Business type" hint="Badalne ke liye 'Business type' page kholein.">
               <div className="flex items-center gap-2">
-                <div className="min-w-0 flex-1"><TextInput value={draft.businessType} onChange={() => undefined} disabled /></div>
+                <div className="min-w-0 flex-1"><Input value={draft.businessType ?? ''} readOnly disabled aria-label="Business type" /></div>
                 <Link to="/settings/business-type" className="shrink-0 rounded-lg px-2.5 py-2 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">Badlein</Link>
               </div>
             </Field>
-            <Field label="Kab shuru hua" hint="Zaroori nahi. Store ki saalgirah aur profile ke liye.">
-              <TextInput type="date" value={draft.establishedDate?.slice(0, 10) || ''} onChange={(v) => set('establishedDate', v || null)} />
-            </Field>
+            <Input label="Kab shuru hua" hint="Zaroori nahi. Store ki saalgirah aur profile ke liye." type="date" value={draft.establishedDate?.slice(0, 10) || ''} onChange={(e) => set('establishedDate', e.target.value || null)} />
           </div>
         </SectionCard>
 
         <SectionCard title="Contact" desc="Customer aap se kaise rabta kare — bill aur WhatsApp par jata hai" icon={Phone} color="violet">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Phone" badge={<SyncedBadge />} hint="Bill par chhapta hai. Misaal: 0300 1234567">
-              <TextInput value={draft.shopPhone} onChange={(v) => set('shopPhone', v)} placeholder="0300 1234567" maxLength={30} prefix={<Phone className="h-4 w-4" />} />
-            </Field>
-            <Field label="WhatsApp number" hint="Customer ko bill aur rozana report isi number se khulti hai.">
-              <TextInput value={draft.shopWhatsapp} onChange={(v) => set('shopWhatsapp', v)} placeholder="0300 1234567" maxLength={30} prefix={<MessageCircle className="h-4 w-4" />} />
-            </Field>
+            <Input label={<span className="inline-flex items-center gap-1.5">Phone<SyncedBadge /></span>} hint="Bill par chhapta hai. Misaal: 0300 1234567" value={draft.shopPhone ?? ''} onChange={(e) => set('shopPhone', e.target.value)} placeholder="0300 1234567" maxLength={30} leftIcon={<Phone className="h-4 w-4" />} />
+            <Input label="WhatsApp number" hint="Customer ko bill aur rozana report isi number se khulti hai." value={draft.shopWhatsapp ?? ''} onChange={(e) => set('shopWhatsapp', e.target.value)} placeholder="0300 1234567" maxLength={30} leftIcon={<MessageCircle className="h-4 w-4" />} />
             <EmailField value={draft.shopEmail ?? ''} onSave={(v) => set('shopEmail', v)} />
-            <Field label="Website" hint="Website ya Facebook page ka link — A4 invoice par chhapta hai.">
-              <TextInput value={draft.shopWebsite} onChange={(v) => set('shopWebsite', v)} placeholder="https://meristore.pk" prefix={<Globe className="h-4 w-4" />} />
-            </Field>
+            <Input label="Website" hint="Website ya Facebook page ka link — A4 invoice par chhapta hai." value={draft.shopWebsite ?? ''} onChange={(e) => set('shopWebsite', e.target.value)} placeholder="https://meristore.pk" leftIcon={<Globe className="h-4 w-4" />} />
           </div>
         </SectionCard>
 
         <SectionCard title="Pata" desc="Store ka poora address — bill, invoice aur delivery ke liye" icon={MapPin} color="amber">
           <div className="space-y-4">
-            <Field label="Gali / bazaar" badge={<SyncedBadge />} hint="Dukaan number, bazaar aur ilaqa. Misaal: Shop 12, Main Bazaar, Anarkali">
-              <TextInput value={draft.shopAddress} onChange={(v) => set('shopAddress', v)} placeholder="Shop 12, Main Bazaar, Anarkali" maxLength={500} />
-            </Field>
+            <Input label={<span className="inline-flex items-center gap-1.5">Gali / bazaar<SyncedBadge /></span>} hint="Dukaan number, bazaar aur ilaqa. Misaal: Shop 12, Main Bazaar, Anarkali" value={draft.shopAddress ?? ''} onChange={(e) => set('shopAddress', e.target.value)} placeholder="Shop 12, Main Bazaar, Anarkali" maxLength={500} />
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="Shehar" hint="Misaal: Lahore">
-                <TextInput value={draft.shopCity} onChange={(v) => set('shopCity', v)} placeholder="Lahore" maxLength={100} />
-              </Field>
-              <Field label="Province" hint="Punjab, Sindh, KP, Balochistan…">
-                <TextInput value={draft.shopProvince} onChange={(v) => set('shopProvince', v)} placeholder="Punjab" maxLength={100} />
-              </Field>
-              <Field label="Postal code" hint="Zaroori nahi">
-                <TextInput value={draft.shopPostalCode} onChange={(v) => set('shopPostalCode', v)} placeholder="54000" maxLength={20} />
-              </Field>
+              <Input label="Shehar" hint="Misaal: Lahore" value={draft.shopCity ?? ''} onChange={(e) => set('shopCity', e.target.value)} placeholder="Lahore" maxLength={100} />
+              <Input label="Province" hint="Punjab, Sindh, KP, Balochistan…" value={draft.shopProvince ?? ''} onChange={(e) => set('shopProvince', e.target.value)} placeholder="Punjab" maxLength={100} />
+              <Input label="Postal code" hint="Zaroori nahi" value={draft.shopPostalCode ?? ''} onChange={(e) => set('shopPostalCode', e.target.value)} placeholder="54000" maxLength={20} />
             </div>
           </div>
         </SectionCard>
@@ -91,7 +72,7 @@ export function BusinessProfileSection({ settings }: { settings: TenantSettings 
 
       <aside className="min-w-0 xl:sticky xl:top-20 xl:self-start">
         <BillHeaderPreview s={draft} />
-        <Alert tone="blue" icon={Building2}>
+        <Alert className="mt-3" tone="info" icon={<Building2 className="h-4 w-4" />}>
           Yeh details naye bills par lagti hain. Purane bill waise hi rehte hain jaise bane the.
         </Alert>
       </aside>
@@ -105,11 +86,7 @@ function EmailField({ value, onSave }: { value: string; onSave: (v: string) => v
   useEffect(() => { setText(value); }, [value]);
   const bad = !!text && !EMAIL.test(text.trim());
   return (
-    <Field label="Email" error={bad ? 'Email sahi likhein, jaise store@gmail.com' : undefined}
-      hint="Rozana report aur zaroori khabrein is email par aati hain.">
-      <TextInput type="email" value={text} placeholder="store@gmail.com" prefix={<Mail className="h-4 w-4" />} error={bad ? 'bad' : undefined}
-        onChange={(v) => { setText(v); if (EMAIL.test(v.trim())) onSave(v.trim()); }} />
-    </Field>
+    <Input label="Email" error={bad ? 'Email sahi likhein, jaise store@gmail.com' : undefined} hint="Rozana report aur zaroori khabrein is email par aati hain." type="email" value={text ?? ''} placeholder="store@gmail.com" leftIcon={<Mail className="h-4 w-4" />} onChange={(e) => { const v = e.target.value; setText(v); if (EMAIL.test(v.trim())) onSave(v.trim()); }} />
   );
 }
 

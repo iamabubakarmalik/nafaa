@@ -12,9 +12,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, CreditCard, GraduationCap, HeartPulse, IdCard, Phone, ShieldAlert, Target, UserRound, Wallet } from 'lucide-react';
+import { AlertTriangle, CreditCard, GraduationCap, HeartPulse, IdCard, Phone, ShieldAlert, Target, UserRound, Wallet } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { Button, Card, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea, heroIconButton } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
@@ -156,15 +156,14 @@ export default function MemberFormPage() {
   const trainers = trainersQ.data ?? [];
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${memberQ.data?.customer?.name ?? 'Member'} — badlein` : 'Naya member'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Naam, phone aur plan kaafi hai. Baqi baad me bhi bhar sakte hain.'}</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>G</Kbd> guide</span>
-        <button type="button" onClick={guide.open} aria-label="Guide" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-      </div>
+      <PageHero
+        title={editing ? `${memberQ.data?.customer?.name ?? 'Member'} — badlein` : 'Naya member'}
+        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Naam, phone aur plan kaafi hai. Baqi baad me bhi bhar sakte hain.'}
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>G</Kbd> guide</span>}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">

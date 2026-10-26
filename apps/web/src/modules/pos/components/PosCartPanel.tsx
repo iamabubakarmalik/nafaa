@@ -17,7 +17,7 @@ import {
   AlertTriangle, Banknote, BookOpen, CreditCard, Minus, Pause, Plus, Printer, Receipt, Repeat, ScanLine, Shield,
   Smartphone, Sparkles, StickyNote, Tag, Trash2, Truck, UserCheck, UserPlus, X,
 } from 'lucide-react';
-import { IconButton, Kbd } from '@/design-system/components';
+import { IconButton, Kbd, Table, THead, TBody, Tr, Th } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { FbrModeIndicator } from '@integrations/fbr/components/FbrModeIndicator';
@@ -76,6 +76,8 @@ interface PosCartPanelProps {
   receiverOpenKey?: number;
   /** Industry block next to the customer (seller picker, farmer details…). */
   customerExtra?: ReactNode;
+  /** Price tier switcher (Retail / Wholesale / Credit), when the shop uses tiers. */
+  tierBar?: ReactNode;
   onHold: () => void;
   onClear: () => void;
   heldCount?: number;
@@ -132,7 +134,7 @@ export function PosCartPanel(props: PosCartPanelProps) {
     isMobile, className, onCloseMobile, variant = 'panel', summarySide, density = 'compact', touch, showImages = true,
     cart, totalQty, subtotal, total, totalSavings, hidePrices,
     customers, customerId, setCustomerId, selectedCustomer, onAddCustomer, customerOpenKey, onCustomerClosed,
-    receiver, onReceiverChange, receiverOpenKey, customerExtra,
+    receiver, onReceiverChange, receiverOpenKey, customerExtra, tierBar,
     onHold, onClear, heldCount = 0, onOpenHeld, emptyHint, lineExtra, lastBill, onReprint, onRepeat,
     activeId, cartFocused, onSelect, listRef, onListKeyDown, onListFocus,
   } = props;
@@ -167,21 +169,22 @@ export function PosCartPanel(props: PosCartPanelProps) {
   const lines = cart.length === 0 ? (
     <EmptyBill hint={emptyHint} lastBill={lastBill} hidePrices={hidePrices} onReprint={onReprint} onRepeat={onRepeat} />
   ) : table ? (
-    <table className="w-full table-fixed text-[0.8125rem]">
-      <thead className="sticky top-0 z-10 bg-slate-50 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-        <tr>
-          <th className="w-10 py-2 pl-3 text-left">No.</th>
-          <th className="py-2 text-left">Item</th>
-          <th className="w-32 py-2 text-center">Qty</th>
-          <th className="w-28 py-2 text-right">Rate</th>
-          <th className="w-28 py-2 text-right">Total</th>
-          <th className="w-14 py-2" aria-label="Hatayein" />
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-slate-100">
+    // overflow-visible keeps the header sticky inside the bill's own scroller.
+    <Table className="overflow-visible [&>table]:table-fixed [&>table]:text-[0.8125rem]">
+      <THead className="sticky top-0 z-10 border-b-0 text-[0.6875rem]">
+        <Tr>
+          <Th className="w-10 py-2 pl-3 pr-0">No.</Th>
+          <Th className="px-0 py-2">Item</Th>
+          <Th align="center" className="w-32 px-0 py-2">Qty</Th>
+          <Th align="right" className="w-28 px-0 py-2">Rate</Th>
+          <Th align="right" className="w-28 px-0 py-2">Total</Th>
+          <Th className="w-14 px-0 py-2" aria-label="Hatayein" />
+        </Tr>
+      </THead>
+      <TBody>
         {cart.map((l, i) => <PosCartRow key={l.id} line={l} index={i} table {...rowProps(props, l)} active={activeId === l.id} focused={cartFocused} onSelect={() => onSelect?.(l.id)} extra={lineExtra?.(l)} />)}
-      </tbody>
-    </table>
+      </TBody>
+    </Table>
   ) : (
     <ul className="divide-y divide-slate-100">
       {cart.map((l, i) => <PosCartRow key={l.id} line={l} index={i} {...rowProps(props, l)} active={activeId === l.id} focused={cartFocused} onSelect={() => onSelect?.(l.id)} extra={lineExtra?.(l)} />)}
@@ -260,6 +263,7 @@ export function PosCartPanel(props: PosCartPanelProps) {
             {customerExtra}
           </div>
         )}
+        {tierBar}
         {showReceiverChip && receiverOpen && (
           <div className="relative" ref={receiverBox}
             onKeyDown={(ev) => { if (ev.key === 'Escape' || (ev.key === 'Enter' && (ev.target as HTMLElement).tagName === 'INPUT')) { ev.preventDefault(); ev.stopPropagation(); closeReceiver(); } }}>
@@ -384,7 +388,7 @@ function BillSummary(p: PosCartPanelProps & { side?: boolean }) {
           )}
         </div>
       )}
-      {delivery?.on && onDeliveryChange && <PosDeliveryPanel value={delivery} onChange={onDeliveryChange} tone="emerald" compact />}
+      {delivery?.on && onDeliveryChange && <PosDeliveryPanel value={delivery} onChange={onDeliveryChange} compact />}
 
       {(!side || breakdown) && <div className="rounded-xl bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200/70">
         {breakdown && (

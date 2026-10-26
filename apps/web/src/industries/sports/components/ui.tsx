@@ -1,7 +1,9 @@
-/** Small building blocks shared by the team-order and repair pages. */
+/** Small building blocks shared by the team-order and repair pages, on the design-system components. */
 
 import { useEffect, useState, type ReactNode, type RefObject } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button, EmptyState } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 
@@ -26,22 +28,15 @@ export function Pager({ page, limit, total, onPage }: { page: number; limit: num
     <footer className="flex items-center justify-between gap-3 border-t border-slate-100 px-5 py-3 text-[0.8125rem] text-slate-600">
       <span>{(page - 1) * limit + 1}–{Math.min(page * limit, total)} / {total}</span>
       <div className="flex gap-2">
-        <button type="button" disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Pichla</button>
-        <button type="button" disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-8 rounded-lg px-3 font-semibold ring-1 ring-slate-200 disabled:opacity-40">Agla</button>
+        <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => onPage(page - 1)} leftIcon={<ChevronLeft className="h-4 w-4" />}>Pichla</Button>
+        <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => onPage(page + 1)} rightIcon={<ChevronRight className="h-4 w-4" />}>Agla</Button>
       </div>
     </footer>
   );
 }
 
 export function EmptyBlock({ icon: Icon, title, text, action }: { icon: LucideIcon; title: string; text: string; action?: ReactNode }) {
-  return (
-    <div className="flex flex-col items-center px-6 py-16 text-center">
-      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Icon className="h-7 w-7" /></span>
-      <h3 className="mt-4 text-lg font-semibold text-slate-900">{title}</h3>
-      <p className="mt-1 max-w-md text-[0.875rem] text-slate-500">{text}</p>
-      {action && <div className="mt-4">{action}</div>}
-    </div>
-  );
+  return <EmptyState className="py-16" icon={<Icon className="h-6 w-6" />} title={title} description={text} action={action} />;
 }
 
 export function useDebounced<T>(value: T, ms = 300) {

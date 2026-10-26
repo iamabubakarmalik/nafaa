@@ -8,7 +8,7 @@
 
 import { formatPKR } from '@core/lib/format';
 import type { ReceiptDoc, ReceiptRowDoc, ReceiptSetup } from '@core/receipt/types';
-import { PAYMENT_LABELS, saleToReceipt } from './fromSale';
+import { PAYMENT_LABELS, addTierToReceipt, saleToReceipt } from './fromSale';
 
 export interface ReceiptAction {
   key: string;
@@ -203,6 +203,13 @@ export async function loadReceipt(id: string, industryId: string | undefined, se
   const { offlineSalesApi } = await import('@core/lib/offline/offlineSales');
   const sale: any = await offlineSalesApi.getOne(id);
   const doc = saleToReceipt(sale);
+  // Reprints follow the "tier on receipt" setting, like the counter print.
+  if ((sale.items ?? []).some((it: any) => it?.priceTier)) {
+    const { settingsApi } = await import('@modules/organization/settings/api/settings.api');
+    const { normalizePosCounter } = await import('@modules/pos/lib/posCounterConfig');
+    const counter = await settingsApi.counter().catch(() => null);
+    if (normalizePosCounter(counter?.posCounter).tierOnReceipt) addTierToReceipt(doc, (sale.items ?? []).map((it: any) => it?.priceTier));
+  }
   const actions: ReceiptAction[] = [];
   const add: Record<string, () => unknown> = {
     restaurant: () => restaurant(sale, doc, actions, setup),

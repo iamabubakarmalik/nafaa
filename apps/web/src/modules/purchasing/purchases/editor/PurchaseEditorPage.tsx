@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { AlertTriangle, Boxes, CalendarClock, ChevronDown, ClipboardList, PackagePlus, Plus, Save, ScanLine, Search, Trash2, Truck, UserPlus, Wheat, X,
   GraduationCap, Wallet, Calculator, Ruler,
 } from 'lucide-react';
-import { Button, Modal, PageHero, PageShell, Segmented, heroButton, heroIconButton, confirmDialog } from '@/design-system/components';
+import { Button, Modal, PageHero, PageShell, Segmented, controlClass, heroButton, heroIconButton, confirmDialog } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -56,7 +56,7 @@ export interface PurchasePrefill {
 
 const money = (n: number) => formatPKR(n);
 const qtyText = (n: number) => Number(n.toFixed(3)).toLocaleString('en-PK');
-const field = 'h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15';
+const field = cn(controlClass(), 'h-9 px-2.5 text-sm');
 
 export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorConfig }) {
   const navigate = useNavigate();
@@ -230,7 +230,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                   }}
                   placeholder={withIngredients ? 'Product ya raw material, naam ya barcode…  ( / )' : 'Product ka naam, SKU ya barcode…  ( / )'}
                   aria-label="Cheez search"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
+                  className={cn(controlClass(), 'h-11 rounded-xl pl-9 pr-3 text-sm')} />
               </div>
               <Button variant="secondary" className="h-11" onClick={() => setScanner(true)} leftIcon={<ScanLine className="h-4 w-4" />}><span className="hidden sm:inline">Scan</span></Button>
               <Button variant="secondary" className="h-11" onClick={() => setNewProduct('')} leftIcon={<PackagePlus className="h-4 w-4" />}><span className="hidden sm:inline">Naya</span></Button>
@@ -342,7 +342,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
               <div className="grid grid-cols-5 gap-1">
                 {POS_PAYMENT_METHODS.map((m) => (
                   <button key={m.id} type="button" onClick={() => setBill({ ...bill, paymentMethod: m.id })} aria-pressed={bill.paymentMethod === m.id}
-                    className={cn('rounded-lg px-1 py-1.5 text-[0.6875rem] font-medium ring-1 transition', bill.paymentMethod === m.id ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-600 ring-slate-200 hover:ring-slate-300')}>
+                    className={cn('rounded-lg px-1 py-1.5 text-[0.6875rem] font-medium ring-1 transition', bill.paymentMethod === m.id ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'text-slate-600 ring-slate-200 hover:ring-slate-300')}>
                     {m.label}
                   </button>
                 ))}
@@ -364,7 +364,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
                 <div className="mt-3 rounded-xl bg-amber-50 p-2.5 text-[0.8125rem] text-amber-900">
                   <b>{money(d.due)}</b> supplier ke khate me udhaar jayega.
                   <label className="mt-2 flex items-center gap-2 text-[0.75rem]"><CalendarClock className="h-3.5 w-3.5" /> Kab tak dena hai
-                    <input type="date" value={bill.dueDate} onChange={(e) => setBill({ ...bill, dueDate: e.target.value })} className="h-8 flex-1 rounded-lg border border-amber-200 bg-white px-2 text-sm" />
+                    <input type="date" value={bill.dueDate} onChange={(e) => setBill({ ...bill, dueDate: e.target.value })} className={cn(controlClass(), 'h-8 flex-1 px-2 text-sm')} />
                   </label>
                 </div>
               )}
@@ -372,7 +372,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
           )}
 
           <textarea value={bill.notes} onChange={(e) => setBill({ ...bill, notes: e.target.value })} rows={2} maxLength={500} placeholder="Note — misaal: 2 carton toote aaye, agle bill me kam karna"
-            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500" />
+            className={cn(controlClass(), 'px-3 py-2 text-sm')} />
 
           {problems.length > 0 && lines.length > 0 && <p className="text-[0.8125rem] text-rose-700">{problems[0]}</p>}
           <Button className="h-12 w-full text-base" loading={save.isPending} disabled={problems.length > 0} onClick={() => save.mutate()} leftIcon={<Save className="h-4 w-4" />}>
@@ -439,7 +439,7 @@ function MoneyRow({ label, hint, value, onChange, sign }: { label: string; hint?
       <span className="flex items-center gap-1">
         <span className="text-slate-400">{sign}</span>
         <input type="number" min={0} inputMode="decimal" value={value || ''} placeholder="0" onChange={(e) => onChange(Math.max(Number(e.target.value) || 0, 0))}
-          className="h-8 w-28 rounded-lg border border-slate-200 px-2 text-right text-sm tabular-nums outline-none focus:border-brand-500" />
+          className={cn(controlClass(), 'h-8 w-28 px-2 text-right text-sm tabular-nums')} />
       </span>
     </label>
   );
@@ -462,7 +462,7 @@ function LineRow({ line: l, d, badge, onCustomUnit }: { line: DraftLine; d: Retu
           </p>
           <p className="text-[0.75rem] text-slate-500">
             Stock {qtyText(l.source.stock)} {l.source.baseUnit} · pichli cost {money(was)}/{l.source.baseUnit}
-            {Math.abs(change) >= 1 && <span className={cn('ml-1 font-medium', change > 0 ? 'text-rose-600' : 'text-emerald-600')}>{change > 0 ? '▲' : '▼'} {Math.abs(change).toFixed(0)}%</span>}
+            {Math.abs(change) >= 1 && <span className={cn('ml-1 font-medium', change > 0 ? 'text-rose-600' : 'text-success-700')}>{change > 0 ? '▲' : '▼'} {Math.abs(change).toFixed(0)}%</span>}
           </p>
         </div>
         <button type="button" onClick={() => d.remove(l.key)} aria-label="Hatayein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600"><X className="h-4 w-4" /></button>

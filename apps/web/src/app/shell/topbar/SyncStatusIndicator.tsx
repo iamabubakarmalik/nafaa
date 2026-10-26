@@ -16,6 +16,7 @@ import { fullSync, subscribeSyncStatus, type SyncStatus } from '@core/lib/offlin
 import { useOnlineStatus } from '@core/lib/offline/useOnlineStatus';
 import { db } from '@core/lib/offline/db';
 import { cn } from '@core/lib/cn';
+import { Button } from '@/design-system/components';
 import { Panel, useDismiss } from '../ui';
 
 function formatRelativeTime(ts: number | null): string {
@@ -101,7 +102,7 @@ export function SyncStatusIndicator() {
         <span className="hidden tabular-nums xl:inline">{label}</span>
         {state === 'syncing' && progressPct > 0 && (
           <span className="absolute inset-x-1.5 bottom-1 h-0.5 overflow-hidden rounded-full bg-blue-200">
-            <span className="block h-full bg-blue-600 transition-all duration-300" style={{ width: `${progressPct}%` }} />
+            <span className="block h-full bg-blue-500 transition-all duration-300" style={{ width: `${progressPct}%` }} />
           </span>
         )}
         {pending > 0 && !status.isSyncing && (
@@ -130,7 +131,7 @@ export function SyncStatusIndicator() {
                 <span className="tabular-nums">{status.progress.done} / {status.progress.total}</span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                <div className="h-full rounded-full bg-blue-600 transition-all duration-300" style={{ width: `${progressPct}%` }} />
+                <div className="h-full rounded-full bg-blue-500 transition-all duration-300" style={{ width: `${progressPct}%` }} />
               </div>
             </div>
           )}
@@ -175,15 +176,10 @@ export function SyncStatusIndicator() {
             </Link>
           )}
 
-          <button
-            type="button"
-            onClick={syncNow}
-            disabled={!isOnline || status.isSyncing}
-            className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-brand-600 text-[0.8125rem] font-semibold text-brand-fg transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
-          >
-            <RefreshCw className={cn('h-4 w-4', status.isSyncing && 'animate-spin')} />
+          <Button size="sm" fullWidth onClick={syncNow} disabled={!isOnline || status.isSyncing}
+            leftIcon={<RefreshCw className={cn('h-4 w-4', status.isSyncing && 'animate-spin')} />}>
             {status.isSyncing ? 'Syncing…' : 'Sync now'}
-          </button>
+          </Button>
         </div>
 
         <Link to="/sync" onClick={close}

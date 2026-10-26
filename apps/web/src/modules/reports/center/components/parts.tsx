@@ -9,7 +9,7 @@ import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
 import { ArrowDownRight, ArrowUpRight, Minus, type LucideIcon } from 'lucide-react';
-import { Card } from '@/design-system/components';
+import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useReportMasked } from '../../prefs';
 import { axisMoney } from '@modules/dashboard/engine/parts';
@@ -76,7 +76,7 @@ export function Delta({ now, before, up = 'good' }: { now: number; before: numbe
   const good = (pct > 0) === (up === 'good');
   const Icon = pct > 0 ? ArrowUpRight : ArrowDownRight;
   return (
-    <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-emerald-600' : 'text-rose-600')}>
+    <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-success-600' : 'text-rose-600')}>
       <Icon className="h-3.5 w-3.5" />{Math.abs(pct).toFixed(0)}% pichli period se
     </span>
   );
@@ -204,20 +204,18 @@ export function DataTable<T>({ rows, columns, empty = 'Kuch nahi', rowKey }: {
   const cols = columns.filter((c) => !c.hide);
   if (!rows.length) return <Empty text={empty} />;
   return (
-    <div className="-mx-4 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
-      <table className="w-full min-w-[32rem] text-[0.8125rem]">
-        <thead className="text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-          <tr>{cols.map((c) => <th key={c.label} className={cn('py-2 pr-3 font-semibold', c.align === 'right' && 'pr-0 text-right')}>{c.label}</th>)}</tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {rows.map((r, i) => (
-            <tr key={rowKey(r, i)}>
-              {cols.map((c) => <td key={c.label} className={cn('py-2 pr-3 text-slate-700', c.align === 'right' && 'pr-0 text-right tabular-nums')}>{c.render(r, i)}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table minWidth="32rem" className="-mx-4 sm:-mx-5 [&_table]:text-[0.8125rem]">
+      <THead>
+        <Tr>{cols.map((c) => <Th key={c.label} align={c.align === 'right' ? 'right' : 'left'} className="py-2">{c.label}</Th>)}</Tr>
+      </THead>
+      <TBody>
+        {rows.map((r, i) => (
+          <Tr key={rowKey(r, i)}>
+            {cols.map((c) => <Td key={c.label} align={c.align === 'right' ? 'right' : 'left'} className="py-2">{c.render(r, i)}</Td>)}
+          </Tr>
+        ))}
+      </TBody>
+    </Table>
   );
 }
 

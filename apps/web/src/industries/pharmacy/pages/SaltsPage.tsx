@@ -11,8 +11,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, ArrowDownWideNarrow, Baby, Beaker, GraduationCap, HeartPulse, Pencil, Pill, Plus, Power, ShieldAlert, Trash2, Zap } from 'lucide-react';
 import {
-  Button, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Textarea, ViewTabs,
-  heroIconButton, heroPrimaryButton,
+  Button, FilterBar, FilterChip, FilterMenu, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Select, Skeleton, Table, TBody,
+  Td, Textarea, Th, THead, Tr, ViewTabs, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -72,7 +72,7 @@ function SaltModal({ salt, onClose, onSaved }: { salt: Salt | null; onClose: () 
         <div className="grid gap-2 sm:col-span-2 sm:grid-cols-2">
           {([['requiresPrescription', 'Nuskhe par', 'Rx'], ['isNarcotic', 'Narcotic / register', 'Har sale register me'], ['isPregnancySafe', 'Hamal me theek', ''], ['isPediatricSafe', 'Bachon ke liye theek', '']] as const).map(([k, label, hint]) => (
             <label key={k} className="flex items-center gap-2.5 rounded-xl p-2.5 ring-1 ring-slate-200">
-              <input type="checkbox" checked={d[k]} onChange={(e) => set(k, e.target.checked)} className="h-4 w-4 rounded" />
+              <input type="checkbox" checked={d[k]} onChange={(e) => set(k, e.target.checked)} className="h-4 w-4 rounded border-slate-300 accent-brand-600" />
               <span className="text-[0.875rem] font-medium text-slate-800">{label}{hint && <span className="block text-[0.75rem] font-normal text-slate-500">{hint}</span>}</span>
             </label>
           ))}
@@ -245,41 +245,39 @@ export default function SaltsPage() {
               <p className="mt-1 text-[0.875rem] text-slate-500">Dawai banate waqt Formula step me salt likhein — yahan khud aa jayega.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[48rem] text-[0.875rem]">
-                <thead><tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="px-5 py-2.5">Salt</th><th className="px-3 py-2.5">Schedule</th><th className="px-3 py-2.5">Dose</th><th className="px-3 py-2.5 text-right">Brands</th><th className="px-5 py-2.5" />
-                </tr></thead>
-                <tbody className="divide-y divide-slate-100">
-                  {rows.map((s) => {
-                    const meta = SCHEDULE_META[s.scheduleClass];
-                    const n = brandCount(s);
-                    return (
-                      <tr key={s.id} className={cn(!s.isActive && 'opacity-60')}>
-                        <td className="px-5 py-2.5">
-                          <button type="button" onClick={() => setBrands(s)} className="font-semibold text-slate-900 hover:text-brand-700">{s.name}</button>
-                          <p className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
-                            {s.genericName && <span>{s.genericName}</span>}{s.category && <span>· {s.category}</span>}
-                            {s.isPediatricSafe && <span className="inline-flex items-center gap-0.5 text-emerald-700"><Baby className="h-3 w-3" />bachon ke liye</span>}
-                          </p>
-                        </td>
-                        <td className="px-3 py-2.5">{meta && <span className={cn('rounded-md px-1.5 py-0.5 text-[0.75rem] font-semibold ring-1', meta.tone)}>{meta.label}</span>}{isRegister(s) && <ShieldAlert className="ml-1.5 inline h-4 w-4 text-rose-600" />}</td>
-                        <td className="px-3 py-2.5 text-slate-600">{[s.standardDose, s.maxDailyDose && `zyada ${s.maxDailyDose}`].filter(Boolean).join(' · ') || '—'}</td>
-                        <td className="px-3 py-2.5 text-right"><button type="button" onClick={() => setBrands(s)} className={cn('font-semibold tabular-nums hover:underline', n ? 'text-brand-700' : 'text-slate-400')}>{n}</button></td>
-                        <td className="px-5 py-2.5">
-                          {canEdit && (
-                            <div className="flex justify-end gap-1">
-                              <button type="button" onClick={() => setEditing(s)} title="Badlein" aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>
-                              <button type="button" onClick={() => toggle.mutate(s)} title={s.isActive ? 'Band karein' : 'Chalu karein'} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <Table minWidth="48rem">
+              <THead><Tr>
+                <Th className="px-5 py-2.5">Salt</Th><Th className="px-3 py-2.5">Schedule</Th><Th className="px-3 py-2.5">Dose</Th><Th align="right" className="px-3 py-2.5">Brands</Th><Th className="px-5 py-2.5"/>
+              </Tr></THead>
+              <TBody>
+                {rows.map((s) => {
+                  const meta = SCHEDULE_META[s.scheduleClass];
+                  const n = brandCount(s);
+                  return (
+                    <Tr key={s.id} className={cn(!s.isActive && 'opacity-60')}>
+                      <Td className="px-5 py-2.5">
+                        <button type="button" onClick={() => setBrands(s)} className="font-semibold text-slate-900 hover:text-brand-700">{s.name}</button>
+                        <p className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
+                          {s.genericName && <span>{s.genericName}</span>}{s.category && <span>· {s.category}</span>}
+                          {s.isPediatricSafe && <span className="inline-flex items-center gap-0.5 text-emerald-700"><Baby className="h-3 w-3" />bachon ke liye</span>}
+                        </p>
+                      </Td>
+                      <Td className="px-3 py-2.5">{meta && <span className={cn('rounded-md px-1.5 py-0.5 text-[0.75rem] font-semibold ring-1', meta.tone)}>{meta.label}</span>}{isRegister(s) && <ShieldAlert className="ml-1.5 inline h-4 w-4 text-rose-600" />}</Td>
+                      <Td className="px-3 py-2.5 text-slate-600">{[s.standardDose, s.maxDailyDose && `zyada ${s.maxDailyDose}`].filter(Boolean).join(' · ') || '—'}</Td>
+                      <Td align="right" className="px-3 py-2.5"><button type="button" onClick={() => setBrands(s)} className={cn('font-semibold tabular-nums hover:underline', n ? 'text-brand-700' : 'text-slate-400')}>{n}</button></Td>
+                      <Td className="px-5 py-2.5">
+                        {canEdit && (
+                          <div className="flex justify-end gap-1">
+                            <button type="button" onClick={() => setEditing(s)} title="Badlein" aria-label="Badlein" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Pencil className="h-4 w-4" /></button>
+                            <button type="button" onClick={() => toggle.mutate(s)} title={s.isActive ? 'Band karein' : 'Chalu karein'} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><Power className="h-4 w-4" /></button>
+                          </div>
+                        )}
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </TBody>
+            </Table>
           )}
       </section>
     </PageShell>

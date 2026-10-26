@@ -15,6 +15,8 @@ export interface OfflineProduct {
   price: number;
   costPrice: number;
   wholesalePrice?: number | null;
+  /** Credit (udhaar) price; empty means retail. */
+  creditPrice?: number | null;
   taxRate: number;
   stock: number;
   lowStockAlert: number;
@@ -63,6 +65,8 @@ export interface OfflineCustomer {
   totalSpent: number;
   isActive: boolean;
   isVip: boolean;
+  /** Default counter price tier (RETAIL, WHOLESALE, CREDIT); null = shop default. Not indexed. */
+  priceTier?: 'RETAIL' | 'WHOLESALE' | 'CREDIT' | null;
   createdAt: string;
   updatedAt: string;
   _syncedAt: number;
@@ -153,7 +157,9 @@ export interface PendingSaleItemSnapshot {
   usedPhoneImei?: string | null;
   itemKind?: 'PRODUCT' | 'NEW_PHONE_IMEI' | 'USED_PHONE';
   quantity: number;
-  unitPrice: number;      // effective price (after wholesale/override)
+  unitPrice: number;      // effective price (after tier/override)
+  /** Price tier of the line (RETAIL, WHOLESALE, CREDIT). */
+  priceTier?: string | null;
   lineTotal: number;
   lineDiscount?: number;
   note?: string;

@@ -444,6 +444,8 @@ export class ProductImportService {
   private priceWarnings(r: ParsedRow) {
     if (r.price && r.costPrice && r.costPrice > r.price) r.warnings.push('Cost price se zyada hai — har sale par loss');
     if (r.price && r.wholesalePrice && r.wholesalePrice > r.price) r.warnings.push('Wholesale price retail price se zyada hai');
+    if (r.costPrice && r.wholesalePrice && r.wholesalePrice < r.costPrice) r.warnings.push('Wholesale price cost se kam hai — har wholesale sale par loss');
+    if (r.costPrice && r.creditPrice && r.creditPrice < r.costPrice) r.warnings.push('Credit price cost se kam hai — har udhaar sale par loss');
   }
 
   /** The shop's product for a row: by SKU / barcode first, then by exact name. */
@@ -470,7 +472,7 @@ export class ProductImportService {
     for (const r of g.rows) {
       const status = (s: CreateStatus) => g.rowStatus!.set(r.row, s);
       // A new product's details (pack, description, category…) are not used here, so their problems do not count.
-      const ignored: ImportField[] = ['packName', 'packQty', 'packPrice', 'packBarcode', 'description', 'category', 'brand', 'unit', 'wholesalePrice', 'taxRate', 'lowStockAlert'];
+      const ignored: ImportField[] = ['packName', 'packQty', 'packPrice', 'packBarcode', 'description', 'category', 'brand', 'unit', 'wholesalePrice', 'creditPrice', 'taxRate', 'lowStockAlert'];
       const drop = new Set(ignored.map((f) => r.fieldErrors[f]).filter(Boolean));
       r.errors = r.errors.filter((e) => !drop.has(e));
       for (const f of ignored) delete r.fieldErrors[f];
@@ -724,6 +726,7 @@ export class ProductImportService {
       price: withVariants ? Math.min(...prices) : first.price ?? 0,
       costPrice: first.costPrice ?? undefined,
       wholesalePrice: first.wholesalePrice ?? undefined,
+      creditPrice: first.creditPrice ?? undefined,
       taxRate: first.taxRate ?? undefined,
       lowStockAlert: first.lowStockAlert ?? undefined,
       stock: withVariants ? 0 : typedStock(first),
@@ -762,6 +765,7 @@ export class ProductImportService {
               price: r.price ?? 0,
               costPrice: r.costPrice ?? first.costPrice ?? undefined,
               wholesalePrice: r.wholesalePrice ?? undefined,
+              creditPrice: r.creditPrice ?? undefined,
               stock: single ? typedStock(r) : 0,
               lowStockAlert: r.lowStockAlert ?? first.lowStockAlert ?? undefined,
             },

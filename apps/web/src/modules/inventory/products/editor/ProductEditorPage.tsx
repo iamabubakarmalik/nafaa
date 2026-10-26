@@ -8,10 +8,10 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle2, Eye, GraduationCap, History, Layers, List, Loader2, Plus, Save, Tag, Wallet } from 'lucide-react';
-import { Button, Kbd, PageShell, Skeleton } from '@/design-system/components';
+import { Button, Kbd, PageHero, PageShell, Skeleton, heroIconButton } from '@/design-system/components';
 import { PageGuide, usePageGuide, type GuideStep } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -120,16 +120,14 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
           shortcuts={[['Ctrl+S', 'save'], ['Alt+→', 'agla step'], ['Alt+←', 'pichla step'], ['G', 'guide']]} />
       )}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <Link to={e.isEdit && e.id ? config.paths.detail(e.id) : config.paths.list} aria-label={e.isEdit ? 'Wapas product par' : 'Products ki list'}
-          className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></Link>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{e.isEdit ? `${c.name || '…'} — badlein` : `Naya product · ${config.label}`}</h1>
-          <p className="text-[0.8125rem] text-white/75">{e.isEdit ? 'Naam, qeemat aur details badlein — stock yahan se nahi badalta' : `Naam, qeemat aur shuru ka stock — ${e.steps.length} step mein tayyar`}</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 md:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Alt</Kbd>+<Kbd>→</Kbd> agla</span>
-        <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-      </div>
+      <PageHero
+        back={e.isEdit && e.id ? config.paths.detail(e.id) : config.paths.list}
+        backLabel={e.isEdit ? 'Product par wapas' : 'Products par wapas'}
+        title={e.isEdit ? `${c.name || '…'} — badlein` : `Naya product · ${config.label}`}
+        subtitle={e.isEdit ? 'Naam, qeemat aur details badlein — stock yahan se nahi badalta' : `Naam, qeemat aur shuru ka stock — ${e.steps.length} step mein tayyar`}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>Alt</Kbd>+<Kbd>→</Kbd> agla</span>}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       {e.stored && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-sky-50 px-4 py-3 ring-1 ring-sky-200">

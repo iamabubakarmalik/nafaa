@@ -8,9 +8,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeft, Barcode, CalendarClock, GraduationCap, Layers, Minus, Plus, Tag, Trash2, TrendingUp } from 'lucide-react';
+import { AlertTriangle, Barcode, CalendarClock, GraduationCap, Layers, Minus, Plus, Tag, Trash2, TrendingUp } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Skeleton, Switch, Textarea, heroIconButton } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -136,15 +136,14 @@ export default function BundleFormPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${existing.data?.name} — badlein` : 'Naya bundle'}</h1>
-          <p className="text-[0.8125rem] text-white/75">Cheezein chunein, phir deal ka rate — bachat aur profit khud nikal aata hai</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
-        <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-      </div>
+      <PageHero
+        title={editing ? `${existing.data?.name} — badlein` : 'Naya bundle'}
+        subtitle="Cheezein chunein, phir deal ka rate — bachat aur profit khud nikal aata hai"
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">

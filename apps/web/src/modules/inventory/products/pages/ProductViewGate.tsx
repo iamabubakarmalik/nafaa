@@ -7,8 +7,7 @@ import GeneralProductDetail from '../detail/general/GeneralProductDetail';
  * ProductViewGate — routes /products/:id to the correct industry detail page.
  *
  * Every industry with a dedicated detail page is routed here. Businesses
- * without an industry get the shared detail page; industries not listed
- * still fall through to the generic edit form.
+ * without an industry and industries not listed get the shared detail page.
  */
 export default function ProductViewGate() {
   const industry = useCurrentIndustry();
@@ -75,11 +74,8 @@ export default function ProductViewGate() {
     case 'toystore':
       return <Navigate to={`/toystore-products/${id}`} replace />;
 
-    case undefined:
-      return <GeneralProductDetail />;
-
     default:
-      // gym, hotel, services-biz — no detail page yet, use generic edit form
-      return <Navigate to={`/products/${id}/edit`} replace />;
+      // No industry, gym, hotel, services-biz: the shared product detail.
+      return <GeneralProductDetail />;
   }
 }

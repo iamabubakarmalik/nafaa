@@ -13,10 +13,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, ArrowLeft, Cake, CheckCircle2, ChefHat, Clock, Heart, ImagePlus, MessageCircle, Package, Palette, PartyPopper,
+  AlertTriangle, Cake, CheckCircle2, ChefHat, Clock, Heart, ImagePlus, MessageCircle, Package, Palette, PartyPopper,
   Phone, Printer, Search, Sparkles, Truck, User, Wallet, X,
 } from 'lucide-react';
-import { Button, Card, Input, Kbd, Modal, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { Button, Card, Input, Kbd, Modal, PageHero, PageShell, Select, Skeleton, Switch, Textarea, controlClass } from '@/design-system/components';
 import { UploadDropzone } from '@core/components/uploads';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -201,14 +201,13 @@ export default function CakeCustomizerPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${orderQ.data?.orderNumber} — badlein` : 'Naya cake order'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{editing ? 'Jo badalna hai badlein — mila hua paisa yahan se nahi badalta' : 'Customer, cake, design, waqt aur advance — sab ek safhe par'}</p>
-        </div>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-      </div>
+      <PageHero
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        title={editing ? `${orderQ.data?.orderNumber} — badlein` : 'Naya cake order'}
+        subtitle={editing ? 'Jo badalna hai badlein — mila hua paisa yahan se nahi badalta' : 'Customer, cake, design, waqt aur advance — sab ek safhe par'}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">
@@ -223,7 +222,7 @@ export default function CakeCustomizerPage() {
                 <div className="flex flex-wrap gap-1.5">
                   {QUICK_SIZES.map((s) => <Chip key={s} on={f.size === s} onClick={() => set('size', s)}>{SIZES.find((x) => x.value === s)?.label ?? s}</Chip>)}
                   <select value={QUICK_SIZES.includes(f.size) ? '' : f.size} onChange={(e) => e.target.value && set('size', e.target.value as BakerySize)}
-                    className="h-8 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] text-slate-700" aria-label="Aur size">
+                    className={cn(controlClass(), 'h-8 w-auto px-2 text-[0.8125rem]')} aria-label="Aur size">
                     <option value="">Aur size…</option>
                     {SIZES.filter((s) => !QUICK_SIZES.includes(s.value)).map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                   </select>

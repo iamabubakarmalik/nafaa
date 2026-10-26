@@ -71,6 +71,13 @@ export class CreateProductUnitDto {
   @Min(0)
   wholesalePrice?: number | null;
 
+  /** Credit (udhaar) price of this pack; empty falls back to the pack price. */
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  creditPrice?: number | null;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()

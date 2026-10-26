@@ -62,6 +62,13 @@ export class UpsertVariantDto {
   @Min(0)
   wholesalePrice?: number;
 
+  /** Credit (udhaar) price of this variant; empty falls back to the product. */
+  @ApiPropertyOptional({ nullable: true })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  creditPrice?: number | null;
+
   /** Opening stock, booked as an OPENING_BALANCE movement in one branch. */
   @ApiPropertyOptional()
   @IsOptional()

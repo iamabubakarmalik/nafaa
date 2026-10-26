@@ -8,8 +8,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, ClipboardPaste, GraduationCap, ListOrdered, Plus, Shirt, Trash2, Users, Wallet } from 'lucide-react';
-import { Alert, Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea, heroIconButton } from '@/design-system/components';
+import { ClipboardPaste, GraduationCap, ListOrdered, Plus, Shirt, Trash2, Users, Wallet } from 'lucide-react';
+import { Alert, Button, Card, Input, Kbd, PageHero, PageShell, Skeleton, Switch, Textarea, heroIconButton } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { isDialogOpen } from '@core/lib/shortcuts';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -169,14 +169,13 @@ export default function TeamOrderFormPage() {
           shortcuts={[['Ctrl+S', 'save'], ['Esc', 'wapas'], ['G', 'guide']]} />
       )}
 
-      <header className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold">{isEdit ? `Order ${orderQ.data?.orderNumber} badlein` : 'Naya team order'}</h1>
-          <p className="text-[0.8125rem] text-white/75">School, club ya team ki kit — printing ke saath</p>
-        </div>
-        <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-      </header>
+      <PageHero
+        title={isEdit ? `Order ${orderQ.data?.orderNumber} badlein` : 'Naya team order'}
+        subtitle="School, club ya team ki kit — printing ke saath"
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       {closed && <Alert tone="warning" title="Ye order band ho chuka">Deliver ya cancel shuda order badla nahi ja sakta.</Alert>}
 

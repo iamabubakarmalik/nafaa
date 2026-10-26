@@ -1,8 +1,13 @@
 /**
- * Online-store screens' component names, implemented on the shared design
- * system (src/design-system/components) so these screens look and behave
- * exactly like the rest of the app. Keep this file as thin adapters — new
- * screens should import from '@/design-system/components' directly.
+ * Compatibility layer, frozen with the Shopify App Store review.
+ *
+ * Only three screens still import this file: ShopifyAppPage, ConnectChannelPage
+ * and ChannelPage. They carry the Shopify install and settings flow, which must
+ * not change while the review is pending. Every other online-store screen now
+ * imports '@/design-system/components' directly.
+ *
+ * After approval: move those three screens to the design system and delete
+ * this file. Do not add new importers.
  */
 
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
@@ -10,7 +15,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import {
   Alert, Badge as DsBadge, Button, Card as DsCard, controlClass, EmptyState as DsEmptyState,
-  PageHero, PageShell, Segmented as DsSegmented, Tabs as DsTabs, type BadgeVariant,
+  PageHero, PageShell, Tabs as DsTabs, type BadgeVariant,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 
@@ -81,10 +86,6 @@ export function Tabs<T extends string>({ value, onChange, items }: {
   );
 }
 
-export function Segmented<T extends string>(props: { value: T; onChange: (v: T) => void; items: { value: T; label: ReactNode; count?: number }[] }) {
-  return <DsSegmented {...props} />;
-}
-
 export function Stat({ label, value, hint, tone }: { label: string; value: ReactNode; hint?: ReactNode; tone?: 'attention' }) {
   return (
     <div className={cn('rounded-xl border bg-white px-4 py-3 shadow-sm', tone === 'attention' ? 'border-amber-300' : 'border-slate-200')}>
@@ -136,11 +137,4 @@ export function Toggle({ checked, onChange, disabled }: { checked: boolean; onCh
   );
 }
 
-export function ChannelAvatar({ emoji, color, size = 40 }: { emoji: string; color: string; size?: number }) {
-  return (
-    <span style={{ width: size, height: size, backgroundColor: `${color}1a`, fontSize: size * 0.5 }}
-      className="inline-flex shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ring-black/5">
-      {emoji}
-    </span>
-  );
-}
+export { ChannelAvatar } from '../ChannelAvatar';

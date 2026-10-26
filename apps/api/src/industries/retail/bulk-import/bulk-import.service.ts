@@ -33,6 +33,7 @@ export class BulkImportService {
       price: cell(r.price),
       costPrice: cell(r.costPrice),
       wholesalePrice: cell(r.wholesalePrice),
+      creditPrice: cell(r.creditPrice),
       stock: cell(r.stock),
       lowStockAlert: cell(r.lowStockAlert),
     }));

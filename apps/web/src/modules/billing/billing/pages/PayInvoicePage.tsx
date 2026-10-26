@@ -11,11 +11,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  AlertTriangle, ArrowLeft, Check, CheckCircle2, Clock, Copy, CreditCard, ExternalLink, FileImage, GraduationCap,
+  AlertTriangle, Check, CheckCircle2, Clock, Copy, CreditCard, ExternalLink, FileImage, GraduationCap,
   Image as ImageIcon, Lock, Rocket, Send, ShieldCheck, Upload, Wallet, X,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Alert, Button, Card, Input, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { Alert, Button, Card, Input, PageHero, PageShell, Skeleton, Textarea, heroButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
 import { usePermission } from '@core/hooks/usePermission';
@@ -214,46 +214,50 @@ export default function PayInvoicePage() {
     <PageShell>
       {guide.isOpen && <PayGuide amount={invoice.amountDue} card={!!stripeConfig?.enabled} onClose={guide.close} />}
 
-      <div className="relative rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-6">
-        <div className="flex flex-wrap items-start gap-3">
-          <Link to="/billing" aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></Link>
-          <div className="min-w-0 flex-1">
-            <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold">
-              <span className="font-mono">{invoice.invoiceNumber}</span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[0.75rem] font-semibold"><st.icon className="h-3.5 w-3.5" />{st.label}</span>
-            </h1>
-            <p className="text-[0.8125rem] text-white/75">{invoice.subscription?.plan?.name || invoice.description || 'Subscription'} · Due {formatDate(invoice.dueDate)}</p>
+      <PageHero
+        back="/billing"
+        backLabel="Wapas (Esc)"
+        title={<span className="font-mono">{invoice.invoiceNumber}</span>}
+        chip={<><st.icon />{st.label}</>}
+        subtitle={(
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>{invoice.subscription?.plan?.name || invoice.description || 'Subscription'} · Due {formatDate(invoice.dueDate)}</span>
             {!isPaid && !isCancelled && (
-              <p className={cn('mt-1 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[0.75rem] font-semibold', days < 0 ? 'bg-rose-400/25 text-rose-50' : 'bg-white/15')}>
-                <Clock className="h-3.5 w-3.5" />{days < 0 ? `${Math.abs(days)} din der ho gayi` : daysText(days)}
-              </p>
+              <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.75rem] font-semibold', days < 0 ? 'bg-rose-500/30 text-white' : 'bg-white/15 text-white')}>
+                <Clock className="h-3.5 w-3.5" aria-hidden />{days < 0 ? `${Math.abs(days)} din der ho gayi` : daysText(days)}
+              </span>
             )}
-          </div>
-          <div className="text-right">
-            <p className="text-[0.75rem] text-white/70">{isPaid ? 'Ada ho chuka' : 'Dena hai'}</p>
-            <p className="text-3xl font-bold tabular-nums">{formatPKR(isPaid ? invoice.total : invoice.amountDue)}</p>
-          </div>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-1.5">
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => invoiceDoc(invoice)} label="Bill print" /></span>
-          <button type="button" onClick={guide.open} title="Guide (G)" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white/15 px-2.5 text-[0.8125rem] font-semibold ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /> Guide</button>
-        </div>
-        {canSubmit && (
-          <ol className="mt-4 grid grid-cols-3 gap-2">
-            {steps.map((s, i) => (
-              <li key={s.label} className={cn('flex items-center gap-2 rounded-xl px-2.5 py-2 ring-1', s.done ? 'bg-emerald-400/25 ring-emerald-300/40' : 'bg-white/10 ring-white/20')}>
-                <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', s.done ? 'bg-emerald-500' : 'bg-white/20')}>{s.done ? <Check className="h-4 w-4" /> : <s.icon className="h-3.5 w-3.5" />}</span>
-                <span className="min-w-0"><span className="block text-[0.625rem] uppercase tracking-wide text-white/70">Qadam {i + 1}</span><span className="block truncate text-[0.75rem] font-semibold">{s.label}</span></span>
-              </li>
-            ))}
-          </ol>
+          </span>
         )}
-      </div>
+        actions={(
+          <>
+            <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => invoiceDoc(invoice)} label="Bill print" /></span>
+            <button type="button" onClick={guide.open} title="Guide (G)" className={heroButton}><GraduationCap className="h-4 w-4" /> Guide</button>
+          </>
+        )}
+        stats={[{ label: isPaid ? 'Ada ho chuka' : 'Dena hai', value: formatPKR(isPaid ? invoice.total : invoice.amountDue) }]}
+      />
+
+      {canSubmit && (
+        <ol className="grid grid-cols-1 gap-2 sm:grid-cols-3" aria-label="Payment ke qadam">
+          {steps.map((s, i) => (
+            <li key={s.label} className={cn('flex items-center gap-2.5 rounded-xl border px-3 py-2.5', s.done ? 'border-success-200 bg-success-50' : 'border-slate-200 bg-white')}>
+              <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', s.done ? 'bg-success-600 text-white' : 'bg-slate-100 text-slate-600')}>
+                {s.done ? <Check className="h-4 w-4" aria-label="Ho gaya" /> : <s.icon className="h-4 w-4" aria-hidden />}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[0.6875rem] font-medium uppercase tracking-wide text-slate-500">Qadam {i + 1}</span>
+                <span className={cn('block truncate text-[0.8125rem] font-semibold', s.done ? 'text-success-800' : 'text-slate-900')}>{s.label}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
 
       {isPaid && (
         <Card className="rounded-3xl">
           <div className="flex flex-col items-center py-6 text-center">
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><CheckCircle2 className="h-7 w-7" /></span>
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-success-50 text-success-600"><CheckCircle2 className="h-7 w-7" /></span>
             <h2 className="mt-3 text-lg font-semibold text-slate-900">Ye bill ada ho chuka hai</h2>
             <p className="text-[0.875rem] text-slate-500">{invoice.paidAt ? `${formatDate(invoice.paidAt)} ko — plan chalu hai.` : 'Plan chalu hai.'}</p>
           </div>
@@ -350,7 +354,7 @@ export default function PayInvoicePage() {
                         </div>
                         {r.copyKey && r.value && (
                           <button type="button" onClick={() => copy(r.value!, r.copyKey!)} aria-label={`${r.label} copy`}
-                            className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition', copied === r.copyKey ? 'bg-emerald-600 text-white' : 'bg-brand-50 text-brand-700 hover:bg-brand-100')}>
+                            className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition', copied === r.copyKey ? 'bg-success-600 text-white' : 'bg-brand-50 text-brand-700 hover:bg-brand-100')}>
                             {copied === r.copyKey ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                           </button>
                         )}
@@ -383,11 +387,11 @@ export default function PayInvoicePage() {
                     onDragLeave={() => setDragOver(false)}
                     onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files?.[0]; if (f && canPay) void handleFileUpload(f); }}
                     className={cn('relative rounded-2xl border-2 border-dashed p-5 text-center transition',
-                      uploadUrl ? 'border-emerald-300 bg-emerald-50' : uploading ? 'border-blue-300 bg-blue-50' : dragOver ? 'border-brand-500 bg-brand-50' : 'border-slate-300 hover:border-brand-400')}>
+                      uploadUrl ? 'border-success-300 bg-success-50' : uploading ? 'border-blue-300 bg-blue-50' : dragOver ? 'border-brand-500 bg-brand-50' : 'border-slate-300 hover:border-brand-400')}>
                     {uploadUrl ? (
                       <div>
-                        {filePreview ? <img src={filePreview} alt="Receipt" className="mx-auto max-h-40 rounded-xl shadow" /> : <FileImage className="mx-auto h-10 w-10 text-emerald-600" />}
-                        <p className="mt-2 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-emerald-800"><Check className="h-4 w-4" /> Upload ho gayi</p>
+                        {filePreview ? <img src={filePreview} alt="Receipt" className="mx-auto max-h-40 rounded-xl shadow" /> : <FileImage className="mx-auto h-10 w-10 text-success-600" />}
+                        <p className="mt-2 inline-flex items-center gap-1.5 text-[0.875rem] font-semibold text-success-800"><Check className="h-4 w-4" /> Upload ho gayi</p>
                         <p className="truncate text-[0.75rem] text-slate-600">{file?.name}</p>
                         <div className="mt-2 flex justify-center gap-3">
                           <a href={uploadUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 hover:underline"><ExternalLink className="h-3 w-3" /> Dekhein</a>

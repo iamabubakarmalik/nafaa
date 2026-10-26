@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, Search, Snowflake, Wheat } from 'lucide-react';
-import { KpiCard, KpiRow, Skeleton } from '@/design-system/components';
+import { KpiCard, KpiRow, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useReportMasked } from '@modules/reports/prefs';
 import { ingredientsApi } from '@industries/bakery/api/ingredients.api';
@@ -60,27 +60,27 @@ export function BakeryRaw() {
           </label>
         </header>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[38rem] text-[0.8125rem]">
-            <thead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-              <tr><th className="px-4 py-2">Saamaan</th><th className="px-2 py-2 text-right">Abhi hai</th><th className="px-2 py-2 text-right">Hadd</th><th className="px-2 py-2 text-right">Rate</th><th className="px-2 py-2 text-right">Qeemat</th><th className="px-4 py-2 text-right">Aakhri purchase</th></tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+          <Table minWidth="38rem" className="[&>table]:text-[0.8125rem]">
+            <THead className="bg-slate-50/70 text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
+              <Tr><Th className="px-4 py-2">Saamaan</Th><Th className="px-2 py-2 text-right">Abhi hai</Th><Th className="px-2 py-2 text-right">Hadd</Th><Th className="px-2 py-2 text-right">Rate</Th><Th className="px-2 py-2 text-right">Qeemat</Th><Th className="px-4 py-2 text-right">Aakhri purchase</Th></Tr>
+            </THead>
+            <TBody className="divide-y divide-slate-100">
               {shown.map((r) => (
-                <tr key={r.id}>
-                  <td className="px-4 py-2">
+                <Tr key={r.id}>
+                  <Td className="text-inherit px-4 py-2">
                     <span className="font-medium text-slate-900">{r.name}</span>
                     {r.requiresRefrigeration && <Snowflake className="ml-1 inline h-3.5 w-3.5 text-sky-500" aria-label="Fridge" />}
                     <span className="block text-[0.6875rem] text-slate-500">{r.category}</span>
-                  </td>
-                  <td className={cn('px-2 py-2 text-right tabular-nums', r.out ? 'font-semibold text-rose-700' : r.low ? 'font-semibold text-amber-700' : 'text-slate-800')}>{qty(r.have)} {r.unit}</td>
-                  <td className="px-2 py-2 text-right tabular-nums text-slate-500">{qty(r.level)}</td>
-                  <td className="px-2 py-2 text-right tabular-nums">{cost(r.rate)}</td>
-                  <td className="px-2 py-2 text-right font-semibold tabular-nums">{cost(r.value)}</td>
-                  <td className="px-4 py-2 text-right text-slate-500">{r.lastPurchaseDate ? `${dateText(r.lastPurchaseDate)} · ${ageText(r.since)}` : '—'}</td>
-                </tr>
+                  </Td>
+                  <Td className={cn('px-2 py-2 text-right tabular-nums', r.out ? 'font-semibold text-rose-700' : r.low ? 'font-semibold text-amber-700' : 'text-slate-800')}>{qty(r.have)} {r.unit}</Td>
+                  <Td className="px-2 py-2 text-right tabular-nums text-slate-500">{qty(r.level)}</Td>
+                  <Td className="text-inherit px-2 py-2 text-right tabular-nums">{cost(r.rate)}</Td>
+                  <Td className="text-inherit px-2 py-2 text-right font-semibold tabular-nums">{cost(r.value)}</Td>
+                  <Td className="px-4 py-2 text-right text-slate-500">{r.lastPurchaseDate ? `${dateText(r.lastPurchaseDate)} · ${ageText(r.since)}` : '—'}</Td>
+                </Tr>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </div>
       </section>
     </div>

@@ -9,10 +9,10 @@ import { toast } from 'sonner';
 import { Activity, AlertTriangle, Award, CheckCircle2, Lock, LogOut, RefreshCw, Smartphone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@core/lib/cn';
-import { IconButton, confirmDialog } from '@/design-system/components';
+import { IconButton, confirmDialog, Badge } from '@/design-system/components';
 import { settingsApi } from '../api/settings.api';
 import { useSecurityScore } from '../hooks/useSettings';
-import { SectionCard, StatPill } from '../components/UI';
+import { SectionCard } from '../components/SettingsBlocks';
 import { OwnerPinCard, PageLocksCard } from './_OwnerPin';
 import { AccountPasswordCard } from './_AccountPassword';
 
@@ -40,14 +40,15 @@ export function SecuritySection() {
 
   const pct = score?.score ?? 0;
   const tone = pct >= 80 ? 'emerald' : pct >= 50 ? 'amber' : 'rose';
-  const bar = { emerald: 'bg-emerald-500', amber: 'bg-amber-500', rose: 'bg-rose-500' }[tone];
+  const bar = { emerald: 'bg-success-500', amber: 'bg-amber-500', rose: 'bg-rose-500' }[tone];
+  const badgeTone = ({ emerald: 'success', amber: 'warning', rose: 'danger' } as const)[tone];
   const level = score ? ({ STRONG: 'Mazboot', MEDIUM: 'Darmiyana', WEAK: 'Kamzor' } as const)[score.level] : '';
 
   return (
     <div className="space-y-4">
       {score && (
         <SectionCard title="Security score" desc="Jitne kaam poore, utna store mehfooz" icon={Award} color={tone}
-          badge={<StatPill label="" value={level} tone={tone} />}>
+          badge={<Badge size="xs" variant={badgeTone}>{level}</Badge>}>
           <div className="flex flex-wrap items-center gap-4">
             <p className="text-4xl font-bold tabular-nums leading-none text-slate-900">{pct}<span className="text-xl text-slate-400">%</span></p>
             <div className="min-w-[12rem] flex-1">
@@ -61,10 +62,10 @@ export function SecuritySection() {
           </div>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {score.checks.map((c) => (
-              <li key={c.key} className={cn('flex items-center gap-2.5 rounded-xl px-3 py-2.5 ring-1', c.done ? 'bg-white ring-slate-200' : 'bg-amber-50/60 ring-amber-100')}>
-                {c.done ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> : <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />}
+              <li key={c.key} className={cn('flex items-center gap-2.5 rounded-lg px-3 py-2.5 ring-1 ring-inset', c.done ? 'bg-white ring-slate-200' : 'bg-amber-50 ring-amber-200')}>
+                {c.done ? <CheckCircle2 className="h-4 w-4 shrink-0 text-success-600" /> : <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />}
                 <span className={cn('min-w-0 flex-1 text-sm', c.done ? 'text-slate-800' : 'text-slate-600')}>{c.label}</span>
-                <span className={cn('text-xs font-semibold tabular-nums', c.done ? 'text-emerald-700' : 'text-slate-400')}>+{c.weight}%</span>
+                <span className={cn('text-xs font-semibold tabular-nums', c.done ? 'text-success-700' : 'text-slate-400')}>+{c.weight}%</span>
               </li>
             ))}
           </ul>

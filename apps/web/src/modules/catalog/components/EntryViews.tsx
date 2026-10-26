@@ -7,12 +7,13 @@ import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
 import type { CatalogEntry, EntryBadge, Tone } from '../types';
 
 const TONE: Record<Tone, string> = {
-  green: 'bg-emerald-100 text-emerald-800', red: 'bg-rose-100 text-rose-700', amber: 'bg-amber-100 text-amber-800',
+  green: 'bg-success-100 text-success-800', red: 'bg-rose-100 text-rose-700', amber: 'bg-amber-100 text-amber-800',
   blue: 'bg-sky-100 text-sky-800', violet: 'bg-violet-100 text-violet-800', slate: 'bg-slate-100 text-slate-700', pink: 'bg-pink-100 text-pink-700',
 };
+/** Badges laid over a photo: a white pill with tinted text stays readable on any image. */
 const SOLID: Record<Tone, string> = {
-  green: 'bg-emerald-600 text-white', red: 'bg-rose-600 text-white', amber: 'bg-amber-400 text-amber-950',
-  blue: 'bg-sky-600 text-white', violet: 'bg-violet-600 text-white', slate: 'bg-slate-800 text-white', pink: 'bg-pink-600 text-white',
+  green: 'bg-white/95 text-success-700', red: 'bg-white/95 text-rose-700', amber: 'bg-amber-400 text-amber-950',
+  blue: 'bg-white/95 text-sky-700', violet: 'bg-white/95 text-violet-700', slate: 'bg-white/95 text-slate-800', pink: 'bg-white/95 text-pink-700',
 };
 
 export function Chip({ chip, className }: { chip: EntryBadge; className?: string }) {
@@ -51,7 +52,7 @@ function PickButton({ picked, onPick, disabled }: { picked: boolean; onPick: () 
   return (
     <button type="button" onClick={(e) => { e.stopPropagation(); onPick(); }} disabled={disabled} title={picked ? 'List me hai — ek aur' : 'List me daalein'}
       className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition disabled:opacity-40',
-        picked ? 'bg-brand-600 text-white' : 'bg-brand-50 text-brand-700 hover:bg-brand-100')}>
+        picked ? 'bg-brand-600 text-brand-fg' : 'bg-brand-50 text-brand-700 hover:bg-brand-100')}>
       <Plus className="h-4 w-4" />
     </button>
   );
@@ -71,7 +72,7 @@ export function EntryCard({ entry, showStock, picked, onOpen, onPick }: ViewProp
         <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-1">
           {entry.badges?.map((b) => <span key={b.label} className={cn('rounded-md px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide shadow-sm', SOLID[b.tone])}>{b.label}</span>)}
         </div>
-        {out && <span className="absolute inset-x-0 bottom-0 bg-rose-600 py-1 text-center text-[0.6875rem] font-bold uppercase tracking-wide text-white">Abhi khatam</span>}
+        {out && <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[0.6875rem] font-bold uppercase tracking-wide text-white backdrop-blur-sm">Abhi khatam</span>}
       </div>
       <div className="flex flex-1 flex-col p-3.5">
         <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug text-slate-900">{entry.name}</h3>
@@ -80,7 +81,7 @@ export function EntryCard({ entry, showStock, picked, onOpen, onPick }: ViewProp
         <div className="mt-auto flex items-end justify-between gap-2 pt-3">
           <div className="min-w-0">
             <PriceTag entry={entry} />
-            {showStock && entry.stockNote && !out && <p className="text-[0.6875rem] font-medium text-emerald-700">{entry.stockNote}</p>}
+            {showStock && entry.stockNote && !out && <p className="text-[0.6875rem] font-medium text-success-700">{entry.stockNote}</p>}
           </div>
           <PickButton picked={picked} onPick={onPick} disabled={out} />
         </div>
@@ -106,7 +107,7 @@ export function EntryRow({ entry, showStock, picked, onOpen, onPick }: ViewProps
       </div>
       <div className="shrink-0 text-right">
         <PriceTag entry={entry} />
-        {showStock && entry.stockNote && !out && <p className="text-[0.6875rem] font-medium text-emerald-700">{entry.stockNote}</p>}
+        {showStock && entry.stockNote && !out && <p className="text-[0.6875rem] font-medium text-success-700">{entry.stockNote}</p>}
       </div>
       <PickButton picked={picked} onPick={onPick} disabled={out} />
     </li>

@@ -3,9 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Download, FileSpreadsheet, Save } from 'lucide-react';
 import { apiErrorMessage } from '@integrations/online-orders/api/online-orders.api';
-import { Badge, Btn, Card, Field, SettingRow, Toggle, inputCls } from '@integrations/online-orders/components/ui/kit';
 import { cn } from '@core/lib/cn';
 import { tallyApi, type PayMethod, type TallySettings } from './accounting.api';
+import { Badge, Button, Card, Input, Switch } from '@/design-system/components';
 
 /* ═════════════════════════════════════════════════════════════
    TALLY — TallyPrime ka cloud API nahi hota, is liye file: har din ke
@@ -49,7 +49,7 @@ export function TallyCard() {
   const p = preview.data;
 
   return (
-    <Card title={<span className="flex items-center gap-2"><FileSpreadsheet className="h-4 w-4 text-slate-400" /> TallyPrime / Tally ERP 9 <Badge tone="info">File se</Badge></span>}
+    <Card title={<span className="flex items-center gap-2"><FileSpreadsheet className="h-4 w-4 text-slate-400" /> TallyPrime / Tally ERP 9 <Badge size="xs" variant="info">File se</Badge></span>}
       description="Accountant Tally chalata hai? Kisi bhi dino ka hisaab ek file me — Sales, Receipt aur Payment vouchers, ledger naam aap ke Tally jaise.">
       <div className="space-y-4">
         <ol className="grid gap-2 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-ink-800/40 dark:text-ink-200 sm:grid-cols-3">
@@ -59,11 +59,11 @@ export function TallyCard() {
         </ol>
 
         <div className="flex flex-wrap items-end gap-2">
-          <Field label="Se"><input type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} className={cn(inputCls, 'w-auto')} /></Field>
-          <Field label="Tak"><input type="date" value={to} max={pkDay(new Date())} onChange={(e) => setTo(e.target.value)} className={cn(inputCls, 'w-auto')} /></Field>
-          <Btn variant="primary" disabled={!p?.vouchers || dirty} loading={dl.isPending && dl.variables === 'vouchers'} icon={<Download className="h-4 w-4" />} onClick={() => dl.mutate('vouchers')}>Vouchers (XML)</Btn>
-          <Btn disabled={!p?.vouchers || dirty} loading={dl.isPending && dl.variables === 'masters'} onClick={() => dl.mutate('masters')}>Ledgers (XML)</Btn>
-          <Btn variant="plain" disabled={!p?.vouchers || dirty} loading={dl.isPending && dl.variables === 'csv'} onClick={() => dl.mutate('csv')}>Day book (Excel)</Btn>
+          <Input size="sm" label="Se" type="date" value={from} max={to} onChange={(e) => setFrom(e.target.value)} className="w-auto" />
+          <Input size="sm" label="Tak" type="date" value={to} max={pkDay(new Date())} onChange={(e) => setTo(e.target.value)} className="w-auto" />
+          <Button size="sm" variant="primary" disabled={!p?.vouchers || dirty} loading={dl.isPending && dl.variables === 'vouchers'} leftIcon={<Download className="h-4 w-4" />} onClick={() => dl.mutate('vouchers')}>Vouchers (XML)</Button>
+          <Button size="sm" disabled={!p?.vouchers || dirty} loading={dl.isPending && dl.variables === 'masters'} onClick={() => dl.mutate('masters')}>Ledgers (XML)</Button>
+          <Button size="sm" variant="ghost" disabled={!p?.vouchers || dirty} loading={dl.isPending && dl.variables === 'csv'} onClick={() => dl.mutate('csv')}>Day book (Excel)</Button>
         </div>
         {dirty && <p className="text-[0.78125rem] text-amber-700">Pehle neeche "Mehfooz karein" — file naye naamon se banegi.</p>}
         {preview.isError && <p className="text-[0.78125rem] text-rose-600">{apiErrorMessage(preview.error)}</p>}
@@ -78,25 +78,19 @@ export function TallyCard() {
           <summary className="cursor-pointer text-[0.8125rem] font-semibold text-slate-900 dark:text-ink-white">Ledger naam (Tally jaise)</summary>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {METHODS.map(([k, l]) => (
-              <Field key={k} label={`${l} ka ledger`}>
-                <input value={s.mapping.methods?.[k] ?? ''} onChange={(e) => setMethod(k, e.target.value)} className={inputCls} />
-              </Field>
+              <Input size="sm" key={k} label={`${l} ka ledger`} value={s.mapping.methods?.[k] ?? ''} onChange={(e) => setMethod(k, e.target.value)} />
             ))}
             {LEDGERS.map(([k, l]) => (
-              <Field key={k} label={l}>
-                <input value={(s.mapping[k] as string) ?? ''} onChange={(e) => setMap(k, e.target.value)} className={inputCls} />
-              </Field>
+              <Input size="sm" key={k} label={l} value={(s.mapping[k] as string) ?? ''} onChange={(e) => setMap(k, e.target.value)} />
             ))}
-            <Field label="Company naam (Tally me)" help="Khali = jo company Tally me khuli hai">
-              <input value={s.companyName} onChange={(e) => setS({ ...s, companyName: e.target.value })} className={inputCls} />
-            </Field>
+            <Input size="sm" label="Company naam (Tally me)" hint="Khali = jo company Tally me khuli hai" value={s.companyName} onChange={(e) => setS({ ...s, companyName: e.target.value })} />
           </div>
           <div className="mt-3 space-y-1">
-            <SettingRow title="Expenses bhi" help="Har category ka apna ledger (category ka naam)" control={<Toggle checked={s.includeExpenses} onChange={(v) => setS({ ...s, includeExpenses: v })} />} />
-            <SettingRow title="Cost of goods (Journal)" help="Tally me stock alag chalta ho to band rakhein" control={<Toggle checked={s.includeCogs} onChange={(v) => setS({ ...s, includeCogs: v })} />} />
+            <Switch size="sm" checked={s.includeExpenses} onChange={(e) => setS({ ...s, includeExpenses: e.target.checked })} label="Expenses bhi" description="Har category ka apna ledger (category ka naam)" className="py-3 first:pt-0 last:pb-0" />
+            <Switch size="sm" checked={s.includeCogs} onChange={(e) => setS({ ...s, includeCogs: e.target.checked })} label="Cost of goods (Journal)" description="Tally me stock alag chalta ho to band rakhein" className="py-3 first:pt-0 last:pb-0" />
           </div>
           <div className="mt-3 flex justify-end">
-            <Btn variant="primary" disabled={!dirty} loading={save.isPending} icon={<Save className="h-4 w-4" />} onClick={() => save.mutate()}>Mehfooz karein</Btn>
+            <Button size="sm" variant="primary" disabled={!dirty} loading={save.isPending} leftIcon={<Save className="h-4 w-4" />} onClick={() => save.mutate()}>Mehfooz karein</Button>
           </div>
         </details>
       </div>

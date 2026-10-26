@@ -14,10 +14,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, ArrowLeft, BookOpen, Building2, Cake, CalendarDays, CopyX, Crown, Eye, GraduationCap, IdCard, Info,
-  Mail, MapPin, Phone, Plus, Save, Sparkles, UserRound, Wallet,
+  AlertTriangle, BookOpen, Building2, Cake, CalendarDays, CopyX, Crown, Eye, GraduationCap, IdCard, Info,
+  Mail, MapPin, Phone, Plus, Save, Sparkles, Tag, UserRound, Wallet,
 } from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea, confirmDialog } from '@/design-system/components';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea, confirmDialog, heroIconButton } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
@@ -26,17 +26,21 @@ import { isDialogOpen } from '@core/lib/shortcuts';
 import { directoryApi } from '@modules/customers/directory/api';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { customersApi, type CustomerGender, type UpsertCustomerPayload } from '@modules/customers/customers/api/customers.api';
+import { PRICE_TIERS, PRICE_TIER_LABEL, isPriceTier, type PriceTier } from '@core/lib/priceTiers';
+import { usePriceTierSettings } from '@modules/pos/lib/usePriceTierSettings';
 
 interface Form {
   name: string; phone: string; email: string; cnic: string; ntn: string; address: string; city: string; area: string;
   gender: '' | CustomerGender; dateOfBirth: string; avatarUrl: string; notes: string;
   /** Kept as text so a new customer can leave it empty and get the shop default. */
   creditLimit: string; isVip: boolean; isActive: boolean;
+  /** Default counter price; empty = shop default. */
+  priceTier: '' | PriceTier;
 }
 
 const EMPTY: Form = {
   name: '', phone: '', email: '', cnic: '', ntn: '', address: '', city: '', area: '', gender: '', dateOfBirth: '', avatarUrl: '', notes: '',
-  creditLimit: '', isVip: false, isActive: true,
+  creditLimit: '', isVip: false, isActive: true, priceTier: '',
 };
 
 const NOTE_CHIPS = ['Regular customer', 'Udhaar time par deta hai', 'Udhaar der se deta hai', 'Bulk buyer', 'Ghar par delivery', 'Sirf cash'];
@@ -98,6 +102,7 @@ function toPayload(f: Form, editing: boolean): UpsertCustomerPayload {
     dateOfBirth: opt(f.dateOfBirth), avatarUrl: opt(f.avatarUrl), notes: opt(f.notes),
     creditLimit: limit ? Math.max(Number(limit) || 0, 0) : editing ? 0 : undefined,
     isVip: f.isVip, isActive: f.isActive,
+    priceTier: f.priceTier || (editing ? null : undefined),
   };
 }
 
@@ -122,6 +127,7 @@ export default function CustomerFormPage() {
   const customer = customerQ.data;
   const settingsQ = useQuery({ queryKey: ['settings'], queryFn: () => settingsApi.get(), staleTime: 5 * 60_000, retry: false, enabled: !editing });
   const shopLimit = settingsQ.data?.settings?.defaultCreditLimit;
+  const tierSettings = usePriceTierSettings();
 
   useEffect(() => {
     if (!customer) return;
@@ -130,6 +136,7 @@ export default function CustomerFormPage() {
       address: customer.address ?? '', city: customer.city ?? '', area: customer.area ?? '', gender: customer.gender ?? '',
       dateOfBirth: customer.dateOfBirth ? customer.dateOfBirth.slice(0, 10) : '', avatarUrl: customer.avatarUrl ?? '', notes: customer.notes ?? '',
       creditLimit: customer.creditLimit ? String(customer.creditLimit) : '', isVip: customer.isVip, isActive: customer.isActive,
+      priceTier: isPriceTier(customer.priceTier) ? customer.priceTier : '',
     };
     setF(next);
     setBaseline(JSON.stringify(next));
@@ -298,18 +305,15 @@ export default function CustomerFormPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={goBack} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${customer?.name} — badlein` : 'Naya customer'}</h1>
-          <p className="text-[0.8125rem] text-white/75">
-            {editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Sirf naam zaroori hai. Phone daal dein to WhatsApp par bill aur yaad-dihani ja sakegi.'}
-          </p>
-        </div>
-        {dirty && <span className="rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[0.75rem] font-semibold text-amber-100 ring-1 ring-amber-300/40">Save nahi hua</span>}
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>
-        <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-      </div>
+      <PageHero
+        back={goBack}
+        backLabel="Wapas (Esc)"
+        title={editing ? `${customer?.name} — badlein` : 'Naya customer'}
+        subtitle={editing ? 'Jo badalna hai badlein — baqi waisa hi rahega' : 'Sirf naam zaroori hai. Phone daal dein to WhatsApp par bill aur yaad-dihani ja sakegi.'}
+        chip={dirty ? 'Save nahi hua' : undefined}
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save</span>}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       {guide.isOpen && (
         <PageGuide title={editing ? 'Customer kaise badlein' : 'Customer kaise jorein'} onClose={guide.close}
@@ -368,7 +372,7 @@ export default function CustomerFormPage() {
                 <div className="flex flex-wrap gap-1.5">
                   {GENDERS.map((g) => (
                     <button key={g.id} type="button" onClick={() => set('gender', f.gender === g.id ? '' : g.id)} aria-pressed={f.gender === g.id}
-                      className={cn('h-9 rounded-lg px-4 text-sm font-medium ring-1 transition', f.gender === g.id ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-300 hover:bg-slate-50')}>
+                      className={cn('h-9 rounded-lg px-4 text-sm font-medium ring-1 transition', f.gender === g.id ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-700 ring-slate-300 hover:bg-slate-50')}>
                       {g.label}
                     </button>
                   ))}
@@ -409,16 +413,28 @@ export default function CustomerFormPage() {
             <div className="mt-2 flex flex-wrap gap-1">
               {CREDIT_CHIPS.map((v) => (
                 <button key={v} type="button" onClick={() => set('creditLimit', String(v))}
-                  className={cn('h-7 rounded-lg px-2 text-[0.75rem] font-medium ring-1', limit === v ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
+                  className={cn('h-7 rounded-lg px-2 text-[0.75rem] font-medium ring-1', limit === v ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
                   {formatPKR(v)}
                 </button>
               ))}
               <button type="button" onClick={() => set('creditLimit', '0')}
-                className={cn('h-7 rounded-lg px-2 text-[0.75rem] font-medium ring-1', f.creditLimit === '0' ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
+                className={cn('h-7 rounded-lg px-2 text-[0.75rem] font-medium ring-1', f.creditLimit === '0' ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
                 Koi had nahi
               </button>
             </div>
           </Card>
+
+          {tierSettings.on && (
+            <Card className="rounded-2xl" title={<T icon={Tag}>Default price</T>}>
+              <Select label="Is customer ko kis rate par bechna hai" value={f.priceTier}
+                onChange={(e) => set('priceTier', (isPriceTier(e.target.value) ? e.target.value : '') as Form['priceTier'])}
+                options={[
+                  { value: '', label: `Shop default (${PRICE_TIER_LABEL[tierSettings.defaultTier]})` },
+                  ...PRICE_TIERS.map((t) => ({ value: t, label: PRICE_TIER_LABEL[t] })),
+                ]}
+                hint="POS par yeh customer chunte hi yahi price lagti hai" />
+            </Card>
+          )}
         </div>
 
         <div className="space-y-4">

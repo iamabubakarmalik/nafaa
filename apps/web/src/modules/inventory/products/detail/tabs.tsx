@@ -8,9 +8,10 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ArrowDownLeft, ArrowUpRight, ClipboardList, Package, Plus, Store, Truck, Users } from 'lucide-react';
-import { Card, Segmented, Skeleton } from '@/design-system/components';
+import { Card, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
+import { COST_PRICE_LABEL, PRICE_TIER_FIELD, marginPct } from '@core/lib/priceTiers';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { Product } from '@modules/inventory/products/api/products.api';
@@ -70,11 +71,20 @@ export function OverviewTab({ product: p, insights: ins, days, setDays, money, c
     label: new Intl.DateTimeFormat('en-PK', days > 30 ? { day: 'numeric', month: 'short' } : { weekday: 'short', day: 'numeric' }).format(new Date(`${s.key}T12:00:00`)),
   }));
   const margin = p.price > 0 && p.costPrice > 0 ? ((p.price - p.costPrice) / p.price) * 100 : null;
+  // Margin per selling price; hidden with the cost.
+  const tierMargin = (price: number) => {
+    const m = costHidden ? null : marginPct(price, p.costPrice);
+    return m === null ? null : <span className={cn('ml-1.5 text-[0.75rem] font-normal', m < 0 ? 'text-rose-600' : 'text-slate-500')}>{m.toFixed(1)}%</span>;
+  };
+  const tierRow = (label: string, value: number | null | undefined): [string, ReactNode] => [label, Number(value) > 0
+    ? <span key={label} className="tabular-nums">{money(Number(value))}{tierMargin(Number(value))}</span>
+    : <span key={label} className="font-normal text-slate-400">Retail price lagegi</span>];
   const prices: Array<[string, ReactNode]> = [
-    ['Bechne ki qeemat', <strong key="p" className="tabular-nums">{money(p.price)} <span className="font-normal text-slate-500">/ {p.unit}</span></strong>],
-    ['Cost', <span key="c" className="tabular-nums">{cost(p.costPrice)}</span>],
+    [PRICE_TIER_FIELD.RETAIL, <strong key="p" className="tabular-nums">{money(p.price)} <span className="font-normal text-slate-500">/ {p.unit}</span>{tierMargin(p.price)}</strong>],
+    tierRow(PRICE_TIER_FIELD.WHOLESALE, p.wholesalePrice),
+    tierRow(PRICE_TIER_FIELD.CREDIT, p.creditPrice),
+    [COST_PRICE_LABEL, <span key="c" className="tabular-nums">{cost(p.costPrice)}</span>],
     ['Profit fi unit', <span key="m" className={cn('tabular-nums', !costHidden && margin !== null && margin < 0 && 'text-rose-600')}>{p.costPrice ? `${cost(p.price - p.costPrice)}${margin !== null && !costHidden ? ` · ${margin.toFixed(1)}%` : ''}` : '—'}</span>],
-    ['Wholesale', p.wholesalePrice ? money(p.wholesalePrice) : '—'],
     ['Tax', p.taxRate ? `${p.taxRate}%` : '—'],
     ['Kam stock ki had', `${fmt(p.lowStockAlert)} ${p.unit}`],
     ...facts,
@@ -197,7 +207,7 @@ export function StockTab({ product: p, insights: ins, stock, shopId, canAdjust, 
           </p>
           <p className="text-[0.75rem] text-slate-500">Kam stock ki had {fmt(p.lowStockAlert)} {p.unit}{ins?.totals.daysLeft != null && stock > 0 ? ` · ~${ins.totals.daysLeft} din chalega` : ''}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            {canAdjust && <button type="button" onClick={onAdjust} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-white hover:bg-brand-700"><Plus className="h-4 w-4" />Stock badlein</button>}
+            {canAdjust && <button type="button" onClick={onAdjust} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg hover:bg-brand-700"><Plus className="h-4 w-4" />Stock badlein</button>}
             {canAdjust && <Link to="/stock-adjustments" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><ClipboardList className="h-4 w-4" />Adjustments</Link>}
             {canBuy && <Link to="/purchases/new" className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Truck className="h-4 w-4" />Purchase</Link>}
           </div>
@@ -288,24 +298,24 @@ export function PurchasesTab({ product: p, cost, canBuy, canSuppliers }: { produ
           actions={canBuy ? <Link to="/purchases/new" className={linkCls}>Nayi purchase →</Link> : undefined}>
           {!d.recent.length ? <Empty text="Yeh cheez abhi tak purchase nahi hui" /> : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[44rem] text-[0.8125rem]">
-                <thead><tr className={head}><th className="px-5 py-2.5">Bill</th><th className={th}>Supplier</th><th className={`${th} text-right`}>Quantity</th><th className={`${th} text-right`}>Cost</th><th className={`${th} text-right`}>Amount</th><th className="px-5 py-2.5">Halat</th></tr></thead>
-                <tbody className="divide-y divide-slate-100">
+              <Table minWidth="44rem" className="[&>table]:text-[0.8125rem]">
+                <THead><Tr className={head}><Th className="px-5 py-2.5">Bill</Th><Th className={cn('p-0', th)}>Supplier</Th><Th className={cn('p-0', `${th} text-right`)}>Quantity</Th><Th className={cn('p-0', `${th} text-right`)}>Cost</Th><Th className={cn('p-0', `${th} text-right`)}>Amount</Th><Th className="px-5 py-2.5">Halat</Th></Tr></THead>
+                <TBody className="divide-y divide-slate-100">
                   {d.recent.map((l) => {
                     const st = PO_STATUS[l.status] ?? { label: l.status, tone: 'bg-slate-100 text-slate-600' };
                     return (
-                      <tr key={l.id} className={cn(l.status === 'CANCELLED' && 'opacity-60')}>
-                        <td className="px-5 py-2"><Link to={`/purchases/${l.purchaseId}`} className="font-mono font-semibold text-brand-700 hover:underline">{l.purchaseNumber}</Link><span className="block text-[0.6875rem] text-slate-500">{day(l.purchasedAt)}{l.shop ? ` · ${l.shop}` : ''}</span></td>
-                        <td className={th}>{l.supplier?.name ?? '—'}{l.variantId && variantName.get(l.variantId) && <span className="block text-[0.6875rem] text-slate-500">{variantName.get(l.variantId)}</span>}</td>
-                        <td className={`${th} text-right tabular-nums`}>{fmt(l.quantity)} {l.unitName}{l.conversionRate !== 1 && <span className="block text-[0.6875rem] text-slate-500">= {fmt(l.baseQuantity)} {p.unit}</span>}</td>
-                        <td className={`${th} text-right tabular-nums`}>{cost(l.costPrice)}</td>
-                        <td className={`${th} text-right font-semibold tabular-nums`}>{cost(l.total)}</td>
-                        <td className="px-5 py-2"><span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', st.tone)}>{st.label}</span>{l.returnedQty > 0 && <span className="ml-1 text-[0.6875rem] text-amber-700">{fmt(l.returnedQty)} return</span>}{l.batchNo && <span className="block font-mono text-[0.6875rem] text-slate-500">{l.batchNo}</span>}</td>
-                      </tr>
+                      <Tr key={l.id} className={cn(l.status === 'CANCELLED' && 'opacity-60')}>
+                        <Td className="text-inherit px-5 py-2"><Link to={`/purchases/${l.purchaseId}`} className="font-mono font-semibold text-brand-700 hover:underline">{l.purchaseNumber}</Link><span className="block text-[0.6875rem] text-slate-500">{day(l.purchasedAt)}{l.shop ? ` · ${l.shop}` : ''}</span></Td>
+                        <Td className={cn('p-0 text-inherit', th)}>{l.supplier?.name ?? '—'}{l.variantId && variantName.get(l.variantId) && <span className="block text-[0.6875rem] text-slate-500">{variantName.get(l.variantId)}</span>}</Td>
+                        <Td className={cn('p-0 text-inherit', `${th} text-right tabular-nums`)}>{fmt(l.quantity)} {l.unitName}{l.conversionRate !== 1 && <span className="block text-[0.6875rem] text-slate-500">= {fmt(l.baseQuantity)} {p.unit}</span>}</Td>
+                        <Td className={cn('p-0 text-inherit', `${th} text-right tabular-nums`)}>{cost(l.costPrice)}</Td>
+                        <Td className={cn('p-0 text-inherit', `${th} text-right font-semibold tabular-nums`)}>{cost(l.total)}</Td>
+                        <Td className="text-inherit px-5 py-2"><span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', st.tone)}>{st.label}</span>{l.returnedQty > 0 && <span className="ml-1 text-[0.6875rem] text-amber-700">{fmt(l.returnedQty)} return</span>}{l.batchNo && <span className="block font-mono text-[0.6875rem] text-slate-500">{l.batchNo}</span>}</Td>
+                      </Tr>
                     );
                   })}
-                </tbody>
-              </table>
+                </TBody>
+              </Table>
             </div>
           )}
         </Card>
@@ -339,25 +349,25 @@ export function BatchesTab({ product: p }: { product: Product }) {
     <Card className="rounded-2xl" flush title="Batch aur expiry" description="Jo pehle expire ho woh pehle bechein — batch purchase ke waqt bante hain">
       {!rows.length ? <Empty text="Abhi koi batch nahi. Purchase karte waqt batch number aur expiry likhein." /> : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[36rem] text-[0.8125rem]">
-            <thead><tr className={head}><th className="px-5 py-2.5">Batch</th><th className={th}>Bani</th><th className={th}>Expiry</th><th className={`${th} text-right`}>Baqi</th><th className="px-5 py-2.5">Halat</th></tr></thead>
-            <tbody className="divide-y divide-slate-100">
+          <Table minWidth="36rem" className="[&>table]:text-[0.8125rem]">
+            <THead><Tr className={head}><Th className="px-5 py-2.5">Batch</Th><Th className={cn('p-0', th)}>Bani</Th><Th className={cn('p-0', th)}>Expiry</Th><Th className={cn('p-0', `${th} text-right`)}>Baqi</Th><Th className="px-5 py-2.5">Halat</Th></Tr></THead>
+            <TBody className="divide-y divide-slate-100">
               {rows.map((b) => {
                 const r = b as unknown as { batchNumber: string; manufactureDate?: string; expiryDate?: string; isActive?: boolean };
                 const exp = r.expiryDate?.slice(0, 10);
                 const tone = !exp ? 'text-slate-500' : exp < today ? 'text-rose-700' : exp <= soon ? 'text-amber-700' : 'text-success-700';
                 return (
-                  <tr key={b.id} className={cn((b.quantity <= 0 || r.isActive === false) && 'opacity-60')}>
-                    <td className="px-5 py-2.5 font-mono">{r.batchNumber}</td>
-                    <td className={`${th} text-slate-600`}>{r.manufactureDate ? new Date(r.manufactureDate).toLocaleDateString('en-PK') : '—'}</td>
-                    <td className={cn(th, 'font-medium', tone)}>{exp ? new Date(exp).toLocaleDateString('en-PK') : '—'}</td>
-                    <td className={`${th} text-right tabular-nums`}>{fmt(b.quantity)} {p.unit}</td>
-                    <td className={cn('px-5 py-2.5 font-medium', tone)}>{b.quantity <= 0 ? 'Khatam' : !exp ? 'Expiry nahi' : exp < today ? 'Expire ho gaya' : exp <= soon ? 'Qareeb' : 'Theek'}</td>
-                  </tr>
+                  <Tr key={b.id} className={cn((b.quantity <= 0 || r.isActive === false) && 'opacity-60')}>
+                    <Td className="text-inherit px-5 py-2.5 font-mono">{r.batchNumber}</Td>
+                    <Td className={cn('p-0', `${th} text-slate-600`)}>{r.manufactureDate ? new Date(r.manufactureDate).toLocaleDateString('en-PK') : '—'}</Td>
+                    <Td className={cn('p-0 text-inherit', th, 'font-medium', tone)}>{exp ? new Date(exp).toLocaleDateString('en-PK') : '—'}</Td>
+                    <Td className={cn('p-0 text-inherit', `${th} text-right tabular-nums`)}>{fmt(b.quantity)} {p.unit}</Td>
+                    <Td className={cn('text-inherit', 'px-5 py-2.5 font-medium', tone)}>{b.quantity <= 0 ? 'Khatam' : !exp ? 'Expiry nahi' : exp < today ? 'Expire ho gaya' : exp <= soon ? 'Qareeb' : 'Theek'}</Td>
+                  </Tr>
                 );
               })}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </div>
       )}
     </Card>
@@ -370,27 +380,31 @@ export function UnitsTab({ product: p, units, stock, money, cost, costHidden }: 
   product: Product; units: ProductUnit[]; stock: number; money: Money; cost: Money; costHidden: boolean;
 }) {
   const variants = p.variants ?? [];
+  // Tier columns appear only when some pack has its own tier price.
+  const tiers = { wholesale: units.some((u) => Number(u.wholesalePrice) > 0), credit: units.some((u) => Number(u.creditPrice) > 0) };
   return (
     <div className="space-y-4">
       {units.length > 0 && (
         <Card className="rounded-2xl" flush title="Packing" description="Har packing ka apna rate aur barcode — stock asal unit mein ginta hai">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[40rem] text-[0.8125rem]">
-              <thead><tr className={head}><th className="px-5 py-2.5">Packing</th><th className={`${th} text-right`}>Kitne {p.unit}</th><th className={`${th} text-right`}>Rate</th>{!costHidden && <th className={`${th} text-right`}>Cost</th>}<th className={`${th} text-right`}>Fi {p.unit}</th><th className={th}>Barcode</th><th className="px-5 py-2.5 text-right">Stock mein</th></tr></thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table minWidth="40rem" className="[&>table]:text-[0.8125rem]">
+              <THead><Tr className={head}><Th className="px-5 py-2.5">Packing</Th><Th className={cn('p-0', `${th} text-right`)}>Kitne {p.unit}</Th><Th className={cn('p-0', `${th} text-right`)}>Rate</Th>{tiers.wholesale && <Th className={cn('p-0', `${th} text-right`)}>Wholesale</Th>}{tiers.credit && <Th className={cn('p-0', `${th} text-right`)}>Credit</Th>}{!costHidden && <Th className={cn('p-0', `${th} text-right`)}>Cost</Th>}<Th className={cn('p-0', `${th} text-right`)}>Fi {p.unit}</Th><Th className={cn('p-0', th)}>Barcode</Th><Th className="px-5 py-2.5 text-right">Stock mein</Th></Tr></THead>
+              <TBody className="divide-y divide-slate-100">
                 {units.map((u) => (
-                  <tr key={u.id} className={cn(!u.isActive && 'opacity-60')}>
-                    <td className="px-5 py-2.5 font-medium text-slate-900">{u.unitName}{u.isBase && <span className="ml-1.5 rounded bg-brand-50 px-1.5 text-[0.6875rem] text-brand-700">asal</span>}{!u.isActive && <span className="ml-1.5 rounded bg-slate-100 px-1.5 text-[0.6875rem] text-slate-500">band</span>}</td>
-                    <td className={`${th} text-right tabular-nums`}>{fmt(u.conversionRate)}</td>
-                    <td className={`${th} text-right font-semibold tabular-nums`}>{money(u.price)}</td>
-                    {!costHidden && <td className={`${th} text-right tabular-nums text-slate-600`}>{cost(u.costPrice)}</td>}
-                    <td className={`${th} text-right tabular-nums text-slate-600`}>{money(u.conversionRate ? u.price / u.conversionRate : 0)}</td>
-                    <td className={`${th} font-mono text-[0.75rem] text-slate-600`}>{u.barcode ?? '—'}</td>
-                    <td className="px-5 py-2.5 text-right tabular-nums">{u.conversionRate ? Math.floor(stock / u.conversionRate) : '—'}</td>
-                  </tr>
+                  <Tr key={u.id} className={cn(!u.isActive && 'opacity-60')}>
+                    <Td className="px-5 py-2.5 font-medium text-slate-900">{u.unitName}{u.isBase && <span className="ml-1.5 rounded bg-brand-50 px-1.5 text-[0.6875rem] text-brand-700">asal</span>}{!u.isActive && <span className="ml-1.5 rounded bg-slate-100 px-1.5 text-[0.6875rem] text-slate-500">band</span>}</Td>
+                    <Td className={cn('p-0 text-inherit', `${th} text-right tabular-nums`)}>{fmt(u.conversionRate)}</Td>
+                    <Td className={cn('p-0 text-inherit', `${th} text-right font-semibold tabular-nums`)}>{money(u.price)}</Td>
+                    {tiers.wholesale && <Td className={cn('p-0', `${th} text-right tabular-nums text-slate-600`)}>{Number(u.wholesalePrice) > 0 ? money(Number(u.wholesalePrice)) : '—'}</Td>}
+                    {tiers.credit && <Td className={cn('p-0', `${th} text-right tabular-nums text-slate-600`)}>{Number(u.creditPrice) > 0 ? money(Number(u.creditPrice)) : '—'}</Td>}
+                    {!costHidden && <Td className={cn('p-0', `${th} text-right tabular-nums text-slate-600`)}>{cost(u.costPrice)}</Td>}
+                    <Td className={cn('p-0', `${th} text-right tabular-nums text-slate-600`)}>{money(u.conversionRate ? u.price / u.conversionRate : 0)}</Td>
+                    <Td className={cn('p-0', `${th} font-mono text-[0.75rem] text-slate-600`)}>{u.barcode ?? '—'}</Td>
+                    <Td className="text-inherit px-5 py-2.5 text-right tabular-nums">{u.conversionRate ? Math.floor(stock / u.conversionRate) : '—'}</Td>
+                  </Tr>
                 ))}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         </Card>
       )}

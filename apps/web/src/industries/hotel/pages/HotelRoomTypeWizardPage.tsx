@@ -7,11 +7,11 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, BedDouble, GraduationCap, Hash, Sparkles, Users, Wallet, X } from 'lucide-react';
-import { Button, Card, Checkbox, Input, Kbd, PageShell, Select, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { BedDouble, GraduationCap, Hash, Loader2, Save, Sparkles, Users, Wallet, X } from 'lucide-react';
+import { Button, Card, Checkbox, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { formatPKR } from '@core/lib/format';
 import { roomTypesApi, type BedType, type RoomType, type RoomTypeInput } from '../api/room-types.api';
@@ -122,84 +122,88 @@ export default function HotelRoomTypeWizardPage() {
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Link to={edit ? `/hotel-room-types/${id}` : '/hotel/room-types'} className="rounded-xl p-2 text-slate-500 hover:bg-slate-100" aria-label="Wapas"><ArrowLeft className="h-5 w-5" /></Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">{edit ? `${existing.data?.name ?? ''} badlein` : 'Naya room type'}</h1>
-            <p className="text-[0.8125rem] text-slate-500"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> se save · <Kbd>G</Kbd> guide</p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" leftIcon={<GraduationCap className="h-4 w-4" />} onClick={guide.open}>Guide</Button>
-          <Button loading={save.isPending} onClick={submit}>Save karein</Button>
-        </div>
-      </div>
+      <PageHero
+        back={edit ? `/hotel-room-types/${id}` : '/hotel/room-types'}
+        title={edit ? `${existing.data?.name ?? ''} badlein` : 'Naya room type'}
+        subtitle="Rate, log, bed, sahulat aur room numbers"
+        meta={<span className="inline-flex items-center gap-1"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> save · <Kbd>G</Kbd> guide</span>}
+        actions={<>
+          <button type="button" onClick={guide.open} className={heroButton}><GraduationCap className="h-4 w-4" />Guide</button>
+          <button type="button" onClick={submit} disabled={save.isPending} className={heroPrimaryButton}>
+            {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}Save karein
+          </button>
+        </>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="space-y-3 p-4">
-          <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><BedDouble className="h-4 w-4 text-slate-400" />Pehchan</h2>
-          <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
-            <Input label="Naam" required value={f.name} onChange={(e) => set('name', e.target.value)} error={err('name')} placeholder="Deluxe Double" hint="Bill aur booking par yahi naam" />
-            <Input label="Code" value={f.code} onChange={(e) => set('code', e.target.value.toUpperCase())} placeholder="DLX" hint="Khaali chhorein to khud" />
-          </div>
-          <Select label="Kis tarah ka" value={f.type} onChange={(e) => set('type', e.target.value as RoomType)} options={TYPES.map((t) => ({ value: t.id, label: t.label }))} />
-          <Textarea label="Tafseel" rows={2} value={f.description} onChange={(e) => set('description', e.target.value)} placeholder="Sarak ki taraf, attached bath…" />
-          {edit && <Switch checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} label="Chalu" description="Band type ke room nayi booking nahi lete" />}
-        </Card>
-
-        <Card className="space-y-3 p-4">
-          <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Wallet className="h-4 w-4 text-slate-400" />Rate</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input label="Ek raat ka rate" required inputMode="decimal" value={f.basePrice} onChange={(e) => set('basePrice', moneyInput(e.target.value))} error={err('basePrice')} placeholder="8000" />
-            <Input label="Weekend rate" inputMode="decimal" value={f.weekendPrice} onChange={(e) => set('weekendPrice', moneyInput(e.target.value))} hint="Juma aur Hafta ki raat; khaali = wohi rate" />
-            <Input label="Season (peak) rate" inputMode="decimal" value={f.peakPrice} onChange={(e) => set('peakPrice', moneyInput(e.target.value))} hint="Season rates me 'Peak' plan par lagta hai" />
-            <Input label="Off-season rate" inputMode="decimal" value={f.offSeasonPrice} onChange={(e) => set('offSeasonPrice', moneyInput(e.target.value))} />
-            <Input label="Ghante ka rate" inputMode="decimal" value={f.hourlyPrice} onChange={(e) => set('hourlyPrice', moneyInput(e.target.value))} hint="Din me thori der ke liye (marzi)" />
-          </div>
-          {num(f.basePrice) > 0 && <p className="text-[0.75rem] text-slate-500">Hafte ke 7 raat: {formatPKR(num(f.basePrice) * 5 + (num(f.weekendPrice) || num(f.basePrice)) * 2)}</p>}
-        </Card>
-
-        <Card className="space-y-3 p-4">
-          <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Users className="h-4 w-4 text-slate-400" />Log aur bed</h2>
-          <div className="grid grid-cols-3 gap-3">
-            <Input label="Bade" inputMode="numeric" value={f.maxAdults} onChange={(e) => set('maxAdults', e.target.value.replace(/\D/g, ''))} />
-            <Input label="Bachay" inputMode="numeric" value={f.maxChildren} onChange={(e) => set('maxChildren', e.target.value.replace(/\D/g, ''))} />
-            <Input label="Kul log" inputMode="numeric" value={f.maxOccupancy} onChange={(e) => set('maxOccupancy', e.target.value.replace(/\D/g, ''))} error={err('occupancy')} />
-          </div>
-          <div className="grid grid-cols-[1fr_6rem] gap-3">
-            <Select label="Bed" value={f.bedType} onChange={(e) => set('bedType', e.target.value as BedType)} options={BEDS.map((b) => ({ value: b.id, label: b.label }))} />
-            <Input label="Kitne" inputMode="numeric" value={f.bedCount} onChange={(e) => set('bedCount', e.target.value.replace(/\D/g, ''))} />
-          </div>
-          <Switch checked={f.extraBedAllowed} onChange={(e) => set('extraBedAllowed', e.target.checked)} label="Extra bed lag sakta hai" description="Har extra bed se ek banda zyada" />
-          {f.extraBedAllowed && <Input label="Extra bed fi raat" inputMode="decimal" value={f.extraBedPrice} onChange={(e) => set('extraBedPrice', moneyInput(e.target.value))} error={err('extraBed')} />}
-        </Card>
-
-        <Card className="space-y-3 p-4">
-          <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Sparkles className="h-4 w-4 text-slate-400" />Sahulat</h2>
-          <div className="grid grid-cols-2 gap-2">
-            {AMENITIES.map((a) => <Checkbox key={a.key} label={a.label} checked={!!f.flags[a.key]} onChange={(e) => set('flags', { ...f.flags, [a.key]: e.target.checked })} />)}
-          </div>
-          <div className="flex gap-2">
-            <Input wrapperClassName="flex-1" value={newAmenity} onChange={(e) => setNewAmenity(e.target.value)} placeholder="Aur: nashta, parking…"
-              onKeyDown={(e) => { if (e.key === 'Enter' && newAmenity.trim()) { e.preventDefault(); set('amenities', [...new Set([...f.amenities, newAmenity.trim()])]); setNewAmenity(''); } }} />
-            <Button variant="secondary" disabled={!newAmenity.trim()} onClick={() => { set('amenities', [...new Set([...f.amenities, newAmenity.trim()])]); setNewAmenity(''); }}>Jorein</Button>
-          </div>
-          {f.amenities.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {f.amenities.map((a) => <span key={a} className="inline-flex items-center gap-1 rounded-full bg-slate-100 py-0.5 pl-2.5 pr-1 text-[0.75rem]">{a}<button type="button" onClick={() => set('amenities', f.amenities.filter((x) => x !== a))} className="rounded-full p-0.5 hover:bg-slate-200" aria-label="Hatayein"><X className="h-3 w-3" /></button></span>)}
+        <Card title={<span className="flex items-center gap-2"><BedDouble className="h-4 w-4 text-slate-400" />Pehchan</span>}>
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
+              <Input label="Naam" required value={f.name} onChange={(e) => set('name', e.target.value)} error={err('name')} placeholder="Deluxe Double" hint="Bill aur booking par yahi naam" />
+              <Input label="Code" value={f.code} onChange={(e) => set('code', e.target.value.toUpperCase())} placeholder="DLX" hint="Khaali chhorein to khud" />
             </div>
-          )}
+            <Select label="Kis tarah ka" value={f.type} onChange={(e) => set('type', e.target.value as RoomType)} options={TYPES.map((t) => ({ value: t.id, label: t.label }))} />
+            <Textarea label="Tafseel" rows={2} value={f.description} onChange={(e) => set('description', e.target.value)} placeholder="Sarak ki taraf, attached bath…" />
+            {edit && <Switch checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} label="Chalu" description="Band type ke room nayi booking nahi lete" />}
+          </div>
+        </Card>
+
+        <Card title={<span className="flex items-center gap-2"><Wallet className="h-4 w-4 text-slate-400" />Rate</span>}>
+          <div className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input label="Ek raat ka rate" required inputMode="decimal" value={f.basePrice} onChange={(e) => set('basePrice', moneyInput(e.target.value))} error={err('basePrice')} placeholder="8000" />
+              <Input label="Weekend rate" inputMode="decimal" value={f.weekendPrice} onChange={(e) => set('weekendPrice', moneyInput(e.target.value))} hint="Juma aur Hafta ki raat; khaali = wohi rate" />
+              <Input label="Season (peak) rate" inputMode="decimal" value={f.peakPrice} onChange={(e) => set('peakPrice', moneyInput(e.target.value))} hint="Season rates me 'Peak' plan par lagta hai" />
+              <Input label="Off-season rate" inputMode="decimal" value={f.offSeasonPrice} onChange={(e) => set('offSeasonPrice', moneyInput(e.target.value))} />
+              <Input label="Ghante ka rate" inputMode="decimal" value={f.hourlyPrice} onChange={(e) => set('hourlyPrice', moneyInput(e.target.value))} hint="Din me thori der ke liye (marzi)" />
+            </div>
+            {num(f.basePrice) > 0 && <p className="text-[0.75rem] text-slate-500">Hafte ke 7 raat: {formatPKR(num(f.basePrice) * 5 + (num(f.weekendPrice) || num(f.basePrice)) * 2)}</p>}
+          </div>
+        </Card>
+
+        <Card title={<span className="flex items-center gap-2"><Users className="h-4 w-4 text-slate-400" />Log aur bed</span>}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="Bade" inputMode="numeric" value={f.maxAdults} onChange={(e) => set('maxAdults', e.target.value.replace(/\D/g, ''))} />
+              <Input label="Bachay" inputMode="numeric" value={f.maxChildren} onChange={(e) => set('maxChildren', e.target.value.replace(/\D/g, ''))} />
+              <Input label="Kul log" inputMode="numeric" value={f.maxOccupancy} onChange={(e) => set('maxOccupancy', e.target.value.replace(/\D/g, ''))} error={err('occupancy')} />
+            </div>
+            <div className="grid grid-cols-[1fr_6rem] gap-3">
+              <Select label="Bed" value={f.bedType} onChange={(e) => set('bedType', e.target.value as BedType)} options={BEDS.map((b) => ({ value: b.id, label: b.label }))} />
+              <Input label="Kitne" inputMode="numeric" value={f.bedCount} onChange={(e) => set('bedCount', e.target.value.replace(/\D/g, ''))} />
+            </div>
+            <Switch checked={f.extraBedAllowed} onChange={(e) => set('extraBedAllowed', e.target.checked)} label="Extra bed lag sakta hai" description="Har extra bed se ek banda zyada" />
+            {f.extraBedAllowed && <Input label="Extra bed fi raat" inputMode="decimal" value={f.extraBedPrice} onChange={(e) => set('extraBedPrice', moneyInput(e.target.value))} error={err('extraBed')} />}
+          </div>
+        </Card>
+
+        <Card title={<span className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-slate-400" />Sahulat</span>}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              {AMENITIES.map((a) => <Checkbox key={a.key} label={a.label} checked={!!f.flags[a.key]} onChange={(e) => set('flags', { ...f.flags, [a.key]: e.target.checked })} />)}
+            </div>
+            <div className="flex gap-2">
+              <Input wrapperClassName="flex-1" value={newAmenity} onChange={(e) => setNewAmenity(e.target.value)} placeholder="Aur: nashta, parking…"
+                onKeyDown={(e) => { if (e.key === 'Enter' && newAmenity.trim()) { e.preventDefault(); set('amenities', [...new Set([...f.amenities, newAmenity.trim()])]); setNewAmenity(''); } }} />
+              <Button variant="secondary" disabled={!newAmenity.trim()} onClick={() => { set('amenities', [...new Set([...f.amenities, newAmenity.trim()])]); setNewAmenity(''); }}>Jorein</Button>
+            </div>
+            {f.amenities.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {f.amenities.map((a) => <span key={a} className="inline-flex items-center gap-1 rounded-full bg-slate-100 py-0.5 pl-2.5 pr-1 text-[0.75rem]">{a}<button type="button" onClick={() => set('amenities', f.amenities.filter((x) => x !== a))} className="rounded-full p-0.5 hover:bg-slate-200" aria-label="Hatayein"><X className="h-3 w-3" /></button></span>)}
+              </div>
+            )}
+          </div>
         </Card>
 
         {!edit && (
-          <Card className="space-y-3 p-4 lg:col-span-2">
-            <h2 className="flex items-center gap-2 text-[0.9375rem] font-semibold text-slate-900"><Hash className="h-4 w-4 text-slate-400" />Room numbers</h2>
-            <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
-              <Input label="Is type ke room" value={roomsText} onChange={(e) => setRoomsText(e.target.value)} placeholder="101-110 ya 101, 102, 205" hint="Range (101-110) ya comma se. Baad me Room board → setup se bhi jor sakte hain." />
-              <Input label="Manzil" value={floor} onChange={(e) => setFloor(e.target.value)} placeholder="1" />
+          <Card className="lg:col-span-2" title={<span className="flex items-center gap-2"><Hash className="h-4 w-4 text-slate-400" />Room numbers</span>}>
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-[1fr_10rem]">
+                <Input label="Is type ke room" value={roomsText} onChange={(e) => setRoomsText(e.target.value)} placeholder="101-110 ya 101, 102, 205" hint="Range (101-110) ya comma se. Baad me Room board → setup se bhi jor sakte hain." />
+                <Input label="Manzil" value={floor} onChange={(e) => setFloor(e.target.value)} placeholder="1" />
+              </div>
+              {rooms.length > 0 && <p className="text-[0.8125rem] text-slate-700">{rooms.length} room banenge: <span className="font-semibold">{rooms.slice(0, 30).join(', ')}{rooms.length > 30 ? '…' : ''}</span></p>}
             </div>
-            {rooms.length > 0 && <p className="text-[0.8125rem] text-slate-700">{rooms.length} room banenge: <span className="font-semibold">{rooms.slice(0, 30).join(', ')}{rooms.length > 30 ? '…' : ''}</span></p>}
           </Card>
         )}
       </div>

@@ -5,7 +5,8 @@
  */
 
 import { AlertTriangle, ArrowRightLeft, ClipboardCheck, PackageX, TrendingDown } from 'lucide-react';
-import { Alert, Field, NumberInput, PageLink, SectionCard, StatPill, Toggle } from '../components/UI';
+import { Field, NumberInput, PageLink, SectionCard, Toggle } from '../components/SettingsBlocks';
+import { Badge, Alert } from '@/design-system/components';
 import { SyncedBadge } from '../components/SyncedBadge';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
@@ -21,7 +22,7 @@ export function InventorySection({ settings }: { settings: TenantSettings }) {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <SectionCard title="Kam stock" desc="Kab product 'kam' dikhe aur alert aaye" icon={TrendingDown} color="amber"
-          badge={<StatPill label="Had" value={low} tone="amber" />}>
+          badge={<Badge size="xs" variant="warning"><span className="opacity-70">Had</span>{low}</Badge>}>
           <Field label="Kam stock ki had" badge={<SyncedBadge />}
             hint="Naye products isi had se shuru hote hain; har product me alag had bhi rakh sakte hain. 0 = alert band.">
             <NumberInput value={draft.defaultLowStockAlert} onChange={(v) => set('defaultLowStockAlert', v)} min={0} suffix="units" />
@@ -32,12 +33,12 @@ export function InventorySection({ settings }: { settings: TenantSettings }) {
         </SectionCard>
 
         <SectionCard title="Minus stock" desc="Jab system me stock khatam ho magar shelf par maal ho" icon={PackageX} color="rose"
-          badge={<StatPill label="" value={draft.allowNegativeStock ? 'Chalu' : 'Band'} tone={draft.allowNegativeStock ? 'amber' : 'slate'} />}>
+          badge={<Badge size="xs" variant={draft.allowNegativeStock ? 'warning' : 'default'}>{draft.allowNegativeStock ? 'Chalu' : 'Band'}</Badge>}>
           <Toggle checked={draft.allowNegativeStock} onChange={(v) => set('allowNegativeStock', v)} icon={PackageX}
             label="Stock khatam hone par bhi bechein"
             desc="Stock minus me chala jayega; baad me Purchase ya stock adjust se theek karein" />
           {draft.allowNegativeStock && (
-            <Alert tone="amber" icon={AlertTriangle}>
+            <Alert className="mt-3" tone="warning" icon={<AlertTriangle className="h-4 w-4" />}>
               Har branch ka stock minus ho sakta hai. Minus stock wale products ko jaldi Purchase ya stock adjust se theek karein.
             </Alert>
           )}

@@ -18,6 +18,10 @@ import { isHexColor } from '../tokens/color';
 import { DEFAULT_BRAND_HEX } from '../tokens/presets';
 import { DEFAULT_LATIN_FONT, DEFAULT_URDU_FONT, type TextScale } from '../tokens/typography';
 import type { Density, PageWidth, Radius } from '../tokens/layout';
+import {
+  HERO_PATTERNS, HERO_SIZES, HERO_STATS_LAYOUTS, HERO_STYLES,
+  type HeroPattern, type HeroSize, type HeroStatsLayout, type HeroStyle,
+} from '../tokens/hero';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'roman_ur' | 'ur';
@@ -45,6 +49,11 @@ export interface Appearance {
   /** "high" darkens secondary text and lines for readability. */
   contrast: 'normal' | 'high';
   language: Language;
+  /** Page header (PageHero) look: style, background pattern, size and stats layout. */
+  heroStyle: HeroStyle;
+  heroPattern: HeroPattern;
+  heroSize: HeroSize;
+  heroStats: HeroStatsLayout;
 }
 
 export type AppearanceLayer = Partial<Appearance>;
@@ -64,6 +73,10 @@ export const DEFAULT_APPEARANCE: Appearance = {
   reduceMotion: false,
   contrast: 'normal',
   language: 'roman_ur',
+  heroStyle: 'modern',
+  heroPattern: 'dots',
+  heroSize: 'comfortable',
+  heroStats: 'inline',
 };
 
 export interface AppearanceLayers {
@@ -79,6 +92,14 @@ export interface ResolvedAppearance extends Appearance {
   accentHex: string;
 }
 
+/** Allowed values for the header fields; a value from a newer or older client is ignored. */
+const HERO_OPTIONS: Partial<Record<keyof Appearance, Record<string, unknown>>> = {
+  heroStyle: HERO_STYLES,
+  heroPattern: HERO_PATTERNS,
+  heroSize: HERO_SIZES,
+  heroStats: HERO_STATS_LAYOUTS,
+};
+
 /** Drops undefined/null values and anything that fails validation. */
 function clean(layer: AppearanceLayer | null | undefined): AppearanceLayer {
   if (!layer) return {};
@@ -86,6 +107,8 @@ function clean(layer: AppearanceLayer | null | undefined): AppearanceLayer {
   for (const [key, value] of Object.entries(layer) as [keyof Appearance, unknown][]) {
     if (value === undefined || value === null || value === '') continue;
     if (key === 'brandColor' && !isHexColor(value)) continue;
+    const allowed = HERO_OPTIONS[key];
+    if (allowed && !(typeof value === 'string' && Object.hasOwn(allowed, value))) continue;
     (out as Record<string, unknown>)[key] = value;
   }
   return out;

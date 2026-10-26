@@ -6,7 +6,8 @@
 
 import { Calendar, Clock, Coins, Globe2, Languages, MapPin, Sunrise } from 'lucide-react';
 import { cn } from '@core/lib/cn';
-import { Alert, ChoiceGroup, Field, SectionCard, Select, TextInput } from '../components/UI';
+import { ChoiceGroup, Field, SectionCard } from '../components/SettingsBlocks';
+import { Alert, Input, Select } from '@/design-system/components';
 import { SyncedBadge } from '../components/SyncedBadge';
 import { useAutoSave } from '../hooks/useAutoSave';
 import type { TenantSettings } from '../api/settings.api';
@@ -114,14 +115,10 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
 
       <SectionCard title="Currency" desc="Har Amount ke saath yahi nishani lagti hai" icon={Coins} color="amber">
         <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_10rem_minmax(0,1fr)]">
-          <Field label="Currency" badge={<SyncedBadge />} hint="Currency badalne se nishani khud badal jati hai.">
-            <Select value={draft.currency} onChange={setCurrency} options={CURRENCIES.map(({ value, label }) => ({ value, label }))} />
-          </Field>
-          <Field label="Nishani (symbol)" hint="Bill par Amount se pehle">
-            <TextInput value={draft.currencySymbol} onChange={(v) => set('currencySymbol', v)} placeholder="Rs" maxLength={5} />
-          </Field>
+          <Select label={<span className="inline-flex items-center gap-1.5">Currency<SyncedBadge /></span>} hint="Currency badalne se nishani khud badal jati hai." value={draft.currency ?? ''} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map(({ value, label }) => ({ value, label }))} />
+          <Input label="Nishani (symbol)" hint="Bill par Amount se pehle" value={draft.currencySymbol ?? ''} onChange={(e) => set('currencySymbol', e.target.value)} placeholder="Rs" maxLength={5} />
           <Field label="Aisa dikhega" hint="Bill aur reports me">
-            <div className="flex h-10 items-center rounded-xl bg-slate-50 px-3 text-sm font-semibold tabular-nums text-slate-900 ring-1 ring-slate-200">
+            <div className="flex h-10 items-center rounded-lg bg-slate-50 px-3 text-sm font-semibold tabular-nums text-slate-900 ring-1 ring-inset ring-slate-200">
               {draft.currencySymbol || 'Rs'} 1,234.50
             </div>
           </Field>
@@ -130,31 +127,20 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
 
       <SectionCard title="Time zone aur din" desc="Aaj kab shuru hota hai aur reports kis waqt ke mutabiq banti hain" icon={Globe2} color="sky">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Time zone" hint={`Store ka waqt abhi: ${nowIn(draft.timezone)}. Pakistan me Asia/Karachi rakhein.`}>
-            <Select value={draft.timezone} onChange={(v) => set('timezone', v)} options={TIMEZONES} />
-          </Field>
-          <Field label="Din kab shuru hota hai" hint="Raat der tak khulne wale store ke liye: is ghante se pehle ki Sale pichhle din me ginti hai.">
-            <Select value={String(startHour)} onChange={(v) => set('businessDayStartHour', Number(v))} options={DAY_START_HOURS} />
-          </Field>
+          <Select label="Time zone" hint={`Store ka waqt abhi: ${nowIn(draft.timezone)}. Pakistan me Asia/Karachi rakhein.`} value={draft.timezone ?? ''} onChange={(e) => set('timezone', e.target.value)} options={TIMEZONES} />
+          <Select label="Din kab shuru hota hai" hint="Raat der tak khulne wale store ke liye: is ghante se pehle ki Sale pichhle din me ginti hai." value={String(startHour)} onChange={(e) => set('businessDayStartHour', Number(e.target.value))} options={DAY_START_HOURS} />
         </div>
-        <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-sky-50 p-3 text-xs leading-relaxed text-sky-900 ring-1 ring-sky-100">
-          <Sunrise className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>
-            {startHour === 0
-              ? 'Aam hisaab — din raat 12 baje badalta hai.'
-              : `Store ka din ${hourLabel(startHour)} se agle din ${hourLabel(startHour)} tak chalta hai. Is waqt se pehle ki Sale pichhle din ki report me aati hai.`}
-          </p>
-        </div>
+        <Alert className="mt-4" tone="info" icon={<Sunrise className="h-4 w-4 text-blue-600" />}>
+          {startHour === 0
+            ? 'Aam hisaab — din raat 12 baje badalta hai.'
+            : `Store ka din ${hourLabel(startHour)} se agle din ${hourLabel(startHour)} tak chalta hai. Is waqt se pehle ki Sale pichhle din ki report me aati hai.`}
+        </Alert>
       </SectionCard>
 
       <SectionCard title="Store ke ghante" desc="Store kab khulta aur band hota hai, aur kin dinon me" icon={Clock} color="emerald">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Khulne ka waqt" badge={<SyncedBadge />} hint="Jis waqt store roz khulta hai">
-            <TextInput type="time" value={draft.openTime} onChange={(v) => set('openTime', v)} prefix={<Clock className="h-4 w-4" />} />
-          </Field>
-          <Field label="Band hone ka waqt" badge={<SyncedBadge />} hint="Raat 12 ke baad band hota hai to din ka aaghaz upar badlein.">
-            <TextInput type="time" value={draft.closeTime} onChange={(v) => set('closeTime', v)} prefix={<Clock className="h-4 w-4" />} />
-          </Field>
+          <Input label={<span className="inline-flex items-center gap-1.5">Khulne ka waqt<SyncedBadge /></span>} hint="Jis waqt store roz khulta hai" type="time" value={draft.openTime ?? ''} onChange={(e) => set('openTime', e.target.value)} leftIcon={<Clock className="h-4 w-4" />} />
+          <Input label={<span className="inline-flex items-center gap-1.5">Band hone ka waqt<SyncedBadge /></span>} hint="Raat 12 ke baad band hota hai to din ka aaghaz upar badlein." type="time" value={draft.closeTime ?? ''} onChange={(e) => set('closeTime', e.target.value)} leftIcon={<Clock className="h-4 w-4" />} />
         </div>
         <div className="mt-4">
           <Field label="Kis din khulta hai" badge={<SyncedBadge />} hint={`${days.length} din khula · jo din band hai us par dabayein.`}>
@@ -163,7 +149,7 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
                 const on = days.includes(d.value);
                 return (
                   <button key={d.value} type="button" onClick={() => toggleDay(d.value)} title={d.full} aria-pressed={on}
-                    className={cn('h-10 min-w-[3.25rem] rounded-xl px-3 text-sm font-semibold ring-1 transition active:scale-95',
+                    className={cn('h-10 min-w-[3.25rem] rounded-lg px-3 text-sm font-semibold ring-1 ring-inset transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-95',
                       on ? 'bg-brand-600 text-brand-fg ring-brand-600' : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-300')}>
                     {d.label}
                   </button>
@@ -174,7 +160,7 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
         </div>
       </SectionCard>
 
-      <Alert tone="blue" icon={MapPin}>
+      <Alert tone="info" icon={<MapPin className="h-4 w-4" />}>
         Time zone ghalat ho to Sales reports aur rozana report ka waqt ghalat aata hai. <Calendar className="inline h-3.5 w-3.5" /> Hafta kis din shuru hota hai, yeh "Reports & daily summary" me hai.
       </Alert>
     </div>

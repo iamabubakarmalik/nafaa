@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, ChefHat, ShoppingBag } from 'lucide-react';
-import { Card, Skeleton } from '@/design-system/components';
+import { Card, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { bakeryProductsApi } from '@industries/bakery/api/products.api';
 import type { ProfitPanelProps } from '../../config';
@@ -90,31 +90,31 @@ export function BakeryPanel({ filters, fmt }: ProfitPanelProps) {
         )}>
         {!shown.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">{onlyProblems ? 'Koi masla nahi — hisaab saaf hai' : 'Is period me koi sale nahi'}</p> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[46rem] text-[0.8125rem]">
-              <thead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">Cheez</th><th className="px-3 py-2 text-right">Biki</th><th className="px-3 py-2 text-right">Ausat rate</th><th className="px-3 py-2 text-right">Bill ki cost</th><th className="px-3 py-2 text-right">Recipe ki cost</th><th className="px-3 py-2 text-right">Profit</th><th className="px-4 py-2 text-right">Recipe se profit</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table minWidth="46rem" className="[&>table]:text-[0.8125rem]">
+              <THead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-4 py-2">Cheez</Th><Th className="px-3 py-2 text-right">Biki</Th><Th className="px-3 py-2 text-right">Ausat rate</Th><Th className="px-3 py-2 text-right">Bill ki cost</Th><Th className="px-3 py-2 text-right">Recipe ki cost</Th><Th className="px-3 py-2 text-right">Profit</Th><Th className="px-4 py-2 text-right">Recipe se profit</Th></Tr>
+              </THead>
+              <TBody className="divide-y divide-slate-100">
                 {shown.map((r) => (
-                  <tr key={r.key}>
-                    <td className="px-4 py-2">
+                  <Tr key={r.key}>
+                    <Td className="text-inherit px-4 py-2">
                       <span className="block font-medium text-slate-900">{r.name}</span>
                       <span className="text-[0.6875rem] text-slate-500">{r.isMade ? 'Dukaan me banta hai' : 'Bahar se aata hai'}{r.noCost ? ' · cost nahi bhari' : ''}</span>
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{qty(r.qty)} {r.unit}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{fmt.money(r.avgPrice)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{fmt.cost(r.avgCost ?? 0)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">
+                    </Td>
+                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{qty(r.qty)} {r.unit}</Td>
+                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{fmt.money(r.avgPrice)}</Td>
+                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">{fmt.cost(r.avgCost ?? 0)}</Td>
+                    <Td className="text-inherit px-3 py-2 text-right tabular-nums">
                       {r.recipeCost === undefined ? <Link to="/bakery/products" className="text-brand-700 hover:underline">Recipe bharein</Link> : (
                         <span className={cn(r.gap > 0 && 'font-semibold text-rose-700', r.gap < 0 && 'text-emerald-700')}>{fmt.cost(r.recipeCost)}{r.gap ? ` (${r.gap > 0 ? '+' : ''}${fmt.cost(r.gap)})` : ''}</span>
                       )}
-                    </td>
-                    <td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (r.profit ?? 0) < 0 && 'text-rose-700')}>{fmt.cost(r.profit ?? 0)}<span className="block text-[0.6875rem] font-normal text-slate-400">{pct(r.margin)}</span></td>
-                    <td className={cn('px-4 py-2 text-right font-semibold tabular-nums', r.recipeProfit < 0 && 'text-rose-700')}>{fmt.cost(r.recipeProfit)}</td>
-                  </tr>
+                    </Td>
+                    <Td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (r.profit ?? 0) < 0 && 'text-rose-700')}>{fmt.cost(r.profit ?? 0)}<span className="block text-[0.6875rem] font-normal text-slate-400">{pct(r.margin)}</span></Td>
+                    <Td className={cn('px-4 py-2 text-right font-semibold tabular-nums', r.recipeProfit < 0 && 'text-rose-700')}>{fmt.cost(r.recipeProfit)}</Td>
+                  </Tr>
                 ))}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         )}
       </Card>

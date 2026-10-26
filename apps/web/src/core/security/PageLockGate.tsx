@@ -1,29 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Lock, Unlock, Shield, HelpCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { Lock, Unlock, Shield, HelpCircle, ArrowLeft } from 'lucide-react';
+import { Button, controlClass } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { toast } from 'sonner';
 import { usePrivacyStore } from '../stores/privacy.store';
 import { ForgotPinModal } from './HiddenValue';
 
-/* ═════════════════════════════════════════════════════════════
-   PAGE LOCK — malik jo safha chahe, band kar de
-   ─────────────────────────────────────────────────────────────
-   Pehle sirf khata ka safha lock ho sakta tha, aur wo bhi ek
-   alag localStorage wale PIN se. Malik chahta tha ke reports,
-   kharch, profit — jo bhi wo samjhe — us par bhi PIN lage.
+/* Page lock: the owner picks which pages need the PIN.
+   The owner selects pages in Settings; the shop's single server-side PIN
+   opens them. After one correct PIN every locked page stays open for the
+   configured number of minutes, so the PIN is not asked on each page. */
 
-   Ab malik Settings me se safhe chunta hai. Wohi EK PIN (jo
-   server par hai) unhein kholta hai. Ek dafa PIN daalne par
-   muqarrar der tak sab lock safhe khule rehte hain — har safhe
-   par baar baar PIN nahi maanga jata.
-   ═════════════════════════════════════════════════════════════ */
-
-/** Kya ye raasta malik ne lock kiya hua hai */
+/** Whether the owner has locked this path. */
 function isLocked(pathname: string, lockedRoutes: string[]) {
   return lockedRoutes.some((r) => {
     if (!r) return false;
-    // "/reports" lock karne par "/reports/profit" bhi lock —
-    // warna andar ka safha seedha khul jata aur lock be-maani hota.
+    // Locking "/reports" also locks "/reports/profit"; otherwise a nested
+    // page would open directly and the lock would mean nothing.
     return pathname === r || pathname.startsWith(r.endsWith('/') ? r : `${r}/`);
   });
 }
@@ -42,14 +36,14 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
     isLocked(location.pathname, store.lockedRoutes) &&
     !store.isUnlocked();
 
-  // Waqt khatam hote hi safha khud dobara band ho jaye
+  // Re-lock the page as soon as the unlock window ends.
   useEffect(() => {
     if (!store.unlockedUntil || store.unlockedUntil <= Date.now()) return;
     const t = setTimeout(() => tick((n) => n + 1), store.unlockedUntil - Date.now() + 100);
     return () => clearTimeout(t);
   }, [store.unlockedUntil]);
 
-  // Naya safha khulte hi purani ghalti ka paighaam saaf
+  // Clear the previous error when another page opens.
   useEffect(() => { setPin(''); setError(''); }, [location.pathname]);
 
   if (!locked) return <>{children}</>;
@@ -77,53 +71,45 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-2xl overflow-hidden">
-        <div className="relative bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 text-white p-6 sm:p-8 text-center overflow-hidden">
-          <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-sky-400/25 blur-3xl" />
+    <div className="flex min-h-[70vh] items-center justify-center p-4">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
+        <div className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-6 text-center text-white sm:p-8">
+          <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-white/10 blur-3xl" aria-hidden />
           <div className="relative">
-            <div className="h-20 w-20 rounded-3xl bg-white/15 backdrop-blur mx-auto flex items-center justify-center border-2 border-white/25 shadow-xl">
-              <Lock className="h-10 w-10" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
+              <Lock className="h-8 w-8" />
             </div>
-            <h2 className="mt-4 text-2xl font-black">🔒 Ye Safha Lock Hai</h2>
-            <p className="mt-1 text-sm font-bold text-white/85">
-              Malik ne is safhe par PIN laga rakha hai
-            </p>
-            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[0.6875rem] font-extrabold border border-white/25">
-              <Shield className="h-3 w-3 text-emerald-300" />
+            <h2 className="mt-4 text-xl font-bold">Ye safha lock hai</h2>
+            <p className="mt-1 text-[0.8125rem] text-white/80">Malik ne is safhe par PIN laga rakha hai</p>
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[0.6875rem] font-medium ring-1 ring-white/20">
+              <Shield className="h-3 w-3" />
               <span className="font-mono">{location.pathname}</span>
             </div>
           </div>
         </div>
 
-        <div className="p-5 sm:p-6 space-y-4">
+        <div className="space-y-4 p-5 sm:p-6">
           <input
             autoFocus type="password" inputMode="numeric" maxLength={8} value={pin}
             onChange={(e) => { setPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder="••••"
-            className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 text-3xl font-extrabold text-center tracking-[0.4em] tabular-nums focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-200 dark:focus:ring-sky-500/30"
+            aria-label="PIN"
+            className={cn(controlClass(Boolean(error)), 'h-14 px-4 text-center text-2xl font-bold tabular-nums tracking-[0.4em]')}
           />
-          {error && <p className="text-xs font-extrabold text-rose-600 text-center">{error}</p>}
+          {error && <p role="alert" className="text-center text-xs font-medium text-rose-600">{error}</p>}
 
-          <button onClick={submit} disabled={busy || pin.length < 4}
-            className="w-full h-14 rounded-2xl bg-gradient-to-r from-sky-600 to-cyan-700 hover:from-sky-700 hover:to-cyan-800 active:scale-[0.98] text-white font-black text-lg shadow-lg transition disabled:opacity-50 inline-flex items-center justify-center gap-2">
-            {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Unlock className="h-5 w-5" />} Kholein
-          </button>
+          <Button size="xl" fullWidth onClick={submit} loading={busy} disabled={pin.length < 4} leftIcon={<Unlock className="h-5 w-5" />}>
+            Kholein
+          </Button>
 
-          <p className="text-center text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
+          <p className="text-center text-[0.75rem] text-slate-500">
             Ek dafa PIN daalne par {store.unlockMinutes} minute tak saray lock safhe khule rahenge
           </p>
 
-          <div className="flex items-center gap-2">
-            <button onClick={() => window.history.back()}
-              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
-              <ArrowLeft className="h-3.5 w-3.5" /> Wapas
-            </button>
-            <button onClick={() => setForgot(true)}
-              className="flex-1 h-11 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
-              <HelpCircle className="h-3.5 w-3.5" /> PIN bhool gaye?
-            </button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => window.history.back()} leftIcon={<ArrowLeft className="h-4 w-4" />}>Wapas</Button>
+            <Button variant="ghost" className="text-amber-700" onClick={() => setForgot(true)} leftIcon={<HelpCircle className="h-4 w-4" />}>PIN bhool gaye?</Button>
           </div>
         </div>
       </div>

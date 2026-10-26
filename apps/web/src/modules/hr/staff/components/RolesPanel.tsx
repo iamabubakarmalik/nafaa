@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Check, Minus, Plus, Search, ShieldCheck } from 'lucide-react';
-import { Avatar, Card, Skeleton } from '@/design-system/components';
+import { Avatar, Card, Input, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { teamApi } from '@modules/organization/team/api/team.api';
 import type { DirectoryPerson } from '../api/people.api';
@@ -64,47 +64,43 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
         title={<span className="inline-flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-brand-600" />Har role ko shuru me kya milta hai</span>}
         description="Naya login banate waqt role yeh nishan laga deta hai. Baad me har bande ki apni list hoti hai — role badalne se permission khud nahi badalti."
         actions={
-          <label className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-44 rounded-xl border border-slate-200 bg-white pl-8 pr-2 text-sm outline-none focus:border-brand-500" />
-          </label>
+          <Input size="sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" aria-label="Permission search karein"
+            leftIcon={<Search className="h-4 w-4" />} wrapperClassName="w-44" />
         }>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[34rem] text-[0.8125rem]">
-            <thead>
-              <tr className="border-b border-slate-200 text-left text-[0.75rem] text-slate-500">
-                <th className="px-4 py-2 font-medium">Permission</th>
-                {ASSIGNABLE.map((r) => <th key={r} className="w-24 px-2 py-2 text-center font-semibold" style={{ color: ROLES[r].color }}>{ROLES[r].label}</th>)}
-                <th className="w-20 px-2 py-2 text-center font-semibold" style={{ color: ROLES.OWNER.color }}>Malik</th>
-              </tr>
-            </thead>
-            {groups.map((g) => {
-              const rows = (g.permissions as string[]).filter((p) => !needle || `${p} ${permText(p).join(' ')}`.toLowerCase().includes(needle));
-              if (!rows.length) return null;
-              return (
-                <tbody key={g.title}>
-                  <tr className="bg-slate-50"><td colSpan={5} className="px-4 py-1.5 text-[0.75rem] font-semibold text-slate-700">{g.emoji} {g.title}</td></tr>
-                  {rows.map((p) => {
-                    const [label, hint] = permText(p);
-                    return (
-                      <tr key={p} className="border-b border-slate-100 last:border-0">
-                        <td className="px-4 py-1.5"><span className="font-medium text-slate-800">{label}</span>{hint && <span className="block text-[0.6875rem] text-slate-500">{hint}</span>}</td>
-                        {ASSIGNABLE.map((r) => (
-                          <td key={r} className="px-2 text-center">
-                            {(defaults[r] ?? []).includes(p)
-                              ? <Check className="mx-auto h-4 w-4" style={{ color: ROLES[r].color }} aria-label="Haan" />
-                              : <Minus className="mx-auto h-4 w-4 text-slate-300" aria-label="Nahi" />}
-                          </td>
-                        ))}
-                        <td className="px-2 text-center"><Check className="mx-auto h-4 w-4 text-amber-500" aria-label="Haan" /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              );
-            })}
-          </table>
-        </div>
+        <Table minWidth="34rem" className="[&_table]:text-[0.8125rem]">
+          <THead>
+            <Tr>
+              <Th className="px-4 py-2">Permission</Th>
+              {ASSIGNABLE.map((r) => <Th key={r} className="w-24 px-2 py-2 text-center font-semibold" style={{ color: ROLES[r].color }}>{ROLES[r].label}</Th>)}
+              <Th className="w-20 px-2 py-2 text-center font-semibold" style={{ color: ROLES.OWNER.color }}>Malik</Th>
+            </Tr>
+          </THead>
+          {groups.map((g) => {
+            const rows = (g.permissions as string[]).filter((p) => !needle || `${p} ${permText(p).join(' ')}`.toLowerCase().includes(needle));
+            if (!rows.length) return null;
+            return (
+              <TBody key={g.title}>
+                <Tr className="bg-slate-50"><Td colSpan={5} className="px-4 py-1.5 text-[0.75rem] font-semibold text-slate-700">{g.emoji} {g.title}</Td></Tr>
+                {rows.map((p) => {
+                  const [label, hint] = permText(p);
+                  return (
+                    <Tr key={p}>
+                      <Td className="px-4 py-1.5"><span className="font-medium text-slate-800">{label}</span>{hint && <span className="block text-[0.6875rem] text-slate-500">{hint}</span>}</Td>
+                      {ASSIGNABLE.map((r) => (
+                        <Td key={r} className="px-2 py-1.5 text-center">
+                          {(defaults[r] ?? []).includes(p)
+                            ? <Check className="mx-auto h-4 w-4" style={{ color: ROLES[r].color }} aria-label="Haan" />
+                            : <Minus className="mx-auto h-4 w-4 text-slate-300" aria-label="Nahi" />}
+                        </Td>
+                      ))}
+                      <Td className="px-2 py-1.5 text-center"><Check className="mx-auto h-4 w-4 text-amber-500" aria-label="Haan" /></Td>
+                    </Tr>
+                  );
+                })}
+              </TBody>
+            );
+          })}
+        </Table>
       </Card>
 
       <Card className="rounded-2xl" title="Role se alag permission wale log" description="In logon ki apni list un ke role se mukhtalif hai. Theek hai to rehne dein; ghalti se hai to profile kholein.">
@@ -113,7 +109,7 @@ export function RolesPanel({ people, canSeeLogins, onRole }: { people: Directory
         ) : teamQ.isLoading ? (
           <div className="space-y-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-12 rounded-xl" />)}</div>
         ) : !differs.length ? (
-          <p className="text-sm text-emerald-700">Sab ki permission bilkul un ke role jaisi hai.</p>
+          <p className="text-sm text-success-700">Sab ki permission bilkul un ke role jaisi hai.</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {differs.map(({ m, extra, missing, person }) => (

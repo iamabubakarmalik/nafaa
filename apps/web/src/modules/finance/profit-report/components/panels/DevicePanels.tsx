@@ -9,7 +9,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Barcode, Cable, RefreshCw, Smartphone, Wrench, type LucideIcon } from 'lucide-react';
-import { Card, Segmented, Skeleton } from '@/design-system/components';
+import { Card, Segmented, Skeleton, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useShopParam } from '@core/stores/auth.store';
 import { CATEGORY_META, CONDITION_META, type CategoryType, type ConditionType } from '@industries/electronics/constants';
@@ -75,27 +75,27 @@ function UnitsSection({ filters, fmt, kinds, otherLabel, title }: ProfitPanelPro
         {q.isLoading ? <div className="space-y-2 p-4">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)}</div>
           : !q.data?.items.length ? <p className="px-4 py-10 text-center text-[0.875rem] text-slate-500">Is period me koi IMEI ya serial wala unit nahi bika</p> : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[44rem] text-[0.8125rem]">
-              <thead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <tr><th className="px-4 py-2">Unit</th><th className="px-3 py-2">IMEI / serial</th><th className="px-3 py-2">Bill</th><th className="px-3 py-2 text-right">Bika</th><th className="px-3 py-2 text-right">Cost</th><th className="px-3 py-2 text-right">Profit</th><th className="px-4 py-2 text-right">Margin</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+            <Table minWidth="44rem" className="[&>table]:text-[0.8125rem]">
+              <THead className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+                <Tr><Th className="px-4 py-2">Unit</Th><Th className="px-3 py-2">IMEI / serial</Th><Th className="px-3 py-2">Bill</Th><Th className="px-3 py-2 text-right">Bika</Th><Th className="px-3 py-2 text-right">Cost</Th><Th className="px-3 py-2 text-right">Profit</Th><Th className="px-4 py-2 text-right">Margin</Th></Tr>
+              </THead>
+              <TBody className="divide-y divide-slate-100">
                 {q.data.items.map((u) => (
-                  <tr key={u.id} className={cn(u.returned && 'opacity-60')}>
-                    <td className="px-4 py-2">
+                  <Tr key={u.id} className={cn(u.returned && 'opacity-60')}>
+                    <Td className="text-inherit px-4 py-2">
                       <span className="block font-medium text-slate-900">{u.name}{u.variant ? ` · ${u.variant}` : ''}</span>
                       <span className="text-[0.6875rem] text-slate-500">{KIND_META[u.kind]?.label}{u.returned ? ' · wapas aa gaya' : ''}{!fmt.costHidden && u.costFallback ? ' · aaj ki cost' : ''}</span>
-                    </td>
-                    <td className="px-3 py-2 font-mono text-[0.75rem] text-slate-700">{u.imei ?? u.serial ?? '—'}{u.imei && u.serial ? <span className="block text-slate-400">{u.serial}</span> : null}</td>
-                    <td className="px-3 py-2 text-slate-600">{u.saleNumber}<span className="block text-[0.6875rem] text-slate-400">{new Date(u.soldAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}</span></td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-900">{fmt.money(u.revenue)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600">{fmt.cost(u.cost ?? 0)}</td>
-                    <td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (u.profit ?? 0) < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(u.profit ?? 0)}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-slate-600">{fmt.costHidden ? '••' : pct(u.margin)}</td>
-                  </tr>
+                    </Td>
+                    <Td className="px-3 py-2 font-mono text-[0.75rem] text-slate-700">{u.imei ?? u.serial ?? '—'}{u.imei && u.serial ? <span className="block text-slate-400">{u.serial}</span> : null}</Td>
+                    <Td className="px-3 py-2 text-slate-600">{u.saleNumber}<span className="block text-[0.6875rem] text-slate-400">{new Date(u.soldAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })}</span></Td>
+                    <Td className="px-3 py-2 text-right tabular-nums text-slate-900">{fmt.money(u.revenue)}</Td>
+                    <Td className="px-3 py-2 text-right tabular-nums text-slate-600">{fmt.cost(u.cost ?? 0)}</Td>
+                    <Td className={cn('px-3 py-2 text-right font-semibold tabular-nums', (u.profit ?? 0) < 0 && !fmt.costHidden ? 'text-rose-700' : 'text-slate-900')}>{fmt.cost(u.profit ?? 0)}</Td>
+                    <Td className="px-4 py-2 text-right tabular-nums text-slate-600">{fmt.costHidden ? '••' : pct(u.margin)}</Td>
+                  </Tr>
                 ))}
-              </tbody>
-            </table>
+              </TBody>
+            </Table>
           </div>
         )}
       </Card>

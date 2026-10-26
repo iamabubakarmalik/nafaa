@@ -14,10 +14,10 @@ import { toast } from 'sonner';
 import {
   ArrowDownWideNarrow, Ban, BarChart3, BookOpen, CalendarRange, CheckCircle2, CloudOff, Download, FileDown, GraduationCap,
   ListChecks, ListFilter, MousePointerClick, Package, RotateCcw, ScanLine, Search, Settings2, ShoppingCart, Sparkles,
-  Trophy, UserRound, Wallet, type LucideIcon,
+  Tag, Trophy, UserRound, Wallet, type LucideIcon,
 } from 'lucide-react';
 import {
-  Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  Badge, Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
   heroButton, heroIconButton, type FilterOption,
 } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
@@ -35,7 +35,10 @@ import { ReturnModal } from '@modules/sales/returns/components/ReturnModal';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { PAYMENT_COLORS } from '@modules/dashboard/engine/useChartTheme';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
-import { salesHistoryApi, type HistorySale, type HistorySort, type HistoryStatus } from './api';
+import { salesHistoryApi, type BillTier, type HistorySale, type HistorySort, type HistoryStatus, type HistoryTierTotals } from './api';
+import { PRICE_TIERS } from '@core/lib/priceTiers';
+import { usePriceTierSettings } from '@modules/pos/lib/usePriceTierSettings';
+import { BILL_TIER_LABEL, billTierVariant } from './components/PriceTierBadge';
 import { DATE_PRESETS, rangeLabel } from '@core/lib/dateRange';
 import { fetchAllSales, salesCsv, salesDoc } from './exportSales';
 import { useSalesAnalytics, useSalesHistory } from './useSalesHistory';
@@ -63,10 +66,19 @@ const SORTS: Array<FilterOption<HistorySort>> = [
   { value: 'high', label: 'Bari amount pehle' }, { value: 'low', label: 'Chhoti amount pehle' },
 ];
 
+const TIER_FILTERS: Array<FilterOption<BillTier | 'all'>> = [
+  { value: 'all', label: 'Har price' },
+  { value: 'RETAIL', label: 'Retail', hint: 'Sab cheezein retail price par' },
+  { value: 'WHOLESALE', label: 'Wholesale', hint: 'Sab cheezein wholesale price par' },
+  { value: 'CREDIT', label: 'Credit', hint: 'Sab cheezein udhaar (credit) price par' },
+  { value: 'MIXED', label: 'Mixed', hint: 'Ek bill me alag alag price' },
+];
+
 const noExtras = () => () => null;
 
 export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
   const h = useSalesHistory();
+  const tierSettings = usePriceTierSettings();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { sales: money, cost, costHidden, salesHidden } = useMasked();
@@ -228,6 +240,8 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
         )}
       </KpiRow>
 
+      {h.tiers && <TierStrip tiers={h.tiers} money={money} active={h.tier} onPick={(t) => h.setTier(h.tier === t ? undefined : t)} />}
+
       {/* Filters */}
       <FilterBar
         search={<SearchField ref={searchRef} value={h.search} onChange={h.setSearch}
@@ -236,6 +250,7 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
         chips={h.hasFilters ? <>
           {h.method && <FilterChip onRemove={() => h.setMethod(undefined)}>{POS_PAYMENT_METHODS.find((m) => m.id === h.method)?.label ?? h.method}</FilterChip>}
           {h.status !== 'all' && <FilterChip onRemove={() => h.setStatus('all')}>{STATUSES.find((x) => x.value === h.status)?.label}</FilterChip>}
+          {h.tier && <FilterChip onRemove={() => h.setTier(undefined)}>{BILL_TIER_LABEL[h.tier]} bill</FilterChip>}
           {h.staffId && <FilterChip onRemove={() => h.setStaffId(undefined)}>{team.find((m) => m.id === h.staffId)?.fullName ?? 'Staff'}</FilterChip>}
           {h.search.trim() && <FilterChip onRemove={() => h.setSearch('')}>"{h.search.trim()}"</FilterChip>}
         </> : undefined}
@@ -259,6 +274,10 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
             options={[{ value: 'all', label: 'Har payment' }, ...POS_PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label, icon: m.icon, color: PAYMENT_COLORS[m.id] }))]}
             onChange={(v) => h.setMethod(v === 'all' ? undefined : (v as PaymentMethod))} />
           <FilterMenu icon={ListFilter} label="Bill" value={h.status} active={h.status !== 'all'} options={STATUSES} onChange={h.setStatus} />
+          {(tierSettings.on || !!h.tiers || !!h.tier) && (
+            <FilterMenu icon={Tag} label="Price" value={h.tier ?? 'all'} active={!!h.tier} options={TIER_FILTERS}
+              onChange={(v) => h.setTier(v === 'all' ? undefined : v)} />
+          )}
           {team.length > 1 && (
             <FilterMenu icon={UserRound} label="Staff" value={h.staffId ?? 'all'} active={!!h.staffId}
               options={[{ value: 'all', label: 'Sab staff' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]}
@@ -317,6 +336,40 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
         </div>
       )}
     </PageShell>
+  );
+}
+
+/**
+ * Bills and money per price tier for the period. Bill counts match the tier
+ * filter (a mixed bill counts once, as mixed); money is the sum of line totals
+ * (net of line discount) at each tier, so a mixed bill's lines add to every
+ * tier they used. Shown only when the period has a wholesale or credit line.
+ */
+function TierStrip({ tiers, money, active, onPick }: {
+  tiers: HistoryTierTotals;
+  money: (n: number) => string;
+  active?: BillTier;
+  onPick: (t: BillTier) => void;
+}) {
+  const cells: Array<{ tier: BillTier; bills: number; total?: number }> = [
+    ...PRICE_TIERS.filter((t) => tiers[t].bills > 0).map((t) => ({ tier: t as BillTier, bills: tiers[t].bills, total: tiers[t].total })),
+    ...(tiers.mixedBills > 0 ? [{ tier: 'MIXED' as BillTier, bills: tiers.mixedBills }] : []),
+  ];
+  return (
+    <div className="flex flex-wrap gap-2" role="group" aria-label="Price ke hisaab se sale">
+      {cells.map((c) => (
+        <button key={c.tier} type="button" onClick={() => onPick(c.tier)} aria-pressed={active === c.tier}
+          title={c.tier === 'MIXED' ? 'Jin bills me alag alag price lagi' : `Is price par biki cheezon ki raqam`}
+          className={cn('flex min-w-0 flex-1 basis-[9.5rem] items-center justify-between gap-2 rounded-2xl bg-white px-3.5 py-2.5 text-left ring-1 transition hover:bg-slate-50',
+            active === c.tier ? 'ring-2 ring-brand-500' : 'ring-slate-200/80')}>
+          <span className="flex min-w-0 flex-col gap-1">
+            <Badge size="xs" variant={billTierVariant(c.tier)} className="self-start">{BILL_TIER_LABEL[c.tier]}</Badge>
+            <span className="text-[0.75rem] text-slate-500">{c.bills} bill</span>
+          </span>
+          {c.total != null && <span className="truncate text-[0.9375rem] font-bold tabular-nums text-slate-900">{money(c.total)}</span>}
+        </button>
+      ))}
+    </div>
   );
 }
 

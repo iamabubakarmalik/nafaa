@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import {
   ArrowRight, Copy, Download, Eye, FileText, GraduationCap, Layers, Palette, Printer, Receipt, ScrollText, Store, Unplug, Usb, Zap,
 } from 'lucide-react';
-import { Badge, Button, IconButton, Segmented, ViewTabs } from '@/design-system/components';
+import { Badge, Button, IconButton, Segmented, ViewTabs, Input } from '@/design-system/components';
 import { useAppearance } from '@/design-system';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { usePermission } from '@core/hooks/usePermission';
@@ -35,7 +35,7 @@ import { RECEIPT_SETUP_KEY, devicePaper, getReceiptSetup, receiptSetupApi, setDe
 import type { ReceiptDesign, ReceiptPaper } from '@core/receipt/types';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
-import { ChoiceGroup, Field, SectionCard, TextInput, Toggle } from '@modules/organization/settings/components/UI';
+import { ChoiceGroup, Field, SectionCard, Toggle } from '@modules/organization/settings/components/SettingsBlocks';
 import { renderHtml } from './render';
 import { printDoc, renderContext } from './printDoc';
 import { usePrintSettings, type ColorMode } from './settings';
@@ -338,9 +338,7 @@ function ReportsTab({ direct, printer }: { direct: boolean; printer: { ready: bo
           <Toggle label="Phone" desc={biz.phone ?? 'Phone set nahi'} checked={s.showPhone} onChange={(v) => s.set({ showPhone: v })} />
           <Toggle label="Kab aur kis ne print kiya" desc="Neeche chhota sa likha aata hai" checked={s.showStamp} onChange={(v) => s.set({ showStamp: v })} />
           <div className="mt-2">
-            <Field label="Footer line" hint="Har report ke neeche — khali chhor dein to kuch nahi aayega">
-              <TextInput value={s.footerNote} onChange={(v) => s.set({ footerNote: v })} maxLength={120} placeholder="Maslan: Shukriya! Dobara tashreef layein" />
-            </Field>
+            <Input label="Footer line" hint="Har report ke neeche — khali chhor dein to kuch nahi aayega" value={s.footerNote ?? ''} onChange={(e) => s.set({ footerNote: e.target.value })} maxLength={120} placeholder="Maslan: Shukriya! Dobara tashreef layein" />
           </div>
         </SectionCard>
 

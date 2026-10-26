@@ -4,6 +4,7 @@ import { Ban, Building2, CalendarDays, Clock, Flame, Globe, TrendingUp, UserRoun
 import { PAYMENT_COLORS, PAYMENT_LABELS, useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { SalesReport } from '../api';
 import { BarList, Bars, DataTable, Donut, Empty, Heatmap, Panel, TrendChart, WEEKDAYS, type Formatter } from './parts';
+import { PriceTierSplit } from './PriceTierSplit';
 
 export const SOURCE_LABEL: Record<string, string> = { POS: 'Counter', WEBSITE: 'Website', DARAZ: 'Daraz', FOODPANDA: 'Foodpanda', SHOPIFY: 'Shopify', MARKETPLACE: 'Marketplace' };
 
@@ -21,6 +22,8 @@ export function SalesSection({ data: d, f }: { data: SalesReport; f: Formatter }
             series={[{ key: 'net', label: 'Sale', color: theme.primary, fmt: 'money' }, ...(showProfit ? [{ key: 'profit', label: 'Profit', color: theme.profit, fmt: 'cost' as const }] : [])]} />
         )}
       </Panel>
+
+      <PriceTierSplit split={d.priceTiers} f={f} showProfit={showProfit} />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Panel icon={Wallet} title="Paisa kaise aaya" hint="Bill ka payment tareeqa">

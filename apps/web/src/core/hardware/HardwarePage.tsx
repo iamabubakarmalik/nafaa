@@ -19,7 +19,7 @@ import {
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { HeaderActions } from '@modules/organization/settings/components/SettingsFrame';
-import { Field, SectionCard, Toggle } from '@modules/organization/settings/components/UI';
+import { Field, SectionCard, Toggle } from '@modules/organization/settings/components/SettingsBlocks';
 import { isElectron } from '@core/lib/desktop/electron';
 import { usePrinterStore } from '@core/lib/desktop/printerStore';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';

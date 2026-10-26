@@ -8,6 +8,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { ProfitReport, ProfitSummary } from '../api';
 import { DataTable, Delta, Panel, keyLabel, type Formatter } from './parts';
+import { PriceTierSplit } from './PriceTierSplit';
 
 /** `part` lines show what an amount above already holds; they are left out at zero. */
 type Line = { label: string; key: keyof ProfitSummary; sign?: '-' | '='; cost?: boolean; up?: 'good' | 'bad'; part?: boolean };
@@ -77,6 +78,7 @@ export function ProfitSection({ data: d, f, compare }: { data: ProfitReport; f: 
           </div>
         </Panel>
       </div>
+      <PriceTierSplit split={d.priceTiers} f={f} showProfit={showCost} />
       <Panel icon={BarChart3} title="Details">
         <DataTable rows={[...d.rows].reverse().filter((r) => r.sales || r.expenses)} rowKey={(r) => r.key} empty="Is period me kuch nahi" columns={[
           { label: d.grouping === 'month' ? 'Mahina' : 'Din', render: (r) => keyLabel(r.key) },

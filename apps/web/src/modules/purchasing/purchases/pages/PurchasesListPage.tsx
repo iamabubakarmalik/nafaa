@@ -30,7 +30,7 @@ import { purchasesApi, type PurchaseListQuery, type PurchaseListRow, type Purcha
 export const STATUS: Record<PurchaseStatus, { label: string; tone: string }> = {
   PENDING: { label: 'Order — maal nahi aaya', tone: 'bg-blue-50 text-blue-700 ring-blue-200' },
   PARTIAL: { label: 'Aadha aaya', tone: 'bg-amber-50 text-amber-800 ring-amber-200' },
-  RECEIVED: { label: 'Aa gaya', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  RECEIVED: { label: 'Aa gaya', tone: 'bg-success-50 text-success-700 ring-success-200' },
   CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-500 ring-slate-200' },
 };
 
@@ -227,7 +227,7 @@ function Row({ p, money }: { p: PurchaseListRow; money: (n: number) => string })
         <div className="text-right">
           <p className="text-lg font-bold tabular-nums text-slate-900">{money(value)}</p>
           {p.status !== 'PENDING' && p.status !== 'CANCELLED' && (
-            <p className={cn('text-[0.75rem] tabular-nums', credit > 0 ? 'text-rose-600' : 'text-emerald-600')}>{credit > 0 ? `Udhaar ${money(credit)}` : 'Poora diya'}</p>
+            <p className={cn('text-[0.75rem] tabular-nums', credit > 0 ? 'text-rose-600' : 'text-success-600')}>{credit > 0 ? `Udhaar ${money(credit)}` : 'Poora diya'}</p>
           )}
         </div>
         <ArrowRight className="hidden h-4 w-4 text-slate-300 transition group-hover:text-slate-500 sm:block" />

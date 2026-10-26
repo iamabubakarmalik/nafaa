@@ -76,7 +76,7 @@ export function oldestUnpaid(entries: Array<{ amount: number; createdAt: Date }>
 interface Row {
   id: string; name: string; phone: string | null; email: string | null; cnic: string | null; city: string | null; area: string | null;
   gender: string | null; dateOfBirth: Date | null; avatarUrl: string | null; creditLimit: number; totalBalance: number; loyaltyPoints: number;
-  isActive: boolean; isVip: boolean; createdAt: Date; shopId: string | null;
+  isActive: boolean; isVip: boolean; createdAt: Date; shopId: string | null; priceTier: string | null;
   balance: number; visits: number; spent: number; lastSaleAt: Date | null; firstSaleAt: Date | null; oldestDueAt: Date | null;
   periodVisits: number; periodSpent: number; periodCredit: number; periodPaid: number;
 }
@@ -118,7 +118,7 @@ export class CustomerDirectoryService {
         where: { tenantId },
         select: {
           id: true, name: true, phone: true, email: true, cnic: true, city: true, area: true, gender: true, dateOfBirth: true, avatarUrl: true,
-          creditLimit: true, balance: true, loyaltyPoints: true, isActive: true, isVip: true, createdAt: true, shopId: true,
+          creditLimit: true, balance: true, loyaltyPoints: true, isActive: true, isVip: true, createdAt: true, shopId: true, priceTier: true,
         },
       }),
       this.prisma.sale.groupBy({
@@ -237,7 +237,7 @@ export class CustomerDirectoryService {
     const out = (r: Row) => ({
       id: r.id, name: r.name, phone: r.phone, email: r.email, cnic: r.cnic, city: r.city, area: r.area, gender: r.gender,
       dateOfBirth: r.dateOfBirth, avatarUrl: r.avatarUrl, creditLimit: r.creditLimit, loyaltyPoints: r.loyaltyPoints,
-      isActive: r.isActive, isVip: r.isVip, createdAt: r.createdAt,
+      isActive: r.isActive, isVip: r.isVip, createdAt: r.createdAt, priceTier: r.priceTier,
       balance: r.balance, totalBalance: r.totalBalance, overLimit: isOverLimit(r),
       visits: r.visits, spent: r.spent, average: avg(r), lastSaleAt: r.lastSaleAt, firstSaleAt: r.firstSaleAt,
       daysSinceVisit: daysSince(r.lastSaleAt), oldestDueAt: r.oldestDueAt, dueDays: ageOf(r),

@@ -7,7 +7,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDownRight, ArrowUpRight, Crown, Minus, type LucideIcon } from 'lucide-react';
-import { Card } from '@/design-system/components';
+import { Card, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useReportMasked } from '../../prefs';
 
@@ -55,7 +55,7 @@ export function Delta({ now, before, up = 'good', points }: { now: number; befor
   const good = (diff > 0) === (up === 'good');
   const Icon = diff > 0 ? ArrowUpRight : ArrowDownRight;
   return (
-    <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-emerald-600' : 'text-rose-600')}>
+    <span className={cn('inline-flex items-center gap-0.5 font-semibold', good ? 'text-success-600' : 'text-rose-600')}>
       <Icon className="h-3.5 w-3.5" />{Math.abs(diff).toFixed(0)}{points ? ' point' : '%'} pichli period se
     </span>
   );
@@ -94,20 +94,18 @@ export function DataTable<T>({ rows, columns, empty = 'Kuch nahi', rowKey }: {
   const cols = columns.filter((c) => !c.hide);
   if (!rows.length) return <Empty text={empty} />;
   return (
-    <div className="-mx-4 overflow-x-auto px-4 sm:-mx-5 sm:px-5">
-      <table className="w-full min-w-[36rem] text-[0.8125rem]">
-        <thead className="text-left text-[0.6875rem] uppercase tracking-wide text-slate-500">
-          <tr>{cols.map((c) => <th key={c.label} className={cn('py-2 pr-3 font-semibold', c.align === 'right' && 'pr-0 text-right')}>{c.label}</th>)}</tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100">
-          {rows.map((r, i) => (
-            <tr key={rowKey(r, i)} className="hover:bg-slate-50/70">
-              {cols.map((c) => <td key={c.label} className={cn('py-2 pr-3 text-slate-700', c.align === 'right' && 'pr-0 text-right tabular-nums')}>{c.render(r, i)}</td>)}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table minWidth="36rem" className="-mx-4 sm:-mx-5 [&_table]:text-[0.8125rem]">
+      <THead>
+        <Tr>{cols.map((c) => <Th key={c.label} align={c.align === 'right' ? 'right' : 'left'} className="py-2">{c.label}</Th>)}</Tr>
+      </THead>
+      <TBody>
+        {rows.map((r, i) => (
+          <Tr key={rowKey(r, i)} className="hover:bg-slate-50/70">
+            {cols.map((c) => <Td key={c.label} align={c.align === 'right' ? 'right' : 'left'} className="py-2">{c.render(r, i)}</Td>)}
+          </Tr>
+        ))}
+      </TBody>
+    </Table>
   );
 }
 
@@ -126,7 +124,7 @@ export function CustomerCell({ id, name, phone, isVip, sub }: { id: string; name
 /** Plain-language pointers, up to three. */
 export function Insights({ items }: { items: Array<{ tone: 'good' | 'warn' | 'bad'; text: string; icon: LucideIcon }> }) {
   if (!items.length) return null;
-  const tone = { good: 'bg-emerald-50 text-emerald-900 ring-emerald-100', warn: 'bg-amber-50 text-amber-900 ring-amber-100', bad: 'bg-rose-50 text-rose-900 ring-rose-100' };
+  const tone = { good: 'bg-success-50 text-success-900 ring-success-100', warn: 'bg-amber-50 text-amber-900 ring-amber-100', bad: 'bg-rose-50 text-rose-900 ring-rose-100' };
   return (
     <div className="grid gap-2 md:grid-cols-3">
       {items.slice(0, 3).map((x) => (

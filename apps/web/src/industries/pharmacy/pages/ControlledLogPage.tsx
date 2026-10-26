@@ -12,7 +12,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, ArrowLeft, CalendarRange, CheckCircle2, ClipboardPen, GraduationCap, PackageMinus, PackagePlus, ShieldAlert, ShoppingCart } from 'lucide-react';
 import {
-  Button, DateRangeMenu, FilterBar, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, heroIconButton, resolveRange, type DateRangeValue,
+  Button, DateRangeMenu, FilterBar, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td, Th, THead, Tr,
+  heroIconButton, resolveRange, type DateRangeValue,
 } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { rangeLabel } from '@core/lib/dateRange';
@@ -108,42 +109,40 @@ function RegisterView({ productId, period, range }: { productId: string; period:
           <PrintButton doc={() => registerDoc(r, period)} label="Register print" size="sm" />
         </header>
         {rows.length === 0 ? <p className="px-6 py-12 text-center text-[0.875rem] text-slate-500">{onlyMissing ? 'Sab sales me naam likhe hain' : 'Is muddat me koi entry nahi'}</p> : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[60rem] text-[0.8125rem]">
-              <thead><tr className="bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <th className="px-4 py-2.5">#</th><th className="px-3 py-2.5">Waqt</th><th className="px-3 py-2.5">Kya</th><th className="px-3 py-2.5">Mareez / doctor</th>
-                <th className="px-3 py-2.5 text-right">Shuru</th><th className="px-3 py-2.5 text-right">Aaya</th><th className="px-3 py-2.5 text-right">Gaya</th><th className="px-4 py-2.5 text-right">Baqi</th>
-              </tr></thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.map((x) => (
-                  <tr key={x.id} className={cn(x.missing && 'bg-amber-50/50', x.saleVoided && 'opacity-60')}>
-                    <td className="px-4 py-2 tabular-nums text-slate-500">{x.no}</td>
-                    <td className="whitespace-nowrap px-3 py-2 text-slate-600">{when(x.at)}</td>
-                    <td className="px-3 py-2">
-                      <span className="font-medium text-slate-900">{x.label}</span>
-                      {x.reference && <span className="ml-1 font-mono text-[0.75rem] text-slate-500">{x.reference}</span>}
-                      {x.returnOf && <span className="ml-1 text-[0.75rem] text-slate-500">(bill {x.returnOf})</span>}
-                      {x.saleVoided && <span className="ml-1 text-[0.75rem] font-semibold text-rose-600">void</span>}
-                    </td>
-                    <td className="px-3 py-2">
-                      {x.party && (x.party.patientName || x.party.doctorName) ? (
-                        <span className="text-slate-700">{x.party.patientName ?? '—'}{x.party.patientCnic && <span className="ml-1 font-mono text-[0.75rem] text-slate-500">{x.party.patientCnic}</span>}
-                          <span className="block text-[0.75rem] text-slate-500">{drName(x.party.doctorName) || 'doctor nahi'}{x.party.doctorRegNumber && ` · ${x.party.doctorRegNumber}`}{x.party.prescriptionNumber && ` · ${x.party.prescriptionNumber}`}</span>
-                        </span>
-                      ) : x.saleId ? <span className="font-medium text-amber-700">Naam nahi likha</span> : <span className="text-slate-400">—</span>}
-                      {x.saleId && !x.saleVoided && canFill && (
-                        <button type="button" onClick={() => setFill(x)} className="ml-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.75rem] font-semibold text-brand-700 hover:bg-brand-50"><ClipboardPen className="h-3.5 w-3.5" />{x.missing ? 'Bharein' : 'Badlein'}</button>
-                      )}
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-500">{fmt(x.opening)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-emerald-700">{x.inQty ? fmt(x.inQty) : ''}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-rose-700">{x.outQty ? fmt(x.outQty) : ''}</td>
-                    <td className="px-4 py-2 text-right font-semibold tabular-nums">{fmt(x.closing)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table minWidth="60rem">
+            <THead><Tr>
+              <Th className="px-4 py-2.5">#</Th><Th className="px-3 py-2.5">Waqt</Th><Th className="px-3 py-2.5">Kya</Th><Th className="px-3 py-2.5">Mareez / doctor</Th>
+              <Th align="right" className="px-3 py-2.5">Shuru</Th><Th align="right" className="px-3 py-2.5">Aaya</Th><Th align="right" className="px-3 py-2.5">Gaya</Th><Th align="right" className="px-4 py-2.5">Baqi</Th>
+            </Tr></THead>
+            <TBody>
+              {rows.map((x) => (
+                <Tr key={x.id} className={cn(x.missing && 'bg-amber-50/50', x.saleVoided && 'opacity-60')}>
+                  <Td className="px-4 py-2 tabular-nums text-slate-500">{x.no}</Td>
+                  <Td className="whitespace-nowrap px-3 py-2 text-slate-600">{when(x.at)}</Td>
+                  <Td className="px-3 py-2">
+                    <span className="font-medium text-slate-900">{x.label}</span>
+                    {x.reference && <span className="ml-1 font-mono text-[0.75rem] text-slate-500">{x.reference}</span>}
+                    {x.returnOf && <span className="ml-1 text-[0.75rem] text-slate-500">(bill {x.returnOf})</span>}
+                    {x.saleVoided && <span className="ml-1 text-[0.75rem] font-semibold text-rose-600">void</span>}
+                  </Td>
+                  <Td className="px-3 py-2">
+                    {x.party && (x.party.patientName || x.party.doctorName) ? (
+                      <span className="text-slate-700">{x.party.patientName ?? '—'}{x.party.patientCnic && <span className="ml-1 font-mono text-[0.75rem] text-slate-500">{x.party.patientCnic}</span>}
+                        <span className="block text-[0.75rem] text-slate-500">{drName(x.party.doctorName) || 'doctor nahi'}{x.party.doctorRegNumber && ` · ${x.party.doctorRegNumber}`}{x.party.prescriptionNumber && ` · ${x.party.prescriptionNumber}`}</span>
+                      </span>
+                    ) : x.saleId ? <span className="font-medium text-amber-700">Naam nahi likha</span> : <span className="text-slate-400">—</span>}
+                    {x.saleId && !x.saleVoided && canFill && (
+                      <button type="button" onClick={() => setFill(x)} className="ml-2 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.75rem] font-semibold text-brand-700 hover:bg-brand-50"><ClipboardPen className="h-3.5 w-3.5" />{x.missing ? 'Bharein' : 'Badlein'}</button>
+                    )}
+                  </Td>
+                  <Td align="right" className="px-3 py-2 tabular-nums text-slate-500">{fmt(x.opening)}</Td>
+                  <Td align="right" className="px-3 py-2 tabular-nums text-emerald-700">{x.inQty ? fmt(x.inQty) : ''}</Td>
+                  <Td align="right" className="px-3 py-2 tabular-nums text-rose-700">{x.outQty ? fmt(x.outQty) : ''}</Td>
+                  <Td align="right" className="px-4 py-2 font-semibold tabular-nums">{fmt(x.closing)}</Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
         )}
       </section>
     </>
@@ -210,25 +209,23 @@ export default function ControlledLogPage() {
                 <Link to="/pharmacy/medicines" className="mt-4 text-[0.875rem] font-semibold text-brand-700 hover:underline">Dawaiyan →</Link>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[46rem] text-[0.875rem]">
-                  <thead><tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                    <th className="px-5 py-2.5">Dawai</th><th className="px-3 py-2.5 text-right">Stock abhi</th><th className="px-3 py-2.5 text-right">Aaya</th><th className="px-3 py-2.5 text-right">Gaya</th><th className="px-3 py-2.5 text-right">Sales</th><th className="px-5 py-2.5 text-right">Naam baqi</th>
-                  </tr></thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {items.map((i) => (
-                      <tr key={i.productId} onClick={() => open(i.productId)} className="cursor-pointer hover:bg-slate-50">
-                        <td className="px-5 py-2.5"><p className="font-semibold text-slate-900">{i.name}</p><p className="text-[0.75rem] text-slate-500">{[SCHEDULE_META[i.scheduleClass]?.label, i.dosageForm, !i.isActive && 'band'].filter(Boolean).join(' · ')}</p></td>
-                        <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{fmt(i.stock)} <span className="font-normal text-slate-500">{i.unit}</span></td>
-                        <td className="px-3 py-2.5 text-right tabular-nums text-emerald-700">{fmt(i.inQty)}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums text-rose-700">{fmt(i.outQty)}</td>
-                        <td className="px-3 py-2.5 text-right tabular-nums">{i.sales}</td>
-                        <td className="px-5 py-2.5 text-right">{i.missing ? <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.75rem] font-semibold text-amber-800 ring-1 ring-amber-200">{i.missing}</span> : <CheckCircle2 className="ml-auto h-4 w-4 text-emerald-600" />}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <Table minWidth="46rem">
+                <THead><Tr>
+                  <Th className="px-5 py-2.5">Dawai</Th><Th align="right" className="px-3 py-2.5">Stock abhi</Th><Th align="right" className="px-3 py-2.5">Aaya</Th><Th align="right" className="px-3 py-2.5">Gaya</Th><Th align="right" className="px-3 py-2.5">Sales</Th><Th align="right" className="px-5 py-2.5">Naam baqi</Th>
+                </Tr></THead>
+                <TBody>
+                  {items.map((i) => (
+                    <Tr key={i.productId} onClick={() => open(i.productId)} className="cursor-pointer hover:bg-slate-50">
+                      <Td className="px-5 py-2.5"><p className="font-semibold text-slate-900">{i.name}</p><p className="text-[0.75rem] text-slate-500">{[SCHEDULE_META[i.scheduleClass]?.label, i.dosageForm, !i.isActive && 'band'].filter(Boolean).join(' · ')}</p></Td>
+                      <Td align="right" className="px-3 py-2.5 font-semibold tabular-nums">{fmt(i.stock)} <span className="font-normal text-slate-500">{i.unit}</span></Td>
+                      <Td align="right" className="px-3 py-2.5 tabular-nums text-emerald-700">{fmt(i.inQty)}</Td>
+                      <Td align="right" className="px-3 py-2.5 tabular-nums text-rose-700">{fmt(i.outQty)}</Td>
+                      <Td align="right" className="px-3 py-2.5 tabular-nums">{i.sales}</Td>
+                      <Td align="right" className="px-5 py-2.5">{i.missing ? <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.75rem] font-semibold text-amber-800 ring-1 ring-amber-200">{i.missing}</span> : <CheckCircle2 className="ml-auto h-4 w-4 text-emerald-600" />}</Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
             )}
         </section>
       )}

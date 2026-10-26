@@ -14,7 +14,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { businessDayKey, safeDayStart, zonedToUtc } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
-import { LIVE_BILL, dayCloseCost } from '../../common/helpers/business-math.helper';
+import { LIVE_BILL, dayCloseCost, liveSaleSql } from '../../common/helpers/business-math.helper';
+import { foldTierSplit, tierSplitRowsSafe } from '../../common/helpers/price-tier-split.helper';
 const DAY_MS = 24 * 3600_000;
 const n = (v: unknown) => Number(v ?? 0);
 
@@ -45,7 +46,7 @@ export class DayReportService {
 
     const [
       salesAgg, prevAgg, byMethod, paidBy, itemGroups, expenses, refunds, registers,
-      cashPurchases, supplierCash, sellers, cost,
+      cashPurchases, supplierCash, sellers, cost, tierRows,
     ] = await Promise.all([
       this.prisma.sale.aggregate({
         where: saleWhere,
@@ -116,6 +117,7 @@ export class DayReportService {
         _count: { _all: true },
       }),
       dayCloseCost(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
+      tierSplitRowsSafe(this.prisma, liveSaleSql({ tenantId, shopId }, { gte: from, lt: to })),
     ]);
 
     // ── Items and categories ──
@@ -214,6 +216,12 @@ export class DayReportService {
     const bills = salesAgg._count._all;
     // The day's bills less the day's returns, and their cost on the same footing.
     const cogs = cost.sold - cost.returned;
+    // Retail / Wholesale / Credit split of the day's bills at full value (the
+    // day-close footing of sales.total); null unless a non-retail line sold.
+    const split = tierRows && foldTierSplit(tierRows, { gross: Math.round(total * 100) / 100 });
+    const priceTiers = split?.mixed
+      ? split.tiers.filter((t) => t.bills > 0).map((t) => ({ tier: t.tier, label: t.label, bills: t.bills, total: t.gross }))
+      : null;
 
     return {
       date: key,
@@ -261,6 +269,7 @@ export class DayReportService {
         allClosed,
       },
       staff,
+      priceTiers,
     };
   }
 }

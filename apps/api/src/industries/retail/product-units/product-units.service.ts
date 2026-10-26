@@ -24,7 +24,7 @@ const DAY = 86_400_000;
 
 const UNIT_SELECT = {
   id: true, productId: true, variantId: true, unitName: true, unitLabel: true, conversionType: true, conversionRate: true,
-  isBase: true, isDefault: true, price: true, costPrice: true, wholesalePrice: true, mrpPrice: true, barcode: true, sku: true,
+  isBase: true, isDefault: true, price: true, costPrice: true, wholesalePrice: true, creditPrice: true, mrpPrice: true, barcode: true, sku: true,
   isActive: true, sortOrder: true, createdAt: true, updatedAt: true,
 } satisfies Prisma.ProductUnitSelect;
 
@@ -107,7 +107,7 @@ export class ProductUnitsService {
         id: true, productId: true, variantId: true,
         unitName: true, unitLabel: true,
         conversionRate: true, isBase: true, isDefault: true,
-        price: true, wholesalePrice: true, mrpPrice: true,
+        price: true, wholesalePrice: true, creditPrice: true, mrpPrice: true,
         barcode: true, sku: true, sortOrder: true,
       },
       orderBy: [{ productId: 'asc' }, { isBase: 'desc' }, { sortOrder: 'asc' }],

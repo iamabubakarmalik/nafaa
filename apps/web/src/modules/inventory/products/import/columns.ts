@@ -19,8 +19,9 @@ export interface FieldDef {
 export const FIELDS: Record<ImportField, FieldDef> = {
   name: { key: 'name', label: 'Name', hint: 'Product ka naam — zaroori', aliases: ['name', 'product', 'product name', 'item', 'item name', 'items', 'title', 'description of goods', 'article', 'naam', 'product naam', 'item naam', 'cheez', 'maal', 'نام', 'پروڈکٹ', 'آئٹم'] },
   price: { key: 'price', label: 'Price', hint: 'Bechne ki price (sale price)', aliases: ['price', 'sale price', 'selling price', 'sell price', 'retail price', 'mrp', 'rate', 'sale rate', 'retail', 'retail rate', 'unit price', 'sp', 'qeemat', 'keemat', 'bechne ki qeemat', 'new price', 'nayi price', 'قیمت', 'ریٹ'] },
-  costPrice: { key: 'costPrice', label: 'Cost Price', hint: 'Kharid ki price — Profit isi se banta hai', aliases: ['cost', 'cost price', 'purchase price', 'buy price', 'buying price', 'purchase rate', 'purchase', 'cp', 'kharid', 'khareed', 'kharid qeemat', 'new cost', 'nayi cost', 'لاگت', 'خرید'] },
+  costPrice: { key: 'costPrice', label: 'Cost Price', hint: 'Company / kharid ki price — Profit isi se banta hai', aliases: ['cost', 'cost price', 'company price', 'company rate', 'purchase price', 'buy price', 'buying price', 'purchase rate', 'purchase', 'cp', 'kharid', 'khareed', 'kharid qeemat', 'new cost', 'nayi cost', 'لاگت', 'خرید'] },
   wholesalePrice: { key: 'wholesalePrice', label: 'Wholesale Price', hint: 'Thok (wholesale) grahak ki price', aliases: ['wholesale', 'wholesale price', 'wholesale rate', 'trade price', 'tp', 'b2b', 'thok', 'thok rate'] },
+  creditPrice: { key: 'creditPrice', label: 'Credit Price', hint: 'Udhaar grahak ki price — khaali ho to Retail price lagegi', aliases: ['credit', 'credit price', 'credit rate', 'udhaar', 'udhaar price', 'udhaar rate', 'udhar', 'udhar price', 'udhar rate', 'ادھار'] },
   stock: { key: 'stock', label: 'Stock', hint: 'Abhi dukaan me kitna maal hai — chuni hui branch me opening stock banta hai', aliases: ['stock', 'qty', 'quantity', 'opening stock', 'opening qty', 'opening', 'in stock', 'on hand', 'qty in hand', 'qty on hand', 'stock in hand', 'current stock', 'closing stock', 'balance', 'stock qty', 'available', 'available qty', 'inventory', 'units', 'pcs', 'maujooda', 'maujooda stock', 'mojood', 'mojooda', 'miqdar', 'tadad', 'ginti', 'اسٹاک', 'سٹاک', 'مقدار', 'تعداد', 'موجودہ'] },
   unit: { key: 'unit', label: 'Unit', hint: 'pcs, kg, liter, dozen, meter…', aliases: ['unit', 'uom', 'measure', 'unit of measure', 'packing unit', 'ikai', 'یونٹ'] },
   category: { key: 'category', label: 'Category', hint: 'Nayi category khud ban jati hai', aliases: ['category', 'category name', 'cat', 'department', 'section', 'group', 'type of item', 'qisam', 'kism', 'قسم', 'کیٹیگری'] },
@@ -43,7 +44,7 @@ export const FIELDS: Record<ImportField, FieldDef> = {
 };
 
 export const CREATE_FIELDS: ImportField[] = [
-  'name', 'price', 'costPrice', 'stock', 'unit', 'category', 'brand', 'sku', 'barcode', 'wholesalePrice', 'lowStockAlert', 'taxRate',
+  'name', 'price', 'costPrice', 'stock', 'unit', 'category', 'brand', 'sku', 'barcode', 'wholesalePrice', 'creditPrice', 'lowStockAlert', 'taxRate',
   'description', 'variant', 'size', 'color', 'packName', 'packQty', 'packPrice', 'packBarcode', 'batchNumber', 'expiryDate', 'imei',
 ];
 export const PRICE_FIELDS: ImportField[] = ['sku', 'barcode', 'name', 'variant', 'size', 'color', 'packName', 'price', 'costPrice'];
@@ -56,7 +57,7 @@ type Features = Partial<BusinessFeatures>;
 /** Template columns for the shop's industry. */
 export function templateFields(features: Features): ImportField[] {
   const out: ImportField[] = ['name', 'price', 'costPrice', 'stock', 'unit', 'category', 'brand', 'sku', 'barcode', 'lowStockAlert'];
-  if (features.bulkPricing) out.splice(3, 0, 'wholesalePrice');
+  if (features.bulkPricing) out.splice(3, 0, 'wholesalePrice', 'creditPrice');
   if (features.sizeMatrix || features.variantImages) out.push('variant', 'size', 'color');
   if (features.multiUnit) out.push('packName', 'packQty', 'packPrice', 'packBarcode');
   if (features.expiry || features.batches) out.push('batchNumber', 'expiryDate');
@@ -171,7 +172,8 @@ const norm = (s: string) => s.toLowerCase().normalize('NFKC').replace(/[^\p{L}\p
 const NOT_STOCK = /value|amount|worth|price|rate|cost|qeemat|total(rs|amount)|rs$|sr|serial|sno|^no$|^#$/;
 /** Headers that name a different price, so "price" alone must not win. */
 const NOT_PRICE: Partial<Record<ImportField, RegExp>> = {
-  price: /cost|purchase|kharid|khareed|wholesale|thok|trade|pack|carton|box|old|purani/,
+  price: /cost|purchase|kharid|khareed|wholesale|thok|trade|credit|udhaar|udhar|company|pack|carton|box|old|purani/,
+  brand: /price|rate|cost/,
   stock: NOT_STOCK,
   name: /code|barcode|sku|category|brand|company|unit/,
   barcode: /pack|carton|box/,

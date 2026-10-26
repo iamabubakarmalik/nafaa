@@ -81,6 +81,14 @@ export function useAppearanceEditor(scope: Scope) {
     saveBusiness(next);
   }, [scope, business, setPersonal, resetPersonal, saveBusiness]);
 
+  /** Clears several fields in one save (separate resets would each start from the same old layer). */
+  const resetMany = useCallback((keys: readonly (keyof Appearance)[]) => {
+    if (scope === 'personal') return resetPersonal([...keys]);
+    const next: AppearanceLayer = { ...business };
+    for (const k of keys) delete next[k];
+    saveBusiness(next);
+  }, [scope, business, resetPersonal, saveBusiness]);
+
   const resetAll = useCallback(() => {
     if (scope === 'personal') resetPersonal();
     else saveBusiness({});
@@ -97,6 +105,7 @@ export function useAppearanceEditor(scope: Scope) {
     sourceOf,
     set,
     reset: (key: keyof Appearance) => set(key, null),
+    resetMany,
     resetAll,
     defaults: DEFAULT_APPEARANCE,
   };

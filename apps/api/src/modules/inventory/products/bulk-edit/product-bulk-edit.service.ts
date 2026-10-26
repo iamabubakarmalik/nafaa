@@ -30,6 +30,9 @@ export interface BulkEditRow {
   brand: string;
   price: number;
   costPrice: number;
+  /** Empty (null) means the retail price applies. */
+  wholesalePrice: number | null;
+  creditPrice: number | null;
   unit: string;
   sku: string;
   barcode: string;
@@ -91,13 +94,13 @@ export class ProductBulkEditService {
         orderBy: { name: 'asc' },
         take: MAX_ROWS + 1,
         select: {
-          id: true, name: true, sku: true, barcode: true, unit: true, price: true, costPrice: true, lowStockAlert: true,
+          id: true, name: true, sku: true, barcode: true, unit: true, price: true, costPrice: true, wholesalePrice: true, creditPrice: true, lowStockAlert: true,
           isActive: true, hasVariants: true, productType: true,
           category: { select: { name: true } },
           brand: { select: { name: true } },
           variants: {
             orderBy: { sortOrder: 'asc' },
-            select: { id: true, name: true, sku: true, barcode: true, price: true, costPrice: true, lowStockAlert: true },
+            select: { id: true, name: true, sku: true, barcode: true, price: true, costPrice: true, wholesalePrice: true, creditPrice: true, lowStockAlert: true },
           },
         },
       }),
@@ -129,6 +132,7 @@ export class ProductBulkEditService {
         productId: p.id, variantId: null, name: p.name, variant: '',
         category: p.category?.name ?? '', brand: p.brand?.name ?? '',
         price: Number(p.price) || 0, costPrice: Number(p.costPrice) || 0, unit: p.unit ?? 'pcs',
+        wholesalePrice: p.wholesalePrice ?? null, creditPrice: p.creditPrice ?? null,
         sku: p.sku ?? '', barcode: p.barcode ?? '', lowStockAlert: Number(p.lowStockAlert) || 0, isActive: p.isActive,
         stock: p.hasVariants && p.variants.length ? variantStock : stockAt.get(`${p.id}:`) ?? 0,
         stockLock: p.hasVariants && p.variants.length ? 'variants' : imei.has(p.id) ? 'imei' : service ? 'service' : null,
@@ -137,6 +141,7 @@ export class ProductBulkEditService {
         ...base,
         variantId: v.id, variant: v.name,
         price: Number(v.price) || 0, costPrice: Number(v.costPrice) || 0,
+        wholesalePrice: v.wholesalePrice ?? null, creditPrice: v.creditPrice ?? null,
         sku: v.sku ?? '', barcode: v.barcode ?? '',
         lowStockAlert: Number(v.lowStockAlert ?? p.lowStockAlert) || 0,
         stock: stockAt.get(`${p.id}:${v.id}`) ?? 0,
@@ -196,6 +201,8 @@ export class ProductBulkEditService {
     const data: Prisma.ProductVariantUpdateManyMutationInput = {};
     if (c.price !== undefined) data.price = c.price;
     if (c.costPrice !== undefined && canCost) data.costPrice = c.costPrice;
+    if (c.wholesalePrice !== undefined) data.wholesalePrice = c.wholesalePrice;
+    if (c.creditPrice !== undefined) data.creditPrice = c.creditPrice;
     if (c.lowStockAlert !== undefined) data.lowStockAlert = c.lowStockAlert;
     if (c.barcode !== undefined) {
       const code = c.barcode.trim();
@@ -222,6 +229,8 @@ export class ProductBulkEditService {
     }
     if (c.price !== undefined) dto.price = c.price;
     if (c.costPrice !== undefined && canCost) dto.costPrice = c.costPrice;
+    if (c.wholesalePrice !== undefined) dto.wholesalePrice = c.wholesalePrice;
+    if (c.creditPrice !== undefined) dto.creditPrice = c.creditPrice;
     if (c.unit !== undefined && c.unit.trim()) dto.unit = c.unit.trim().toLowerCase();
     if (c.lowStockAlert !== undefined) dto.lowStockAlert = c.lowStockAlert;
     if (c.isActive !== undefined) dto.isActive = c.isActive;

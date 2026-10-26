@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { BarChart3, Clock, Coins, Layers, Store } from 'lucide-react';
-import { Segmented, Skeleton } from '@/design-system/components';
+import { Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { AuditOverview, AuditType } from '../api';
 import { SEVERITY_META, TYPE_META, hourLabel, keyLabel } from '../meta';
@@ -113,25 +113,23 @@ export function AuditAnalytics({ data, loading, fmt, onType }: { data: AuditOver
 
       {data.shops.length > 1 && (
         <Panel icon={Store} title="Branch war" hint="Har branch me kitne waqiye. Ek branch baqi se bohat upar ho to wahan ka staff aur drawer dekhein." flush>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[34rem] text-[0.8125rem]">
-              <thead className="border-y border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
-                <tr><th className="px-5 py-2">Branch</th><th className="px-2 py-2 text-right">Waqiye</th><th className="px-2 py-2 text-right">Zaroori</th><th className="px-2 py-2 text-right">Void</th><th className="px-2 py-2 text-right">Return</th><th className="px-5 py-2 text-right">Drawer kam</th></tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {data.shops.map((s) => (
-                  <tr key={s.id}>
-                    <td className="px-5 py-2.5 font-medium text-slate-900">{s.name}</td>
-                    <td className="px-2 text-right tabular-nums">{s.events}</td>
-                    <td className="px-2 text-right tabular-nums text-rose-600">{s.high}</td>
-                    <td className="px-2 text-right tabular-nums">{s.voids}</td>
-                    <td className="px-2 text-right tabular-nums">{fmt.money(s.refundValue)}</td>
-                    <td className="px-5 text-right tabular-nums">{fmt.money(s.drawerShort)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table minWidth="34rem" className="[&_table]:text-[0.8125rem]">
+            <THead>
+              <Tr><Th className="px-5 py-2">Branch</Th><Th className="px-2 py-2 text-right">Waqiye</Th><Th className="px-2 py-2 text-right">Zaroori</Th><Th className="px-2 py-2 text-right">Void</Th><Th className="px-2 py-2 text-right">Return</Th><Th className="px-5 py-2 text-right">Drawer kam</Th></Tr>
+            </THead>
+            <TBody>
+              {data.shops.map((s) => (
+                <Tr key={s.id}>
+                  <Td className="px-5 py-2.5 font-medium text-slate-900">{s.name}</Td>
+                  <Td className="px-2 py-2.5 text-right tabular-nums">{s.events}</Td>
+                  <Td className="px-2 py-2.5 text-right tabular-nums text-rose-600">{s.high}</Td>
+                  <Td className="px-2 py-2.5 text-right tabular-nums">{s.voids}</Td>
+                  <Td className="px-2 py-2.5 text-right tabular-nums">{fmt.money(s.refundValue)}</Td>
+                  <Td className="px-5 py-2.5 text-right tabular-nums">{fmt.money(s.drawerShort)}</Td>
+                </Tr>
+              ))}
+            </TBody>
+          </Table>
         </Panel>
       )}
     </div>

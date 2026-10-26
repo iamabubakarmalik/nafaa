@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import { PRICE_TIERS, isPriceTier, type PriceTier } from '@core/lib/priceTiers';
 
 export type PosLayout = 'classic' | 'express' | 'cartfocus' | 'touch';
 export type PosDensity = 'compact' | 'comfortable';
@@ -28,6 +29,20 @@ export interface PosCounterConfig {
   recentItems: boolean;
   changeDue: boolean;
   quickDiscounts: number[];
+  /** Retail / Wholesale / Credit price switcher on the counter. Off: the counter sells at retail as before. */
+  priceTiers: boolean;
+  /** Tiers offered on the switcher; always holds the default tier. */
+  priceTierList: PriceTier[];
+  /** Tier every new bill starts at. */
+  defaultPriceTier: PriceTier;
+  /** Udhaar (credit) payment switches the bill to the credit price. */
+  tierCreditOnUdhaar: boolean;
+  /** A customer with their own default price brings that tier to the bill. */
+  tierFromCustomer: boolean;
+  /** A single bill line may use a different tier (line menu). */
+  tierLineOverride: boolean;
+  /** Print the tier on the receipt. */
+  tierOnReceipt: boolean;
 }
 
 export const POS_COUNTER_DEFAULTS: PosCounterConfig = {
@@ -47,6 +62,13 @@ export const POS_COUNTER_DEFAULTS: PosCounterConfig = {
   recentItems: true,
   changeDue: true,
   quickDiscounts: [5, 10],
+  priceTiers: false,
+  priceTierList: [...PRICE_TIERS],
+  defaultPriceTier: 'RETAIL',
+  tierCreditOnUdhaar: true,
+  tierFromCustomer: true,
+  tierLineOverride: true,
+  tierOnReceipt: false,
 };
 
 export const POS_LAYOUTS: Array<{ id: PosLayout; label: string; hint: string }> = [
@@ -69,6 +91,13 @@ export function normalizePosCounter(raw: unknown): PosCounterConfig {
   if (isLayout(s.layout)) out.layout = s.layout;
   if (isDensity(s.density)) out.density = s.density;
   if (Array.isArray(s.quickDiscounts)) out.quickDiscounts = s.quickDiscounts.map(Number).filter((n) => n > 0 && n <= 100);
+  if (isPriceTier(s.defaultPriceTier)) out.defaultPriceTier = s.defaultPriceTier;
+  if (Array.isArray(s.priceTierList)) {
+    const list = PRICE_TIERS.filter((t) => (s.priceTierList as unknown[]).includes(t));
+    out.priceTierList = list.length ? list : [...PRICE_TIERS];
+  }
+  const list = out.priceTierList as PriceTier[];
+  if (!list.includes(out.defaultPriceTier as PriceTier)) out.priceTierList = PRICE_TIERS.filter((t) => t === out.defaultPriceTier || list.includes(t));
   return out as unknown as PosCounterConfig;
 }
 

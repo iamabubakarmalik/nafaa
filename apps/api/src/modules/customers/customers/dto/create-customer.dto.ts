@@ -3,8 +3,9 @@ import { CustomerGender } from '@prisma/client';
 import {
   ValidateIf,
   IsBoolean, IsDateString, IsEmail, IsEnum, IsNotEmpty, IsNumber,
-  IsOptional, IsString, MaxLength, Min,
+  IsIn, IsOptional, IsString, MaxLength, Min,
 } from 'class-validator';
+import { PRICE_TIERS, type PriceTier } from '../../../../common/helpers/price-tier.helper';
 
 export class CreateCustomerDto {
   @ApiProperty()
@@ -95,4 +96,10 @@ export class CreateCustomerDto {
   @IsOptional()
   @IsBoolean()
   isRegistered?: boolean;
+
+  /** Default counter price for this customer; null or empty clears it (shop default). */
+  @ApiPropertyOptional({ enum: PRICE_TIERS, nullable: true })
+  @ValidateIf((_, v) => v !== undefined && v !== null && v !== '')
+  @IsIn(PRICE_TIERS)
+  priceTier?: PriceTier | null;
 }

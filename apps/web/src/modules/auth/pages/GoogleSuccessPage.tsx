@@ -5,14 +5,15 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 import { apiClient } from '@core/api/client';
 import { useAuthStore } from '@core/stores/auth.store';
-import { Logo } from '@core/components/brand/Logo';
+import { Button } from '@/design-system/components';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
+import { AuthHeading, AuthLayout } from '../components/AuthLayout';
 
 export default function GoogleSuccessPage() {
   const navigate = useNavigate();
@@ -66,26 +67,27 @@ export default function GoogleSuccessPage() {
   }, [navigate, setSession, queryClient]);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <Logo size={48} className="mx-auto" />
-        {failed ? (
-          <>
-            <AlertCircle className="mx-auto mt-6 h-8 w-8 text-rose-600" aria-hidden />
-            <h1 className="mt-3 text-lg font-bold text-slate-900">Login poora nahi hua</h1>
-            <p className="mt-1 text-sm text-slate-600">Server se account ki maloomat nahi mili. Internet check karke dobara try karein.</p>
-            <Link to="/login" replace className="mt-5 inline-flex h-10 items-center justify-center rounded-lg bg-brand-600 px-5 text-sm font-semibold text-brand-fg hover:bg-brand-700">
-              Login par wapas
-            </Link>
-          </>
-        ) : (
-          <>
-            <Loader2 className="mx-auto mt-6 h-8 w-8 animate-spin text-brand-600" aria-hidden />
-            <h1 className="mt-3 text-lg font-bold text-slate-900">Google se login ho raha hai…</h1>
-            <p className="mt-1 text-sm text-slate-600">Bas ek pal.</p>
-          </>
-        )}
-      </div>
-    </div>
+    <AuthLayout side="signin">
+      {failed ? (
+        <>
+          <AuthHeading
+            icon={<AlertCircle className="h-5 w-5" />}
+            title="Login poora nahi hua"
+            subtitle="Server se account ki maloomat nahi mili. Internet check karke dobara try karein."
+          />
+          <Button size="lg" fullWidth leftIcon={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate('/login', { replace: true })}>
+            Login par wapas
+          </Button>
+        </>
+      ) : (
+        <div role="status" aria-live="polite">
+          <AuthHeading
+            icon={<Loader2 className="h-5 w-5 animate-spin" />}
+            title="Google se login ho raha hai…"
+            subtitle="Bas ek pal. Aap ka account khola ja raha hai."
+          />
+        </div>
+      )}
+    </AuthLayout>
   );
 }

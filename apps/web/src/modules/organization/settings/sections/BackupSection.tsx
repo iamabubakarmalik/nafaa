@@ -14,9 +14,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { downloadCsv, type CsvCell } from '@core/lib/csv';
-import { Button } from '@/design-system/components';
+import { Badge, Button, Skeleton } from '@/design-system/components';
 import { settingsApi } from '../api/settings.api';
-import { ChoiceGroup, Divider, Field, PageLink, SectionCard } from '../components/UI';
+import { ChoiceGroup, Divider, Field, PageLink, SectionCard } from '../components/SettingsBlocks';
 
 const ENTITIES: Array<{ key: string; label: string; icon: typeof Package; desc: string; counted?: boolean }> = [
   { key: 'products', label: 'Products', icon: Package, desc: 'Sab items aur variants', counted: true },
@@ -98,13 +98,13 @@ export function BackupSection() {
   return (
     <div className="space-y-4">
       <SectionCard title="Data ka khulasa" desc="Store me kitna record hai" icon={Database} color="blue"
-        badge={!statsLoading ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums text-emerald-700 ring-1 ring-emerald-200">{totalRecords.toLocaleString()} records</span> : undefined}>
+        badge={!statsLoading ? <Badge size="xs" variant="success" className="tabular-nums">{totalRecords.toLocaleString()} records</Badge> : undefined}>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
           {ENTITIES.filter((e) => e.counted).map((e) => (
-            <div key={e.key} className="rounded-xl border border-slate-200 p-3">
+            <div key={e.key} className="rounded-lg border border-slate-200 p-3">
               <e.icon className="h-4 w-4 text-slate-400" />
               {statsLoading
-                ? <div className="mt-2 h-6 w-16 animate-pulse rounded bg-slate-100" />
+                ? <Skeleton className="mt-2 h-6 w-16" />
                 : <p className="mt-1.5 text-xl font-bold tabular-nums leading-none text-slate-900">{(Number(stats?.[e.key]) || 0).toLocaleString()}</p>}
               <p className="mt-1 text-xs text-slate-500">{e.label}</p>
             </div>
@@ -135,8 +135,8 @@ export function BackupSection() {
             const on = selected.includes(e.key);
             return (
               <button key={e.key} type="button" onClick={() => toggle(e.key)} aria-pressed={on}
-                className={cn('relative rounded-xl border p-3 text-left transition active:scale-[0.99]',
-                  on ? 'border-brand-500 bg-brand-50/60 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300')}>
+                className={cn('relative rounded-lg border p-3 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.99]',
+                  on ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50')}>
                 {on && <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand-600 text-brand-fg"><Check className="h-3 w-3" strokeWidth={3} /></span>}
                 <e.icon className={cn('h-5 w-5', on ? 'text-brand-700' : 'text-slate-400')} />
                 <p className="mt-2 text-sm font-semibold text-slate-900">{e.label}</p>

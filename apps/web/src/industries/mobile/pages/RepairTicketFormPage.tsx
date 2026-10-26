@@ -11,10 +11,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  AlertTriangle, ArrowLeft, CalendarClock, GraduationCap, KeyRound, Printer, ScanLine, ShieldCheck, Smartphone, UserRound, Wallet, Wrench,
-} from 'lucide-react';
-import { Button, Card, Input, Kbd, PageShell, Skeleton, Switch, Textarea } from '@/design-system/components';
+import { AlertTriangle, CalendarClock, GraduationCap, KeyRound, Printer, ScanLine, ShieldCheck, Smartphone, UserRound, Wallet, Wrench } from 'lucide-react';
+import { Button, Card, Input, Kbd, PageHero, PageShell, Skeleton, Switch, Textarea, heroIconButton } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
@@ -166,15 +164,14 @@ export default function RepairTicketFormPage() {
   return (
     <PageShell>
       {scan && <BarcodeScanner onDetected={(c: string) => { const x = digits(c); if (x.length === 15) { set({ imei1: x }); setScan(false); } }} onClose={() => setScan(false)} />}
-      <div className="flex flex-wrap items-center gap-3 rounded-3xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-4 text-white shadow-lg sm:p-5">
-        <button type="button" onClick={() => navigate(-1)} aria-label="Wapas (Esc)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><ArrowLeft className="h-4 w-4" /></button>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-bold">{editing ? `${t?.ticketNumber} — badlein` : claimOf ? `Warranty claim — ${claimOf.ticketNumber}` : 'Naya repair job'}</h1>
-          <p className="text-[0.8125rem] text-white/75">{closed ? 'Band job — sirf note aur customer ki tafseel badalti hai' : editing ? 'Paise yahan se nahi badalte — job ke safhe par "Advance" aur "Part" se' : 'Phone lein, parchi dein — tayyar hone par customer ko batayein'}</p>
-        </div>
-        <button type="button" onClick={guide.open} title="Guide (G)" className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25 hover:bg-white/25"><GraduationCap className="h-4 w-4" /></button>
-        <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
-      </div>
+      <PageHero
+        title={editing ? `${t?.ticketNumber} — badlein` : claimOf ? `Warranty claim — ${claimOf.ticketNumber}` : 'Naya repair job'}
+        subtitle={closed ? 'Band job — sirf note aur customer ki tafseel badalti hai' : editing ? 'Paise yahan se nahi badalte — job ke safhe par "Advance" aur "Part" se' : 'Phone lein, parchi dein — tayyar hone par customer ko batayein'}
+        back={() => navigate(-1)}
+        backLabel="Wapas (Esc)"
+        meta={<span className="inline-flex items-center gap-1.5"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>}
+        actions={<button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>}
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
         <div className="space-y-4">

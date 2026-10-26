@@ -43,7 +43,7 @@ const PetshopSalesPage = lazy(() => import('@industries/petshop/pages/PetshopSal
 function Loader() {
   return (
     <div className="flex items-center justify-center py-24">
-      <div className="h-12 w-12 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
+      <div className="h-12 w-12 rounded-full border-4 border-brand-200 border-t-brand-600 animate-spin" />
     </div>
   );
 }

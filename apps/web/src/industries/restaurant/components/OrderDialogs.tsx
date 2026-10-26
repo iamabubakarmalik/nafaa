@@ -8,7 +8,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle, Minus, Plus } from 'lucide-react';
-import { Button, Modal } from '@/design-system/components';
+import { Button, Input, Modal, Select } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { teamApi } from '@modules/organization/team/api/team.api';
@@ -28,9 +28,8 @@ function ReasonPicker({ value, onChange, reasons }: { value: string; onChange: (
             className={cn('rounded-full px-2.5 py-1 text-[0.75rem] font-medium', value === r ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>{r}</button>
         ))}
       </div>
-      <input data-autofocus value={value} onChange={(e) => onChange(e.target.value.slice(0, 200))} placeholder="Wajah likhein" aria-label="Wajah"
-        className="h-10 w-full rounded-xl border border-slate-300 px-3 text-[0.875rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
-      {value.trim().length > 0 && value.trim().length < 3 && <p className="mt-1 text-[0.75rem] text-rose-600">Wajah thori aur wazeh likhein</p>}
+      <Input data-autofocus value={value} onChange={(e) => onChange(e.target.value.slice(0, 200))} placeholder="Wajah likhein" aria-label="Wajah"
+        error={value.trim().length > 0 && value.trim().length < 3 ? 'Wajah thori aur wazeh likhein' : undefined} />
     </div>
   );
 }
@@ -111,11 +110,8 @@ export function ChargesDialog({ order, saving, onSave, onClose }: {
       : total < order.paidAmount - 0.01 ? `${formatPKR(order.paidAmount)} pehle mil chuke — bill is se kam nahi ho sakta` : null;
   const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value }));
   const num = (k: keyof typeof f, label: string, hint?: string) => (
-    <label className="text-[0.8125rem] font-medium text-slate-700">{label}
-      <input value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value.replace(/[^\d.]/g, '').slice(0, 9) }))} inputMode="decimal" placeholder="0"
-        className="mt-1 h-10 w-full rounded-xl border border-slate-300 px-3 text-[0.875rem] font-normal tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
-      {hint && <span className="mt-0.5 block text-[0.75rem] font-normal text-slate-500">{hint}</span>}
-    </label>
+    <Input label={label} hint={hint} value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value.replace(/[^\d.]/g, '').slice(0, 9) }))} inputMode="decimal" placeholder="0"
+      className="tabular-nums" />
   );
   return (
     <Modal open onClose={onClose} size="lg" title="Bill ke charges" description="Service, tax aur discount badlein — naya total neeche dikhta hai"
@@ -139,21 +135,13 @@ export function ChargesDialog({ order, saving, onSave, onClose }: {
           {order.mode === 'DINE_IN' && num('numberOfGuests', 'Mehman')}
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="text-[0.8125rem] font-medium text-slate-700">Waiter
-            <select value={f.waiterId} onChange={set('waiterId')} className="mt-1 h-10 w-full rounded-xl border border-slate-300 bg-white px-2 text-[0.875rem] font-normal">
-              <option value="">—</option>
-              {team.filter((m) => m.isActive || m.id === f.waiterId).map((m) => <option key={m.id} value={m.id}>{m.fullName}</option>)}
-            </select>
-          </label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Customer ka naam
-            <input value={f.customerName} onChange={set('customerName')} maxLength={120} className="mt-1 h-10 w-full rounded-xl border border-slate-300 px-3 text-[0.875rem] font-normal outline-none focus:border-brand-500" />
-          </label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Phone
-            <input value={f.customerPhone} onChange={(e) => setF((x) => ({ ...x, customerPhone: e.target.value.replace(/[^\d+\s-]/g, '').slice(0, 30) }))} inputMode="tel" className="mt-1 h-10 w-full rounded-xl border border-slate-300 px-3 text-[0.875rem] font-normal outline-none focus:border-brand-500" />
-          </label>
-          <label className="text-[0.8125rem] font-medium text-slate-700">Order note
-            <input value={f.specialRequests} onChange={set('specialRequests')} maxLength={500} className="mt-1 h-10 w-full rounded-xl border border-slate-300 px-3 text-[0.875rem] font-normal outline-none focus:border-brand-500" />
-          </label>
+          <Select label="Waiter" value={f.waiterId} onChange={set('waiterId')}>
+            <option value="">—</option>
+            {team.filter((m) => m.isActive || m.id === f.waiterId).map((m) => <option key={m.id} value={m.id}>{m.fullName}</option>)}
+          </Select>
+          <Input label="Customer ka naam" value={f.customerName} onChange={set('customerName')} maxLength={120} />
+          <Input label="Phone" value={f.customerPhone} onChange={(e) => setF((x) => ({ ...x, customerPhone: e.target.value.replace(/[^\d+\s-]/g, '').slice(0, 30) }))} inputMode="tel" />
+          <Input label="Order note" value={f.specialRequests} onChange={set('specialRequests')} maxLength={500} />
         </div>
         {problem && <p className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] font-medium text-rose-700">{problem}</p>}
       </div>

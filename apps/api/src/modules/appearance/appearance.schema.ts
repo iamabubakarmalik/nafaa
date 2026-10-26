@@ -21,6 +21,10 @@ export type AppearanceLayer = Partial<{
   reduceMotion: boolean;
   contrast: 'normal' | 'high';
   language: 'en' | 'roman_ur' | 'ur';
+  heroStyle: 'modern' | 'simple' | 'soft' | 'dark' | 'aurora' | 'outline';
+  heroPattern: 'dots' | 'grid' | 'lines' | 'none';
+  heroSize: 'comfortable' | 'compact';
+  heroStats: 'inline' | 'cards';
 }>;
 
 const ENUMS: Record<string, readonly string[]> = {
@@ -34,6 +38,11 @@ const ENUMS: Record<string, readonly string[]> = {
   pageWidth: ['normal', 'wide', 'full'],
   language: ['en', 'roman_ur', 'ur'],
   contrast: ['normal', 'high'],
+  // Page header look (PageHero in the web app).
+  heroStyle: ['modern', 'simple', 'soft', 'dark', 'aurora', 'outline'],
+  heroPattern: ['dots', 'grid', 'lines', 'none'],
+  heroSize: ['comfortable', 'compact'],
+  heroStats: ['inline', 'cards'],
 };
 
 /** Built-in font ids, or "gf:<Family Name>" for any Google Font. */

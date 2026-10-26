@@ -6,6 +6,7 @@ import {
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
+import { PRICE_TIERS } from '../../../../common/helpers/price-tier.helper';
 
 /** BANK is the short form some screens send. */
 const bankAlias = ({ value }: { value: unknown }) => (value === 'BANK' ? 'BANK_TRANSFER' : value);
@@ -78,6 +79,14 @@ class CreateSaleItemDto {
   @IsOptional()
   @IsBoolean()
   useWholesale?: boolean;
+
+  @ApiPropertyOptional({
+    enum: PRICE_TIERS,
+    description: 'Price tier of this line: RETAIL, WHOLESALE or CREDIT. Without priceOverride the tier price is used (empty tier prices fall back to retail). Takes the place of useWholesale.',
+  })
+  @IsOptional()
+  @IsIn(PRICE_TIERS)
+  priceTier?: string;
 
   @ApiPropertyOptional({
     description: 'Customer-visible note (prints on receipt & WhatsApp). e.g. "1 piece damage tha"',
