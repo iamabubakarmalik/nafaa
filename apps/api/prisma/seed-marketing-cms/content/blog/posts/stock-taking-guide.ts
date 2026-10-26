@@ -15,7 +15,7 @@ const spec: PostSpec = {
   category: 'guides',
   cover: PHOTO.stockTakingGuide,
   tags: ['PRODUCT:inventory', 'GLOSSARY_TERM:sku'],
-  related: ['BLOG_POST:how-to-calculate-profit-margin', 'BLOG_POST:staff-theft-prevention-counter', 'BLOG_POST:barcode-setup-guide', 'GUIDE:inventory-management-small-business', 'BEST_OF:inventory-software-pakistan', 'ALTERNATIVE:excel-alternative', 'TEMPLATE:stock-take-sheet', 'TOOL:reorder-level-calculator'],
+  related: ['BLOG_POST:how-to-calculate-profit-margin', 'BLOG_POST:staff-theft-prevention-counter', 'BLOG_POST:barcode-setup-guide', 'GUIDE:inventory-management-small-business', 'BEST_OF:inventory-software-pakistan', 'ALTERNATIVE:excel-alternative', 'TEMPLATE:stock-take-sheet', 'TOOL:reorder-level-calculator', 'TOOL:zakat-calculator'],
   isNew: true,
   blocks: [
     prose(`Stock taking means counting what is physically on your shelves and in your godown, and comparing it with what your records say should be there. Most shop owners know they should do it and put it off, because it sounds like a weekend of closing the shop and counting tins. It does not have to be.

@@ -139,5 +139,11 @@ export default {
     { ref: 'BLOG_POST:restaurant-menu-engineering', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:kitchen-display-system', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:modifiers', kind: 'RELATED' },
+    { ref: 'PAGE:restaurant-billing-software', kind: 'RELATED' },
+    { ref: 'CHANGELOG:industry-tools-round-one', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:islamabad/restaurant', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:karachi/restaurant', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/restaurant', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:peshawar/restaurant', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

@@ -165,7 +165,7 @@ Links to the old site keep working: every old address was checked and leads to t
   },
   {
     slug: 'industry-tools-round-two',
-    related: ['PAGE:industries', 'INDUSTRY:gym', 'INDUSTRY:hotel'],
+    related: ['PAGE:industries', 'INDUSTRY:gym', 'INDUSTRY:hotel', 'CHANGELOG:industry-tools-round-one'],
     seoDescription: 'Gym, hotel, dairy, meat, optical, bookstore, toy, shoe, sports, florist, pet, agri, carpet, gaming, furniture and other businesses got deeper tools in Nafaa.',
     title: 'Industry tools for gym, hotel, dairy and more',
     date: '2026-10-20',
@@ -189,7 +189,7 @@ Native browser pop-ups were replaced with in-app confirm dialogs, more pages mov
   },
   {
     slug: 'industry-tools-round-one',
-    related: ['PAGE:industries', 'INDUSTRY:restaurant', 'INDUSTRY:pharmacy'],
+    related: ['PAGE:industries', 'INDUSTRY:restaurant', 'INDUSTRY:pharmacy', 'CHANGELOG:new-nafaa-website'],
     seoDescription: 'Restaurant, retail, electronics, pharmacy, mobile, garments, bakery, hardware, salon, clinic, jewellery and auto parts tools were rebuilt on the shared POS.',
     title: 'Industry tools for restaurants, pharmacies and more',
     date: '2026-10-19',
@@ -246,7 +246,7 @@ Expiry lists, the pharmacy dashboard, low stock, the stock report and the catalo
   },
   {
     slug: 'settings-sidebar-shared-products',
-    related: ['PRODUCT:inventory', 'PAGE:product'],
+    related: ['PRODUCT:inventory', 'PAGE:product', 'CHANGELOG:new-design'],
     title: 'Settings in one sidebar and shared product pages',
     date: '2026-10-19',
     kind: 'improved',
@@ -358,7 +358,7 @@ Logout now removes only rows that were already synced. Unsent bills stay on the 
   },
   {
     slug: 'stock-tools-every-industry',
-    related: ['PRODUCT:inventory', 'PAGE:industries'],
+    related: ['PRODUCT:inventory', 'PAGE:industries', 'CHANGELOG:industry-tools-round-one', 'CHANGELOG:industry-tools-round-two', 'CHANGELOG:product-delete-keeps-bills', 'CHANGELOG:bulk-import-create-edit'],
     seoDescription: 'Low stock and reorder, transfers, stock counts, damage and wastage, barcode labels, combos, multi-units and quick keys now work alike in every industry.',
     title: 'Shared stock tools for every business type',
     date: '2026-10-13',

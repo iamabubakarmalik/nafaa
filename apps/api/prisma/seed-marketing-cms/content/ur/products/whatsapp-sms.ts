@@ -206,5 +206,7 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:khata@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:loyalty@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:digital-khata-vs-paper-ledger@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:whatsapp-business-for-shops@ur', kind: 'RELATED' },
   ],
 };

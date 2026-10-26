@@ -126,5 +126,6 @@ export default {
     { ref: 'INDUSTRY:services-biz', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:sku', kind: 'RELATED' },
     { ref: 'BLOG_POST:whatsapp-customer-retention', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:rawalpindi/autoparts', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

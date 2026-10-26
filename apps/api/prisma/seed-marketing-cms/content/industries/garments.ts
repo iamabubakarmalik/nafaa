@@ -131,5 +131,10 @@ export default {
     { ref: 'GLOSSARY_TERM:layaway', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:sku', kind: 'RELATED' },
     { ref: 'BLOG_POST:garment-shop-seasonal-stock-planning', kind: 'RELATED' },
+    { ref: 'PAGE:kapre-ki-dukaan-software', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:faisalabad/garments', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:karachi/garments', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/garments', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:rawalpindi/garments', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

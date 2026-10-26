@@ -644,7 +644,7 @@ const RELATED: Record<string, EntryRef[]> = {
   'PAGE:glossary': ['PAGE:blog', 'PAGE:guides', 'PAGE:tools'],
   'PAGE:changelog': ['PAGE:roadmap', 'PAGE:product', 'BLOG_POST:nafaa-ai-assistant-launch'],
   'CHANGELOG:shopify-app-install': ['PRODUCT:online-store', 'PAGE:integrations'],
-  'CHANGELOG:new-design': ['PRODUCT:pos', 'PAGE:product'],
+  'CHANGELOG:new-design': ['PRODUCT:pos', 'PAGE:product', 'CHANGELOG:new-nafaa-website', 'CHANGELOG:settings-sidebar-shared-products'],
 };
 const relatedOf = (key: string) => (RELATED[key] ?? []).map((ref) => ({ ref, kind: 'RELATED' as const }));
 
@@ -797,7 +797,7 @@ const guidesHub: SeedEntry = page({
 
 ## Tools and templates that go with them
 
-The guides link to free calculators for [profit margin](/tools/profit-margin-calculator), [reorder level](/tools/reorder-level-calculator) and [udhaar ageing](/tools/khata-ageing-calculator), and to printable sheets such as the [khata register](/templates/khata-udhaar-register) and the [stock-take sheet](/templates/stock-take-sheet). If you are choosing software, the [buyer's guides](/best/pos-software-pakistan) compare the options fairly.`),
+The guides link to free calculators for [profit margin](/tools/profit-margin-calculator), [reorder level](/tools/reorder-level-calculator) and [udhaar ageing](/tools/khata-ageing-calculator), and to printable sheets such as the [khata register](/templates/khata-udhaar-register) and the [stock-take sheet](/templates/stock-take-sheet). If you are choosing software, the [guide to choosing POS software](/blog/best-pos-kiryana-2026) lists what to check before you buy.`),
   ],
   faqKeys: ['hub-guides-vs-blog'],
   cta: { heading: 'Put the guides to work', body: 'Start the 7 din Free Trial and run your counter, stock and khata on Nafaa.' },

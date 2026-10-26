@@ -6,6 +6,7 @@
  */
 import Link from 'next/link';
 import type { PersonCard, PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { uiStrings } from '@/lib/i18n/ui';
 import { CmsImage } from '@/lib/media';
 import { relativePath } from './Cards';
 import { formatDate, initials, isoDate } from './format';
@@ -37,10 +38,12 @@ function readingMinutes(entry: PublicEntry): number | null {
 
 export function Byline({ entry }: { entry: PublicEntry }) {
   const { author, reviewer } = entry;
+  const t = uiStrings(entry.locale).content;
   const minutes = readingMinutes(entry);
   const published = entry.datePublished;
   const updated = entry.dateModified;
   const showUpdated = updated && formatDate(updated) !== formatDate(published);
+  const date = (value: string | null | undefined) => formatDate(value, entry.locale);
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-small text-fg-muted">
       {author ? (
@@ -51,14 +54,14 @@ export function Byline({ entry }: { entry: PublicEntry }) {
           </span>
           <span className="leading-snug">
             <span className="block">
-              By{' '}
+              {t.by}{' '}
               <Link href={relativePath(author)} rel="author" className="font-medium text-fg-strong hover:text-link">
                 {author.title}
               </Link>
             </span>
             {reviewer ? (
               <span className="block text-fg-subtle">
-                Reviewed by{' '}
+                {t.reviewedBy}{' '}
                 <Link href={relativePath(reviewer)} className="font-medium text-fg hover:text-link">
                   {reviewer.title}
                 </Link>
@@ -70,24 +73,24 @@ export function Byline({ entry }: { entry: PublicEntry }) {
       <dl className="flex flex-wrap items-center gap-x-5 gap-y-1">
         {published ? (
           <div className="flex gap-1.5">
-            <dt className="text-fg-subtle">Published</dt>
+            <dt className="text-fg-subtle">{t.published}</dt>
             <dd>
-              <time dateTime={isoDate(published)}>{formatDate(published)}</time>
+              <time dateTime={isoDate(published)}>{date(published)}</time>
             </dd>
           </div>
         ) : null}
         {showUpdated || (!published && updated) ? (
           <div className="flex gap-1.5">
-            <dt className="text-fg-subtle">Updated</dt>
+            <dt className="text-fg-subtle">{uiStrings(entry.locale).updated}</dt>
             <dd>
-              <time dateTime={isoDate(updated)}>{formatDate(updated)}</time>
+              <time dateTime={isoDate(updated)}>{date(updated)}</time>
             </dd>
           </div>
         ) : null}
         {minutes ? (
           <div className="flex gap-1.5">
-            <dt className="sr-only">Reading time</dt>
-            <dd>{minutes} min read</dd>
+            <dt className="sr-only">{t.readingTime}</dt>
+            <dd>{t.minRead(minutes)}</dd>
           </div>
         ) : null}
       </dl>
@@ -97,11 +100,12 @@ export function Byline({ entry }: { entry: PublicEntry }) {
 
 /** Author box at the end of an article: who wrote it and what they know. */
 export function AuthorBox({ person }: { person: PersonCard }) {
+  const t = uiStrings(person.locale).content;
   return (
-    <aside aria-label="About the author" className="flex gap-4 rounded-lg border border-line bg-surface-2 p-5 md:p-6">
+    <aside aria-label={t.aboutAuthor} className="flex gap-4 rounded-lg border border-line bg-surface-2 p-5 md:p-6">
       <Avatar person={person} />
       <div className="min-w-0">
-        <p className="text-small text-fg-subtle">Written by</p>
+        <p className="text-small text-fg-subtle">{t.writtenBy}</p>
         <p className="font-semibold text-fg-strong">
           <Link href={relativePath(person)} className="hover:text-link">
             {person.title}

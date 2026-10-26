@@ -10,7 +10,7 @@ const spec: RomanSpec = {
     'What a restaurant, cafe or dhaba in Pakistan needs from billing software, in simple Roman Urdu: table and running bills, kitchen order tickets (KOT), takeaway and delivery with riders, add-ons, split bills, and dish cost from recipes. Includes the leaks to close first and how Nafaa runs each part.',
   seoTitle: 'Restaurant Billing Software: Tables, KOT aur Delivery',
   seoDescription:
-    'Restaurant billing software: table ka running bill, kitchen KOT, takeaway aur delivery, add-ons, split bill aur recipe se dish ki Cost. Dhaba, cafe aur restaurant.',
+    'Restaurant billing software: table ka running bill, kitchen KOT, takeaway aur delivery, add-ons, split bill aur recipe se dish ki Cost. Dhaba, cafe ke liye.',
   focusKeyword: 'restaurant billing software',
   hero: {
     eyebrow: 'Restaurant, cafe aur dhaba',

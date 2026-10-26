@@ -20,7 +20,7 @@ const MIN_WIDTH: Record<number, string> = { 1: 'min-w-[20rem]', 2: 'min-w-[26rem
 function Mark({ value, label }: { value: 'yes' | 'no' | 'partial'; label: string }) {
   const tone =
     value === 'yes'
-      ? 'bg-brand-600 text-white ink:bg-brand-400 ink:text-slate-950'
+      ? 'bg-brand-700 text-white ink:bg-brand-400 ink:text-slate-950'
       : value === 'partial'
         ? 'bg-amber-100 text-amber-800 ink:bg-amber-400/15 ink:text-amber-300'
         : 'bg-surface-3 text-fg-subtle';

@@ -270,5 +270,12 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:purchasing@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:multi-shop@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:sku@ur', kind: 'RELATED' },
+    { ref: 'TOOL:reorder-level-calculator@ur', kind: 'RELATED' },
+    { ref: 'TEMPLATE:stock-take-sheet@ur', kind: 'RELATED' },
+    { ref: 'TEMPLATE:product-import-template@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:stock-take@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:stock-taking-guide@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:dead-stock@ur', kind: 'RELATED' },
   ],
 };

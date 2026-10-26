@@ -59,6 +59,12 @@ const en = {
   notFoundTitle: 'Page not found',
   notFoundBody: 'This page does not exist or has moved.',
   notFoundHome: 'Go to the home page',
+  cookieSettings: 'Cookie settings',
+  cookiePrefs: 'Cookie preferences',
+  cookieText: 'We use analytics cookies to understand which pages help and to improve the site. You can say no and the site works the same.',
+  privacyPolicy: 'Privacy policy',
+  cookieDeny: 'No thanks',
+  cookieAccept: 'Accept',
 };
 
 export type ShellStrings = typeof en;
@@ -107,6 +113,12 @@ const ur: ShellStrings = {
   notFoundTitle: 'یہ صفحہ نہیں ملا',
   notFoundBody: 'یہ صفحہ موجود نہیں یا کسی اور جگہ چلا گیا ہے۔',
   notFoundHome: 'ہوم پیج پر جائیں',
+  cookieSettings: 'کوکیز کی سیٹنگ',
+  cookiePrefs: 'کوکیز کی پسند',
+  cookieText: 'ہم اینالیٹکس کوکیز سے دیکھتے ہیں کہ کون سے صفحے کام آتے ہیں، تاکہ ویب سائٹ بہتر ہو۔ آپ منع کر دیں تو بھی ویب سائٹ ویسے ہی چلے گی۔',
+  privacyPolicy: 'پرائیویسی پالیسی',
+  cookieDeny: 'نہیں، شکریہ',
+  cookieAccept: 'ٹھیک ہے',
 };
 
 const STRINGS: Record<SiteLocale, ShellStrings> = { en, ur };
@@ -120,9 +132,17 @@ export function localeOfPath(pathname: string | null | undefined): SiteLocale {
   return pathname === '/ur' || pathname?.startsWith('/ur/') ? 'ur' : 'en';
 }
 
-/** CMS path (no prefix) of a request path: '/ur/pricing' → '/pricing', '/ur' → '/'. */
+/**
+ * CMS path (no prefix) of a request path: '/ur/pricing' → '/pricing', '/ur' → '/'.
+ *
+ * When Vercel regenerates the home page in the background (ISR), the server
+ * render sees the pathname '/index' while the browser sees '/'. Both are read
+ * as '/', so the header and footer render the same on both sides and React
+ * does not throw a hydration error and re-render the whole page.
+ */
 export function cmsPathOf(pathname: string): string {
-  const clean = pathname.replace(/\/+$/, '') || '/';
+  const trimmed = pathname.replace(/\/+$/, '') || '/';
+  const clean = trimmed === '/index' ? '/' : trimmed === '/ur/index' ? '/ur' : trimmed;
   if (localeOfPath(clean) !== 'ur') return clean;
   return clean.slice(3) || '/';
 }
@@ -211,6 +231,11 @@ const UR_LABELS: Record<string, string> = {
   Guides: 'گائیڈز',
   Glossary: 'الفاظ کے معنی',
   'Free tools': 'مفت ٹولز',
+  'Help center': 'ہیلپ سینٹر',
+  Templates: 'ٹیمپلیٹس',
+  'Roman Urdu guides': 'رومن اردو گائیڈز',
+  'How to choose': 'کیسے چنیں',
+  Webhooks: 'ویب ہکس',
   'Compare & comply': 'موازنہ اور ٹیکس',
   Compare: 'موازنہ',
   'Tax compliance': 'ٹیکس کے قوانین',
@@ -284,6 +309,10 @@ const UR_DESCRIPTIONS: Record<string, string> = {
   'Step-by-step playbooks': 'قدم بہ قدم طریقے',
   'Business and tax terms explained': 'کاروبار اور ٹیکس کے الفاظ آسان زبان میں',
   'GST, margin and invoice tools': 'GST، مارجن اور انوائس کے ٹولز',
+  'Margin, GST, discount and stock calculators': 'مارجن، GST، Discount اور اسٹاک کے کیلکولیٹر',
+  'How to do each task in Nafaa': 'Nafaa میں ہر کام کرنے کا طریقہ',
+  'Khata, stock-take and cash-closing sheets': 'کھاتہ، اسٹاک گنتی اور کیش کلوزنگ کی شیٹس',
+  'POS, inventory and khata apps compared': 'POS، اسٹاک اور کھاتہ ایپس کا موازنہ',
   'Nafaa next to other tools': 'Nafaa اور دوسرے سافٹ ویئر کا موازنہ',
   'FBR, PRA, SRB and KPRA rules': 'FBR، PRA، SRB اور KPRA کے اصول',
   'Local support and tax facts': 'مقامی سپورٹ اور ٹیکس کی معلومات',
@@ -296,6 +325,11 @@ const UR_DESCRIPTIONS: Record<string, string> = {
   'Accounting, payments, tax and stores': 'اکاؤنٹنگ، پیمنٹس، ٹیکس اور اسٹورز',
   'API and product updates': 'API اور پروڈکٹ کی اپ ڈیٹس',
 };
+
+/** Urdu name of an English shell label (menus, breadcrumb hubs); unknown labels come back unchanged. */
+export function urduLabel(label: string): string {
+  return UR_LABELS[label] ?? label;
+}
 
 const COMING_PREFIX = /^coming soon\s*[:–—-]\s*/i;
 

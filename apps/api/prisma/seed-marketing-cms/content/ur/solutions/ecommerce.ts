@@ -325,6 +325,7 @@ export const entry: SeedEntry = {
     { ref: 'INDUSTRY:shoe@ur', kind: 'TAG' },
     { ref: 'SERVICE:online-store-setup@ur', kind: 'TAG' },
     { ref: 'SERVICE:websites@ur', kind: 'TAG' },
+    { ref: 'GLOSSARY_TERM:cod@ur', kind: 'RELATED' },
   ],
   seoTitle: 'پاکستانی سیلرز کے لیے ای کامرس سافٹ ویئر: آن لائن ایک اسٹاک',
   seoDescription:

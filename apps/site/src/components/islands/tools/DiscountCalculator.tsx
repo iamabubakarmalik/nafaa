@@ -10,7 +10,7 @@
  */
 import { useMemo, useState } from 'react';
 import { parseAmount, percent, plain, round2, rupees } from './format';
-import { BigResult, Breakdown, Field, InputsPanel, ResultPanel, Segmented, ToolFrame, useToolUsed } from './kit';
+import { BigResult, Breakdown, Field, InputsPanel, ResultPanel, Segmented, ToolFrame, pick, useToolUsed } from './kit';
 
 type Mode = 'percent' | 'amount' | 'find';
 
@@ -33,7 +33,59 @@ export function discountResult(mode: Mode, price: number, second: number): { sal
   return { sale: round2(sale), off: round2(off), pct: (off / price) * 100 };
 }
 
-export default function DiscountCalculator() {
+const en = {
+  frame: 'Discount calculator',
+  legend: 'What do you know?',
+  pctOff: '% off',
+  rsOff: 'Rs off',
+  findPct: 'Find the %',
+  original: 'Original price',
+  discount: 'Discount',
+  discountPlaceholder: 'e.g. 10',
+  discountAmount: 'Discount amount',
+  priceAfter: 'Price after discount',
+  cost: 'Your cost per item (optional)',
+  costHint: 'Shows the profit left after the discount.',
+  off: (r: string) => `${r} off`,
+  salePrice: 'Sale price',
+  customerPays: 'Customer pays',
+  profitBefore: 'Profit per item before',
+  profitAfter: 'Profit per item after',
+  marginAfter: 'Margin after discount',
+  loses: 'At this price every sale loses money.',
+  sellMore: (times: string, more: string) => `To earn the same profit as before, sell ${times}× as many items (${more} more).`,
+  formula: 'Sale price = price × (1 − discount ÷ 100).',
+};
+
+const STRINGS: { en: typeof en; ur: typeof en } = {
+  en,
+  ur: {
+    frame: 'ڈسکاؤنٹ کیلکولیٹر',
+    legend: 'آپ کو کیا معلوم ہے؟',
+    pctOff: '% ڈسکاؤنٹ',
+    rsOff: 'Rs ڈسکاؤنٹ',
+    findPct: '% معلوم کریں',
+    original: 'اصل قیمت',
+    discount: 'ڈسکاؤنٹ',
+    discountPlaceholder: 'مثلاً 10',
+    discountAmount: 'ڈسکاؤنٹ کی رقم',
+    priceAfter: 'ڈسکاؤنٹ کے بعد قیمت',
+    cost: 'فی آئٹم آپ کی کاسٹ (اختیاری)',
+    costHint: 'ڈسکاؤنٹ کے بعد بچنے والا پرافٹ دکھاتا ہے۔',
+    off: (r) => `${r} ڈسکاؤنٹ`,
+    salePrice: 'سیل کی قیمت',
+    customerPays: 'گاہک دے گا',
+    profitBefore: 'پہلے فی آئٹم پرافٹ',
+    profitAfter: 'اب فی آئٹم پرافٹ',
+    marginAfter: 'ڈسکاؤنٹ کے بعد مارجن',
+    loses: 'اس قیمت پر ہر سیل میں نقصان ہے۔',
+    sellMore: (times, more) => `پہلے جتنا پرافٹ کمانے کے لیے ${times} گنا آئٹم بیچیں (${more} زیادہ)۔`,
+    formula: 'سیل کی قیمت = قیمت × (1 − ڈسکاؤنٹ ÷ 100)۔',
+  },
+};
+
+export default function DiscountCalculator({ locale }: { locale?: string }) {
+  const t = pick(STRINGS, locale);
   const used = useToolUsed('discount-calculator');
   const [mode, setMode] = useState<Mode>('percent');
   const [price, setPrice] = useState('');
@@ -54,56 +106,56 @@ export default function DiscountCalculator() {
   const factor = hasCost && newProfit > 0 && oldProfit > 0 ? oldProfit / newProfit : null;
 
   return (
-    <ToolFrame label="Discount calculator">
+    <ToolFrame label={t.frame}>
       <InputsPanel className="space-y-5">
         <Segmented
-          legend="What do you know?"
+          legend={t.legend}
           value={mode}
           onChange={touch(setMode)}
           options={[
-            { value: 'percent', label: '% off' },
-            { value: 'amount', label: 'Rs off' },
-            { value: 'find', label: 'Find the %' },
+            { value: 'percent', label: t.pctOff },
+            { value: 'amount', label: t.rsOff },
+            { value: 'find', label: t.findPct },
           ]}
         />
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Original price" prefix="Rs" value={price} onChange={touch(setPrice)} placeholder="0" />
+          <Field label={t.original} prefix="Rs" value={price} onChange={touch(setPrice)} placeholder="0" />
           {mode === 'percent' ? (
-            <Field label="Discount" suffix="%" value={second} onChange={touch(setSecond)} placeholder="e.g. 10" />
+            <Field label={t.discount} suffix="%" value={second} onChange={touch(setSecond)} placeholder={t.discountPlaceholder} />
           ) : mode === 'amount' ? (
-            <Field label="Discount amount" prefix="Rs" value={second} onChange={touch(setSecond)} placeholder="0" />
+            <Field label={t.discountAmount} prefix="Rs" value={second} onChange={touch(setSecond)} placeholder="0" />
           ) : (
-            <Field label="Price after discount" prefix="Rs" value={second} onChange={touch(setSecond)} placeholder="0" />
+            <Field label={t.priceAfter} prefix="Rs" value={second} onChange={touch(setSecond)} placeholder="0" />
           )}
         </div>
         <Field
-          label="Your cost per item (optional)"
+          label={t.cost}
           prefix="Rs"
           value={cost}
           onChange={touch(setCost)}
           placeholder="0"
-          hint="Shows the profit left after the discount."
+          hint={t.costHint}
           className="sm:max-w-[50%]"
         />
       </InputsPanel>
 
       <ResultPanel>
         {mode === 'find' ? (
-          <BigResult label="Discount" value={r ? percent(r.pct, 1) : '0%'} note={r ? `${rupees(r.off)} off` : undefined} />
+          <BigResult label={t.discount} value={r ? percent(r.pct, 1) : '0%'} note={r ? t.off(rupees(r.off)) : undefined} />
         ) : (
-          <BigResult label="Sale price" value={r ? rupees(r.sale) : 'Rs 0'} note={r ? `${rupees(r.off)} off · ${percent(r.pct, 1)}` : undefined} />
+          <BigResult label={t.salePrice} value={r ? rupees(r.sale) : 'Rs 0'} note={r ? `${t.off(rupees(r.off))} · ${percent(r.pct, 1)}` : undefined} />
         )}
         <Breakdown
           className="mt-6"
           rows={[
-            { label: 'Original price', value: r ? rupees(n(price)) : '—' },
-            { label: 'Discount', value: r ? `${rupees(r.off)} (${percent(r.pct, 2)})` : '—' },
-            { label: 'Customer pays', value: r ? rupees(r.sale) : '—', strong: true },
+            { label: t.original, value: r ? rupees(n(price)) : '—' },
+            { label: t.discount, value: r ? `${rupees(r.off)} (${percent(r.pct, 2)})` : '—' },
+            { label: t.customerPays, value: r ? rupees(r.sale) : '—', strong: true },
             ...(hasCost
               ? [
-                  { label: 'Profit per item before', value: rupees(round2(oldProfit)) },
-                  { label: 'Profit per item after', value: rupees(round2(newProfit)) },
-                  { label: 'Margin after discount', value: r && r.sale > 0 ? percent((newProfit / r.sale) * 100, 1) : '—' },
+                  { label: t.profitBefore, value: rupees(round2(oldProfit)) },
+                  { label: t.profitAfter, value: rupees(round2(newProfit)) },
+                  { label: t.marginAfter, value: r && r.sale > 0 ? percent((newProfit / r.sale) * 100, 1) : '—' },
                 ]
               : []),
           ]}
@@ -111,13 +163,13 @@ export default function DiscountCalculator() {
         {hasCost ? (
           <p className="mt-5 text-small text-fg-muted">
             {newProfit <= 0
-              ? 'At this price every sale loses money.'
+              ? t.loses
               : factor !== null
-                ? `To earn the same profit as before, sell ${plain(round2(factor))}× as many items (${percent((factor - 1) * 100, 0)} more).`
+                ? t.sellMore(plain(round2(factor)), percent((factor - 1) * 100, 0))
                 : null}
           </p>
         ) : (
-          <p className="mt-5 text-small text-fg-muted">Sale price = price × (1 − discount ÷ 100).</p>
+          <p className="mt-5 text-small text-fg-muted">{t.formula}</p>
         )}
       </ResultPanel>
     </ToolFrame>

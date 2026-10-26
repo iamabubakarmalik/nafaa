@@ -91,6 +91,10 @@ export const entry: SeedEntry = {
     { ref: 'PAGE:pricing@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:khata@ur', kind: 'RELATED' },
+    { ref: 'PAGE:tools@ur', kind: 'RELATED' },
+    { ref: 'PAGE:templates@ur', kind: 'RELATED' },
+    { ref: 'PAGE:blog@ur', kind: 'RELATED' },
+    { ref: 'PAGE:glossary@ur', kind: 'RELATED' },
   ],
   title: 'Nafaa',
   summary:

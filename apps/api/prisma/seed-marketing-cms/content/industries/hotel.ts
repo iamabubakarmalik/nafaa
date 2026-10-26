@@ -126,5 +126,6 @@ export default {
     { ref: 'PRODUCT:multi-shop', kind: 'TAG' },
     { ref: 'INDUSTRY:restaurant', kind: 'RELATED' },
     { ref: 'INDUSTRY:services-biz', kind: 'RELATED' },
+    { ref: 'CHANGELOG:industry-tools-round-two', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

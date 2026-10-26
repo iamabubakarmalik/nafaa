@@ -123,5 +123,8 @@ export default {
     { ref: 'INDUSTRY:garments', kind: 'RELATED' },
     { ref: 'INDUSTRY:sports', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:sku', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/shoe', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:multan/shoe', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:peshawar/shoe', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

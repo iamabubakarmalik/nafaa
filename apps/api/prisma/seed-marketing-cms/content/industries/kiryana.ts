@@ -124,5 +124,10 @@ export default {
     { ref: 'INDUSTRY:dairy', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:khata', kind: 'RELATED' },
     { ref: 'BLOG_POST:digital-khata-vs-paper-ledger', kind: 'RELATED' },
+    { ref: 'PAGE:kiryana-store-software', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:islamabad/kiryana', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:karachi/kiryana', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/kiryana', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:rawalpindi/kiryana', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

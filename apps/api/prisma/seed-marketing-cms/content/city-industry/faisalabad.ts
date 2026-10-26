@@ -241,7 +241,7 @@ That puts Faisalabad\'s medical stores in an unusual mix. A store in the old cit
 
 The work is the same everywhere. A patient asks for a brand that is out of stock and needs a substitute with the same salt. A strip is opened and sold tablet by tablet. Boxes reach their expiry date at the back of the shelf. Controlled medicines need a register with the patient and the doctor, and insulin and vaccines need a fridge kept between two and eight degrees.
 
-Pharmacies are licensed and inspected under drug laws; our [DRAP page](/compliance/drap-pharmacy) explains the federal side. Power for the city comes from FESCO, and a counter that can bill through an outage matters when a patient is waiting.`,
+Pharmacies are licensed and inspected under drug laws; our [DRAP glossary entry](/glossary/drap) explains the federal side. Power for the city comes from FESCO, and a counter that can bill through an outage matters when a patient is waiting.`,
   shotA: {
     heading: 'What is running out and what to order',
     body: 'The low-stock view shows medicines expiring in the next 30 days, how many days the current stock will last at the usual rate of sale, and what to order with its cost.',

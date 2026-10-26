@@ -210,7 +210,8 @@
   font-family: var(--font-code);
   font-size: 0.78rem;
   font-weight: 600;
-  color: rgb(var(--brand-600));
+  /* brand-700: brand-600 is 3.8:1 on white, below AA for text this small. */
+  color: rgb(var(--brand-700));
 }
 
 :global(html.theme-ink) .faqNo {

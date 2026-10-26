@@ -211,5 +211,6 @@ export const entry: SeedEntry = {
     { ref: 'SOLUTION:retail-chains@ur', kind: 'TAG' },
     { ref: 'INDUSTRY:garments@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:sports@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:sku@ur', kind: 'RELATED' },
   ],
 };

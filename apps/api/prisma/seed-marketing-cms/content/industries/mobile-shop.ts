@@ -128,5 +128,10 @@ export default {
     { ref: 'GLOSSARY_TERM:imei', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:pta-approved', kind: 'RELATED' },
     { ref: 'BLOG_POST:mobile-shop-imei-records', kind: 'RELATED' },
+    { ref: 'PAGE:mobile-shop-software', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:faisalabad/mobile-shop', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:karachi/mobile-shop', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/mobile-shop', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:rawalpindi/mobile-shop', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

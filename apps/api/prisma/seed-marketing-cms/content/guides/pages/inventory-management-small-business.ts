@@ -20,7 +20,7 @@ const spec: GuideSpec = {
   blocks: [
     prose(`For most small businesses, stock is the largest amount of money they own. It sits on shelves, in the godown and in the back room, and unlike cash in a bank it can expire, break, go out of fashion or walk out of the door. Inventory management is simply knowing what you have, what it cost, what is selling and what to buy next, and keeping that knowledge true day after day.
 
-This guide is for shops, pharmacies, small wholesalers and other businesses that buy goods and sell them. It starts with setting up, moves through buying and counting, and ends with the reports worth reading each month. If you are choosing software, our [inventory software comparison](/best/inventory-software-pakistan) covers the options.`),
+This guide is for shops, pharmacies, small wholesalers and other businesses that buy goods and sell them. It starts with setting up, moves through buying and counting, and ends with the reports worth reading each month. If you are choosing software, our [inventory software page](/product/inventory) shows what to look for.`),
     prose(`## 1. Why stock goes wrong
 
 Stock rarely goes wrong in one big event. It drifts, a little every day:
@@ -140,7 +140,7 @@ Common causes of stock loss in a small shop and the habit that controls each.
 
 Some goods need more than a count.
 
-- **Medicines, food and cosmetics** need [batch tracking](/glossary/batch-tracking) and [expiry management](/glossary/expiry-management): which batch you hold and when it expires. When a recall names a batch, you can find it in seconds. Pharmacies should read our [drug law page for pharmacies](/compliance/drap-pharmacy).
+- **Medicines, food and cosmetics** need [batch tracking](/glossary/batch-tracking) and [expiry management](/glossary/expiry-management): which batch you hold and when it expires. When a recall names a batch, you can find it in seconds. Pharmacies should also read [what DRAP does](/glossary/drap).
 - **Mobile phones and electronics** need a [serial number](/glossary/serial-number) or [IMEI](/glossary/imei) per unit, so each handset can be traced from purchase to sale and through warranty.`),
     shot({
       heading: 'Expiry by batch',

@@ -236,5 +236,7 @@ export const entry: SeedEntry = {
     { ref: 'SOLUTION:wholesale-distribution@ur', kind: 'TAG' },
     { ref: 'INDUSTRY:dairy@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:hardware@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:udhaar@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:digital-khata-vs-paper-ledger@ur', kind: 'RELATED' },
   ],
 };

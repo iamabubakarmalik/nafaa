@@ -131,5 +131,6 @@ export default {
     { ref: 'INDUSTRY:sports', kind: 'RELATED' },
     { ref: 'INDUSTRY:services-biz', kind: 'RELATED' },
     { ref: 'BLOG_POST:whatsapp-customer-retention', kind: 'RELATED' },
+    { ref: 'CHANGELOG:industry-tools-round-two', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

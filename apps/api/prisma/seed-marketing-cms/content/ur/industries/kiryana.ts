@@ -232,5 +232,10 @@ export const entry: SeedEntry = {
     { ref: 'INDUSTRY:retail@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:khata@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:khata@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:digital-khata-vs-paper-ledger@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:how-to-start-kiryana-store-pakistan@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:how-to-reduce-udhaar@ur', kind: 'RELATED' },
+    { ref: 'TOOL:khata-ageing-calculator@ur', kind: 'RELATED' },
   ],
 };

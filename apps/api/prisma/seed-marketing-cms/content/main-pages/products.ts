@@ -91,7 +91,7 @@ The owner also decides what the counter shows: product images, categories, quick
 
 Most billing software is built for one price per item and one way to pay. Pakistani counters are different: the same cooking oil sells by the bottle and by the carton, regular customers pay at the end of the month, and more and more bills are paid on JazzCash or Easypaisa. Nafaa handles all of that on one screen, in English or Roman Urdu.
 
-It is also built for the realities of load-shedding and weak signal. The counter does not stop when the internet does, and the Windows desktop app prints straight to the receipt printer and opens the cash drawer without extra clicks. If you are still choosing, the [guide to POS software in Pakistan](/best/pos-software-pakistan) lists what to check in any demo.`),
+It is also built for the realities of load-shedding and weak signal. The counter does not stop when the internet does, and the Windows desktop app prints straight to the receipt printer and opens the cash drawer without extra clicks. If you are still choosing, the [guide to choosing POS software](/blog/best-pos-kiryana-2026) lists what to check in any demo.`),
     pricing('Start free, upgrade when you grow'),
   ],
   faqKeys: ['mp-pos-hardware', 'mp-pos-payments', ...COMMON_FAQ],
@@ -117,6 +117,9 @@ It is also built for the realities of load-shedding and weak signal. The counter
     { ref: 'ALTERNATIVE:desktop-pos-alternative', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:hold-bill', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:customer-display', kind: 'RELATED' },
+    { ref: 'PAGE:bill-banane-wali-app', kind: 'RELATED' },
+    { ref: 'PAGE:free-pos-software-pakistan', kind: 'RELATED' },
+    { ref: 'CHANGELOG:keyboard-first-pos-counter', kind: 'RELATED' },
   ],
   sortOrder: 1,
   featured: true,
@@ -258,6 +261,8 @@ For the routines behind good stock, from reorder levels to counting without clos
     { ref: 'TEMPLATE:stock-take-sheet', kind: 'RELATED' },
     { ref: 'TEMPLATE:product-import-template', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:opening-stock', kind: 'RELATED' },
+    { ref: 'CHANGELOG:batches-follow-real-stock', kind: 'RELATED' },
+    { ref: 'CHANGELOG:stock-tools-every-industry', kind: 'RELATED' },
   ],
   sortOrder: 2,
   featured: true,
@@ -487,7 +492,7 @@ Services are taxed by the provinces. Restaurants, cafes, salons, gyms and other 
 
 ## Before you switch to live
 
-Register the POS with your authority ([FBR](/compliance/fbr-pos-integration), [PRA](/compliance/pra-punjab), [SRB](/compliance/srb-sindh) or [KPRA](/compliance/kpra-khyber-pakhtunkhwa)) and get the POS ID and credentials for each branch, enter them in Nafaa, and send a test bill to the sandbox. When the test is accepted, switch to live. Our team can do this with you as a paid setup if you prefer.`),
+Register the POS with your authority (FBR, PRA, SRB or KPRA; see the [FBR integration guide](/blog/fbr-e-invoicing-complete-guide-2026) and [sales tax on services](/glossary/sales-tax-on-services)) and get the POS ID and credentials for each branch, enter them in Nafaa, and send a test bill to the sandbox. When the test is accepted, switch to live. Our team can do this with you as a paid setup if you prefer.`),
   ],
   faqKeys: ['mp-fbr-who', 'mp-fbr-offline', 'offline'],
   cta: { heading: 'Get compliant without changing how you sell', body: 'Our team can set up the integration with you. Start with the free trial.' },
@@ -634,6 +639,7 @@ Garment, shoe and cosmetics shops that sell on Instagram and a website, electron
     { ref: 'PRODUCT:payments', kind: 'RELATED' },
     { ref: 'GUIDE:start-selling-online-pakistan', kind: 'RELATED' },
     { ref: 'BLOG_POST:selling-online-pakistan', kind: 'RELATED' },
+    { ref: 'CHANGELOG:shopify-app-install', kind: 'RELATED' },
   ],
   sortOrder: 5,
   featured: true,
@@ -988,6 +994,7 @@ Every counter that takes more than cash: a kiryana where half the bills are paid
     { ref: 'GLOSSARY_TERM:cod', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:ibft', kind: 'RELATED' },
     { ref: 'BLOG_POST:digital-payments-jazzcash-easypaisa-raast', kind: 'RELATED' },
+    { ref: 'CHANGELOG:split-payments-and-trade-in', kind: 'RELATED' },
   ],
   sortOrder: 8,
   evidence: [
@@ -1098,6 +1105,7 @@ Shops in markets with weak signal, counters on a mobile hotspot, branches outsid
     { ref: 'BEST_OF:pos-software-pakistan', kind: 'RELATED' },
     { ref: 'ALTERNATIVE:desktop-pos-alternative', kind: 'RELATED' },
     { ref: 'BLOG_POST:load-shedding-proof-billing', kind: 'RELATED' },
+    { ref: 'CHANGELOG:offline-bills-safe-on-logout', kind: 'RELATED' },
   ],
   sortOrder: 9,
   evidence: [
@@ -1313,6 +1321,7 @@ Owners who cannot stand at the counter all day: a kiryana with two cashiers and 
     { ref: 'PRODUCT:multi-shop', kind: 'RELATED' },
     { ref: 'PRODUCT:reports', kind: 'RELATED' },
     { ref: 'BLOG_POST:hire-and-train-counter-staff', kind: 'RELATED' },
+    { ref: 'CHANGELOG:staff-approval-pin', kind: 'RELATED' },
   ],
   sortOrder: 11,
   evidence: [

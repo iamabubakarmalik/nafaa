@@ -1,7 +1,8 @@
 /**
  * Server entry point for the calculator islands (ARCH 4.3, contract
  * ToolKey). The Tool template, and the `tool` block through the template's
- * `renderTool`, render `<ToolIsland toolKey=... />`.
+ * `renderTool`, render `<ToolIsland toolKey=... />`. `locale` ('ur' for the
+ * Urdu pages) picks each island's on-screen language; the default is English.
  *
  * Each island is its own dynamic chunk, so a tool page ships only its own
  * calculator. Islands are server-rendered (their first state is real HTML)
@@ -47,12 +48,12 @@ async function posPlans(): Promise<PosCostPlan[]> {
   }
 }
 
-export async function ToolIsland({ toolKey }: { toolKey: ToolKey }) {
+export async function ToolIsland({ toolKey, locale = 'en' }: { toolKey: ToolKey; locale?: string }) {
   switch (toolKey) {
     case 'gst-calculator':
-      return <GstCalculator />;
+      return <GstCalculator locale={locale} />;
     case 'profit-margin-calculator':
-      return <ProfitMarginCalculator />;
+      return <ProfitMarginCalculator locale={locale} />;
     case 'pos-cost-calculator':
       return <PosCostCalculator plans={await posPlans()} />;
     case 'invoice-generator':
@@ -62,24 +63,24 @@ export async function ToolIsland({ toolKey }: { toolKey: ToolKey }) {
     case 'fbr-tier-1-checker':
       return <FbrTier1Checker />;
     case 'break-even-calculator':
-      return <BreakEvenCalculator />;
+      return <BreakEvenCalculator locale={locale} />;
     case 'discount-calculator':
-      return <DiscountCalculator />;
+      return <DiscountCalculator locale={locale} />;
     case 'reorder-level-calculator':
-      return <ReorderLevelCalculator />;
+      return <ReorderLevelCalculator locale={locale} />;
     case 'khata-ageing-calculator':
-      return <KhataAgeingCalculator />;
+      return <KhataAgeingCalculator locale={locale} />;
     case 'food-cost-calculator':
-      return <FoodCostCalculator />;
+      return <FoodCostCalculator locale={locale} />;
     case 'barcode-generator':
-      return <BarcodeGenerator />;
+      return <BarcodeGenerator locale={locale} />;
     case 'zakat-calculator':
-      return <ZakatCalculator />;
+      return <ZakatCalculator locale={locale} />;
     case 'receipt-maker':
-      return <ReceiptMaker />;
+      return <ReceiptMaker locale={locale} />;
     default:
       return null;
   }
 }
 
-export { TOOL_META } from './meta';
+export { TOOL_META, toolLabel } from './meta';

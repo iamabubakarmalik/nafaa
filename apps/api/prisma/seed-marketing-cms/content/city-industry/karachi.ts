@@ -85,7 +85,7 @@ Yes. A product can have more than one unit and price, so a restaurant that takes
 No. Bills are made on the device without internet and sync when the connection returns. Keep the phone or laptop charged, or on a UPS, and the counter keeps running.
 
 ### Do I need tax integration?
-Most neighbourhood stores do not. Optional FBR integration is there for a store that is required to report, and the [Sindh Revenue Board page](/compliance/srb-sindh) explains the provincial side for services.
+Most neighbourhood stores do not. Optional FBR integration is there for a store that is required to report, and [sales tax on services](/glossary/sales-tax-on-services) explains the provincial side, which the Sindh Revenue Board runs.
 
 ### I have a second shop in another area. Can I see both?
 Yes. Each branch has its own stock and counter, and the owner sees sales, cash and khata for both from one account. See [Karachi](/pos-software/karachi) for the other trades the same account covers.`,
@@ -130,7 +130,7 @@ The kitchen is split by station. Grills, tandoors and karahi stoves each have th
 
 Payment habits differ by place. A food-street counter is mostly cash, a café in DHA takes cards and wallets, and delivery customers often pay the rider in cash at the door, which then sits with the rider until the shift ends.
 
-Restaurant services in Sindh are taxed by the [Sindh Revenue Board](/compliance/srb-sindh); integration in Nafaa is optional and only needed if your restaurant is registered for it.`,
+Restaurant services in Sindh are taxed by the Sindh Revenue Board (see [sales tax on services](/glossary/sales-tax-on-services)); integration in Nafaa is optional and only needed if your restaurant is registered for it.`,
   shotA: {
     heading: 'One kitchen screen for the grill, tandoor and karahi',
     body: 'Each menu category goes to its own station. Cooks see new, cooking and ready tickets with the minutes since they came in, so a karahi waiting twenty minutes stands out before the customer complains.',

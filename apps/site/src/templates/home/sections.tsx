@@ -62,23 +62,26 @@ export function ThemedShot({
   dark,
   sizes,
   priority,
+  visibleMedia,
   className,
 }: {
   light: PublicMedia;
   dark?: PublicMedia | null;
   sizes: string;
   priority?: boolean;
+  /** See CmsImage `visibleMedia`. */
+  visibleMedia?: string;
   className?: string;
 }) {
-  if (!dark) return <CmsImage media={light} sizes={sizes} priority={priority} className={cx('block h-auto w-full', className)} />;
+  if (!dark) return <CmsImage media={light} sizes={sizes} priority={priority} visibleMedia={visibleMedia} className={cx('block h-auto w-full', className)} />;
   // Wrappers carry the switch: frame CSS sets display on the <img> itself.
   return (
     <>
       <span className="block ink:hidden">
-        <CmsImage media={light} sizes={sizes} priority={priority} className={cx('block h-auto w-full', className)} />
+        <CmsImage media={light} sizes={sizes} priority={priority} visibleMedia={visibleMedia} className={cx('block h-auto w-full', className)} />
       </span>
       <span className="hidden ink:block">
-        <CmsImage media={dark} sizes={sizes} className={cx('block h-auto w-full', className)} />
+        <CmsImage media={dark} sizes={sizes} visibleMedia={visibleMedia} className={cx('block h-auto w-full', className)} />
       </span>
     </>
   );
@@ -300,7 +303,14 @@ export function HomeHero({
             <StageDecor />
             <div className={cx(fx.tilt, fx.desk)}>
               <FrameFor frame={media?.kind === 'screenshot' ? media.frame : 'none'} url={media?.kind === 'screenshot' ? media.url : undefined} className={fx.mainFrame}>
-                <ThemedShot light={shot} dark={shotDark} sizes="(min-width: 1280px) 1000px, (min-width: 768px) 78vw, 100vw" priority />
+                {/* With a phone capture, phones hide this one (fx.module.css), so they skip its download. */}
+                <ThemedShot
+                  light={shot}
+                  dark={shotDark}
+                  sizes="(min-width: 1280px) 1000px, (min-width: 768px) 78vw, 100vw"
+                  priority
+                  visibleMedia={phoneShot ? '(min-width: 48rem)' : undefined}
+                />
               </FrameFor>
               <Beam />
             </div>
@@ -351,7 +361,7 @@ function factIcon(label: string): string {
 
 function FactCard({ label, value, side, i, rtl }: { label: string; value: string; side: 'l' | 'r'; i: number; rtl?: boolean }) {
   return (
-    <div className={cx(hub.fact, side === 'l' ? hub.factL : hub.factR)} style={{ '--i': i }}>
+    <li className={cx(hub.fact, side === 'l' ? hub.factL : hub.factR)} style={{ '--i': i }}>
       <span aria-hidden className={hub.link}>
         <span className={hub.linkDot} />
       </span>
@@ -359,12 +369,12 @@ function FactCard({ label, value, side, i, rtl }: { label: string; value: string
         <CmsIcon name={factIcon(label)} size={18} />
       </span>
       <div className="min-w-0" dir={rtl ? 'rtl' : undefined}>
-        <dt className="text-eyebrow uppercase text-fg-subtle">{label}</dt>
-        <dd className="mt-1.5 text-body font-medium leading-snug text-fg-strong">
+        <p className="text-eyebrow uppercase text-fg-subtle">{label}</p>
+        <p className="mt-1.5 text-body font-medium leading-snug text-fg-strong">
           <InlineMarkdown text={value} />
-        </dd>
+        </p>
       </div>
-    </div>
+    </li>
   );
 }
 
@@ -394,11 +404,11 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
         </div>
 
         <div className={hub.hub} data-animate="" dir={rtl ? 'ltr' : undefined}>
-          <dl className={hub.col}>
+          <ul className={hub.col}>
             {left.map((f, i) => (
               <FactCard key={f.label} label={f.label} value={f.value} side="l" i={i} rtl={rtl} />
             ))}
-          </dl>
+          </ul>
           <div aria-hidden className={hub.core}>
             <span className={hub.coreGrid} />
             {[0, 1, 2].map((k) => (
@@ -430,11 +440,11 @@ export function HomeAnswer({ block, entry }: { block: AnswerBoxBlock; entry: Pub
               ))}
             </span>
           </div>
-          <dl className={hub.col}>
+          <ul className={hub.col}>
             {right.map((f, i) => (
               <FactCard key={f.label} label={f.label} value={f.value} side="r" i={i + half} rtl={rtl} />
             ))}
-          </dl>
+          </ul>
         </div>
 
         {block.romanUrdu ? (

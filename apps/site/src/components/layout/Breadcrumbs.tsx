@@ -5,6 +5,7 @@
  */
 import type { Breadcrumb } from '@/lib/cms/contract/cms-contract';
 import { breadcrumbItems } from '@/lib/seo/breadcrumbs';
+import { urduLabel } from '@/lib/i18n/shell';
 import { Breadcrumbs as Trail } from '@/components/ui/Breadcrumbs';
 
 function relative(url: string): string {
@@ -21,5 +22,7 @@ export function PageBreadcrumbs({ crumbs, className, label }: { crumbs: readonly
   const items = breadcrumbItems(crumbs).map((item) => ({ ...item, href: item.href ? relative(item.href) : undefined }));
   // Urdu trails (links under /ur) get an Urdu name unless the caller passes one.
   const urdu = items.some((item) => item.href === '/ur' || item.href?.startsWith('/ur/'));
-  return <Trail items={items} className={className} label={label ?? (urdu ? 'آپ یہاں ہیں' : undefined)} />;
+  // Hub crumbs arrive with the English type name ("Industries"); Urdu trails show the shell's Urdu label.
+  const shown = urdu ? items.map((item) => ({ ...item, label: urduLabel(item.label) })) : items;
+  return <Trail items={shown} className={className} label={label ?? (urdu ? 'آپ یہاں ہیں' : undefined)} />;
 }

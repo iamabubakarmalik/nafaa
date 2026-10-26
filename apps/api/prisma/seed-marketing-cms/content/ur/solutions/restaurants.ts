@@ -289,6 +289,7 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:payments@ur', kind: 'TAG' },
     { ref: 'SERVICE:hardware@ur', kind: 'TAG' },
     { ref: 'SERVICE:training@ur', kind: 'TAG' },
+    { ref: 'GLOSSARY_TERM:kot@ur', kind: 'RELATED' },
   ],
   seoTitle: 'پاکستان میں ریسٹورنٹ POS سافٹ ویئر: میزیں، KOT اور ڈیلیوری',
   seoDescription:

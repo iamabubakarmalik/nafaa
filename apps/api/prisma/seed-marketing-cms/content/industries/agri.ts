@@ -129,5 +129,6 @@ export default {
     { ref: 'GLOSSARY_TERM:udhaar', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:batch-tracking', kind: 'RELATED' },
     { ref: 'BLOG_POST:digital-khata-vs-paper-ledger', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:sargodha/agri', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

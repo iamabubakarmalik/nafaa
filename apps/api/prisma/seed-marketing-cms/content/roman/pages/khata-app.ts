@@ -88,7 +88,7 @@ Digital khata in charon ko hal karta hai, bashart ke us me entry roz ho.`),
 - **Supplier ka khata.** Jo aap ne dena hai woh bhi saath ho, warna aadha hisaab register me reh jata hai.
 - **Internet ke baghair.** Payment aur udhaar ki entry offline bhi ho aur baad me sync ho.
 
-Khata apps ka tafseeli muqabla English me [khata apps compared](/best/khata-apps-compared) par hai, aur register ke muqable me [paper khata alternative](/alternatives/paper-khata-register). Khata lafz ka matlab aur pas-e-manzar [glossary](/glossary/khata) me hai. Nafaa ke khate ki poori tafseel [digital khata](/product/khata) par, aur udhaar likhne ke usool [udhaar likhne wali app](/udhaar-likhne-wali-app) par.
+Khata app ki poori tafseel English me [digital khata](/product/khata) par hai, aur register ke muqable me [digital khata vs paper register](/blog/digital-khata-vs-paper-ledger). Khata lafz ka matlab aur pas-e-manzar [glossary](/glossary/khata) me hai. Nafaa ke khate ki poori tafseel [digital khata](/product/khata) par, aur udhaar likhne ke usool [udhaar likhne wali app](/udhaar-likhne-wali-app) par.
 
 Agar abhi app nahi lena to hamara free [khata udhaar register](/templates/khata-udhaar-register) print kar lein. Kam az kam har entry ka format sahi hoga.`),
   ],

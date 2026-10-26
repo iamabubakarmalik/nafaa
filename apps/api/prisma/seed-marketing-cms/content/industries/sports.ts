@@ -123,5 +123,6 @@ export default {
     { ref: 'INDUSTRY:gym', kind: 'RELATED' },
     { ref: 'INDUSTRY:shoe', kind: 'RELATED' },
     { ref: 'INDUSTRY:garments', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:sialkot/sports', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

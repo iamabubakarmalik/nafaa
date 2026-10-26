@@ -225,5 +225,5 @@ export const entry: SeedEntry = {
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
   needsOwner: ['Foodpanda / online orders status (carried over from the English entry).'],
-  relations: [{ ref: 'INDUSTRY:bakery@ur', kind: 'RELATED' }, { ref: 'SOLUTION:restaurants@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'SERVICE:hardware@ur', kind: 'RELATED' }],
+  relations: [{ ref: 'INDUSTRY:bakery@ur', kind: 'RELATED' }, { ref: 'SOLUTION:restaurants@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'SERVICE:hardware@ur', kind: 'RELATED' }, { ref: 'GLOSSARY_TERM:kot@ur', kind: 'RELATED' }, { ref: 'TOOL:food-cost-calculator@ur', kind: 'RELATED' }, { ref: 'GLOSSARY_TERM:recipe-costing@ur', kind: 'RELATED' }],
 };

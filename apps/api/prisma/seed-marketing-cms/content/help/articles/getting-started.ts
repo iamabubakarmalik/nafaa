@@ -44,7 +44,7 @@ const articles: HelpArticle[] = [
       ['Can I change the business type later?', 'Yes. Open **Settings → Business type**. The same page turns individual features on or off.'],
     ],
     terms: ['cloud-pos', 'pos'],
-    related: ['PRODUCT:pos', 'PAGE:set-up-your-shop', 'PAGE:add-staff-and-roles', 'PAGE:devices-and-login', 'PAGE:pricing'],
+    related: ['PRODUCT:pos', 'PAGE:set-up-your-shop', 'PAGE:add-staff-and-roles', 'PAGE:devices-and-login', 'PAGE:pricing', 'CHANGELOG:shorter-sign-up'],
     evidence: [
       'apps/web/src/modules/auth/pages/RegisterPage.tsx',
       'apps/web/src/modules/auth/components/IndustryPicker.tsx',

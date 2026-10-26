@@ -191,7 +191,24 @@ export function Breakdown({ rows, className }: { rows: { label: ReactNode; value
   );
 }
 
-export function SourceNote({ source, children }: { source: FactSource; children?: ReactNode }) {
+/** Locale picker shared by the islands: 'ur' gives Urdu, anything else English. */
+export function pick<T>(strings: { en: T; ur: T }, locale?: string): T {
+  return locale === 'ur' ? strings.ur : strings.en;
+}
+
+export function SourceNote({ source, children, locale }: { source: FactSource; children?: ReactNode; locale?: string }) {
+  if (locale === 'ur') {
+    return (
+      <p className="mt-5 text-small text-fg-subtle">
+        {children ? <>{children} </> : null}
+        ماخذ:{' '}
+        <a href={source.url} className="underline decoration-current/30 underline-offset-2 hover:decoration-current">
+          {source.publisher}, {source.title}
+        </a>{' '}
+        (چیک کیا: {shortDate(source.checkedAt)})۔
+      </p>
+    );
+  }
   return (
     <p className="mt-5 text-small text-fg-subtle">
       {children ? <>{children} </> : null}

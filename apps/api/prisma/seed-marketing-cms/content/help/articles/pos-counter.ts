@@ -157,7 +157,7 @@ const articles: HelpArticle[] = [
       ['Do the shortcuts work on a laptop without F keys?', 'Most laptops reach F keys with the **Fn** key. Every action is also a button on the screen, and **F9** lists the rest.'],
     ],
     terms: ['pos', 'hold-bill', 'split-payment', 'discount'],
-    related: ['PRODUCT:pos', 'PAGE:make-a-bill', 'PAGE:pos-layouts', 'PAGE:hold-and-recall-bills'],
+    related: ['PRODUCT:pos', 'PAGE:make-a-bill', 'PAGE:pos-layouts', 'PAGE:hold-and-recall-bills', 'CHANGELOG:keyboard-shortcuts-across-the-app', 'CHANGELOG:keyboard-first-pos-counter'],
     evidence: [SHORTCUTS, POS, 'apps/web/src/modules/pos/components/PosPayPicker.tsx', CHECKOUT, 'apps/web/src/modules/pos/README.md', 'apps/web/src/app/shell/keyboard/useGlobalKeys.ts'],
     needsOwner: ['The on-screen list says F8 offers methods 1–5; the picker has six (6 = Split). The article follows the picker. Update the overlay text in PosShortcutsOverlay.tsx.'],
   },

@@ -17,3 +17,25 @@ export const TOOL_META: Record<ToolKey, { icon: string; label: string }> = {
   'zakat-calculator': { icon: 'hand-coins', label: 'Zakat calculator' },
   'receipt-maker': { icon: 'receipt', label: 'Receipt maker' },
 };
+
+const TOOL_LABEL_UR: Record<ToolKey, string> = {
+  'gst-calculator': 'GST کیلکولیٹر',
+  'profit-margin-calculator': 'پرافٹ مارجن کیلکولیٹر',
+  'pos-cost-calculator': 'POS کاسٹ کیلکولیٹر',
+  'invoice-generator': 'انوائس بنائیں',
+  'gold-rate-calculator': 'سونے کی قیمت کیلکولیٹر',
+  'fbr-tier-1-checker': 'FBR Tier-1 چیکر',
+  'break-even-calculator': 'بریک ایون کیلکولیٹر',
+  'discount-calculator': 'ڈسکاؤنٹ کیلکولیٹر',
+  'reorder-level-calculator': 'ری آرڈر لیول کیلکولیٹر',
+  'khata-ageing-calculator': 'پرانا ادھار کیلکولیٹر',
+  'food-cost-calculator': 'فوڈ کاسٹ کیلکولیٹر',
+  'barcode-generator': 'بارکوڈ بنائیں',
+  'zakat-calculator': 'زکوٰۃ کیلکولیٹر',
+  'receipt-maker': 'رسید بنائیں',
+};
+
+/** Card and OG label in the page's language: Urdu for 'ur', otherwise the English TOOL_META label. */
+export function toolLabel(key: ToolKey, locale?: string): string {
+  return locale === 'ur' ? TOOL_LABEL_UR[key] : TOOL_META[key].label;
+}

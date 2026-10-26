@@ -114,7 +114,7 @@ A medical store carries thousands of brands, most of them sold in small quantiti
 - **Record prescriptions and doctors.** Refills, part supply and a history per patient help regular customers and protect the pharmacist.
 - **Log the cold chain.** Insulin and vaccines need a record of the fridge temperature, not a memory of it.
 
-Nafaa covers each of these in the pharmacy setup, on top of the counter, purchasing, khata and reports used by every Nafaa business. It does not claim any DRAP approval; your licence and legal duties stay with you. For what the law asks of a pharmacy, see [drug laws for pharmacies](/compliance/drap-pharmacy).`),
+Nafaa covers each of these in the pharmacy setup, on top of the counter, purchasing, khata and reports used by every Nafaa business. It does not claim any DRAP approval; your licence and legal duties stay with you. For what the law asks of a pharmacy, see [what DRAP does](/glossary/drap).`),
     pricing("Plans for one medical store or a chain"),
   ],
 });
@@ -138,5 +138,7 @@ export default {
     { ref: 'BLOG_POST:pharmacy-expiry-management', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:generic-name', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:mrp', kind: 'RELATED' },
+    { ref: 'CHANGELOG:industry-tools-round-one', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:faisalabad/pharmacy', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

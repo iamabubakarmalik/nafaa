@@ -231,5 +231,8 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' },
     { ref: 'SOLUTION:single-shop@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:sku@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:staff-theft-prevention-counter@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:pricing-strategy-small-shop@ur', kind: 'RELATED' },
   ],
 };

@@ -129,5 +129,7 @@ export default {
     { ref: 'BLOG_POST:hardware-store-inventory-many-skus', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:delivery-challan', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:quotation', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:gujranwala/hardware', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/hardware', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

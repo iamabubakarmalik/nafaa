@@ -10,7 +10,7 @@ const spec: RomanSpec = {
     'An honest Roman Urdu answer to "free POS software Pakistan": the kinds of free offers (free trial, free plan with limits, cracked desktop copies), the hidden costs of each, what you can genuinely do for free with a register, Excel and our free tools and templates, and when a paid POS such as Nafaa starts paying for itself.',
   seoTitle: 'Free POS Software Pakistan: Free me Kya Milta Hai?',
   seoDescription:
-    'Free POS software Pakistan: free trial, free plan aur crack software ka asal kharcha, kya cheez sach me free hai, aur paid POS kab faida deta hai. Nafaa 7 din free.',
+    'Free POS software Pakistan: free trial, free plan aur crack software ka asal kharcha, kya sach me free hai, aur paid POS kab faida deta hai. Nafaa 7 din free.',
   focusKeyword: 'free pos software pakistan',
   hero: {
     eyebrow: 'Free POS software',
@@ -56,7 +56,7 @@ Agar abhi software par paisa nahi lagana, to bhi hisaab rakha ja sakta hai. Ye c
 - [Khata udhaar register](/templates/khata-udhaar-register), [stock take sheet](/templates/stock-take-sheet) aur [daily cash closing sheet](/templates/daily-cash-closing-sheet).
 - [Product import template](/templates/product-import-template): aaj apni list Excel me bana lein; kal kisi bhi POS me kaam aayegi.
 
-Bohat si dukaanein Excel par bhi chalti hain. Excel aur POS ka farq English me [Excel alternative](/alternatives/excel-alternative) par hai.`),
+Bohat si dukaanein Excel par bhi chalti hain. Excel wale hisaab ke liye free [Excel templates](/templates) bhi hain.`),
     steps('Paid POS kab faida deta hai? Khud hisaab lagayein', [
       ['Udhaar ginein', 'Kitna udhaar 30 din se purana hai? Agar reminder se is ka chhota hissa bhi wapas aaye to plan ki qeemat nikal aati hai.'],
       ['Galle ka farq', 'Mahine me galla kitni dafa kam nikla? Har bill ka record ye farq band karta hai.'],
@@ -78,7 +78,7 @@ Bohat si dukaanein Excel par bhi chalti hain. Excel aur POS ka farq English me [
 
 7 din kam lagte hain, lekin sahi tareeqe se kaafi hain. Pehle din sab se zyada bikne wali 50 se 100 cheezein daalein, doosre din se har bill Nafaa me banayein, aur udhaar walon ke purane balance daal dein. Saatwein din dashboard par Sale, Profit, kam Stock aur udhaar dekhein aur khud faisla karein. Trial ke liye card nahi chahiye.
 
-Plans aur un ki qeemat [pricing](/pricing) par hai. POS software ka tafseeli muqabla English me [POS software in Pakistan](/best/pos-software-pakistan) par, aur purane desktop software se aane ka tareeqa [desktop POS alternative](/alternatives/desktop-pos-alternative) par. Bijli aur internet ke baghair billing ke liye [offline billing software](/offline-billing-software) dekhein.`),
+Plans aur un ki qeemat [pricing](/pricing) par hai. POS chunne ka tareeqa English me [how to choose POS software](/blog/best-pos-kiryana-2026) par, aur purana data laane ka tareeqa [data migration](/services/data-migration) par. Bijli aur internet ke baghair billing ke liye [offline billing software](/offline-billing-software) dekhein.`),
   ],
   faqs: [
     ['Kya Pakistan me koi achha free POS software hai?', 'Hamesha free software aksar had ke saath aata hai, ya backup aur madad nahi deta. Crack software me data aur virus ka khatra hai. Behtar hai ke kisi achhe software ka free trial apni dukaan par aazmayein. Nafaa ka 7 din Free Trial hai, aur hamare tools aur templates hamesha free hain.'],

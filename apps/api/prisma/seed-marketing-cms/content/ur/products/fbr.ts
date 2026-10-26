@@ -230,5 +230,8 @@ export const entry: SeedEntry = {
     { ref: 'SOLUTION:retail-chains@ur', kind: 'TAG' },
     { ref: 'SOLUTION:restaurants@ur', kind: 'TAG' },
     { ref: 'SERVICE:fbr-integration-setup@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:fbr-pos@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:ntn@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:strn@ur', kind: 'RELATED' },
   ],
 };

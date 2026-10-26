@@ -210,5 +210,6 @@ export const entry: SeedEntry = {
     { ref: 'SOLUTION:single-shop@ur', kind: 'TAG' },
     { ref: 'INDUSTRY:mobile-shop@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:appliances@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:imei@ur', kind: 'RELATED' },
   ],
 };

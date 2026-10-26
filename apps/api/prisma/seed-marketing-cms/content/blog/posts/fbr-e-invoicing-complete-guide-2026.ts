@@ -26,7 +26,7 @@ const spec: PostSpec = {
   category: 'compliance',
   cover: PHOTO.fbrEInvoicingCompleteGuide2026,
   tags: ['GLOSSARY_TERM:fbr-pos', 'GLOSSARY_TERM:tier-1-retailer', 'GLOSSARY_TERM:ntn', 'GLOSSARY_TERM:strn'],
-  related: ['PRODUCT:fbr', 'SERVICE:fbr-integration-setup', 'BLOG_POST:sales-tax-guide-punjab-2026', 'COMPLIANCE:fbr-pos-integration', 'COMPLIANCE:pra-punjab', 'COMPLIANCE:srb-sindh', 'COMPLIANCE:kpra-khyber-pakhtunkhwa'],
+  related: ['PRODUCT:fbr', 'SERVICE:fbr-integration-setup', 'BLOG_POST:sales-tax-guide-punjab-2026', 'COMPLIANCE:fbr-pos-integration', 'COMPLIANCE:pra-punjab', 'COMPLIANCE:srb-sindh', 'COMPLIANCE:kpra-khyber-pakhtunkhwa', 'TOOL:gst-calculator'],
   blocks: [
     prose(`If you run a larger shop, a chain outlet or a store in a mall, you have probably heard that your billing has to be "connected to FBR". This guide explains what that means in practice: what FBR POS integration is, how it differs from the newer digital invoicing system, how to tell whether it applies to you, and what the setup involves.
 
@@ -48,7 +48,7 @@ Both are covered by Chapter XIV of the Sales Tax Rules, 2006, which FBR lists as
 
 POS integration applies to **Tier-1 retailers**. The term is defined in the Sales Tax Act, 1990 (section 2(43A)), and the definition has been changed more than once by Finance Acts. In broad terms it covers retailers that are part of a national or international chain, retailers in air-conditioned shopping malls or plazas, and other retailers that meet conditions set in the law, such as conditions linked to shop size or the electricity bill. The exact conditions and amounts are in the current text of the Act and in FBR's POS booklet, so check them there rather than relying on a summary.
 
-FBR also issues Sales Tax General Orders that name specific retailers and set integration dates; the list is on the [Tier-1 general orders](https://fbr.gov.pk/sales-tax-general-order-tier-1/163085/173442) page. The [FBR POS integration page](/compliance/fbr-pos-integration) sums up who must integrate and how.
+FBR also issues Sales Tax General Orders that name specific retailers and set integration dates; the list is on the [Tier-1 general orders](https://fbr.gov.pk/sales-tax-general-order-tier-1/163085/173442) page. The glossary entry on [FBR POS integration](/glossary/fbr-pos) gives the short version.
 
 A useful way to think about it:
 

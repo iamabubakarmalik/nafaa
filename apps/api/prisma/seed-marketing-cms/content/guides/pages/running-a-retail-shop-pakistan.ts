@@ -117,7 +117,7 @@ Move cash out of the drawer to a safe or bank during the day, so the galla never
 
 Credit keeps regular customers loyal, and for many neighbourhood shops it is a large share of sales. It is also where most small shops quietly lose money. The rules that work are simple: decide who gets credit, set a limit for each customer, record every entry with the bill behind it, watch how old each balance is, and remind people early and politely.
 
-Our full [guide to managing udhaar and khata](/guides/managing-udhaar-and-khata) covers credit policy, reminders and old balances. If you still use a paper register, see the [paper khata alternative](/alternatives/paper-khata-register).
+Our full [guide to managing udhaar and khata](/guides/managing-udhaar-and-khata) covers credit policy, reminders and old balances. If you still use a paper register, see [digital khata vs paper register](/blog/digital-khata-vs-paper-ledger).
 
 ## 6. Keeping stock right
 
@@ -180,7 +180,7 @@ Once the shop runs smoothly, growth usually takes one of two forms.
 - **A second shop or a godown.** This works when the first shop runs without you standing at the counter. Read [running more than one shop](/blog/multi-shop-management-guide) first.
 - **Selling online.** Many shops add WhatsApp orders, a simple website or a marketplace to reach customers beyond the street. Our [guide to starting to sell online](/guides/start-selling-online-pakistan) covers channels, payments and couriers.
 
-On tax: most small shops deal only with income tax and, if they are large enough, sales tax registration. If you are a larger retailer or chain, our [compliance pages](/compliance/fbr-pos-integration) explain who must integrate their billing and how.`),
+On tax: most small shops deal only with income tax and, if they are large enough, sales tax registration. If you are a larger retailer or chain, our [FBR POS integration guide](/blog/fbr-e-invoicing-complete-guide-2026) explains who must integrate their billing and how.`),
     tip('Pick one habit from this guide, such as the ten-minute closing routine, and do it every day for a month before adding the next. Habits stick one at a time.', 'Start small'),
     note('Nafaa brings the counter, stock, khata, staff and reports into one system that keeps billing when the internet drops. Start a free trial on the device you already have, or see [POS & Billing](/product/pos) first.'),
   ],

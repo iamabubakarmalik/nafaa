@@ -241,5 +241,6 @@ export const entry: SeedEntry = {
     { ref: 'INDUSTRY:electronics@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:mobile-shop@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:furniture@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:sku@ur', kind: 'RELATED' },
   ],
 };

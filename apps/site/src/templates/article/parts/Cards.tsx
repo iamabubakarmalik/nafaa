@@ -60,7 +60,7 @@ export function ContentCard({ card, eyebrow, date, meta, headingAs: H = 'h3', ic
             {card.summary ? <p className="mt-1 line-clamp-2 max-w-measure text-small text-fg-muted">{card.summary}</p> : null}
           </div>
           <span className="flex shrink-0 items-center gap-3 text-small text-fg-subtle">
-            {when ? <time dateTime={isoDate(when)}>{formatDate(when)}</time> : null}
+            {when ? <time dateTime={isoDate(when)}>{formatDate(when, card.locale)}</time> : null}
             <Arrow className="transition-transform duration-fast ease-out group-hover/card:translate-x-0.5" />
           </span>
         </div>
@@ -109,7 +109,7 @@ export function ContentCard({ card, eyebrow, date, meta, headingAs: H = 'h3', ic
         <div className="mt-auto flex items-center justify-between gap-3 pt-5 text-small text-fg-subtle">
           <span className="flex min-w-0 items-center gap-2">
             {meta}
-            {when ? <time dateTime={isoDate(when)}>{formatDate(when)}</time> : null}
+            {when ? <time dateTime={isoDate(when)}>{formatDate(when, card.locale)}</time> : null}
           </span>
           <Arrow className="shrink-0 text-link transition-transform duration-fast ease-out group-hover/card:translate-x-0.5" />
         </div>

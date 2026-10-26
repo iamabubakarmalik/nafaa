@@ -410,7 +410,7 @@ export function AiAssistant({ block, link, locale }: { block: FeaturesGridBlock;
       <div className="mx-auto box-content grid max-w-wide items-center gap-12 px-gutter lg:grid-cols-2 lg:gap-20">
         <div data-reveal>
           <p className="inline-flex items-center gap-2 rounded-full border border-brand-600/20 bg-brand-50 py-1 ps-1 pe-3 text-xs font-semibold text-brand-800 ink:border-brand-400/25 ink:bg-brand-400/10 ink:text-brand-200">
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
               <CmsIcon name="sparkles" size={12} />
               {t.home.aiNew}
             </span>

@@ -229,6 +229,7 @@ export const entry: SeedEntry = {
     { ref: 'SERVICE:websites@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:payments@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:cod@ur', kind: 'RELATED' },
   ],
   sortOrder: 5,
   featured: true,

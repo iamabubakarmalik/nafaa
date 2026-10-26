@@ -216,5 +216,6 @@ export const entry: SeedEntry = {
     { ref: 'INDUSTRY:kiryana@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:bakery@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:meat@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:khata@ur', kind: 'RELATED' },
   ],
 };

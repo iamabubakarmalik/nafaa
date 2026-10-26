@@ -14,6 +14,7 @@
 import type { ReactNode } from 'react';
 import type { Block, CmsEntryType, PublicEntry, SiteSettings, ToolKey } from '@/lib/cms/contract/cms-contract';
 import { BlockRenderer } from '@/components/blocks';
+import { uiStrings } from '@/lib/i18n/ui';
 
 export interface BodyOptions {
   skipGridsOf?: readonly CmsEntryType[];
@@ -58,13 +59,14 @@ export function Body({ entry, variant = 'article', skipGridsOf, withFaqs, render
 export function closingCtaBlock(entry: PublicEntry, site: SiteSettings): Block | null {
   if (entry.blocks.some((block) => block.type === 'cta' && !block.hidden)) return null;
   if (!site.signupUrl) return null;
+  const t = uiStrings(entry.locale).content.closing;
   return {
     id: 'cta-closing',
     type: 'cta',
-    heading: 'Run your shop on Nafaa',
-    body: 'Billing, stock, khata and reports in one place.',
-    primaryCta: { label: 'Get started', href: site.signupUrl, trackAs: 'closing_signup' },
-    ...(site.demoPath ? { secondaryCta: { label: 'Book a demo', href: site.demoPath, trackAs: 'closing_demo' } } : {}),
+    heading: t.heading,
+    body: t.body,
+    primaryCta: { label: t.primary, href: site.signupUrl, trackAs: 'closing_signup' },
+    ...(site.demoPath ? { secondaryCta: { label: t.secondary, href: site.demoPath, trackAs: 'closing_demo' } } : {}),
   };
 }
 

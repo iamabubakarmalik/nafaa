@@ -122,5 +122,6 @@ export default {
     { ref: 'INDUSTRY:carpet', kind: 'RELATED' },
     { ref: 'INDUSTRY:appliances', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:khata', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:chiniot/furniture', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

@@ -137,7 +137,7 @@ Some shops, especially for mobiles, electronics and furniture, sell on [qist](/g
 
 A paper register is cheap and trusted, and for a shop with a few credit customers it is enough. It cannot add up, show ages, remind anyone or back itself up. A khata app does those things, but you still type each entry. A POS with a built-in khata writes the entry from the bill, so the khata, stock and cash always agree.
 
-We compare the options in [khata apps compared](/best/khata-apps-compared) and [digital khata vs paper](/blog/digital-khata-vs-paper-ledger). If you are ready to move off paper, the [paper khata alternative](/alternatives/paper-khata-register) page shows how to move balances in an evening.`),
+We compare the options in [digital khata vs paper](/blog/digital-khata-vs-paper-ledger) and on the [digital khata](/product/khata) page. If you are ready to move off paper, the help article on [opening balances](/help/khata-and-customers/opening-balance) shows how to move old balances in.`),
     shot({
       heading: 'Balances in your pocket',
       body: 'The khata on the owner\'s phone: check a balance, record a payment or send a reminder from anywhere. Payments taken offline sync later.',

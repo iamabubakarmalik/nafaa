@@ -9,8 +9,12 @@
  *   Without data-track it still records WhatsApp links (whatsapp_click),
  *   sign-up links (signup_clicked, matched against `signupUrl`) and links to
  *   other sites (outbound_click, domain only).
- * - Google tags (GTM, GA4, Google Ads) load on idle or at consent, in Consent
- *   Mode v2 (storage denied until the visitor accepts). Clarity and the ad
+ * - Google tags (GTM, GA4, Google Ads) load at the visitor's first
+ *   interaction (tap, scroll, key), a few seconds after the page has loaded,
+ *   or at consent, whichever comes first, in Consent Mode v2 (storage denied
+ *   until the visitor accepts). They used to load on idle, which put about a
+ *   second of third-party script (GTM also pulls in its own tags) in the way
+ *   of the page becoming responsive on mid-range phones. Clarity and the ad
  *   pixels load only after consent. Ids come from settings `analytics` or the
  *   NEXT_PUBLIC_* variables (lib/analytics/env.ts); each loads only when set.
  */
@@ -33,8 +37,10 @@ export interface AnalyticsProps {
   pixels?: PixelIds;
 }
 
-/** Google tags wait for the browser to be idle (or this long) so they stay off the critical path. */
-const IDLE_TIMEOUT_MS = 4000;
+/** Without an interaction, Google tags load this long after the window load event (then on idle). */
+const LOAD_DELAY_MS = 5000;
+/** The first of these starts the Google tags early. */
+const INTERACTION_EVENTS = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const;
 
 function isSignup(href: URL, signupUrl: string | undefined): boolean {
   if (!signupUrl) return false;
@@ -109,18 +115,37 @@ export function Analytics({ signupUrl, gtmId, gaId, adsId, adsConversions, clari
     };
     let idle: number | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    const stopWaiting = () => {
+      for (const name of INTERACTION_EVENTS) window.removeEventListener(name, onInteraction);
+      window.removeEventListener('load', onLoad);
+      if (idle !== undefined) window.cancelIdleCallback(idle);
+      if (timer) clearTimeout(timer);
+    };
+    const startNow = () => {
+      stopWaiting();
+      start();
+    };
+    const onInteraction = () => startNow();
+    const onLoad = () => {
+      timer = setTimeout(() => {
+        if ('requestIdleCallback' in window) idle = window.requestIdleCallback(startNow, { timeout: LOAD_DELAY_MS });
+        else startNow();
+      }, LOAD_DELAY_MS);
+    };
     if (readConsent() === 'granted') start();
-    else if ('requestIdleCallback' in window) idle = window.requestIdleCallback(start, { timeout: IDLE_TIMEOUT_MS });
-    else timer = setTimeout(start, IDLE_TIMEOUT_MS / 2);
+    else {
+      for (const name of INTERACTION_EVENTS) window.addEventListener(name, onInteraction, { once: true, passive: true });
+      if (document.readyState === 'complete') onLoad();
+      else window.addEventListener('load', onLoad, { once: true });
+    }
     const onConsent = (event: Event) => {
       const choice = (event as CustomEvent<ConsentChoice>).detail;
-      start();
+      startNow();
       updateGoogleConsent(choice === 'granted');
     };
     window.addEventListener(CONSENT_EVENT, onConsent);
     return () => {
-      if (idle !== undefined) window.cancelIdleCallback(idle);
-      if (timer) clearTimeout(timer);
+      stopWaiting();
       window.removeEventListener(CONSENT_EVENT, onConsent);
     };
   }, [gtmId, gaId, adsId, adsSignup, adsLead, adsDemo]);

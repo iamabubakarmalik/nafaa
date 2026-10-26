@@ -223,6 +223,7 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:reports@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:staff@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:multi-branch@ur', kind: 'RELATED' },
   ],
   sortOrder: 6,
   origin: 'translation of content/main-pages/products.ts (26 Oct 2026)',

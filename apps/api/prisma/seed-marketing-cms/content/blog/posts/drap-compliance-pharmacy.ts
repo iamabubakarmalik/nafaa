@@ -31,7 +31,7 @@ This checklist is written for owners and pharmacists of retail pharmacies and me
     checkRules(`Drug laws and rules are federal and provincial, and both change. Confirm licence requirements with your provincial drug control office and read DRAP notices on dra.gov.pk before you rely on this checklist. Checked on ${CHECKED_ON}.`),
     prose(`## Who does what
 
-**DRAP (Drug Regulatory Authority of Pakistan)** was set up under the DRAP Act, 2012 and works with the Drugs Act, 1976. [Drug laws for pharmacies](/compliance/drap-pharmacy) covers the licence, the counter rules and the penalties in one place. Its work that touches a pharmacy counter includes:
+**DRAP (Drug Regulatory Authority of Pakistan)** was set up under the DRAP Act, 2012 and works with the Drugs Act, 1976. The glossary entry on [DRAP](/glossary/drap) gives the short version of what it does. Its work that touches a pharmacy counter includes:
 
 - Registration of medicines: only registered products may be sold.
 - Pricing of medicines: the price printed on the pack is set under the federal pricing rules, and you should not sell above it.

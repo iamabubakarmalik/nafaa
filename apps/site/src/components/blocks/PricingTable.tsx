@@ -164,7 +164,7 @@ export async function PricingTable({ block, ctx }: BlockProps<'pricingTable'>) {
 
                 <div className="mt-6">
                   <CtaButton
-                    cta={{ label: plan.display.ctaLabel || t.getStarted, href, trackAs: `pricing:${plan.slug}` }}
+                    cta={{ label: (ctx.locale === 'ur' ? null : plan.display.ctaLabel) || t.getStarted, href, trackAs: `pricing:${plan.slug}` }}
                     fallbackVariant={highlighted ? 'primary' : 'secondary'}
                     area="pricing"
                     className="w-full"

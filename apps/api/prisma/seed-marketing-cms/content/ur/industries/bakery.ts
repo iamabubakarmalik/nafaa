@@ -221,5 +221,5 @@ export const entry: SeedEntry = {
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
   needsOwner: ['Online orders (Foodpanda): apps/api/src/integrations/online-orders has Foodpanda code; confirm it is live before marketing it (carried over from the English entry).'],
-  relations: [{ ref: 'INDUSTRY:restaurant@ur', kind: 'RELATED' }, { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' }, { ref: 'SOLUTION:manufacturing@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }],
+  relations: [{ ref: 'INDUSTRY:restaurant@ur', kind: 'RELATED' }, { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' }, { ref: 'SOLUTION:manufacturing@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'BLOG_POST:how-to-start-a-bakery-pakistan@ur', kind: 'RELATED' }, { ref: 'TOOL:food-cost-calculator@ur', kind: 'RELATED' }, { ref: 'GLOSSARY_TERM:recipe-costing@ur', kind: 'RELATED' }],
 };

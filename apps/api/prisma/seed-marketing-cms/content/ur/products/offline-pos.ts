@@ -201,6 +201,7 @@ export const entry: SeedEntry = {
     { ref: 'SOLUTION:retail-chains@ur', kind: 'TAG' },
     { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:khata@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:load-shedding-proof-billing@ur', kind: 'RELATED' },
   ],
   sortOrder: 9,
   origin: 'translation of content/main-pages/products.ts (26 Oct 2026)',

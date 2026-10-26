@@ -296,5 +296,6 @@ export const entry: SeedEntry = {
     { ref: 'INDUSTRY:cosmetics@ur', kind: 'TAG' },
     { ref: 'SERVICE:data-migration@ur', kind: 'TAG' },
     { ref: 'SERVICE:hardware@ur', kind: 'TAG' },
+    { ref: 'BLOG_POST:how-to-start-kiryana-store-pakistan@ur', kind: 'RELATED' },
   ],
 };

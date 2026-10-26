@@ -35,7 +35,7 @@ The way people order here shapes the counter. Karahi and tikka are commonly orde
 
 The menu is short, but the cost is concentrated. Mutton, beef, chicken, ghee and flour make up most of what a Peshawar grill spends, and their prices move often. A place that sets its per-kilo price once a year can find its best-selling dish earning far less than it thinks.
 
-Many places run two kinds of trade at once: a busy takeaway counter for kebabs and naan, and a seated area or family hall where a table stays for an hour. Restaurant services in Khyber Pakhtunkhwa come under the [KPRA](/compliance/kpra-khyber-pakhtunkhwa); integration in Nafaa is optional and only needed if your restaurant is registered for it.`,
+Many places run two kinds of trade at once: a busy takeaway counter for kebabs and naan, and a seated area or family hall where a table stays for an hour. Restaurant services in Khyber Pakhtunkhwa come under the KPRA ([sales tax on services](/glossary/sales-tax-on-services) explains the provincial side); integration in Nafaa is optional and only needed if your restaurant is registered for it.`,
   shotA: {
     heading: 'The karahi stove sees its own tickets',
     body: 'Each menu category goes to its station. The karahi cook sees only karahi orders, with the size and the minutes since the ticket came in; the grill gets the tikka and kebabs. A ticket over 20 minutes turns red.',

@@ -28,6 +28,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   outputFileTracingRoot: path.join(__dirname),
+  // OG card fonts are read from disk at request time (src/lib/og/fonts.ts).
+  // File tracing cannot see a computed path, so without this the functions
+  // for per-entry cards (/blog/[slug]/opengraph-image and the rest) ship
+  // without the fonts and answer 500. Hub cards worked only because they
+  // are prerendered at build time.
+  outputFileTracingIncludes: {
+    '/**': ['./src/assets/fonts/**'],
+  },
 
   experimental: {
     optimizePackageImports: ['lucide-react'],

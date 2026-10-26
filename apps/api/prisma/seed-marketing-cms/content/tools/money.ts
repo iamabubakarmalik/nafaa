@@ -177,7 +177,7 @@ Printing receipts by hand works for a few bills a day. A busy counter needs the 
     { q: 'Is this receipt valid for tax purposes?', a: 'It is a plain sales receipt, fine as proof of purchase for customers. It is not an FBR fiscal invoice: retailers covered by FBR\'s point of sale rules must issue invoices from an integrated POS, with an FBR invoice number and QR code. If you only need to show sales tax on the bill, add the rate in the tax field.' },
     { q: 'Are my receipts saved anywhere?', a: 'No. The items and totals exist only on the page until you print or close it, and nothing is sent to a server. Only your shop name, address, phone and footer message are remembered in this browser, so you do not retype them. To keep a record of every sale, use a POS that stores each bill.' },
   ],
-  relations: ['GLOSSARY_TERM:receipt', 'GLOSSARY_TERM:thermal-printer', 'BLOG_POST:choosing-a-pos-printer', 'PRODUCT:pos', 'TOOL:gst-calculator', 'TEMPLATE:simple-invoice-template'],
+  relations: ['GLOSSARY_TERM:receipt', 'GLOSSARY_TERM:thermal-printer', 'BLOG_POST:choosing-a-pos-printer', 'PRODUCT:pos', 'TOOL:gst-calculator', 'TEMPLATE:simple-invoice-template', 'PAGE:bill-banane-wali-app'],
   evidence: ['apps/web/src/core/receipt/setup.ts', 'apps/web/src/core/receipt/print.ts', 'apps/web/src/core/lib/offline/offlineSales.ts'],
   factNote: 'Plain arithmetic. Nafaa claims: receipts on 58 mm, 80 mm and A4 (core/receipt/setup.ts paper "58" | "80" | "A4"), offline billing (core/lib/offline/offlineSales.ts).',
   sortOrder: 100,

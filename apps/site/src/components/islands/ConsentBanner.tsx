@@ -16,10 +16,10 @@ export function ConsentBanner(props: ConsentBannerProps) {
 }
 
 /** Footer link that reopens the banner. Rendered only when third-party analytics is configured. */
-export function CookieSettingsButton({ className }: { className?: string }) {
+export function CookieSettingsButton({ className, label = 'Cookie settings' }: { className?: string; label?: string }) {
   return (
     <button type="button" className={className} onClick={() => window.dispatchEvent(new Event(CONSENT_OPEN_EVENT))}>
-      Cookie settings
+      {label}
     </button>
   );
 }

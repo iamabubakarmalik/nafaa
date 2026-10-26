@@ -16,7 +16,7 @@ const spec: PostSpec = {
   category: 'industry',
   cover: PHOTO.clothingSizeInventoryGuide,
   tags: ['INDUSTRY:garments', 'INDUSTRY:shoe', 'GLOSSARY_TERM:sku'],
-  related: ['BLOG_POST:barcode-setup-guide', 'BLOG_POST:stock-taking-guide', 'BLOG_POST:ramadan-eid-retail-strategy'],
+  related: ['BLOG_POST:barcode-setup-guide', 'BLOG_POST:stock-taking-guide', 'BLOG_POST:ramadan-eid-retail-strategy', 'PAGE:kapre-ki-dukaan-software'],
   isNew: true,
   blocks: [
     prose(`A grocery store sells one kind of Lipton tea in one size. A clothing shop sells one kurta design in five sizes and three colours: fifteen different items that look like one product on the rack. That is why stock in garments and shoe shops gets messy so fast. The design sells out in medium while the extra-large sits for a year, the count says "12 kurtas" and nobody knows which, and the Eid reorder is a guess.

@@ -227,5 +227,11 @@ export const entry: SeedEntry = {
     { ref: 'SOLUTION:wholesale-distribution@ur', kind: 'TAG' },
     { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:whatsapp-sms@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:khata@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:udhaar@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:digital-khata-vs-paper-ledger@ur', kind: 'RELATED' },
+    { ref: 'TOOL:khata-ageing-calculator@ur', kind: 'RELATED' },
+    { ref: 'TEMPLATE:khata-udhaar-register@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:cash-vs-credit-sales@ur', kind: 'RELATED' },
   ],
 };

@@ -25,7 +25,7 @@ const spec: PostSpec = {
   category: 'compliance',
   cover: PHOTO.salesTaxGuidePunjab2026,
   tags: ['CITY:lahore', 'GLOSSARY_TERM:ntn', 'GLOSSARY_TERM:strn'],
-  related: ['PRODUCT:fbr', 'BLOG_POST:fbr-e-invoicing-complete-guide-2026', 'INDUSTRY:restaurant', 'COMPLIANCE:pra-punjab', 'COMPLIANCE:fbr-pos-integration'],
+  related: ['PRODUCT:fbr', 'BLOG_POST:fbr-e-invoicing-complete-guide-2026', 'INDUSTRY:restaurant', 'COMPLIANCE:pra-punjab', 'COMPLIANCE:fbr-pos-integration', 'TOOL:gst-calculator'],
   blocks: [
     prose(`Ask ten shopkeepers in Lahore who collects sales tax and you may get three answers: FBR, PRA, or "the government". The confusion is understandable, because in Punjab two different bodies collect sales tax on two different things. Getting this right is the first step, because it decides where you register, where you file and which rules apply to your counter.
 
@@ -69,7 +69,7 @@ PRA registration is done online on PRA's e-portal. PRA publishes an [e-Registrat
     ),
     prose(`## Electronic invoices for restaurants and others
 
-PRA runs an electronic invoice monitoring system (e-IMS). PRA's site links to [e-IMS services](https://e.pra.punjab.gov.pk/public/eims.xhtml) and a technical specification for the software that connects to it. The [PRA integration page](/compliance/pra-punjab) explains who must connect and how. Where your category is covered, each bill your counter prints is reported to PRA and carries a PRA fiscal number. PRA's official Android app, linked from its home page, lets taxpayers and customers use PRA services on the phone.
+PRA runs an electronic invoice monitoring system (e-IMS). PRA's site links to [e-IMS services](https://e.pra.punjab.gov.pk/public/eims.xhtml) and a technical specification for the software that connects to it. The glossary entry on [sales tax on services](/glossary/sales-tax-on-services) explains how PRA and the other provincial authorities tax services. Where your category is covered, each bill your counter prints is reported to PRA and carries a PRA fiscal number. PRA's official Android app, linked from its home page, lets taxpayers and customers use PRA services on the phone.
 
 In practice this works much like FBR's POS integration: your billing software sends each invoice, receives a number back, and prints it on the receipt.`),
     shot({

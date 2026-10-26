@@ -211,6 +211,7 @@ export const entry: SeedEntry = {
     { ref: 'SOLUTION:enterprise@ur', kind: 'TAG' },
     { ref: 'SOLUTION:retail-chains@ur', kind: 'TAG' },
     { ref: 'SERVICE:training@ur', kind: 'RELATED' },
+    { ref: 'TEMPLATE:product-import-template@ur', kind: 'RELATED' },
   ],
   seoTitle: 'Nafaa POS میں ڈیٹا منتقلی، پاکستان میں',
   seoDescription:

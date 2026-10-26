@@ -9,30 +9,33 @@ import type { EntryCard, PublicEntity, PublicEntry, SiteSettings } from '@/lib/c
 import { Container } from '@/components/ui/Container';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { absoluteUrl } from '@/lib/cms/env';
+import { localizePath } from '@/lib/cms/locale';
+import { uiStrings } from '@/lib/i18n/ui';
 import { Body } from '../article/parts/Body';
 import { relativePath } from '../article/parts/Cards';
 import { FixtureRibbon } from '../article/parts/FixtureRibbon';
-import { filterText, indexLetter } from '../article/parts/format';
+import { filterText, glossaryLetters, letterAnchor, localeIndexLetter } from '../article/parts/format';
 import { s5Graph } from '../article/parts/graph';
 import { PageHeader } from '../article/parts/Headers';
 import { ListFilter } from '../article/parts/ListFilter';
 
-const LETTERS = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
-
-function groupByLetter(terms: EntryCard[]): Map<string, EntryCard[]> {
+function groupByLetter(terms: EntryCard[], locale: string): Map<string, EntryCard[]> {
   const groups = new Map<string, EntryCard[]>();
-  for (const term of [...terms].sort((a, b) => a.title.localeCompare(b.title, 'en'))) {
-    const letter = indexLetter(term.title);
+  for (const term of [...terms].sort((a, b) => a.title.localeCompare(b.title, locale === 'ur' ? 'ur' : 'en'))) {
+    const letter = localeIndexLetter(term.title, locale);
     groups.set(letter, [...(groups.get(letter) ?? []), term]);
   }
   return groups;
 }
 
 export function GlossaryIndexTemplate({ entry, terms, site, entity }: { entry: PublicEntry; terms: EntryCard[]; site: SiteSettings; entity: PublicEntity | null }) {
-  const groups = groupByLetter(terms);
+  const locale = entry.locale;
+  const g = uiStrings(locale).content.glossary;
+  const groups = groupByLetter(terms, locale);
+  const letters = glossaryLetters(locale);
   const termSet = {
     '@type': 'DefinedTermSet',
-    '@id': absoluteUrl('/glossary#set'),
+    '@id': absoluteUrl(`${localizePath(locale, '/glossary')}#set`),
     name: entry.title,
     url: entry.url,
     hasDefinedTerm: terms.map((t) => ({ '@type': 'DefinedTerm', name: t.title, url: t.url, description: t.summary ?? undefined })),
@@ -43,19 +46,19 @@ export function GlossaryIndexTemplate({ entry, terms, site, entity }: { entry: P
     <>
       <JsonLd data={graph} />
       <FixtureRibbon entry={entry} />
-      <PageHeader entry={entry} eyebrow={`${terms.length} terms`}>
-        {terms.length > 8 ? <ListFilter target="glossary-list" label="Search the glossary" placeholder="Search terms, e.g. khata or FBR" countLabel="{n} matching terms" /> : null}
+      <PageHeader entry={entry} eyebrow={g.terms(terms.length)}>
+        {terms.length > 8 ? <ListFilter target="glossary-list" label={g.search} placeholder={g.searchPlaceholder} countLabel={g.matching} emptyLabel={uiStrings(locale).content.filterEmpty} /> : null}
       </PageHeader>
 
-      <nav aria-label="Letters" className="sticky top-[var(--header-h)] z-10 border-b border-line/70 bg-canvas/85 backdrop-blur supports-[backdrop-filter]:bg-canvas/70">
+      <nav aria-label={g.letters} className="sticky top-[var(--header-h)] z-10 border-b border-line/70 bg-canvas/85 backdrop-blur supports-[backdrop-filter]:bg-canvas/70">
         <Container>
           <ul className="-mx-1 flex gap-0.5 overflow-x-auto py-2 [scrollbar-width:none]">
-            {LETTERS.map((l) => {
+            {letters.map((l) => {
               const has = groups.has(l);
               return (
                 <li key={l}>
                   {has ? (
-                    <a href={`#letter-${l === '#' ? 'other' : l.toLowerCase()}`} className="inline-flex size-8 items-center justify-center rounded-md text-small font-medium text-fg-strong transition-colors duration-fast hover:bg-surface-3">
+                    <a href={`#${letterAnchor(l)}`} className="inline-flex size-8 items-center justify-center rounded-md text-small font-medium text-fg-strong transition-colors duration-fast hover:bg-surface-3">
                       {l}
                     </a>
                   ) : (
@@ -73,9 +76,9 @@ export function GlossaryIndexTemplate({ entry, terms, site, entity }: { entry: P
       <Container className="py-12 md:py-16">
         <div id="glossary-list" className="space-y-6 md:space-y-8">
           {[...groups.entries()].map(([letter, items]) => (
-            <section key={letter} data-filter-group aria-labelledby={`letter-${letter === '#' ? 'other' : letter.toLowerCase()}`} className="grid gap-4 md:grid-cols-[6rem_minmax(0,1fr)]">
+            <section key={letter} data-filter-group aria-labelledby={letterAnchor(letter)} className="grid gap-4 md:grid-cols-[6rem_minmax(0,1fr)]">
               <h2
-                id={`letter-${letter === '#' ? 'other' : letter.toLowerCase()}`}
+                id={letterAnchor(letter)}
                 className="scroll-mt-[calc(var(--header-h)+4rem)] text-h2 text-fg-subtle/70 md:sticky md:top-[calc(var(--header-h)+4.5rem)] md:self-start"
               >
                 {letter}
@@ -94,7 +97,7 @@ export function GlossaryIndexTemplate({ entry, terms, site, entity }: { entry: P
               </ul>
             </section>
           ))}
-          {terms.length === 0 ? <p className="text-fg-muted">The first terms are being written.</p> : null}
+          {terms.length === 0 ? <p className="text-fg-muted">{g.empty}</p> : null}
         </div>
       </Container>
 

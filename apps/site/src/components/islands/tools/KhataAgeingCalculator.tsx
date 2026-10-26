@@ -8,9 +8,9 @@
  * money-weighted average age, and lists who to call first.
  * Nothing leaves the browser.
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { parseAmount, percent, plain, round2, rupees } from './format';
-import { BigResult, Breakdown, Field, Glyph, InputsPanel, ResultPanel, SmallButton, ToolFrame, useToolUsed } from './kit';
+import { BigResult, Breakdown, Field, Glyph, InputsPanel, ResultPanel, SmallButton, ToolFrame, pick, useToolUsed } from './kit';
 
 interface Row {
   id: number;
@@ -49,7 +49,75 @@ const START: Row[] = [
   { id: 3, name: '', amount: '', days: '' },
 ];
 
-export default function KhataAgeingCalculator() {
+type BandId = (typeof BANDS)[number]['id'];
+
+const en = {
+  frame: 'Khata ageing calculator',
+  title: 'Customers who owe you',
+  sub: 'One line per customer: what they owe, and how many days ago the oldest unpaid bill was.',
+  colCustomer: 'Customer',
+  colOwes: 'Owes',
+  colDays: 'Days',
+  customer: (i: number) => `Customer ${i}`,
+  namePlaceholder: 'Name',
+  amount: (i: number) => `Amount owed, customer ${i}`,
+  days: (i: number) => `Days unpaid, customer ${i}`,
+  daysPlaceholder: 'Days',
+  remove: (i: number) => `Remove customer ${i}`,
+  add: 'Add customer',
+  big: 'Total udhaar',
+  overNote: (r: string, p: string) => `${r} (${p}) is over 30 days old`,
+  addOwed: 'Add what customers owe',
+  bands: { d0: 'Under 7 days', d7: '7–30 days', d30: '30–90 days', d90: '90+ days' } as Record<BandId, string>,
+  customerOne: 'customer',
+  customerMany: 'customers',
+  avgAge: 'Average age of the money owed',
+  daysValue: (d: string) => `${d} days`,
+  callFirst: 'Call first',
+  fallbackName: 'Customer',
+  callLine: (name: string, amount: string, days: string): ReactNode => (
+    <>
+      {name}: {amount}, {days} days
+    </>
+  ),
+};
+
+const STRINGS: { en: typeof en; ur: typeof en } = {
+  en,
+  ur: {
+    frame: 'پرانا ادھار کیلکولیٹر',
+    title: 'جن گاہکوں نے پیسے دینے ہیں',
+    sub: 'ہر گاہک کی ایک لائن: کتنا ادھار ہے، اور سب سے پرانا بقایا بل کتنے دن پہلے کا ہے۔',
+    colCustomer: 'گاہک',
+    colOwes: 'ادھار',
+    colDays: 'دن',
+    customer: (i) => `گاہک ${i}`,
+    namePlaceholder: 'نام',
+    amount: (i) => `ادھار کی رقم، گاہک ${i}`,
+    days: (i) => `کتنے دن سے بقایا، گاہک ${i}`,
+    daysPlaceholder: 'دن',
+    remove: (i) => `گاہک ${i} ہٹائیں`,
+    add: 'گاہک شامل کریں',
+    big: 'کل ادھار',
+    overNote: (r, p) => `${r} (${p}) 30 دن سے زیادہ پرانا ہے`,
+    addOwed: 'گاہکوں کا ادھار لکھیں',
+    bands: { d0: '7 دن سے کم', d7: '7–30 دن', d30: '30–90 دن', d90: '90+ دن' },
+    customerOne: 'گاہک',
+    customerMany: 'گاہک',
+    avgAge: 'ادھار اوسطاً کتنے دن پرانا ہے',
+    daysValue: (d) => `${d} دن`,
+    callFirst: 'پہلے انہیں فون کریں',
+    fallbackName: 'گاہک',
+    callLine: (name, amount, days) => (
+      <>
+        {name}: {amount}، {days} دن
+      </>
+    ),
+  },
+};
+
+export default function KhataAgeingCalculator({ locale }: { locale?: string }) {
+  const tx = pick(STRINGS, locale);
   const used = useToolUsed('khata-ageing-calculator');
   const [rows, setRows] = useState<Row[]>(START);
 
@@ -67,27 +135,27 @@ export default function KhataAgeingCalculator() {
     .slice(0, 5);
 
   return (
-    <ToolFrame label="Khata ageing calculator">
+    <ToolFrame label={tx.frame}>
       <InputsPanel className="space-y-4">
         <div>
-          <h3 className="text-h4 text-fg-strong">Customers who owe you</h3>
-          <p className="mt-1 text-small text-fg-subtle">One line per customer: what they owe, and how many days ago the oldest unpaid bill was.</p>
+          <h3 className="text-h4 text-fg-strong">{tx.title}</h3>
+          <p className="mt-1 text-small text-fg-subtle">{tx.sub}</p>
         </div>
         <div className="hidden grid-cols-[minmax(0,1fr)_7.5rem_5.5rem_2.25rem] gap-2 text-small font-medium text-fg-muted sm:grid">
-          <span>Customer</span>
-          <span>Owes</span>
-          <span>Days</span>
+          <span>{tx.colCustomer}</span>
+          <span>{tx.colOwes}</span>
+          <span>{tx.colDays}</span>
           <span />
         </div>
         <div className="space-y-3 sm:space-y-2">
           {rows.map((row, index) => (
             <div key={row.id} className="grid grid-cols-[minmax(0,1fr)_5.5rem_2.25rem] gap-2 sm:grid-cols-[minmax(0,1fr)_7.5rem_5.5rem_2.25rem]">
-              <Field label={`Customer ${index + 1}`} hideLabel inputMode="text" placeholder="Name" value={row.name} onChange={(v) => update(row.id, { name: v })} className="col-span-3 sm:col-span-1" />
-              <Field label={`Amount owed, customer ${index + 1}`} hideLabel prefix="Rs" placeholder="0" value={row.amount} onChange={(v) => update(row.id, { amount: v })} />
-              <Field label={`Days unpaid, customer ${index + 1}`} hideLabel placeholder="Days" inputMode="numeric" value={row.days} onChange={(v) => update(row.id, { days: v })} />
+              <Field label={tx.customer(index + 1)} hideLabel inputMode="text" placeholder={tx.namePlaceholder} value={row.name} onChange={(v) => update(row.id, { name: v })} className="col-span-3 sm:col-span-1" />
+              <Field label={tx.amount(index + 1)} hideLabel prefix="Rs" placeholder="0" value={row.amount} onChange={(v) => update(row.id, { amount: v })} />
+              <Field label={tx.days(index + 1)} hideLabel placeholder={tx.daysPlaceholder} inputMode="numeric" value={row.days} onChange={(v) => update(row.id, { days: v })} />
               <button
                 type="button"
-                aria-label={`Remove customer ${index + 1}`}
+                aria-label={tx.remove(index + 1)}
                 disabled={rows.length === 1}
                 onClick={() => setRows((prev) => prev.filter((r) => r.id !== row.id))}
                 className="inline-flex h-11 items-center justify-center rounded-md text-fg-subtle transition-colors duration-fast hover:bg-surface-3 hover:text-fg-strong disabled:opacity-40"
@@ -102,15 +170,16 @@ export default function KhataAgeingCalculator() {
           className="-ml-2"
           onClick={() => setRows((prev) => [...prev, { id: Math.max(0, ...prev.map((r) => r.id)) + 1, name: '', amount: '', days: '' }])}
         >
-          {Glyph.plus} Add customer
+          {Glyph.plus}
+          {` ${tx.add}`}
         </SmallButton>
       </InputsPanel>
 
       <ResultPanel>
         <BigResult
-          label="Total udhaar"
+          label={tx.big}
           value={rupees(result.total)}
-          note={result.total > 0 ? `${rupees(old)} (${percent((old / result.total) * 100, 0)}) is over 30 days old` : 'Add what customers owe'}
+          note={result.total > 0 ? tx.overNote(rupees(old), percent((old / result.total) * 100, 0)) : tx.addOwed}
         />
         <div className="mt-6 space-y-3">
           {BANDS.map((band, i) => {
@@ -120,7 +189,7 @@ export default function KhataAgeingCalculator() {
               <div key={band.id}>
                 <div className="flex items-baseline justify-between gap-3 text-small">
                   <span className="text-fg-muted">
-                    {band.label} · {plain(t.count)} {t.count === 1 ? 'customer' : 'customers'}
+                    {tx.bands[band.id]} · {plain(t.count)} {t.count === 1 ? tx.customerOne : tx.customerMany}
                   </span>
                   <span className="tabular-nums text-fg-strong">{rupees(t.amount)}</span>
                 </div>
@@ -133,16 +202,14 @@ export default function KhataAgeingCalculator() {
         </div>
         <Breakdown
           className="mt-5"
-          rows={[{ label: 'Average age of the money owed', value: result.total > 0 ? `${plain(Math.round(result.averageAge))} days` : '—', strong: true }]}
+          rows={[{ label: tx.avgAge, value: result.total > 0 ? tx.daysValue(plain(Math.round(result.averageAge))) : '—', strong: true }]}
         />
         {callFirst.length ? (
           <div className="mt-4">
-            <p className="text-small font-medium text-fg-strong">Call first</p>
+            <p className="text-small font-medium text-fg-strong">{tx.callFirst}</p>
             <ol className="mt-1 list-decimal space-y-0.5 pl-5 text-small text-fg-muted">
               {callFirst.map((r) => (
-                <li key={r.id}>
-                  {r.name.trim() || 'Customer'}: {rupees(r.a)}, {plain(r.d)} days
-                </li>
+                <li key={r.id}>{tx.callLine(r.name.trim() || tx.fallbackName, rupees(r.a), plain(r.d))}</li>
               ))}
             </ol>
           </div>

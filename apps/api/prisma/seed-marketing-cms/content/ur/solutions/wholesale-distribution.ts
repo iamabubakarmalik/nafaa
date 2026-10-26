@@ -271,6 +271,7 @@ export const entry: SeedEntry = {
     { ref: 'INDUSTRY:autoparts@ur', kind: 'TAG' },
     { ref: 'SERVICE:data-migration@ur', kind: 'TAG' },
     { ref: 'SERVICE:custom-software@ur', kind: 'TAG' },
+    { ref: 'GLOSSARY_TERM:udhaar@ur', kind: 'RELATED' },
   ],
   seoTitle: 'پاکستان میں ہول سیل اور ڈسٹری بیوشن سافٹ ویئر',
   seoDescription:

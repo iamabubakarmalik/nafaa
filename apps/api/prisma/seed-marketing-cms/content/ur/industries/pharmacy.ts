@@ -232,5 +232,5 @@ export const entry: SeedEntry = {
   dropped: [],
   needsOwner: ['Any DRAP claim needs a written official source (carried over from the English entry).'],
   // Urdu pages link only to entries that have an Urdu version.
-  relations: [{ ref: 'PRODUCT:inventory@ur', kind: 'RELATED' }, { ref: 'PRODUCT:purchasing@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'INDUSTRY:clinic@ur', kind: 'RELATED' }],
+  relations: [{ ref: 'PRODUCT:inventory@ur', kind: 'RELATED' }, { ref: 'PRODUCT:purchasing@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'INDUSTRY:clinic@ur', kind: 'RELATED' }, { ref: 'GLOSSARY_TERM:mrp@ur', kind: 'RELATED' }, { ref: 'BLOG_POST:how-to-start-a-pharmacy-pakistan@ur', kind: 'RELATED' }, { ref: 'GLOSSARY_TERM:expiry-management@ur', kind: 'RELATED' }],
 };

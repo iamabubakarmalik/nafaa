@@ -217,5 +217,6 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:whatsapp-sms@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:reports@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:loyalty-points@ur', kind: 'RELATED' },
   ],
 };

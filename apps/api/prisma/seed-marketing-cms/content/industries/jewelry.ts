@@ -126,5 +126,6 @@ export default {
     { ref: 'INDUSTRY:garments', kind: 'RELATED' },
     { ref: 'INDUSTRY:cosmetics', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:tola', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/jewelry', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

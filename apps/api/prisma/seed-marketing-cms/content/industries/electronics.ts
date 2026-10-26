@@ -122,5 +122,8 @@ export default {
     { ref: 'INDUSTRY:mobile-shop', kind: 'RELATED' },
     { ref: 'INDUSTRY:appliances', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:imei', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:faisalabad/electronics', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/electronics', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:peshawar/electronics', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

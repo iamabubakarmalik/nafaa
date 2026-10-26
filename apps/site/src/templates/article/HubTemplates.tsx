@@ -15,6 +15,8 @@ import { Container } from '@/components/ui/Container';
 import { cx } from '@/components/ui/cx';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { TOOL_META } from '@/components/islands/tools/meta';
+import { localizePath } from '@/lib/cms/locale';
+import { uiStrings } from '@/lib/i18n/ui';
 import { CmsIcon } from '@/lib/icons';
 import { CmsImage, mediaById } from '@/lib/media';
 import { loadCards, loadEntriesFor } from './data';
@@ -58,15 +60,16 @@ function EmptyState({ children }: { children: ReactNode }) {
 
 // ─── Blog ───
 
-function CategoryNav({ categories, current }: { categories: EntryCard[]; current?: string }) {
+function CategoryNav({ categories, current, locale }: { categories: EntryCard[]; current?: string; locale: string }) {
   if (!categories.length) return null;
+  const t = uiStrings(locale).content;
   const chip = 'inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 text-small font-medium transition-colors duration-fast';
   return (
-    <nav aria-label="Blog categories">
+    <nav aria-label={t.blogCategories}>
       <ul className="flex flex-wrap gap-2">
         <li>
-          <Link href="/blog" aria-current={!current ? 'page' : undefined} className={cx(chip, !current ? 'border-fg-strong bg-fg-strong text-canvas' : 'border-line-strong text-fg-muted hover:text-fg-strong')}>
-            All posts
+          <Link href={localizePath(locale, '/blog')} aria-current={!current ? 'page' : undefined} className={cx(chip, !current ? 'border-fg-strong bg-fg-strong text-canvas' : 'border-line-strong text-fg-muted hover:text-fg-strong')}>
+            {t.allPosts}
           </Link>
         </li>
         {categories.map((c) => {
@@ -102,30 +105,31 @@ export async function BlogIndexTemplate(base: HubBase) {
   ]);
   const categoryOf = await categoryOfPosts(categories, entry.locale);
   const [featured, ...rest] = posts;
+  const t = uiStrings(entry.locale).content;
 
   return (
     <HubShell
       base={base}
       cards={posts}
-      eyebrow="Blog"
+      eyebrow={t.blog}
       skipGridsOf={['BLOG_POST', 'BLOG_CATEGORY']}
       header={
         <div className="space-y-6">
-          <CategoryNav categories={categories} />
-          {posts.length > 6 ? <ListFilter target="post-list" label="Search the blog" placeholder="Search posts" countLabel="{n} matching posts" /> : null}
+          <CategoryNav categories={categories} locale={entry.locale} />
+          {posts.length > 6 ? <ListFilter target="post-list" label={t.searchBlog} placeholder={t.searchPosts} countLabel={t.matchingPosts} emptyLabel={t.filterEmpty} /> : null}
         </div>
       }
     >
       <Container className="py-12 md:py-16">
         {posts.length ? (
           <CardGrid id="post-list">
-            {featured ? <ContentCard card={featured} variant="featured" headingAs="h2" eyebrow={categoryOf.get(featured.id)?.title ?? 'Latest'} icon={categoryOf.get(featured.id)?.icon} filter /> : null}
+            {featured ? <ContentCard card={featured} variant="featured" headingAs="h2" eyebrow={categoryOf.get(featured.id)?.title ?? t.latest} icon={categoryOf.get(featured.id)?.icon} filter /> : null}
             {rest.map((card) => (
               <ContentCard key={card.id} card={card} headingAs="h2" eyebrow={categoryOf.get(card.id)?.title} filter />
             ))}
           </CardGrid>
         ) : (
-          <EmptyState>The first posts are on their way.</EmptyState>
+          <EmptyState>{t.firstPosts}</EmptyState>
         )}
       </Container>
       {guides.length ? (
@@ -133,18 +137,18 @@ export async function BlogIndexTemplate(base: HubBase) {
           <Container>
             <div className="flex items-end justify-between gap-6">
               <div>
-                <p className="text-eyebrow uppercase text-link">Go deeper</p>
+                <p className="text-eyebrow uppercase text-link">{t.goDeeper}</p>
                 <h2 id="pillar-guides" className="mt-2 text-h3 text-fg-strong">
-                  Guides
+                  {t.guides}
                 </h2>
               </div>
-              <Link href="/guides" className="text-small font-medium text-link hover:underline hover:underline-offset-4">
-                All guides
+              <Link href={localizePath(entry.locale, '/guides')} className="text-small font-medium text-link hover:underline hover:underline-offset-4">
+                {t.allGuides}
               </Link>
             </div>
             <CardGrid className="mt-8">
               {guides.map((card) => (
-                <ContentCard key={card.id} card={card} eyebrow="Guide" date={null} />
+                <ContentCard key={card.id} card={card} eyebrow={t.typeLabels.GUIDE} date={null} />
               ))}
             </CardGrid>
           </Container>
@@ -160,8 +164,9 @@ export async function BlogCategoryTemplate(base: HubBase) {
     loadCards({ type: 'BLOG_POST', locale: entry.locale, tag: entry.id, sort: 'recent', limit: 60 }),
     loadCards({ type: 'BLOG_CATEGORY', locale: entry.locale, sort: 'order', limit: 30 }),
   ]);
+  const t = uiStrings(entry.locale).content;
   return (
-    <HubShell base={base} cards={posts} eyebrow="Blog category" skipGridsOf={['BLOG_POST']} header={<CategoryNav categories={categories} current={entry.path} />}>
+    <HubShell base={base} cards={posts} eyebrow={t.blogCategory} skipGridsOf={['BLOG_POST']} header={<CategoryNav categories={categories} current={entry.path} locale={entry.locale} />}>
       <Container className="py-12 md:py-16">
         {posts.length ? (
           <CardGrid>
@@ -170,7 +175,7 @@ export async function BlogCategoryTemplate(base: HubBase) {
             ))}
           </CardGrid>
         ) : (
-          <EmptyState>No posts in this category yet.</EmptyState>
+          <EmptyState>{t.noPostsInCategory}</EmptyState>
         )}
       </Container>
     </HubShell>
@@ -250,18 +255,19 @@ export async function ToolsHubTemplate(base: HubBase) {
   const cards = await loadCards({ type: 'TOOL', locale: entry.locale, sort: 'order', limit: 50 });
   const tools = await loadEntriesFor(cards);
   const keyOf = new Map(tools.map((t) => [t.id, t.data.type === 'TOOL' ? t.data.toolKey : undefined]));
+  const t = uiStrings(entry.locale).content;
   return (
-    <HubShell base={base} cards={cards} eyebrow="Free tools" skipGridsOf={['TOOL']}>
+    <HubShell base={base} cards={cards} eyebrow={t.freeTools} skipGridsOf={['TOOL']}>
       <Container className="py-12 md:py-16">
         {cards.length ? (
           <CardGrid>
             {cards.map((card) => {
               const key = keyOf.get(card.id);
-              return <ContentCard key={card.id} card={card} headingAs="h2" icon={key ? TOOL_META[key].icon : 'calculator'} date={null} meta={<span>Free · no sign-up</span>} />;
+              return <ContentCard key={card.id} card={card} headingAs="h2" icon={key ? TOOL_META[key].icon : 'calculator'} date={null} meta={<span>{t.freeDot}</span>} />;
             })}
           </CardGrid>
         ) : (
-          <EmptyState>Tools are on their way.</EmptyState>
+          <EmptyState>{t.toolsSoon}</EmptyState>
         )}
       </Container>
     </HubShell>
@@ -277,8 +283,9 @@ export async function TemplatesHubTemplate(base: HubBase) {
   const cards = await loadCards({ type: 'TEMPLATE', locale: entry.locale, sort: 'order', limit: 100 });
   const full = await loadEntriesFor(cards);
   const formatOf = new Map(full.map((t) => [t.id, t.data.type === 'TEMPLATE' ? t.data.format : undefined]));
+  const t = uiStrings(entry.locale).content;
   return (
-    <HubShell base={base} cards={cards} eyebrow="Free templates" skipGridsOf={['TEMPLATE']}>
+    <HubShell base={base} cards={cards} eyebrow={t.freeTemplates} skipGridsOf={['TEMPLATE']}>
       <Container className="py-12 md:py-16">
         {cards.length ? (
           <CardGrid>
@@ -297,7 +304,7 @@ export async function TemplatesHubTemplate(base: HubBase) {
             })}
           </CardGrid>
         ) : (
-          <EmptyState>Templates are on their way.</EmptyState>
+          <EmptyState>{t.templatesSoon}</EmptyState>
         )}
       </Container>
     </HubShell>

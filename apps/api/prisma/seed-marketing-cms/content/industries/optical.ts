@@ -127,5 +127,6 @@ export default {
     { ref: 'INDUSTRY:clinic', kind: 'RELATED' },
     { ref: 'INDUSTRY:pharmacy', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:batch-tracking', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:lahore/optical', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

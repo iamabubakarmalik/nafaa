@@ -129,5 +129,6 @@ export default {
     { ref: 'INDUSTRY:mobile-shop', kind: 'RELATED' },
     { ref: 'INDUSTRY:furniture', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:sku', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:gujranwala/appliances', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

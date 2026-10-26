@@ -10,7 +10,7 @@ const spec: RomanSpec = {
     'How to remind customers about udhaar on WhatsApp without losing them, in simple Roman Urdu: when to send, three sample messages from polite to final, what never to do, and how Nafaa writes the reminder with the customer\'s exact balance and sends it from your own WhatsApp in one tap, with no WhatsApp Business API.',
   seoTitle: 'WhatsApp par Udhaar Reminder: Message aur Tareeqa',
   seoDescription:
-    'WhatsApp par udhaar reminder kaise bhejein: kab bhejein, narm se aakhri tak teen message, kya na karein, aur Nafaa jo balance ke saath ek click me message likhe.',
+    'WhatsApp par udhaar reminder kaise bhejein: kab bhejein, narm se aakhri tak teen message, kya na karein, aur Nafaa jo balance ke saath message khud likhe.',
   focusKeyword: 'whatsapp par udhaar reminder',
   hero: {
     eyebrow: 'Udhaar ki yaad-dihani',

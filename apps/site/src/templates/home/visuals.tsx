@@ -175,7 +175,7 @@ function TaxInvoice() {
             ))}
           </svg>
         </div>
-        <span className={cx(fx.stamp, 'absolute -right-5 top-7 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-e2')}>
+        <span className={cx(fx.stamp, 'absolute -right-5 top-7 inline-flex items-center gap-1 rounded-full bg-brand-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-e2')}>
           <CmsIcon name="check" size={11} /> Issued
         </span>
       </div>

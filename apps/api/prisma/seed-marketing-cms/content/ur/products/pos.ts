@@ -293,5 +293,7 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:payments@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:offline-pos@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:fbr@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:pos@ur', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:hold-bill@ur', kind: 'RELATED' },
   ],
 };

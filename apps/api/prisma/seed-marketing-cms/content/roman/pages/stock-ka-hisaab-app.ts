@@ -10,7 +10,7 @@ const spec: RomanSpec = {
     'How to keep stock records in a Pakistani shop, explained in simple Roman Urdu: opening stock, recording everything that comes in and goes out, a monthly count, the reorder-level formula and spotting dead stock. Includes free count sheets and calculators, and how Nafaa moves stock with every sale and purchase.',
   seoTitle: 'Stock ka Hisaab App: Kam Stock aur Ginti Aasaan',
   seoDescription:
-    'Stock ka hisaab kaise rakhein: opening Stock, aamad-o-kharch, mahana ginti, reorder level aur pada hua maal. Free sheets aur Nafaa jo har bill se Stock kam kare.',
+    'Stock ka hisaab kaise rakhein: opening Stock, aamad-o-kharch, mahana ginti, reorder level aur pada maal. Free sheets aur Nafaa jo har bill par Stock ghataye.',
   focusKeyword: 'stock ka hisaab app',
   hero: {
     eyebrow: 'Stock ka hisaab',

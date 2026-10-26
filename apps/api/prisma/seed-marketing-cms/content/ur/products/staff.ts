@@ -215,5 +215,6 @@ export const entry: SeedEntry = {
     { ref: 'SOLUTION:restaurants@ur', kind: 'TAG' },
     { ref: 'PRODUCT:multi-shop@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:reports@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:staff-theft-prevention-counter@ur', kind: 'RELATED' },
   ],
 };

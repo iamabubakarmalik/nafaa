@@ -443,7 +443,7 @@ const articles: HelpArticle[] = [
     title: 'How to make purchase orders and receive goods',
     summary:
       'Order stock from a supplier, send the order on WhatsApp, and receive the goods when they arrive, in full or in part. Received goods go into stock at the right cost, the supplier’s balance updates, and a goods received note can be printed.',
-    seoDescription: 'Make purchase orders in Nafaa, send them on WhatsApp, receive goods in full or part, and print a goods received note.',
+    seoDescription: 'Make purchase orders in Nafaa, send them to suppliers on WhatsApp, receive the goods in full or in parts, and print a goods received note (GRN).',
     focusKeyword: 'purchase order and grn',
     intro: [
       'Nafaa records buying from suppliers in two ways. A **purchase** is for goods that have already arrived: stock goes up at once. An **order** is for goods you are asking for: nothing enters stock until you receive it.',

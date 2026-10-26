@@ -220,5 +220,5 @@ export const entry: SeedEntry = {
   dropped: [],
   needsOwner: [],
   // Urdu pages link only to entries that have an Urdu version.
-  relations: [{ ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'PRODUCT:khata@ur', kind: 'RELATED' }, { ref: 'INDUSTRY:electronics@ur', kind: 'RELATED' }],
+  relations: [{ ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'PRODUCT:khata@ur', kind: 'RELATED' }, { ref: 'INDUSTRY:electronics@ur', kind: 'RELATED' }, { ref: 'GLOSSARY_TERM:imei@ur', kind: 'RELATED' }],
 };

@@ -27,6 +27,7 @@ const spec: PostSpec = {
     'BLOG_POST:daily-cash-closing-routine',
     'SERVICE:hardware',
     'INDUSTRY:kiryana',
+    'CHANGELOG:offline-bills-safe-on-logout',
   ],
   isNew: true,
   seoTitle: 'Load-Shedding-Proof Billing for Shops in Pakistan',

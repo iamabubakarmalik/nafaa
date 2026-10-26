@@ -98,7 +98,7 @@ Yes. A product can carry a wholesale price beside its retail price, and the cash
 Yes. Profit by product uses the cost from your latest purchase bills, so when the mandi rate for a spice rises you see the margin drop.
 
 ### Do I need PRA or FBR integration?
-Most neighbourhood stores do not. Optional FBR/PRA integration is there for a business that is required to report; the [PRA page](/compliance/pra-punjab) explains who that is.
+Most neighbourhood stores do not. Optional FBR/PRA integration is there for a business that is required to report; the [Punjab sales tax guide](/blog/sales-tax-guide-punjab-2026) explains who that is.
 
 ### I have two stores, one in the old city and one in a society. Can I see both?
 Yes. Each branch has its own counter and stock, and the owner sees both from one account. The [Lahore page](/pos-software/lahore) covers the other trades in the city.`,
@@ -495,7 +495,7 @@ Yes. With the recipe set up, the menu shows how many plates the stock still cove
 Riders and waiters can use the app on their own phones in the browser. What each person can do, such as cancel an item or give a discount, depends on the role you give them.
 
 ### Do I need PRA integration?
-Only if your restaurant is registered for it. Optional FBR/PRA integration is available; the [PRA page](/compliance/pra-punjab) explains the provincial rules for restaurant services.
+Only if your restaurant is registered for it. Optional FBR/PRA integration is available; the [Punjab sales tax guide](/blog/sales-tax-guide-punjab-2026) explains the provincial rules for restaurant services.
 
 ### Where can I learn how kitchen tickets work?
 Read the [KOT system guide](/blog/restaurant-kot-system-guide) and see the [restaurant page](/industries/restaurant).`,

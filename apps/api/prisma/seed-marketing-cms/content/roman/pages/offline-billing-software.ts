@@ -94,7 +94,7 @@ Load-shedding me billing ka tafseeli tareeqa English me [load-shedding proof bil
 - Offline bikri ke waqt Stock khatam ho chuka ho to kya hota hai? Nafaa aisa bill **Sync Center** me rok kar dikhata hai, phenkta nahi.
 - Kya device ka **backup** liya ja sakta hai? Nafaa har hafte yaad dilata hai.
 
-Poori tafseel English me [offline POS](/product/offline-pos) par hai. Purane desktop software se aane ka tareeqa [desktop POS alternative](/alternatives/desktop-pos-alternative) par, aur bill ki tafseel [bill banane wali app](/bill-banane-wali-app) par.`),
+Poori tafseel English me [offline POS](/product/offline-pos) par hai. Purana data laane ka tareeqa [data migration](/services/data-migration) par, aur bill ki tafseel [bill banane wali app](/bill-banane-wali-app) par.`),
   ],
   faqs: [
     ['Kya Nafaa bina internet ke chalta hai?', 'Haan. Internet jane par bhi bill bante hain, parchi chhapti hai, udhaar aur payment likhi jati hai, aur Expense bhi. Ye sab device par mehfooz rehta hai aur internet aate hi khud account me chala jata hai. Sirf refund jaise PIN wale kaam internet ka intezar karte hain.'],

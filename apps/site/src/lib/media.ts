@@ -225,7 +225,17 @@ export interface CmsImageProps {
   quality?: CloudinaryQuality;
   /** Set false to skip the blur placeholder (for example on transparent logos). */
   placeholder?: boolean;
+  /**
+   * Media query where the image is on screen, for an image that CSS hides
+   * elsewhere (the home hero's desktop capture on phones). The preload gets
+   * this media, and a <picture> source gives other viewports an empty image,
+   * so a phone does not download a large capture it never shows.
+   */
+  visibleMedia?: string;
 }
+
+/** 1x1 transparent GIF: the source a <picture> uses where the image is hidden. */
+const BLANK_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 /** Intrinsic size after an optional crop and width cap. */
 function intrinsicSize(media: PublicMedia, aspectRatio?: AspectRatio, maxWidth?: number): { width: number; height: number } {
@@ -289,9 +299,12 @@ export function CmsImage(props: CmsImageProps): ReactElement {
     blurDataURL: blur ? media.blurDataUrl : undefined,
   });
 
+  const { visibleMedia } = props;
   if (priority && imgProps.srcSet) {
-    preload(imgProps.src, { as: 'image', imageSrcSet: imgProps.srcSet, imageSizes: sizes, fetchPriority: 'high' });
+    preload(imgProps.src, { as: 'image', imageSrcSet: imgProps.srcSet, imageSizes: sizes, fetchPriority: 'high', media: visibleMedia });
   }
 
-  return createElement('img', imgProps);
+  const img = createElement('img', imgProps);
+  if (!visibleMedia) return img;
+  return createElement('picture', null, createElement('source', { media: `not all and ${visibleMedia}`, srcSet: BLANK_IMAGE }), img);
 }

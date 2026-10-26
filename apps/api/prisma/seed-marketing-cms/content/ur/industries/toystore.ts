@@ -233,5 +233,6 @@ export const entry: SeedEntry = {
     { ref: 'INDUSTRY:bookstore@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:gaming@ur', kind: 'RELATED' },
     { ref: 'INDUSTRY:retail@ur', kind: 'RELATED' },
+    { ref: 'BLOG_POST:ramadan-eid-retail-strategy@ur', kind: 'RELATED' },
   ],
 };

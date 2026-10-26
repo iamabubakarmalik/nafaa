@@ -192,7 +192,7 @@ export function SiteFooter({
             {legal.map((link) => (
               <NavLink key={link.id} item={link} className={linkClass} />
             ))}
-            {consentEnabled ? <CookieSettingsButton className={linkClass} /> : null}
+            {consentEnabled ? <CookieSettingsButton className={linkClass} label={t.cookieSettings} /> : null}
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <LanguageSwitch paired={paired} />

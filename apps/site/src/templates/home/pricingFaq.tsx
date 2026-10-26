@@ -139,7 +139,7 @@ export function HomePricing({
                   )}
                 </div>
                 <CtaButton
-                  cta={{ label: plan.display.ctaLabel || t.getStarted, href, trackAs: `home-pricing:${plan.slug}` }}
+                  cta={{ label: (locale === 'ur' ? null : plan.display.ctaLabel) || t.getStarted, href, trackAs: `home-pricing:${plan.slug}` }}
                   fallbackVariant={on ? 'primary' : 'secondary'}
                   area="pricing"
                   className="mt-5 w-full justify-center"

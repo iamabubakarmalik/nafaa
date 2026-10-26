@@ -134,5 +134,7 @@ export default {
     { ref: 'GLOSSARY_TERM:batch-tracking', kind: 'RELATED' },
     { ref: 'BLOG_POST:reduce-bakery-wastage', kind: 'RELATED' },
     { ref: 'BLOG_POST:how-to-start-a-bakery-pakistan', kind: 'RELATED' },
+    { ref: 'PAGE:bakery-ka-hisaab', kind: 'RELATED' },
+    { ref: 'CITY_INDUSTRY:multan/bakery', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

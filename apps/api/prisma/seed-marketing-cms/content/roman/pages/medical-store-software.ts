@@ -84,7 +84,7 @@ Is ke ilawa nuskhe (prescription), doctor ka record, controlled dawai ka registe
 - Kya **controlled dawai** ka record bill ke saath banta hai?
 - Kya **internet ke baghair** bill banta hai? Raat ki duty aur load-shedding me ye zaroori hai.
 
-Nafaa in sab ka jawab haan me deta hai; tafseel English me [pharmacy software](/industries/pharmacy) par hai. Expiry kam karne ke tareeqe [pharmacy expiry management](/blog/pharmacy-expiry-management) me hain, aur medical store kholne ka poora tareeqa [how to start a pharmacy](/blog/how-to-start-a-pharmacy-pakistan) me. Qawaid aur license ki baat ke liye hamara English safha [pharmacy ke qawaid (DRAP)](/compliance/drap-pharmacy) dekhein, aur aakhri baat hamesha apne drug inspector ya DRAP se poochein.
+Nafaa in sab ka jawab haan me deta hai; tafseel English me [pharmacy software](/industries/pharmacy) par hai. Expiry kam karne ke tareeqe [pharmacy expiry management](/blog/pharmacy-expiry-management) me hain, aur medical store kholne ka poora tareeqa [how to start a pharmacy](/blog/how-to-start-a-pharmacy-pakistan) me. Qawaid aur license ki baat ke liye hamara English safha [DRAP kya hai](/glossary/drap) dekhein, aur aakhri baat hamesha apne drug inspector ya DRAP se poochein.
 
 Udhaar ke usool [udhaar likhne wali app](/udhaar-likhne-wali-app) par, aur Stock ginti ka tareeqa [stock ka hisaab app](/stock-ka-hisaab-app) par hai.`),
   ],

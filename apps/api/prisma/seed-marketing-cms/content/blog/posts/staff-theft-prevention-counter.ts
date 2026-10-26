@@ -16,7 +16,7 @@ const spec: PostSpec = {
   category: 'business',
   cover: PHOTO.staffTheftPreventionCounter,
   tags: ['PRODUCT:staff', 'PRODUCT:pos'],
-  related: ['BLOG_POST:stock-taking-guide', 'BLOG_POST:multi-shop-management-guide', 'PRODUCT:reports'],
+  related: ['BLOG_POST:stock-taking-guide', 'BLOG_POST:multi-shop-management-guide', 'PRODUCT:reports', 'CHANGELOG:staff-approval-pin'],
   isNew: true,
   blocks: [
     prose(`Most shop owners trust their staff, and most staff deserve it. Still, every owner who has run a counter for a few years has a story: a cashier who gave "discounts" to friends, a salesman who sold from the godown and kept the cash, a bill voided after the customer paid. The loss is rarely one big theft. It is small leaks, repeated, that nobody notices because nobody is looking.

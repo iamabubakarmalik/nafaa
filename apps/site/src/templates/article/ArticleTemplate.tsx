@@ -15,6 +15,8 @@ import Link from 'next/link';
 import type { EntryCard, PublicEntity, PublicEntry, SiteSettings } from '@/lib/cms/contract/cms-contract';
 import { Container } from '@/components/ui/Container';
 import { JsonLd } from '@/components/seo/JsonLd';
+import { localizePath } from '@/lib/cms/locale';
+import { uiStrings } from '@/lib/i18n/ui';
 import { CmsIcon } from '@/lib/icons';
 import { mediaById } from '@/lib/media';
 import { loadCards } from './data';
@@ -28,7 +30,6 @@ import { PageHeader } from './parts/Headers';
 import { outline } from './parts/outline';
 import { TocRail, TocInline } from './parts/Toc';
 
-const CHANGE_KIND: Record<string, string> = { new: 'New', improved: 'Improved', fixed: 'Fixed' };
 const FORMAT_LABEL: Record<string, string> = { xlsx: 'Excel (XLSX)', pdf: 'PDF', docx: 'Word (DOCX)', csv: 'CSV' };
 
 function bytes(n: number): string {
@@ -39,20 +40,22 @@ function bytes(n: number): string {
 
 function eyebrowFor(entry: PublicEntry): { label: string; href?: string } {
   const category = entry.tags.BLOG_CATEGORY?.[0];
+  const t = uiStrings(entry.locale).content;
+  const at = (path: string) => localizePath(entry.locale, path);
   switch (entry.type) {
     case 'BLOG_POST':
-      return category ? { label: category.title, href: relativePath(category) } : { label: 'Blog', href: '/blog' };
+      return category ? { label: category.title, href: relativePath(category) } : { label: t.blog, href: at('/blog') };
     case 'GUIDE':
-      return { label: 'Guide', href: '/guides' };
+      return { label: t.typeLabels.GUIDE ?? 'Guide', href: at('/guides') };
     case 'CASE_STUDY':
-      return { label: 'Customer story', href: '/customers' };
+      return { label: t.customerStory, href: at('/customers') };
     case 'TEMPLATE': {
       const format = entry.data.type === 'TEMPLATE' ? FORMAT_LABEL[entry.data.format] : undefined;
-      return { label: format ? `Free template · ${format}` : 'Free template', href: '/templates' };
+      return { label: format ? `${t.freeTemplate} · ${format}` : t.freeTemplate, href: at('/templates') };
     }
     case 'CHANGELOG': {
       const d = entry.data.type === 'CHANGELOG' ? entry.data : null;
-      return { label: d ? [CHANGE_KIND[d.kind], d.version, formatDate(d.date)].filter(Boolean).join(' · ') : 'Changelog', href: '/changelog' };
+      return { label: d ? [t.changeKinds[d.kind], d.version, formatDate(d.date, entry.locale)].filter(Boolean).join(' · ') : t.changelog, href: at('/changelog') };
     }
     default:
       return { label: '' };
@@ -86,7 +89,8 @@ async function moreReading(entry: PublicEntry): Promise<{ heading: string; cards
   const related = entry.related.filter((c) => c.type !== 'GLOSSARY_TERM' && c.id !== entry.id).slice(0, 6);
   const limit = Math.max(3, related.length);
   const cards = [...related, ...extra.filter((c) => !seen.has(c.id))].slice(0, limit);
-  return { heading: entry.type === 'GUIDE' ? 'Posts in this guide' : entry.type === 'CHANGELOG' ? 'More updates' : 'Keep reading', cards };
+  const t = uiStrings(entry.locale).content;
+  return { heading: entry.type === 'GUIDE' ? t.postsInGuide : entry.type === 'CHANGELOG' ? t.moreUpdates : t.keepReading, cards };
 }
 
 function TemplateDownload({ entry }: { entry: PublicEntry }) {
@@ -94,6 +98,7 @@ function TemplateDownload({ entry }: { entry: PublicEntry }) {
   const file = mediaById(entry.media, entry.data.fileMediaId);
   if (!file) return null;
   const name = `${entry.path.split('/').pop() || 'template'}.${entry.data.format}`;
+  const t = uiStrings(entry.locale).content;
   return (
     <Container size="prose">
       <div className="flex flex-col gap-5 rounded-xl border border-line bg-surface-2 p-6 sm:flex-row sm:items-center sm:justify-between md:p-7">
@@ -104,7 +109,7 @@ function TemplateDownload({ entry }: { entry: PublicEntry }) {
           <div>
             <p className="font-semibold text-fg-strong">{file.alt || entry.title}</p>
             <p className="text-small text-fg-subtle">
-              {FORMAT_LABEL[entry.data.format]} · {bytes(file.bytes)} · free, no sign-up
+              {FORMAT_LABEL[entry.data.format]} · {bytes(file.bytes)} · {t.downloadMeta}
             </p>
           </div>
         </div>
@@ -112,11 +117,11 @@ function TemplateDownload({ entry }: { entry: PublicEntry }) {
           href={file.url}
           download={name}
           data-track="cta_click"
-          data-track-label={`Template download: ${entry.title}`}
+          data-track-label={t.downloadTrack(entry.title)}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-brand-700 px-5 text-[0.9375rem] font-medium text-white shadow-e1 transition-colors duration-fast hover:bg-brand-800"
         >
           <CmsIcon name="download" size={18} />
-          Download
+          {t.download}
         </a>
       </div>
     </Container>
@@ -154,6 +159,7 @@ export async function ArticleTemplate({ entry, site, entity }: ArticleTemplatePr
     (card, i, list) => list.findIndex((other) => other.id === card.id) === i,
   );
   const graph = s5Graph({ entry, site, entity, faq: true });
+  const t = uiStrings(entry.locale).content;
 
   return (
     <>
@@ -164,7 +170,7 @@ export async function ArticleTemplate({ entry, site, entity }: ArticleTemplatePr
 
         <div className={toc.length > 1 ? 'mx-auto max-w-wide xl:grid xl:grid-cols-[minmax(0,1fr)_14rem] xl:gap-6 xl:pr-gutter' : undefined}>
           <div className="min-w-0 pb-section pt-10 md:pt-14">
-            {toc.length > 2 ? <TocInline items={toc} className="mb-10 xl:hidden" /> : null}
+            {toc.length > 2 ? <TocInline items={toc} label={t.onThisPage} className="mb-10 xl:hidden" /> : null}
             {entry.type === 'TEMPLATE' ? (
               <div className="mb-10">
                 <TemplateDownload entry={entry} />
@@ -181,7 +187,7 @@ export async function ArticleTemplate({ entry, site, entity }: ArticleTemplatePr
               <Container size="prose" className="mt-14 space-y-8">
                 {terms.length ? (
                   <div>
-                    <h2 className="text-eyebrow uppercase text-fg-subtle">Terms in this {entry.type === 'GUIDE' ? 'guide' : 'article'}</h2>
+                    <h2 className="text-eyebrow uppercase text-fg-subtle">{t.termsIn(entry.type === 'GUIDE')}</h2>
                     <ul className="mt-3 flex flex-wrap gap-2">
                       {terms.map((term) => (
                         <li key={term.id}>
@@ -200,7 +206,7 @@ export async function ArticleTemplate({ entry, site, entity }: ArticleTemplatePr
               </Container>
             ) : null}
           </div>
-          <TocRail items={toc} />
+          <TocRail items={toc} label={t.onThisPage} />
         </div>
       </article>
 
@@ -211,13 +217,13 @@ export async function ArticleTemplate({ entry, site, entity }: ArticleTemplatePr
               <h2 id="more-reading" className="text-h3 text-fg-strong">
                 {more.heading}
               </h2>
-              <Link href={eyebrow.href ?? '/blog'} className="hidden text-small font-medium text-link hover:underline hover:underline-offset-4 sm:inline">
-                See all
+              <Link href={eyebrow.href ?? localizePath(entry.locale, '/blog')} className="hidden text-small font-medium text-link hover:underline hover:underline-offset-4 sm:inline">
+                {t.seeAll}
               </Link>
             </div>
             <CardGrid className="mt-8">
               {more.cards.map((card) => (
-                <ContentCard key={card.id} card={card} eyebrow={card.type === 'GUIDE' ? 'Guide' : card.type === 'TOOL' ? 'Free tool' : undefined} />
+                <ContentCard key={card.id} card={card} eyebrow={card.type === 'GUIDE' || card.type === 'TOOL' ? t.typeLabels[card.type] : undefined} />
               ))}
             </CardGrid>
           </Container>
