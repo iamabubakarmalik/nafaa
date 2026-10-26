@@ -6,7 +6,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import { queryCachePersister } from '@core/lib/offline/queryPersister';
 import { Toaster } from 'sonner';
 import { ConfirmHost } from '@/design-system/components';
-import { useEffect, type ReactElement } from 'react';
+import { lazy, Suspense, useEffect, type ReactElement } from 'react';
 import { AppearanceBridge, AppearanceProvider } from '@/design-system';
 import { useLocaleStore } from '@core/stores/locale.store';
 
@@ -315,6 +315,9 @@ import AppShell from '@app/shell/AppShell';
 import PermissionRoute from '@app/router/PermissionRoute';
 import { PERMISSIONS } from '@core/lib/permissions';
 
+// ─── Nafaa AI (full page; the side panel lives in the app shell) ───
+const AiPage = lazy(() => import('@modules/ai-assistant/pages/AiPage'));
+
 // ─── Industry Pack System ──────────────────────────────────────
 import '@app/providers/registerIndustries';
 import { IndustryProvider } from '@industries/_shared/registry/IndustryProvider';
@@ -402,6 +405,7 @@ export default function App() {
 
                   {/* ── Dashboard ────────────────────────────────── */}
                   <Route path="/dashboard" element={<DashboardGate />} />
+                  <Route path="/ai" element={secure(PERMISSIONS.AI_USE, <Suspense fallback={null}><AiPage /></Suspense>)} />
                   <Route path="/notifications" element={<NotificationsPage />} />
                   <Route path="/sync" element={<SyncCenterPage />} />
 

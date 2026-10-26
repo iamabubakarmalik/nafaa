@@ -1,0 +1,11 @@
+<!-- Nafaa AI mark: robot head on brand green, Noon-bowl visor, amber diamond antenna. Light backgrounds. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <path d="M32 1L38.5 7.5L32 14L25.5 7.5Z" fill="#f59e0b"/>
+  <rect x="30" y="12.5" width="4" height="7" rx="1.5" fill="#15803d"/>
+  <rect x="2" y="32" width="6" height="14" rx="2.5" fill="#15803d"/>
+  <rect x="56" y="32" width="6" height="14" rx="2.5" fill="#15803d"/>
+  <rect x="6" y="18" width="52" height="43" rx="13" fill="#16a34a"/>
+  <circle cx="24" cy="29" r="3.6" fill="#f8fafc"/>
+  <circle cx="40" cy="29" r="3.6" fill="#f8fafc"/>
+  <path d="M18 37.4L22.6 34.8V42A9.6 9.6 0 0 0 41.4 42H46A14 14 0 0 1 18 42Z" fill="#f8fafc"/>
+</svg>

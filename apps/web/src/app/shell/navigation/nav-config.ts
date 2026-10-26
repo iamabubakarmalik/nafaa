@@ -63,6 +63,7 @@ export const posNavGroups: NavGroup[] = [
     id: 'overview', label: 'Overview', icon: LayoutDashboard, color: '#10b981', defaultOpen: true, order: 0,
     items: [
       { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, keywords: 'home' },
+      { to: '/ai', label: 'Nafaa AI', icon: Sparkles, permission: P.AI_USE, keywords: 'ai assistant sawal poochein question chat bot' },
       { to: '/day-report', label: 'Din ka hisaab', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'daily report closing opening z report' },
       { to: '/reports', label: 'Reports', icon: BarChart3, permission: P.REPORTS_VIEW },
       { to: '/profit-loss', label: 'Profit-loss (P&L)', icon: Scale, permission: P.PROFIT_REPORT_VIEW, keywords: 'p&l profit loss profit-loss profit statement break even cash flow' },

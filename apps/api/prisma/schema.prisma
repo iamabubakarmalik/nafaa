@@ -23199,3 +23199,72 @@ model TaxAuthorityInvoice {
   @@index([saleId])
   @@map("tax_authority_invoices")
 }
+
+// ═══════════════════════════════════════════════════════════════
+// ▓▓▓  NAFAA AI (shop assistant)  ▓▓▓
+// ═══════════════════════════════════════════════════════════════
+// Chats of the in-app business assistant. Named AiChat/AiChatMessage because
+// AiConversation already belongs to the marketplace shopping assistant.
+// Tenant and user ids are plain columns (no relation fields), so the Tenant
+// and User models stay unchanged.
+
+model AiChat {
+  id            String   @id @default(uuid())
+  tenantId      String
+  userId        String
+  shopId        String?
+  title         String   @default("Nayi baat")
+  pinned        Boolean  @default(false)
+  archived      Boolean  @default(false)
+  /// Short running summary of older turns, sent instead of the full history.
+  summary       String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastMessageAt DateTime @default(now())
+
+  messages AiChatMessage[]
+
+  @@index([tenantId, userId, lastMessageAt])
+  @@map("ai_chats")
+}
+
+model AiChatMessage {
+  id           String   @id @default(uuid())
+  chatId       String
+  chat         AiChat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role         String
+  content      String   @db.Text
+  /// Compact list of tool calls and their summarised results.
+  toolCalls    Json?
+  /// Charts, links and reorder groups shown with the answer.
+  charts       Json?
+  model        String?
+  route        String?
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  cachedTokens Int      @default(0)
+  /// Cost in millionths of a US dollar.
+  costMicros   Int      @default(0)
+  latencyMs    Int      @default(0)
+  /// -1 thumbs down, 0 none, 1 thumbs up.
+  feedback     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([chatId, createdAt])
+  @@map("ai_chat_messages")
+}
+
+model AiUsageDaily {
+  id         String   @id @default(uuid())
+  tenantId   String
+  /// Business day of the shop, YYYY-MM-DD.
+  date       String
+  messages   Int      @default(0)
+  tokens     Int      @default(0)
+  costMicros Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([tenantId, date])
+  @@index([date])
+  @@map("ai_usage_daily")
+}

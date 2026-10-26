@@ -49,6 +49,8 @@ export const PERMISSIONS = {
   COST_VIEW: 'cost.view',
   REPORTS_VIEW: 'reports.view',
   PROFIT_REPORT_VIEW: 'profit_report.view',
+  /// Nafaa AI assistant. Its answers still follow every other permission.
+  AI_USE: 'ai.use',
 
   // Staff
   STAFF_VIEW: 'staff.view',
@@ -214,6 +216,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.DASHBOARD_VIEW,
     PERMISSIONS.REPORTS_VIEW,
     PERMISSIONS.PROFIT_REPORT_VIEW,
+    PERMISSIONS.AI_USE,
     PERMISSIONS.STAFF_VIEW,
     PERMISSIONS.EXPENSES_VIEW,
     PERMISSIONS.EXPENSES_CREATE,

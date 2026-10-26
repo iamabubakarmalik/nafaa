@@ -18,8 +18,9 @@ import { useNavigate } from 'react-router-dom';
 import { create } from 'zustand';
 import {
   ArrowLeft, BarChart3, BookOpen, ClipboardCheck, CornerDownLeft, Keyboard, Loader2, Package, PackagePlus, Receipt, Search, Settings,
-  ShoppingCart, Truck, UserPlus, Users, Wallet, X,
+  ShoppingCart, Sparkles, Truck, UserPlus, Users, Wallet, X,
 } from 'lucide-react';
+import { useAiStore } from '@modules/ai-assistant/store';
 import { searchApi, type SearchResults } from '@modules/pos/api/search.api';
 import { formatPKR } from '@core/lib/format';
 import { HiddenValue } from '@core/security/HiddenValue';
@@ -159,6 +160,10 @@ export function GlobalSearchDialog() {
     const actions = ACTIONS
       .filter((a) => can(a.permission) && hit(`${a.title} ${a.subtitle} ${a.q}`))
       .map((a): ResultItem => ({ key: `a:${a.to}`, section: 'Actions', title: a.title, subtitle: a.subtitle, icon: <a.icon className="h-4 w-4" />, to: a.to }));
+    const canAi = can(PERMISSIONS.AI_USE);
+    if (canAi && hit('nafaa ai assistant sawal poochein question chat bot')) {
+      actions.unshift({ key: 'a:ai', section: 'Actions', title: 'Nafaa AI', subtitle: 'Dukaan ke baare mein kuch bhi poochein (Alt+I)', icon: <Sparkles className="h-4 w-4" />, run: () => useAiStore.getState().setOpen(true) });
+    }
     if (hit('keyboard shortcuts keys help madad')) {
       actions.push({ key: 'a:help', section: 'Actions', title: 'Keyboard shortcuts', subtitle: 'Saari keys dekhein (?)', icon: <Keyboard className="h-4 w-4" />, run: () => openHelp(true) });
     }
@@ -182,7 +187,11 @@ export function GlobalSearchDialog() {
           return { key: `set:${i.to}`, section: 'Settings', title: i.label, subtitle: i.desc, icon: <Icon className="h-4 w-4" />, to: i.to };
         })
       : [];
-    const local = [...actions, ...pages, ...settings];
+    // A typed question goes straight to Nafaa AI.
+    const ask: ResultItem[] = canAi && q.length >= 3
+      ? [{ key: 'ai:ask', section: 'Nafaa AI', title: `Nafaa AI se poochein: ${query.trim()}`, subtitle: 'Jawab aap ki dukaan ke data se', icon: <Sparkles className="h-4 w-4" />, run: () => useAiStore.getState().ask(query.trim()) }]
+      : [];
+    const local = [...actions, ...pages, ...ask, ...settings];
     if (!results) return local;
     return [
       ...local,

@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -76,7 +76,12 @@ export default function ReportsCenterPage() {
   const shopName = useAuthStore((s) => s.user?.assignedShop?.name);
   const guide = usePageGuide();
   const [range, setRange] = useReportRange('month');
-  const [tab, setTab] = useState<SectionId>('sales');
+  // `?tab=items` opens that tab first (links from Nafaa AI and elsewhere).
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState<SectionId>(() => {
+    const want = params.get('tab');
+    return want && (BASE_TABS.some((t) => t.id === want) || (want === 'industry' && !!config.industry)) ? (want as SectionId) : 'sales';
+  });
   const [compare, toggleCompare] = useReportCompare(COMPARE_KEY);
 
   const period: Period = useMemo(() => {

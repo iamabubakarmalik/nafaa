@@ -21,6 +21,7 @@ import type { DashboardConfig, GuideItem, KpiDef, WidgetDef } from './engine/typ
 import { commonKpiList, commonWidgets, type QuickAction } from './widgets';
 import type { AttentionItem } from './widgets/AttentionList';
 import { makeAttention } from './widgets/CommonAttention';
+import { MorningSummaryWidget } from '@modules/ai-assistant/components/MorningSummaryWidget';
 import type { MoneyMapOptions } from './widgets/MoneyMap';
 
 export interface DashboardSpec {
@@ -58,6 +59,12 @@ const STANDARD_GUIDE: GuideItem[] = [
   { icon: Users, title: 'Apni marzi ka dashboard', text: '"Customize" se hisse chhupayein, ghaseet kar sort badlein, chaurai (S/M/L/Full) chunein, upar ke numbers chunein aur rozana target lagayein. Aap ke account me save hota hai — har device par wahi.' },
 ];
 
+/** Nafaa AI's morning summary (yesterday's sale, profit, udhaar). Renders nothing without `ai.use`. */
+const aiMorning: WidgetDef = {
+  id: 'ai-morning', title: 'Subah ka khulasa (Nafaa AI)', description: 'Kal ki sale, profit, udhaar aur stock ek nazar me',
+  size: 'full', sizes: ['half', 'wide', 'full'], Component: MorningSummaryWidget,
+};
+
 export function createDashboard(spec: DashboardSpec): DashboardConfig {
   const omit = new Set(spec.omit ?? []);
   const attention: WidgetDef = {
@@ -67,6 +74,7 @@ export function createDashboard(spec: DashboardSpec): DashboardConfig {
   const widgets: WidgetDef[] = [
     commonWidgets.hero(),
     commonWidgets.kpis(),
+    aiMorning,
     attention,
     commonWidgets.dayReport(),
     ...(spec.widgets ?? []),

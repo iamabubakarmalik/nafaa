@@ -39,6 +39,8 @@ export const PERMISSIONS = {
   COST_VIEW: 'cost.view',
   REPORTS_VIEW: 'reports.view',
   PROFIT_REPORT_VIEW: 'profit_report.view',
+  /** Ask Nafaa AI about the shop. Each answer still needs the permission of the data it reads. */
+  AI_USE: 'ai.use',
   STAFF_VIEW: 'staff.view',
   STAFF_MANAGE: 'staff.manage',
   COMMISSION_OWN: 'commission.own',
@@ -187,6 +189,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.DASHBOARD_VIEW,
     PERMISSIONS.REPORTS_VIEW,
     PERMISSIONS.PROFIT_REPORT_VIEW,
+    PERMISSIONS.AI_USE,
     PERMISSIONS.STAFF_VIEW,
     PERMISSIONS.EXPENSES_VIEW,
     PERMISSIONS.EXPENSES_CREATE,
@@ -326,7 +329,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'stock_movements.view': 'View Stock Movements', 'stock_adjustments.manage': 'Manage Adjustments', 'stock_transfers.manage': 'Manage Transfers',
   'suppliers.view': 'View Suppliers', 'suppliers.edit': 'Edit Suppliers',
   'purchases.view': 'View Purchases', 'purchases.create': 'Create Purchases',
-  'dashboard.view': 'View Dashboard', 'cost.view': 'Cost aur profit dekhein', 'reports.view': 'View Reports', 'profit_report.view': 'Profit Report',
+  'dashboard.view': 'View Dashboard', 'cost.view': 'Cost aur profit dekhein', 'reports.view': 'View Reports', 'profit_report.view': 'Profit Report', 'ai.use': 'Nafaa AI use',
   'staff.view': 'View Staff', 'staff.manage': 'Manage Staff',
   'commission.own': 'Apni commission dekhein',
   'commission.view': 'Sab ki commission dekhein',
@@ -466,7 +469,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     title: 'Reports & Analytics', label: 'Reports & Analytics', emoji: '📊', color: '#3b82f6',
     permissions: [
       PERMISSIONS.DASHBOARD_VIEW, PERMISSIONS.REPORTS_VIEW, PERMISSIONS.PROFIT_REPORT_VIEW,
-      PERMISSIONS.COST_VIEW,
+      PERMISSIONS.COST_VIEW, PERMISSIONS.AI_USE,
     ],
   },
   {

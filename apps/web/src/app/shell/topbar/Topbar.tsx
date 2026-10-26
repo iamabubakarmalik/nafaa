@@ -23,6 +23,7 @@ import { SyncStatusIndicator } from './SyncStatusIndicator';
 import { ProfileDropdown } from './ProfileDropdown';
 import { QuickActionsDropdown } from './QuickActionsDropdown';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
+import { AiTopbarButton } from '@modules/ai-assistant';
 
 interface TopbarProps {
   user: any;
@@ -79,6 +80,7 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarPr
           <QuickActionsDropdown role={user?.role} permissions={user?.permissions} businessType={tenant?.businessType} />
           <DesktopReloadButton />
           <SyncStatusIndicator />
+          <AiTopbarButton />
           <NotificationBell />
           <div className="mx-0.5 hidden h-6 w-px bg-shell-line sm:block" aria-hidden />
           <ProfileDropdown user={user} tenant={tenant} onLogout={onLogout} />

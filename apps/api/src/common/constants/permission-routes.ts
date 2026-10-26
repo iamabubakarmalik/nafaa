@@ -66,6 +66,9 @@ interface RouteRule {
  * `stock` wala aam usool pakar leta.
  */
 export const ROUTE_RULES: RouteRule[] = [
+  /* Nafaa AI. Every answer is also checked against the permission of the data it reads. */
+  { match: /^ai(\/|$)/, GET: P.AI_USE, write: P.AI_USE },
+
   /* Data files. Each file also needs the view right of what it holds (checked in ExportsService). */
   { match: /^exports(\/|$)/, GET: P.EXPORTS_VIEW },
 

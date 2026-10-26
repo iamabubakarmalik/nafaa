@@ -146,6 +146,7 @@ import { TryBeforeBuyModule } from './marketplace/try-before-buy/try-before-buy.
 import { B2BWholesaleModule } from './modules/b2b-wholesale/b2b-wholesale.module';
 import { PrayerRamzanModule } from './modules/prayer-ramzan/prayer-ramzan.module';
 import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.module';
+import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
 
 
 @Module({
@@ -282,6 +283,7 @@ import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.modul
     B2BWholesaleModule,
     PrayerRamzanModule,
     AiAssistantModule,
+    NafaaAiModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

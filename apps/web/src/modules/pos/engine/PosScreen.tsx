@@ -45,6 +45,7 @@ import { looksLikePhone, parseQtyPrefix, phoneDigits } from '../lib/posKeys';
 import { printReceiptDirect } from '../lib/thermalReceipt';
 import type { PosIndustryConfig, PosItem } from './types';
 import { usePosEngine } from './usePosEngine';
+import { useAiCartPrefill } from '../hooks/useAiCartPrefill';
 import { freeVariantStock } from '@modules/inventory/products/api/product-variants.api';
 
 function useOnline() {
@@ -105,6 +106,8 @@ function useClock() {
 
 export function PosScreen({ config }: { config: PosIndustryConfig }) {
   const e = usePosEngine(config);
+  // A bill prepared by Nafaa AI ("POS me kholein") arrives as router state.
+  useAiCartPrefill(e);
   const c = e.counter;
   const qc = useQueryClient();
   const online = useOnline();

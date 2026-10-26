@@ -40,6 +40,7 @@ import { useShellBoot } from './useShellBoot';
 import { ShortcutsHelp, useShortcutsHelp } from './keyboard/ShortcutsHelp';
 import { GO_TO, useGlobalKeys } from './keyboard/useGlobalKeys';
 import { useSidebarState } from './useSidebarState';
+import { AiDrawer, AiLauncher } from '@modules/ai-assistant';
 
 const SKIP_LINK = 'pointer-events-auto -translate-y-16 rounded-xl bg-brand-600 px-4 py-2 text-[0.875rem] font-semibold text-brand-fg shadow-lg transition focus:translate-y-0';
 
@@ -134,7 +135,9 @@ export default function AppShell() {
 
         <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} dark={sidebarDark} surface={sidebarSurface} {...tenantProps} />
 
-        <div className="flex h-screen-dvh min-w-0 flex-col overflow-hidden">
+        {/* Page column and the Nafaa AI panel, which pushes the page narrower on wide screens. */}
+        <div className="flex h-screen-dvh min-w-0 overflow-hidden">
+        <div className="flex h-screen-dvh min-w-0 flex-1 flex-col overflow-hidden">
           <Topbar user={user} tenant={tenant} onOpenMobileSidebar={() => setMobileOpen(true)} onLogout={handleLogout} />
 
           <main
@@ -164,6 +167,8 @@ export default function AppShell() {
           </main>
           <DesktopStatusBar />
         </div>
+        <AiDrawer />
+        </div>
       </div>
 
       <GlobalSearchDialog />
@@ -174,6 +179,7 @@ export default function AppShell() {
           {GO_TO.map((g) => <span key={g.key} className="inline-flex items-center gap-1"><Kbd className="border-white/20 bg-white/10 text-white">{g.key.toUpperCase()}</Kbd>{g.label}</span>)}
         </div>
       )}
+      <AiLauncher />
       {/* New online order: popup and sound on every page. */}
       <OnlineOrderAlert />
     </div>

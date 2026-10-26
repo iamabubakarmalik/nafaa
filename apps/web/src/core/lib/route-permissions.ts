@@ -117,6 +117,7 @@ const RULES: Array<[RegExp, PermissionKey]> = [
   [/^\/profit-loss/, P.PROFIT_REPORT_VIEW],
   [/^\/audit/, P.ACTIVITY_VIEW],
   [/^\/reports/, P.REPORTS_VIEW],
+  [/^\/ai(\/|$)/, P.AI_USE],
   /* Commission staff ke andar hai magar us ka hissa nahi — counter
      wale ko apni commission dekhne ke liye poora staff section
      kholna nahi parta. Is liye `/staff` se PEHLE. */

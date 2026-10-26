@@ -1,0 +1,8 @@
+<!-- Nafaa AI mark, one colour (currentColor). Eyes and visor are cut out of the head. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="currentColor">
+  <path d="M32 1L38.5 7.5L32 14L25.5 7.5Z"/>
+  <rect x="30" y="12.5" width="4" height="7" rx="1.5"/>
+  <rect x="2" y="32" width="6" height="14" rx="2.5"/>
+  <rect x="56" y="32" width="6" height="14" rx="2.5"/>
+  <path fill-rule="evenodd" d="M19 18H45A13 13 0 0 1 58 31V48A13 13 0 0 1 45 61H19A13 13 0 0 1 6 48V31A13 13 0 0 1 19 18Z M24 25.4A3.6 3.6 0 1 0 24 32.6A3.6 3.6 0 1 0 24 25.4Z M40 25.4A3.6 3.6 0 1 0 40 32.6A3.6 3.6 0 1 0 40 25.4Z M18 37.4L22.6 34.8V42A9.6 9.6 0 0 0 41.4 42H46A14 14 0 0 1 18 42Z"/>
+</svg>

@@ -24,6 +24,7 @@
     "seed:cms:check-redirects": "ts-node --project prisma/tsconfig.seed.json prisma/seed-marketing-cms/check-redirects.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.137.0",
     "@aws-sdk/client-s3": "^3.1091.0",
     "@aws-sdk/s3-request-presigner": "^3.1091.0",
     "@nestjs/bullmq": "^11.0.4",
