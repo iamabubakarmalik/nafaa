@@ -20,8 +20,18 @@ export function seedPath(e: SeedEntry, all: SeedEntry[]): string {
     }
     return `/developers${chain.map((s) => `/${s}`).join('')}`;
   }
-  // Top-level PAGE entries (no parent) live at /<slug>.
-  if (e.type === 'PAGE') return `/${e.slug}`;
+  // CITY_INDUSTRY pages live under their CITY: /pos-software/{city}/{industry}.
+  if (e.type === 'CITY_INDUSTRY') {
+    const city = e.parent ? all.find((x) => entryKey(x) === e.parent) : undefined;
+    if (!city || city.type !== 'CITY') throw new Error(`${entryKey(e)}: needs a CITY parent in the seed`);
+    return `${seedPath(city, all)}/${e.slug}`;
+  }
+  // PAGE entries live at /<slug>, or under their parent PAGE (/help/{topic}/{article}).
+  if (e.type === 'PAGE') {
+    const parent = e.parent ? all.find((x) => entryKey(x) === e.parent) : undefined;
+    if (e.parent && (!parent || parent.type !== 'PAGE')) throw new Error(`${entryKey(e)}: parent ${e.parent} must be a PAGE in the seed`);
+    return parent ? `${seedPath(parent, all)}/${e.slug}` : `/${e.slug}`;
+  }
   const prefix = ENTRY_TYPE_META[e.type].prefix;
   if (!prefix) throw new Error(`${entryKey(e)}: the seed only handles types with a fixed prefix (and DOC)`);
   return `/${prefix}/${e.slug}`;

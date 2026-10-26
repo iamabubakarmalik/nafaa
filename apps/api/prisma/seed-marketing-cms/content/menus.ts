@@ -188,6 +188,7 @@ export const menus: SeedMenu[] = [
             children: [
               { id: 'r-blog', kind: 'url', label: 'Blog', url: '/blog', icon: 'book-open', description: 'Guides for running a business' },
               { id: 'r-guides', kind: 'url', label: 'Guides', url: '/guides', icon: 'notebook-pen', description: 'Step-by-step playbooks' },
+              { id: 'r-help', kind: 'url', label: 'Help center', url: '/help', icon: 'lightbulb', description: 'How to do each task in Nafaa' },
               { id: 'r-glossary', kind: 'url', label: 'Glossary', url: '/glossary', icon: 'list', description: 'Business and tax terms explained' },
               { id: 'r-tools', kind: 'url', label: 'Free tools', url: '/tools', icon: 'calculator', description: 'Margin, GST, discount and stock calculators' },
               { id: 'r-templates', kind: 'url', label: 'Templates', url: '/templates', icon: 'file-spreadsheet', description: 'Khata, stock-take and cash-closing sheets' },
@@ -297,9 +298,11 @@ export const menus: SeedMenu[] = [
         children: [
           { id: 'f-blog', kind: 'url', label: 'Blog', url: '/blog' },
           { id: 'f-guides', kind: 'url', label: 'Guides', url: '/guides' },
+          { id: 'f-help', kind: 'url', label: 'Help center', url: '/help' },
           { id: 'f-glossary', kind: 'url', label: 'Glossary', url: '/glossary' },
           { id: 'f-tools', kind: 'url', label: 'Free tools', url: '/tools' },
           { id: 'f-templates', kind: 'url', label: 'Templates', url: '/templates' },
+          { id: 'f-roman', kind: 'url', label: 'Roman Urdu guides', url: '/hisaab-kitaab' },
           { id: 'f-compare', kind: 'url', label: 'Compare', url: '/compare' },
           { id: 'f-best', kind: 'url', label: 'How to choose', url: '/best' },
           { id: 'f-compliance', kind: 'url', label: 'Tax compliance', url: '/compliance' },

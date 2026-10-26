@@ -9,7 +9,9 @@ import { products } from './products';
 import { services } from './services';
 import { solutions } from './solutions';
 import { hubs } from './hubs';
+import { moreHubFaqs, moreHubs } from './hubs-more';
+import { mainPageFaqs as baseFaqs } from './faqs';
 
-export { mainPageFaqs } from './faqs';
+export const mainPageFaqs = [...baseFaqs, ...moreHubFaqs];
 
-export const mainPageEntries: SeedEntry[] = [...products, ...solutions, ...services, ...mainPages, ...hubs];
+export const mainPageEntries: SeedEntry[] = [...products, ...solutions, ...services, ...mainPages, ...hubs, ...moreHubs];

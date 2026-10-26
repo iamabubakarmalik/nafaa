@@ -61,7 +61,6 @@ const merges: [string, string][] = [
   ['/founder-letter', '/contact'],
   ['/press', '/changelog'],
   ['/academy', '/blog'],
-  ['/help', '/faq'],
   // No vendor to compare with: the paper register page is an ALTERNATIVE.
   ['/compare/nafaa-vs-paper-register', '/alternatives/paper-khata-register'],
   ['/case-studies', '/industries'],

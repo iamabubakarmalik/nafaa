@@ -1,14 +1,17 @@
 /**
- * Developer docs template (ARCH 8, DOC; `/developers` and below). Three
- * columns on wide screens: the docs tree, the page, and "On this page".
+ * Docs template (ARCH 8, DOC; `/developers` and below). The help center
+ * (`/help`, PAGE entries nested by parent) uses it too, with HELP_CENTER
+ * labels. Three columns on wide screens: the docs tree, the page, and
+ * "On this page".
  * The tree is server-rendered (<details> per branch, the current branch open)
  * and collapses into one "Docs menu" disclosure on phones. Endpoint pages show
  * their method and path from `data.apiRef`. Code samples are codeSample
  * blocks (server-highlighted by the block renderer, copy island only).
- * Schema: WebPage + TechArticle (+ FAQPage when the page has FAQs).
+ * Schema: WebPage + TechArticle (+ FAQPage when the page has FAQs). Help
+ * pages get the PAGE graph (WebPage, FAQPage, HowTo for `howTo` steps).
  */
 import Link from 'next/link';
-import type { EntryCard, PublicEntity, PublicEntry, SiteSettings } from '@/lib/cms/contract/cms-contract';
+import { DOC_ROOT_PATH, type EntryCard, type PublicEntity, type PublicEntry, type SiteSettings } from '@/lib/cms/contract/cms-contract';
 import { PageBreadcrumbs } from '@/components/layout/Breadcrumbs';
 import { cx } from '@/components/ui/cx';
 import { JsonLd } from '@/components/seo/JsonLd';
@@ -20,6 +23,45 @@ import { s5Graph } from '../article/parts/graph';
 import { outline } from '../article/parts/outline';
 import { ApiHero } from './ApiHero';
 import { buildDocTree, containsPath, flattenDocs, type DocNode } from './tree';
+
+/** Labels and root of one docs tree. */
+export interface DocsSection {
+  rootPath: string;
+  /** aria-label of the tree. */
+  navLabel: string;
+  /** Phone disclosure label. */
+  menuLabel: string;
+  /** Eyebrow above the tree on wide screens. */
+  railLabel: string;
+  rootEyebrow: string;
+  pageEyebrow: string;
+  /** Heading of the child cards on the root page. */
+  rootChildrenHeading: string;
+  /** Show the API terminal panel on the root page. */
+  apiHero: boolean;
+}
+
+export const DEVELOPER_DOCS: DocsSection = {
+  rootPath: DOC_ROOT_PATH,
+  navLabel: 'Developer docs',
+  menuLabel: 'Docs menu',
+  railLabel: 'API v1',
+  rootEyebrow: 'Developers',
+  pageEyebrow: 'Guide',
+  rootChildrenHeading: 'Explore the API',
+  apiHero: true,
+};
+
+export const HELP_CENTER: DocsSection = {
+  rootPath: '/help',
+  navLabel: 'Help center',
+  menuLabel: 'Help topics',
+  railLabel: 'Help center',
+  rootEyebrow: 'Help center',
+  pageEyebrow: 'Help center',
+  rootChildrenHeading: 'Browse by topic',
+  apiHero: false,
+};
 
 const METHOD_TONE: Record<string, string> = {
   GET: 'bg-sky-50 text-sky-800 ring-sky-600/20 ink:bg-sky-400/10 ink:text-sky-200',
@@ -97,21 +139,24 @@ export interface DocsTemplateProps {
   docs: EntryCard[];
   site: SiteSettings;
   entity: PublicEntity | null;
+  /** Defaults to the developer docs. */
+  section?: DocsSection;
 }
 
-export function DocsTemplate({ entry, docs, site, entity }: DocsTemplateProps) {
-  if (entry.data.type !== 'DOC') return null;
-  const data = entry.data;
-  const tree = buildDocTree(docs);
-  const root = docs.find((d) => d.path === '/developers');
+export function DocsTemplate({ entry, docs, site, entity, section = DEVELOPER_DOCS }: DocsTemplateProps) {
+  if (entry.data.type !== 'DOC' && entry.data.type !== 'PAGE') return null;
+  const apiRef = entry.data.type === 'DOC' ? entry.data.apiRef : undefined;
+  const tree = buildDocTree(docs, section.rootPath);
+  const root = docs.find((d) => d.path === section.rootPath);
   const flat = flattenDocs(tree, root);
   const index = flat.findIndex((d) => d.path === entry.path);
   const prev = index > 0 ? flat[index - 1] : undefined;
   const next = index >= 0 ? flat[index + 1] : undefined;
   const toc = outline(entry, { withFaqs: true });
-  const isRoot = entry.path === '/developers';
+  const isRoot = entry.path === section.rootPath;
   const childCards = isRoot ? tree.map((n) => n.card) : entry.children;
-  const graph = s5Graph({ entry, site, entity, faq: true });
+  // The PAGE graph already carries FAQPage; DOC needs it added.
+  const graph = s5Graph({ entry, site, entity, faq: entry.type === 'DOC' });
 
   return (
     <>
@@ -119,10 +164,10 @@ export function DocsTemplate({ entry, docs, site, entity }: DocsTemplateProps) {
       <FixtureRibbon entry={entry} />
       <div className="mx-auto box-content max-w-wide px-gutter">
         <div className="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10 xl:grid-cols-[15rem_minmax(0,1fr)_13rem]">
-          <aside aria-label="Developer docs" className="lg:border-r lg:border-line/70 lg:pr-4">
+          <aside aria-label={section.navLabel} className="lg:border-r lg:border-line/70 lg:pr-4">
             <details className="group mt-4 rounded-lg border border-line bg-surface-2 lg:hidden">
               <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-small font-medium text-fg-strong [&::-webkit-details-marker]:hidden">
-                Docs menu
+                {section.menuLabel}
                 <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-fg-subtle transition-transform duration-fast group-open:rotate-180">
                   <path d="m6 9 6 6 6-6" />
                 </svg>
@@ -132,7 +177,7 @@ export function DocsTemplate({ entry, docs, site, entity }: DocsTemplateProps) {
               </nav>
             </details>
             <nav aria-label="Docs pages" className="sticky top-[calc(var(--header-h)+1.5rem)] hidden max-h-[calc(100vh-var(--header-h)-3rem)] overflow-y-auto py-8 lg:block">
-              <p className="mb-3 px-2.5 text-eyebrow uppercase text-fg-subtle">API v1</p>
+              <p className="mb-3 px-2.5 text-eyebrow uppercase text-fg-subtle">{section.railLabel}</p>
               <Sidebar root={root} tree={tree} current={entry.path} />
             </nav>
           </aside>
@@ -140,13 +185,13 @@ export function DocsTemplate({ entry, docs, site, entity }: DocsTemplateProps) {
           <article className="min-w-0 pb-section pt-6 lg:pt-8">
             <PageBreadcrumbs crumbs={entry.breadcrumbs} />
             <header className="mt-8 max-w-prose">
-              {data.apiRef ? (
+              {apiRef ? (
                 <p className="mb-4 flex items-center gap-2">
-                  <MethodBadge method={data.apiRef.method} />
-                  <code className="font-mono text-small text-fg-strong">{data.apiRef.path}</code>
+                  <MethodBadge method={apiRef.method} />
+                  <code className="font-mono text-small text-fg-strong">{apiRef.path}</code>
                 </p>
               ) : (
-                <p className="mb-3 text-eyebrow uppercase text-link">{isRoot ? 'Developers' : 'Guide'}</p>
+                <p className="mb-3 text-eyebrow uppercase text-link">{isRoot ? section.rootEyebrow : section.pageEyebrow}</p>
               )}
               <h1 className="text-h1 text-fg-strong">{entry.title}</h1>
               {entry.summary ? <p className="mt-4 text-body-lg text-fg-muted">{entry.summary}</p> : null}
@@ -156,7 +201,7 @@ export function DocsTemplate({ entry, docs, site, entity }: DocsTemplateProps) {
                 </p>
               ) : null}
             </header>
-            {isRoot ? <ApiHero live={new Set(docs.map((d) => d.path))} /> : null}
+            {isRoot && section.apiHero ? <ApiHero live={new Set(docs.map((d) => d.path))} /> : null}
 
             <div className="docs-body -mx-gutter mt-8 [&_.mx-auto]:!ml-0">
               <Body entry={entry} variant="docs" withFaqs />
@@ -165,7 +210,7 @@ export function DocsTemplate({ entry, docs, site, entity }: DocsTemplateProps) {
             {childCards.length ? (
               <section aria-labelledby="in-section" className="mt-12 max-w-prose">
                 <h2 id="in-section" className="text-h4 text-fg-strong">
-                  {isRoot ? 'Explore the API' : 'In this section'}
+                  {isRoot ? section.rootChildrenHeading : 'In this section'}
                 </h2>
                 <ul role="list" className="mt-4 grid gap-3 sm:grid-cols-2">
                   {childCards.map((card) => (

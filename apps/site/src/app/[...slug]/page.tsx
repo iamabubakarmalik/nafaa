@@ -16,7 +16,7 @@ import { buildEntryMetadata } from '@/lib/seo/metadata';
 import { PageView } from './PageView';
 
 /** First segments served by dedicated route files (S3/S4/S5); the catch-all does not prebuild them. */
-const OWN_ROUTES: ReadonlySet<string> = new Set<string>([...TYPE_ROOT_SEGMENTS, 'pricing', 'faq', 'roadmap']);
+const OWN_ROUTES: ReadonlySet<string> = new Set<string>([...TYPE_ROOT_SEGMENTS, 'pricing', 'faq', 'roadmap', 'help']);
 
 export const revalidate = 86400;
 export const dynamicParams = true;

@@ -10,7 +10,7 @@
  */
 
 import type { DraftBlock, Source } from '../../../../src/admin-marketing/cms/contract/cms-contract';
-import { withIds, writerNotes } from '../../lib/blocks';
+import { callout, withIds, writerNotes } from '../../lib/blocks';
 import type { EntryRef, SeedEntry } from '../../lib/types';
 
 export type Block = Omit<DraftBlock, 'id'>;
@@ -39,6 +39,18 @@ export interface CompareSpec {
 
 export function src(title: string, url: string, publisher: string): Source {
   return { title, url, publisher, accessedAt: CHECKED_ON };
+}
+
+/**
+ * Ownership disclosure shown near the top of every comparison: Nafaa is our
+ * product, where the competitor facts come from, and how to report a change.
+ */
+export function disclosure(competitor: string, where: string): Block {
+  return callout(
+    'info',
+    `Nafaa is our product, so read this page knowing that. Every fact about ${competitor} comes from ${where}, checked on 26 October 2026, and the sources are listed with the comparison table. Software changes often: if something here is out of date, tell us and we will correct it.`,
+    'We make Nafaa',
+  );
 }
 
 /** Two-column comparison with its sources and check date (COMPETITOR_UNDATED). */

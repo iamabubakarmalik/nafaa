@@ -109,8 +109,10 @@ function entityFactPaths(settings: SeedSetting[]): Set<string> {
   return paths;
 }
 
-export function entryKey(e: { type: string; slug: string; locale?: string | undefined }): string {
-  return `${e.type}:${e.slug}${e.locale && e.locale !== 'en' ? `@${e.locale}` : ''}`;
+export function entryKey(e: { type: string; slug: string; locale?: string | undefined; parent?: string | undefined }): string {
+  // CITY_INDUSTRY slugs repeat across cities (/pos-software/{city}/{industry}), so the key includes the city.
+  const slug = e.type === 'CITY_INDUSTRY' && e.parent ? `${e.parent.slice(e.parent.indexOf(':') + 1)}/${e.slug}` : e.slug;
+  return `${e.type}:${slug}${e.locale && e.locale !== 'en' ? `@${e.locale}` : ''}`;
 }
 
 export function validateContent(content: SeedContent): ValidationResult {

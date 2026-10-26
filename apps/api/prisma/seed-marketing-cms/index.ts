@@ -85,7 +85,18 @@ const sitePathOf = (e: SeedEntry, path: string): string => {
 };
 
 /** Seed key of the English entry a translation belongs to (`INDUSTRY:kiryana` for `INDUSTRY:kiryana@ur`). */
-const twinKeyOf = (e: SeedEntry): string | null => ((e.locale ?? 'en') === 'en' ? null : entryKey({ type: e.type, slug: e.slug }));
+const twinKeyOf = (e: SeedEntry): string | null => ((e.locale ?? 'en') === 'en' ? null : entryKey({ type: e.type, slug: e.slug, parent: e.parent }));
+
+/**
+ * CITY_INDUSTRY data names its industry by id. The seed names it as the
+ * entry's first INDUSTRY relation; the id is filled in once that entry exists.
+ */
+const withIndustryId = (e: SeedEntry, data: Record<string, unknown>, ids: Map<string, string>): Record<string, unknown> => {
+  if (e.type !== 'CITY_INDUSTRY' || data.industryId) return data;
+  const ref = (e.relations ?? []).find((r) => r.ref.startsWith('INDUSTRY:'))?.ref;
+  const id = ref ? ids.get(ref) : undefined;
+  return id ? { ...data, industryId: id } : data;
+};
 
 const SETTING_BUNDLE_KEY: Record<SettingKey, string> = {
   site: 'site', entity: 'entity', pricing: 'pricing', seo: 'seo', analytics: 'analytics', 'industry-groups': 'industryGroups',
@@ -323,7 +334,7 @@ async function applySteps(api: CmsApi, args: Args, ctx: ApplyPlan): Promise<void
         ...(twinKeyOf(e) ? { slug: e.slug } : {}),
         summary: e.summary ?? null,
         ...(e.blocks ? { blocks: resolveMediaRefs(e.blocks, mediaIds) } : {}),
-        data: resolveMediaRefs({ type: e.type, ...e.data }, mediaIds),
+        data: withIndustryId(e, resolveMediaRefs({ type: e.type, ...e.data }, mediaIds), ids),
         ...(e.imageId ? { imageId: resolveMediaRefs(e.imageId, mediaIds) } : {}),
         ...(e.ogImageId ? { ogImageId: resolveMediaRefs(e.ogImageId, mediaIds) } : {}),
         relations: (e.relations ?? []).map((r, i) => ({ entryId: ids.get(r.ref)!, kind: r.kind, sortOrder: i })).filter((r) => r.entryId),

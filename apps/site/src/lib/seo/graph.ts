@@ -363,7 +363,8 @@ function templateNodes(entry: PublicEntry, ctx: GraphContext): Node[] {
       break;
     case 'legal':
     case 'default':
-      nodes.push(webPageNode(entry, entry.path === '/about' ? 'AboutPage' : 'WebPage'), faq);
+      // HowTo only for steps marked `howTo` (help center articles).
+      nodes.push(webPageNode(entry, entry.path === '/about' ? 'AboutPage' : 'WebPage'), ...howToNodes(entry), faq);
       break;
   }
   return nodes.filter((node): node is Node => node !== null);

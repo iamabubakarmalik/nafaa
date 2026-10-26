@@ -10,6 +10,7 @@ import { countMainWords, extractMainText } from '../../src/admin-marketing/cms/c
 import { DEFAULT_QUALITY_GATES } from '../../src/admin-marketing/cms/contract/cms-contract';
 import { maxSimilarity } from '../../src/admin-marketing/cms/seo/seo-rules';
 import type { SeedEntry } from './lib/types';
+import { entryKey } from './lib/validate';
 
 const onlyType = process.argv[2];
 const faqUse = new Map<string, number>();
@@ -32,12 +33,12 @@ for (const { e, text } of texts) {
   let sim = '';
   let simOk = true;
   if (gate?.similarityMax !== undefined) {
-    const others = texts.filter((t) => t.e !== e && t.e.type === e.type).map((t) => ({ id: t.e.slug, title: t.e.slug, text: t.text }));
+    const others = texts.filter((t) => t.e !== e && t.e.type === e.type).map((t) => ({ id: entryKey(t.e), title: t.e.slug, text: t.text }));
     const s = maxSimilarity(text, others);
     simOk = s.value <= gate.similarityMax;
     sim = `\tsim ${s.value.toFixed(2)} vs ${s.closest?.id ?? '-'}`;
   }
   const ok = words >= (gate?.minWords ?? 0) && simOk;
-  rows.push(`${ok ? 'OK  ' : 'THIN'}\t${e.type}\t${e.slug}\t${words}/${gate?.minWords ?? 0}${sim}`);
+  rows.push(`${ok ? 'OK  ' : 'THIN'}\t${e.type}\t${e.type === 'CITY_INDUSTRY' ? entryKey(e).slice(e.type.length + 1) : e.slug}\t${words}/${gate?.minWords ?? 0}${sim}`);
 }
 console.log(rows.sort().join('\n'));
