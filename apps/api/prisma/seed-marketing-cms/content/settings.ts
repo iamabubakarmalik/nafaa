@@ -58,7 +58,7 @@ export const settings: SeedSetting[] = [
         },
       },
       platforms: ['Web browser'],
-      languages: ['English', 'Roman Urdu'],
+      languages: ['English', 'Roman Urdu', 'Urdu'],
       sameAs: [],
     },
     needsOwner: [
@@ -79,6 +79,20 @@ export const settings: SeedSetting[] = [
     needsOwner: ['What each plan includes is not final; feature labels are left empty so nothing is hard-coded.'],
   },
   // The old site served this IndexNow key at /nafaa-2026-indexnow.txt; keeping it keeps the key verified.
-  { key: 'seo', value: { ...DEFAULT_SEO_SETTINGS, indexNowKey: 'nafaa-2026-indexnow' }, needsOwner: ['Set INDEXNOW_KEY=nafaa-2026-indexnow on the site (Vercel) until the public layout carries seo.indexNowKey.'] },
+  {
+    key: 'seo',
+    value: {
+      ...DEFAULT_SEO_SETTINGS,
+      // Shorter patterns keep glossary and industry titles within 60 characters.
+      titlePatterns: {
+        ...DEFAULT_SEO_SETTINGS.titlePatterns,
+        GLOSSARY_TERM: 'What is {data.term}? Meaning in Urdu',
+        INDUSTRY: '{title} Software in Pakistan: POS & Khata',
+      },
+      officialDomains: [...DEFAULT_SEO_SETTINGS.officialDomains, 'kpra.gov.pk', 'dra.gov.pk', 'pshealthpunjab.gov.pk'],
+      indexNowKey: 'nafaa-2026-indexnow',
+    },
+    needsOwner: ['Set INDEXNOW_KEY=nafaa-2026-indexnow on the site (Vercel) until the public layout carries seo.indexNowKey.'],
+  },
   { key: 'analytics', value: DEFAULT_ANALYTICS_SETTINGS, needsOwner: ['GTM and Clarity ids (copy from the live site env when cutting over).'] },
 ];

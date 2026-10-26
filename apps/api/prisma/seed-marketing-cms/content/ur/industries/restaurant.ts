@@ -45,7 +45,7 @@ export const faqs: SeedFaq[] = [
     topic: 'pricing',
     question: 'Nafaa کی قیمت کتنی ہے؟',
     answer:
-      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
+      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/ur/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
     sourceNote: 'Plan table (GET /api/plans): free-trial description "koi credit card nahi chahiye". Prices come from tokens.',
     origin: 'translation of faq pricing',
     evidence: ['apps/api/src/modules/billing/plans/plans.service.ts'],
@@ -58,7 +58,7 @@ export const entry: SeedEntry = {
   slug: 'restaurant',
   title: 'ریسٹورنٹ اور کیفے',
   seoTitle: 'ریسٹورنٹ اور کیفے کے لیے POS: ٹیبل، KOT اور ڈیلیوری',
-  seoDescription: 'ریسٹورنٹ اور کیفے کے لیے Nafaa: ٹیبل، کچن کے لیے KOT، ٹیک اوے اور ڈیلیوری، اور روز کی سیل رپورٹ۔',
+  seoDescription: 'ریسٹورنٹ اور کیفے کے لیے Nafaa: ٹیبلوں کا نقشہ، ہر اسٹیشن کے لیے KOT، ڈشوں پر ایڈ آن، ٹیک اوے اور ڈیلیوری، اسپلٹ بل اور روز کی سیل رپورٹ۔',
   focusKeyword: 'ریسٹورنٹ POS',
   summary:
     'Nafaa ریسٹورنٹ اور کیفے کے لیے ڈائن اِن، ٹیک اوے اور ڈیلیوری چلاتا ہے: ٹیبلوں کا نقشہ، ہر اسٹیشن کے پرنٹر یا اسکرین پر جانے والے کچن آرڈر ٹکٹ (KOT)، ڈشوں پر ایڈ آنز، ریسیپیز، ڈیلیوری کے لیے رائیڈرز، ہیپی آور کی قیمتیں، اور کیش، کارڈ، والٹ، اسپلٹ یا کھاتے سے بل کی ادائیگی۔',
@@ -225,5 +225,5 @@ export const entry: SeedEntry = {
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
   needsOwner: ['Foodpanda / online orders status (carried over from the English entry).'],
-  relations: [{ ref: 'INDUSTRY:bakery@ur', kind: 'RELATED' }],
+  relations: [{ ref: 'INDUSTRY:bakery@ur', kind: 'RELATED' }, { ref: 'SOLUTION:restaurants@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'SERVICE:hardware@ur', kind: 'RELATED' }],
 };

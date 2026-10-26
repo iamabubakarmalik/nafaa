@@ -129,7 +129,7 @@ export function GlossaryTermTemplate({ entry, site, entity }: { entry: PublicEnt
               Learn more
             </h2>
             <CardGrid className="mt-8">
-              {relatedOther.slice(0, 3).map((card) => (
+              {relatedOther.slice(0, 6).map((card) => (
                 <ContentCard key={card.id} card={card} eyebrow={TYPE_LABEL[card.type]} date={null} />
               ))}
             </CardGrid>

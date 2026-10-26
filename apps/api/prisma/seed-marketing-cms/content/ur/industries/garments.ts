@@ -54,7 +54,7 @@ export const entry: SeedEntry = {
   slug: 'garments',
   title: 'گارمنٹس اور بوتیک',
   seoTitle: 'گارمنٹس اور بوتیک کے لیے POS: سائز، رنگ اور اسٹاک',
-  seoDescription: 'کپڑوں کی دکان اور بوتیک کے لیے Nafaa: سائز اور رنگ کے حساب سے اسٹاک، تبدیلی اور واپسی، اور سیل کی رپورٹ۔',
+  seoDescription: 'کپڑوں کی دکان اور بوتیک کے لیے Nafaa: سائز اور رنگ کے حساب سے اسٹاک، سلائی اور آلٹریشن آرڈر، گاہک کے ناپ، قسط پلان، تبدیلی اور سیل کی رپورٹ۔',
   focusKeyword: 'گارمنٹس شاپ سافٹ ویئر',
   summary:
     'Nafaa ان گارمنٹس دکانوں اور بوتیکس کے لیے ہے جو ریڈی میڈ کپڑے بھی بیچتی ہیں اور آرڈر پر سلائی بھی کرتی ہیں: سائز اور رنگ کے حساب سے اسٹاک، سلائی آرڈر، آلٹریشن، گاہک کے محفوظ ناپ، ہولڈ پر رکھی چیزیں، قسط پلان، ایکسچینج، کلیکشن اور سائز چارٹ، اور ساتھ کاؤنٹر، کھاتہ اور رپورٹس۔',
@@ -220,6 +220,6 @@ export const entry: SeedEntry = {
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
   needsOwner: [],
-  // The English relations point to PRODUCT, SOLUTION, GLOSSARY and other INDUSTRY entries with no Urdu twin yet.
-  relations: [],
+  // Urdu pages link only to entries that have an Urdu version.
+  relations: [{ ref: 'PRODUCT:inventory@ur', kind: 'RELATED' }, { ref: 'PRODUCT:online-store@ur', kind: 'RELATED' }, { ref: 'INDUSTRY:shoe@ur', kind: 'RELATED' }],
 };

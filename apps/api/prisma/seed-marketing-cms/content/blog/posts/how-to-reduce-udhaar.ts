@@ -5,15 +5,18 @@
  */
 import { SHOT, diagram, prose, shot, steps } from '../../main-pages/_build';
 import { tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'how-to-reduce-udhaar',
+  seoDescription: 'Practical ways to control udhaar at a Pakistani shop: a clear credit policy, a limit per customer, ageing old balances, polite reminders and easier ways to pay.',
   title: 'How to Reduce Udhaar Without Losing Customers',
   summary:
     'Practical ways to keep credit under control at a Pakistani shop: a simple udhaar policy, a limit for each customer, watching how old balances get, a polite reminder routine, easier ways to pay, and how to handle balances that have gone stale.',
   category: 'business',
+  cover: PHOTO.howToReduceUdhaar,
   tags: ['GLOSSARY_TERM:udhaar', 'GLOSSARY_TERM:khata', 'PRODUCT:khata'],
-  related: ['BLOG_POST:digital-khata-vs-paper-ledger', 'BLOG_POST:whatsapp-customer-retention', 'PRODUCT:payments'],
+  related: ['BLOG_POST:digital-khata-vs-paper-ledger', 'BLOG_POST:whatsapp-customer-retention', 'PRODUCT:payments', 'GUIDE:managing-udhaar-and-khata', 'BEST_OF:khata-apps-compared', 'ALTERNATIVE:paper-khata-register', 'TOOL:khata-ageing-calculator', 'TEMPLATE:khata-udhaar-register'],
   isNew: true,
   blocks: [
     prose(`Udhaar keeps customers loyal. The family that buys on credit all month comes back to you, not to the shop that asks for cash. But udhaar is also money you have already spent on stock and not yet received. When it grows too large, the shop runs short of cash to restock, the owner borrows from suppliers, and the oldest balances quietly turn into losses.
@@ -45,7 +48,7 @@ A balance of a few thousand that is paid and renewed every month is healthy. The
 | 60 to 90 days | Firm reminder; stop new credit until part is paid |
 | Over 90 days | Personal visit or call; agree a payment plan |
 
-Look at this list every week, oldest first.`),
+Look at this list every week, oldest first. The free [udhaar ageing calculator](/tools/khata-ageing-calculator) splits your balances by age and shows who to call first.`),
     diagram(
       'Udhaar sale, reminder, payment and an updated balance: the cycle that keeps credit moving.',
       { kind: 'khata-cycle', animate: true },

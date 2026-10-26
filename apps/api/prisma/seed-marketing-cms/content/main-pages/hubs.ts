@@ -14,7 +14,7 @@
 
 import type { DraftBlock } from '../../../../src/admin-marketing/cms/contract/cms-contract';
 import { withIds } from '../../lib/blocks';
-import type { SeedEntry } from '../../lib/types';
+import type { EntryRef, SeedEntry } from '../../lib/types';
 import { SHOT, callout, diagram, features, leadForm, page, prose, shot, steps, table } from './_build';
 
 type Block = Omit<DraftBlock, 'id'>;
@@ -31,6 +31,12 @@ function grid(entryType: string, heading: string, intro: string, layout: 'cards'
 const productHub = page({
   type: 'PAGE',
   slug: 'product',
+  relations: [
+    { ref: 'PAGE:pricing', kind: 'RELATED' },
+    { ref: 'PAGE:solutions', kind: 'RELATED' },
+    { ref: 'PAGE:industries', kind: 'RELATED' },
+    { ref: 'PAGE:demo', kind: 'RELATED' },
+  ],
   title: 'Product',
   summary:
     'Nafaa is one account for the whole business: the POS counter, stock, digital khata, purchasing, staff, reports, several branches and online orders from your own store or the Nafaa marketplace. Every product page shows how it works in the real app and is marked live, beta or coming soon.',
@@ -132,6 +138,12 @@ That is also why the [AI assistant](/product/ai-assistant) can answer questions 
 const solutionsHub = page({
   type: 'PAGE',
   slug: 'solutions',
+  relations: [
+    { ref: 'PAGE:product', kind: 'RELATED' },
+    { ref: 'PAGE:industries', kind: 'RELATED' },
+    { ref: 'PAGE:services', kind: 'RELATED' },
+    { ref: 'PAGE:pricing', kind: 'RELATED' },
+  ],
   title: 'Solutions',
   summary:
     'Nafaa setups for the way a business is run, not only what it sells: a single shop, retail chains with many branches, e-commerce sellers with their own store and the Nafaa marketplace, restaurants, wholesale and distribution, manufacturing and enterprises that need their systems connected.',
@@ -209,6 +221,11 @@ If your business does not fit any of these, start from your trade on the [indust
 const servicesHub = page({
   type: 'PAGE',
   slug: 'services',
+  relations: [
+    { ref: 'SOLUTION:enterprise', kind: 'RELATED' },
+    { ref: 'PAGE:product', kind: 'RELATED' },
+    { ref: 'PAGE:contact', kind: 'RELATED' },
+  ],
   title: 'Services',
   summary:
     'Services from the team that builds Nafaa, for businesses in Pakistan and worldwide: custom software, websites, e-commerce stores and mobile apps, plus Nafaa setup help such as data migration, hardware and training. Every project starts with a Quote lein request and a fixed quote in PKR or USD.',
@@ -276,6 +293,12 @@ We do not publish a price list, because the same name can cover very different p
 const industriesHub = page({
   type: 'PAGE',
   slug: 'industries',
+  relations: [
+    { ref: 'PAGE:solutions', kind: 'RELATED' },
+    { ref: 'PAGE:pos-software', kind: 'RELATED' },
+    { ref: 'PAGE:product', kind: 'RELATED' },
+    { ref: 'PAGE:pricing', kind: 'RELATED' },
+  ],
   title: 'Industries',
   summary:
     'Nafaa has screens made for each trade on top of the same counter, stock and khata: kiryana and grocery, pharmacy, bakery, restaurant, mobile phone shops, garments, hardware, jewellery, salons, clinics and more. Pick your trade to see the features, real screens and questions that matter to it.',
@@ -362,6 +385,12 @@ If you run more than one kind of business, or your trade is not listed, the [gen
 const integrationsHub = page({
   type: 'PAGE',
   slug: 'integrations',
+  relations: [
+    { ref: 'PRODUCT:online-store', kind: 'RELATED' },
+    { ref: 'PRODUCT:fbr', kind: 'RELATED' },
+    { ref: 'PRODUCT:payments', kind: 'RELATED' },
+    { ref: 'CHANGELOG:shopify-app-install', kind: 'RELATED' },
+  ],
   title: 'Integrations',
   summary:
     'Nafaa connects to the services Pakistani businesses already use: Shopify, WooCommerce, Daraz and Foodpanda orders; PostEx, Leopards, Trax, TCS, M&P and Call Courier; JazzCash and Easypaisa; QuickBooks, Xero, Zoho Books and Tally; WhatsApp; Google product feeds; and a REST API with webhooks for anything else.',
@@ -473,6 +502,11 @@ The [Nafaa developer API](/developers) covers products, stock, customers, sales 
 const roadmapPage = page({
   type: 'PAGE',
   slug: 'roadmap',
+  relations: [
+    { ref: 'PAGE:changelog', kind: 'RELATED' },
+    { ref: 'PAGE:product', kind: 'RELATED' },
+    { ref: 'PRODUCT:ai-assistant', kind: 'RELATED' },
+  ],
   title: 'Roadmap',
   summary:
     'The Nafaa roadmap lists what shipped recently, what is in beta and what is coming soon. Beta features work in the app and are being improved with early users; coming-soon features are planned and not built yet, and we never sell them as available.',
@@ -528,6 +562,12 @@ const roadmapPage = page({
 const aiAssistant = page({
   type: 'PRODUCT',
   slug: 'ai-assistant',
+  relations: [
+    { ref: 'BLOG_POST:nafaa-ai-assistant-launch', kind: 'RELATED' },
+    { ref: 'PRODUCT:reports', kind: 'RELATED' },
+    { ref: 'PRODUCT:inventory', kind: 'RELATED' },
+    { ref: 'PRODUCT:khata', kind: 'RELATED' },
+  ],
   title: 'AI Business Assistant',
   summary:
     'The Nafaa AI business assistant answers questions about your own sales, stock and khata in plain English or Roman Urdu. Ask in your own words and get a short answer from your Nafaa data, with the numbers behind it. It only reads the business data your account is allowed to see.',
@@ -598,6 +638,16 @@ Open the assistant from inside Nafaa and type your first question. There is noth
 
 // ─── Content hubs (rendered by the article hub templates) ───
 
+/** Internal links of the content hubs and changelog entries (SEO pass, 26 Oct 2026). */
+const RELATED: Record<string, EntryRef[]> = {
+  'PAGE:blog': ['PAGE:guides', 'PAGE:glossary', 'PAGE:tools', 'PAGE:changelog'],
+  'PAGE:glossary': ['PAGE:blog', 'PAGE:guides', 'PAGE:tools'],
+  'PAGE:changelog': ['PAGE:roadmap', 'PAGE:product', 'BLOG_POST:nafaa-ai-assistant-launch'],
+  'CHANGELOG:shopify-app-install': ['PRODUCT:online-store', 'PAGE:integrations'],
+  'CHANGELOG:new-design': ['PRODUCT:pos', 'PAGE:product'],
+};
+const relatedOf = (key: string) => (RELATED[key] ?? []).map((ref) => ({ ref, kind: 'RELATED' as const }));
+
 function contentHub(slug: string, title: string, summary: string, seo: [string, string, string], hero: { eyebrow: string; heading: string; sub: string }, answer: { facts: [string, string][]; romanUrdu: string }, faqKeys: string[], cta: { heading: string; body: string }): SeedEntry {
   return page({
     type: 'PAGE',
@@ -613,6 +663,7 @@ function contentHub(slug: string, title: string, summary: string, seo: [string, 
     body: [],
     faqKeys,
     cta,
+    relations: relatedOf(`PAGE:${slug}`),
     sortOrder: 20,
     evidence: ['apps/site/src/templates/article/HubTemplates.tsx'],
   });
@@ -644,12 +695,121 @@ const changelogHub = contentHub(
   'changelog',
   'Changelog',
   'What changed in Nafaa, newest first: new features, improvements and fixes in the app, the desktop app and the developer API. Each entry has the date it went live.',
-  ['Nafaa Changelog: New Features, Improvements and Fixes', 'What changed in Nafaa, newest first: new features, improvements and fixes in the app, desktop app and developer API.', 'nafaa changelog'],
+  ['Nafaa Changelog: New Features, Improvements and Fixes', 'What changed in Nafaa, newest first: new features, improvements and fixes in the app, the desktop app and the developer API, each with the date it went live.', 'nafaa changelog'],
   { eyebrow: 'Changelog', heading: 'Changelog', sub: 'What changed in Nafaa, newest first: new features, improvements and fixes.' },
   { facts: [['Kinds', 'New, improved and fixed'], ['Dates', 'The day each change went live']], romanUrdu: 'Nafaa me kya naya aaya, kya behtar hua aur kya theek hua, tareekh ke saath.' },
   [],
   { heading: 'Try the latest Nafaa', body: 'Every change here is live for every account.' },
 );
+
+// ─── /pos-software (city directory) ───
+
+const citiesHub: SeedEntry = page({
+  type: 'PAGE',
+  slug: 'pos-software',
+  title: 'POS Software by City',
+  summary:
+    'Nafaa in your city: a page for each of more than thirty Pakistani cities with the trades and markets there, how billing keeps going through local power and internet cuts, which authority collects sales tax on services, and how setup works remotely.',
+  data: { template: 'hub' },
+  seoTitle: 'POS Software in Pakistan by City: Billing, Stock & Khata',
+  seoDescription: 'Nafaa POS, stock and khata software city by city: local trades and markets, billing through power cuts, the sales tax authority and remote setup.',
+  focusKeyword: 'pos software pakistan city',
+  hero: {
+    eyebrow: 'POS software by city',
+    heading: 'POS software in your city',
+    sub: 'One app for every city in Pakistan. Each city page covers the local trades and markets, power and internet conditions, the tax authority and how setup works.',
+    layout: 'centered',
+  },
+  answer: {
+    facts: [
+      ['Cities', 'More than thirty, from Karachi and Lahore to Mingora and Mirpur Khas'],
+      ['Same app everywhere', 'POS, stock, khata, purchasing, staff and reports in one account'],
+      ['Power and internet cuts', 'The counter keeps billing offline and syncs when the connection returns'],
+      ['Setup', 'Remote, over WhatsApp and video calls, in Urdu or English'],
+    ],
+    romanUrdu: 'Har shehar ke liye ek hi Nafaa app. Shehar ke page par wahan ke karobar, bazaar, bijli aur internet ka haal, tax ka idara aur setup ka tareeqa likha hai.',
+  },
+  body: [
+    prose(`## What each city page covers
+
+Nafaa is the same app in every city, and so are the plans. What changes from one city to the next is the business around it, so each city page is written for that city only: the trades it is known for, the wholesale markets and bazaars where its shops buy, the areas where new shops and branches are opening, and how power cuts and patchy mobile signal affect a counter there. Each page then shows the Nafaa screens that fit those trades, such as sale by carton and by piece for wholesalers, serial numbers and qist for appliance dealers, or room bills for hotels in tourist towns.
+
+## Billing through load-shedding and weak signal
+
+Most cities have regular power cuts, and markets with heavy crowds often have weak mobile data. The Nafaa counter keeps making bills without internet: sales are saved on the device and sent to your account when the connection comes back, so the day's figures stay complete. Read more on [offline billing](/product/offline-pos).
+
+## Sales tax depends on your province
+
+Sales tax on goods is federal. Sales tax on services, such as restaurant bills, is collected by the province, so the authority is different in Lahore, Karachi, Peshawar and Quetta. Each city page names its authority, and the [tax compliance pages](/compliance) explain who must connect a POS and how. FBR and provincial integration in Nafaa is optional and only needed when the law applies to you.
+
+## Setup and support from anywhere
+
+Setup, product import from Excel or old software, and staff training happen over WhatsApp and video calls, in Urdu or English, so a shop in Jhelum gets the same help as one in Gulberg. If you would rather see it first, [book a demo](/demo) or start the free trial and add a few products yourself.`),
+  ],
+  faqKeys: ['hub-cities-same-app', 'hub-cities-setup', 'hub-cities-tax', 'offline'],
+  cta: { heading: 'Start billing in your city today', body: 'Start the 7 din Free Trial on the phone or computer you already have.' },
+  relations: [
+    { ref: 'PRODUCT:pos', kind: 'RELATED' },
+    { ref: 'PRODUCT:offline-pos', kind: 'RELATED' },
+    { ref: 'PRODUCT:khata', kind: 'RELATED' },
+    { ref: 'PAGE:industries', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:pra-punjab', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:srb-sindh', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:kpra-khyber-pakhtunkhwa', kind: 'RELATED' },
+  ],
+  sortOrder: 22,
+  evidence: ['apps/site/src/templates/city/CityIndex.tsx', 'apps/web/src/core/lib/offline/db.ts', 'apps/web/src/integrations/fbr'],
+});
+
+// ─── /guides ───
+
+const guidesHub: SeedEntry = page({
+  type: 'PAGE',
+  slug: 'guides',
+  title: 'Guides',
+  summary:
+    'Complete guides for running a business in Pakistan: a retail shop day to day, udhaar and khata, inventory for a small business and selling online. Each guide goes step by step and links to the blog posts, free tools and templates for every part.',
+  data: { template: 'hub' },
+  seoTitle: 'Business Guides for Shops in Pakistan: Step by Step',
+  seoDescription: 'Step-by-step guides for Pakistani businesses: running a retail shop, managing udhaar and khata, inventory for small businesses and selling online.',
+  focusKeyword: 'shop guide pakistan',
+  hero: {
+    eyebrow: 'Guides',
+    heading: 'Guides for running your business',
+    sub: 'Each guide covers one big job from start to finish, in plain words, with rupee examples and links to the tools and templates you need.',
+    layout: 'centered',
+  },
+  answer: {
+    facts: [
+      ['Guides', 'Retail shop, udhaar and khata, inventory, selling online'],
+      ['Each guide', 'Steps in order, examples in rupees, common mistakes'],
+      ['Goes deeper', 'Linked blog posts, free tools and printable templates'],
+    ],
+    romanUrdu: 'Karobar chalane ke mukammal guides: dukaan, udhaar aur khata, Stock aur online sale. Har guide qadam ba qadam, rupay ki misaalon ke saath.',
+  },
+  body: [
+    prose(`## Start with the job you are doing
+
+- [How to run a retail shop in Pakistan](/guides/running-a-retail-shop-pakistan): buying, pricing, the counter and galla, staff, customers and the numbers that show whether the shop makes money.
+- [Managing udhaar and khata](/guides/managing-udhaar-and-khata): who to give credit to, limits, reminders and getting old balances back without losing customers.
+- [Inventory management for a small business](/guides/inventory-management-small-business): product setup, reorder levels, costing, counting and cutting losses.
+- [Start selling online](/guides/start-selling-online-pakistan): choosing channels, cash on delivery, couriers, returned parcels and one stock for shop and online.
+
+## Tools and templates that go with them
+
+The guides link to free calculators for [profit margin](/tools/profit-margin-calculator), [reorder level](/tools/reorder-level-calculator) and [udhaar ageing](/tools/khata-ageing-calculator), and to printable sheets such as the [khata register](/templates/khata-udhaar-register) and the [stock-take sheet](/templates/stock-take-sheet). If you are choosing software, the [buyer's guides](/best/pos-software-pakistan) compare the options fairly.`),
+  ],
+  faqKeys: ['hub-guides-vs-blog'],
+  cta: { heading: 'Put the guides to work', body: 'Start the 7 din Free Trial and run your counter, stock and khata on Nafaa.' },
+  relations: [
+    { ref: 'PAGE:blog', kind: 'RELATED' },
+    { ref: 'PAGE:tools', kind: 'RELATED' },
+    { ref: 'PAGE:templates', kind: 'RELATED' },
+    { ref: 'BEST_OF:pos-software-pakistan', kind: 'RELATED' },
+  ],
+  sortOrder: 23,
+  evidence: ['apps/site/src/templates/article/HubTemplates.tsx'],
+});
 
 // ─── Changelog entries (known release dates only) ───
 
@@ -662,8 +822,9 @@ function change(slug: string, title: string, date: string, kind: 'new' | 'improv
     summary,
     data: { date, kind },
     blocks: withIds(key, [{ type: 'richText', markdown } as Block]),
+    relations: relatedOf(key),
     seoTitle: title,
-    seoDescription: summary.slice(0, 155),
+    seoDescription: summary,
     focusKeyword: title.toLowerCase().split(' ').slice(0, 3).join(' '),
     origin: 'new (D2 main templates pass, 20 Oct 2026)',
     evidence,
@@ -706,4 +867,4 @@ Busy counters need screens that are quick to read. The new design gives more roo
   ),
 ];
 
-export const hubs: SeedEntry[] = [productHub, solutionsHub, servicesHub, industriesHub, integrationsHub, roadmapPage, aiAssistant, blogHub, glossaryHub, changelogHub, ...changes];
+export const hubs: SeedEntry[] = [productHub, solutionsHub, servicesHub, industriesHub, integrationsHub, roadmapPage, aiAssistant, blogHub, glossaryHub, changelogHub, citiesHub, guidesHub, ...changes];

@@ -2,8 +2,9 @@
  * Starting a bakery: location, food licence, equipment, raw material,
  * recipe costing, production planning, freshness and custom orders.
  */
-import { diagram, prose, steps } from '../../main-pages/_build';
+import { SHOT, diagram, prose, shot, steps } from '../../main-pages/_build';
 import { src, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const SOURCES = [
   src('Punjab Food Authority: Apply for license', 'https://pfa.gop.pk/for-businesses/apply-for-license/', 'Punjab Food Authority'),
@@ -12,10 +13,12 @@ const SOURCES = [
 
 const spec: PostSpec = {
   slug: 'how-to-start-a-bakery-pakistan',
+  seoDescription: 'A practical guide to opening a bakery in Pakistan: location, food licence, equipment and power, recipe costing, daily baking plans, waste and cake orders.',
   title: 'How to Start a Bakery in Pakistan',
   summary:
     'A practical guide to opening a bakery: location, food licence, equipment and power, raw material, costing each product from its recipe, planning daily baking, controlling freshness and waste, and taking cake and bulk orders.',
   category: 'industry',
+  cover: PHOTO.howToStartABakeryPakistan,
   tags: ['INDUSTRY:bakery'],
   related: ['BLOG_POST:how-to-calculate-profit-margin', 'PRODUCT:inventory', 'PRODUCT:pos'],
   isNew: true,
@@ -98,6 +101,14 @@ Bakeries sell in many units: by piece, slice, dozen, half dozen, pound for cakes
 ## How Nafaa helps a bakery
 
 Nafaa's bakery setup marks each product as made in-house or bought in, keeps a recipe with a live cost from current ingredient prices, and sells in pieces, slices, dozens, pounds, kg and more from one item. Raw material is tracked as ingredients, production batches record what was baked, the freshness screen tracks expiry and waste, and cake orders and wedding or event bulk orders each have their own screens with advances and delivery dates.`),
+    shot({
+      heading: 'Every cake order in writing',
+      body: 'Each order records flavour, weight, the message on the cake, the due time, pickup or delivery, and the balance left after the advance.',
+      id: SHOT.bakeryCakeOrders,
+      url: 'app.nafaa.pk/bakery/cake-orders',
+      layout: 'full',
+      caption: 'Bakery cake orders in Nafaa (demo data): flavour, weight, message, due time and the balance after the advance.',
+    }),
     tip('Count leftovers for every item each night for the first month. It is the cheapest market research a bakery can do.', 'Count the leftovers'),
   ],
   outline: ['Format and location', 'Licence', 'Equipment and power', 'Raw material', 'Recipe costing', 'Daily bake', 'Freshness', 'Cake and bulk orders', 'Units', 'How Nafaa helps'],

@@ -114,7 +114,7 @@ A medical store carries thousands of brands, most of them sold in small quantiti
 - **Record prescriptions and doctors.** Refills, part supply and a history per patient help regular customers and protect the pharmacist.
 - **Log the cold chain.** Insulin and vaccines need a record of the fridge temperature, not a memory of it.
 
-Nafaa covers each of these in the pharmacy setup, on top of the counter, purchasing, khata and reports used by every Nafaa business. It does not claim any DRAP approval; your licence and legal duties stay with you.`),
+Nafaa covers each of these in the pharmacy setup, on top of the counter, purchasing, khata and reports used by every Nafaa business. It does not claim any DRAP approval; your licence and legal duties stay with you. For what the law asks of a pharmacy, see [drug laws for pharmacies](/compliance/drap-pharmacy).`),
     pricing("Plans for one medical store or a chain"),
   ],
 });
@@ -122,6 +122,7 @@ Nafaa covers each of these in the pharmacy setup, on top of the counter, purchas
 /** Internal links: the products a pharmacy uses, related health trades and terms. */
 export default {
   ...entry,
+  seoDescription: 'Pharmacy software: search medicines by salt and find substitutes, track batches and expiry, keep prescriptions, and record controlled drug sales in a register.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },
@@ -133,5 +134,9 @@ export default {
     { ref: 'INDUSTRY:cosmetics', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:batch-tracking', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:drap', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:drap-pharmacy', kind: 'RELATED' },
+    { ref: 'BLOG_POST:pharmacy-expiry-management', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:generic-name', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:mrp', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

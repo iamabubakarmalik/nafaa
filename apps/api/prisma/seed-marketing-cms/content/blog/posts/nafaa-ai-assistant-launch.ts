@@ -2,7 +2,9 @@
  * Launch post for the AI assistant. Shown as available on the owner's
  * instruction (21 Oct 2026).
  */
+import { diagram, prose } from '../../main-pages/_build';
 import { FAKE_AUTHOR, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const AI_ASSISTANT_BODY = `**New in Nafaa:** the AI assistant answers questions about your own sales, stock and khata, in plain English or Roman Urdu.
 
@@ -77,11 +79,32 @@ If you already do these, the assistant has months of history to work with from t
 
 const spec: PostSpec = {
   slug: 'nafaa-ai-assistant-launch',
+  related: ['PRODUCT:ai-assistant', 'PRODUCT:reports', 'PRODUCT:khata'],
+  seoDescription: 'The Nafaa AI assistant answers questions about your own sales, stock and khata in English or Roman Urdu. See what you can ask and what it never does alone.',
   title: 'Meet the Nafaa AI Assistant: Ask in Plain Words',
   summary:
     'The Nafaa AI assistant answers questions about your own sales, stock and khata in English or Roman Urdu. This post shows what you can ask, how it handles Roman Urdu, and what it never does on its own.',
   category: 'product',
-  body: AI_ASSISTANT_BODY,
+  cover: PHOTO.nafaaAiAssistantLaunch,
+  blocks: [
+    prose(AI_ASSISTANT_BODY.slice(0, AI_ASSISTANT_BODY.indexOf('## A morning with the assistant')).trim()),
+    diagram(
+      'The assistant answers from the records already in your Nafaa account, within the permissions of the person asking.',
+      {
+        kind: 'hub',
+        center: { label: 'AI assistant', icon: 'sparkles' },
+        spokes: [
+          { label: 'Bills from the POS', icon: 'receipt', href: '/product/pos' },
+          { label: 'Stock', icon: 'package', href: '/product/inventory' },
+          { label: 'Khata and udhaar', icon: 'book-open', href: '/product/khata' },
+          { label: 'Reports', icon: 'chart-column', href: '/product/reports' },
+        ],
+        animate: true,
+      },
+      'One question, four sources',
+    ),
+    prose(AI_ASSISTANT_BODY.slice(AI_ASSISTANT_BODY.indexOf('## A morning with the assistant'))),
+  ],
   outline: ['What you can ask', 'Roman Urdu questions', 'What it does not do', 'Where it gets its answers'],
   dropped: ['"Free for all Nafaa users", "Urdu voice input" and example answers with numbers: not confirmed.', FAKE_AUTHOR],
   needsOwner: ['Marketed as available on the owner\'s instruction (21 Oct 2026). Confirm plan availability before launch.'],

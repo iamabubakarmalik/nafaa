@@ -4,6 +4,7 @@
  */
 import { SHOT, diagram, prose, shot, steps } from '../../main-pages/_build';
 import { FAKE_AUTHOR, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'digital-khata-vs-paper-ledger',
@@ -11,8 +12,9 @@ const spec: PostSpec = {
   summary:
     'Why paper khata registers lose money and time, what a digital khata does differently, and how to move your old balances into Nafaa in one sitting.',
   category: 'guides',
+  cover: PHOTO.digitalKhataVsPaperLedger,
   tags: ['INDUSTRY:kiryana', 'GLOSSARY_TERM:khata', 'GLOSSARY_TERM:udhaar'],
-  related: ['PRODUCT:khata', 'PRODUCT:whatsapp-sms', 'COMPARE:nafaa-vs-paper-register', 'BLOG_POST:how-to-reduce-udhaar'],
+  related: ['PRODUCT:khata', 'PRODUCT:whatsapp-sms', 'COMPARE:nafaa-vs-paper-register', 'BLOG_POST:how-to-reduce-udhaar', 'GUIDE:managing-udhaar-and-khata', 'BEST_OF:khata-apps-compared', 'ALTERNATIVE:paper-khata-register'],
   blocks: [
     prose(`Almost every shop in Pakistan runs some udhaar. The regular customer who pays at the end of the month, the family that buys on credit until the salary comes, the contractor who settles after the job: credit is how neighbourhood trade works. The question is not whether to give udhaar but how to keep track of it, and for most shops the answer is still a paper register under the counter.
 

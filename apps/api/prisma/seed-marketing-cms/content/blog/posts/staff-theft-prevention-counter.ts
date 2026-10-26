@@ -5,13 +5,16 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { note, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'staff-theft-prevention-counter',
+  seoDescription: 'Where money leaks at a shop counter, the rules that stop most of it (discount limits, PINs for voids and refunds, shift closing) and how to act fairly.',
   title: 'Preventing Theft and Leakage at the Counter',
   summary:
     'Where money quietly leaks at a shop counter, the rules that stop most of it (discount limits, PINs for voids and refunds, proper shift closing), how to spot patterns in the numbers, and how to handle suspicion fairly.',
   category: 'business',
+  cover: PHOTO.staffTheftPreventionCounter,
   tags: ['PRODUCT:staff', 'PRODUCT:pos'],
   related: ['BLOG_POST:stock-taking-guide', 'BLOG_POST:multi-shop-management-guide', 'PRODUCT:reports'],
   isNew: true,

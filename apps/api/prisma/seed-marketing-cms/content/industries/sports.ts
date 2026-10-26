@@ -48,7 +48,7 @@ const entry = industry({
     heading: "Team kits, repairs and the counter for your sports shop",
     sub: "Take a school's kit order with every player's name and number, hold the advance on the team's khata, string rackets and fix bats at the repair desk, and sell kits and shoes by size.",
     badges: ["Team orders with printing", "Team rate", "Repair desk"],
-    media: { mediaId: SHOT.inventory, url: "app.nafaa.pk/products" },
+    media: { mediaId: SHOT.sportsTeamOrders, url: "app.nafaa.pk/sports/team-orders" },
   },
   deepBlocks: [
     steps("A school team order, start to finish", [
@@ -58,16 +58,16 @@ const entry = industry({
       ["Balance", "Anything not paid stays on the school's khata, with a WhatsApp reminder when it is due."],
     ]),
     shot({
-      heading: "Bats, balls, kits and shoes, priced and counted",
-      body: "The products page shows the sport and type on each card, the team rate and Sale marks, and sizes with their stock for kits and shoes, with the total stock value at the top.",
-      id: SHOT.inventory,
-      url: "app.nafaa.pk/products",
+      heading: "Bat repairs and racket stringing, tracked",
+      body: "A bat handle, a racket to restring or a ball to stitch is booked against the customer's phone with the work, the charge and any advance. The list shows what is pending, what is ready to collect and what is late.",
+      id: SHOT.sportsRepairs,
+      url: "app.nafaa.pk/sports/repair-services",
       layout: "full",
-      caption: "The shared products page, shown with demo data.",
       callouts: [
-        { x: 26, y: 19, label: "Stock value at cost" },
-        { x: 40, y: 33, label: "Items running low" },
-        { x: 30, y: 80, label: "Price, cost and margin per item" },
+        { x: 47.3, y: 20.3, label: "Still to collect on repairs" },
+        { x: 56.3, y: 55.5, label: "Item and the work to do" },
+        { x: 70.9, y: 55.5, label: "Ready date" },
+        { x: 83.1, y: 56.5, label: "Advance taken" },
       ],
     }),
     shot({
@@ -112,6 +112,7 @@ Nafaa does this on the phone or computer at your counter, and keeps billing when
 /** Internal links: the products sports shops use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for sports goods shops: team orders with printing and an advance, bat and racket repairs and brand records, with the counter, stock and khata.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

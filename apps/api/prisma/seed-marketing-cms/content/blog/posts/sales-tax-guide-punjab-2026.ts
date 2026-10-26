@@ -4,10 +4,11 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { CHECKED_ON, FAKE_AUTHOR, checkRules, sourcesBlock, src, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const SOURCES = [
   src('Punjab Revenue Authority (home, e-Registration, return filing and e-IMS links)', 'https://pra.punjab.gov.pk/', 'Punjab Revenue Authority'),
-  src('PRA e-Registration user manual', 'https://www.pra.punjab.gov.pk/Downloads/PRA-Taxpayers-End-Registration-User-Manual-V0.1.pdf', 'Punjab Revenue Authority'),
+  src('PRA e-Registration user manual', 'https://pra.punjab.gov.pk/Downloads/PRA-Taxpayers-End-Registration-User-Manual-V0.1.pdf', 'Punjab Revenue Authority'),
   src('PRA IRIS e-portal (registration, returns, verification)', 'https://e.pra.punjab.gov.pk/', 'Punjab Revenue Authority'),
   src('PRA e-IMS services (electronic invoice monitoring)', 'https://e.pra.punjab.gov.pk/public/eims.xhtml', 'Punjab Revenue Authority'),
   src('POS Legal Provisions (federal sales tax on goods, Tier-1 retailers)', 'https://fbr.gov.pk/pos-legal-provisions/163085/163086', 'Federal Board of Revenue'),
@@ -16,12 +17,15 @@ const SOURCES = [
 
 const spec: PostSpec = {
   slug: 'sales-tax-guide-punjab-2026',
+  seoTitle: 'Punjab Sales Tax Guide for Retailers and Service Businesses',
+  seoDescription: 'In Punjab, FBR collects sales tax on goods and PRA collects it on services. This guide explains which applies to you, how to register and where to find rates.',
   title: 'Sales Tax in Punjab: A Guide for Retailers and Service Businesses',
   summary:
     'In Punjab, sales tax on goods is federal and handled by FBR, while sales tax on services is collected by the Punjab Revenue Authority (PRA). This guide explains which one applies to your business, how registration and returns work, and where to find the current rates.',
   category: 'compliance',
+  cover: PHOTO.salesTaxGuidePunjab2026,
   tags: ['CITY:lahore', 'GLOSSARY_TERM:ntn', 'GLOSSARY_TERM:strn'],
-  related: ['PRODUCT:fbr', 'BLOG_POST:fbr-e-invoicing-complete-guide-2026', 'INDUSTRY:restaurant'],
+  related: ['PRODUCT:fbr', 'BLOG_POST:fbr-e-invoicing-complete-guide-2026', 'INDUSTRY:restaurant', 'COMPLIANCE:pra-punjab', 'COMPLIANCE:fbr-pos-integration'],
   blocks: [
     prose(`Ask ten shopkeepers in Lahore who collects sales tax and you may get three answers: FBR, PRA, or "the government". The confusion is understandable, because in Punjab two different bodies collect sales tax on two different things. Getting this right is the first step, because it decides where you register, where you file and which rules apply to your counter.
 
@@ -44,7 +48,7 @@ Some businesses do both. A mobile shop that sells phones (goods) and repairs the
 
 ## Registering with PRA
 
-PRA registration is done online on PRA's e-portal. PRA publishes an [e-Registration user manual](https://www.pra.punjab.gov.pk/Downloads/PRA-Taxpayers-End-Registration-User-Manual-V0.1.pdf) that walks through the screens. Before you start, keep these ready:
+PRA registration is done online on PRA's e-portal. PRA publishes an [e-Registration user manual](https://pra.punjab.gov.pk/Downloads/PRA-Taxpayers-End-Registration-User-Manual-V0.1.pdf) that walks through the screens. Before you start, keep these ready:
 
 - Your NTN from FBR (most PRA registrations start from it)
 - CNIC of the owner or directors
@@ -65,7 +69,7 @@ PRA registration is done online on PRA's e-portal. PRA publishes an [e-Registrat
     ),
     prose(`## Electronic invoices for restaurants and others
 
-PRA runs an electronic invoice monitoring system (e-IMS). PRA's site links to [e-IMS services](https://e.pra.punjab.gov.pk/public/eims.xhtml) and a technical specification for the software that connects to it. Where your category is covered, each bill your counter prints is reported to PRA and carries a PRA fiscal number. PRA's official Android app, linked from its home page, lets taxpayers and customers use PRA services on the phone.
+PRA runs an electronic invoice monitoring system (e-IMS). PRA's site links to [e-IMS services](https://e.pra.punjab.gov.pk/public/eims.xhtml) and a technical specification for the software that connects to it. The [PRA integration page](/compliance/pra-punjab) explains who must connect and how. Where your category is covered, each bill your counter prints is reported to PRA and carries a PRA fiscal number. PRA's official Android app, linked from its home page, lets taxpayers and customers use PRA services on the phone.
 
 In practice this works much like FBR's POS integration: your billing software sends each invoice, receives a number back, and prints it on the receipt.`),
     shot({

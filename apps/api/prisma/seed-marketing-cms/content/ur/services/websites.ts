@@ -1,0 +1,196 @@
+/** Urdu: website design and development service page (/ur/services/websites). Translation of content/main-pages/services.ts. */
+import type { SeedEntry, SeedFaq } from '../../../lib/types';
+
+export const faqs: SeedFaq[] = [
+  {
+    key: 'ur-svc-websites-price',
+    locale: 'ur',
+    topic: 'services',
+    question: 'ویب سائٹ بنوانے کی قیمت کیسے طے ہوتی ہے؟',
+    answer:
+      'ایک مختصر کال کے بعد ہم لکھ دیتے ہیں کہ ویب سائٹ میں کیا بنے گا، اور اس کام کے لیے ایک طے شدہ کوٹیشن بھیجتے ہیں، PKR یا USD میں۔ سائٹ بنتے بنتے آپ اسے مرحلہ وار دیکھتے رہتے ہیں۔ بعد میں صفحے یا کام بڑھانا ہو تو پہلے اس تبدیلی کی قیمت بتاتے ہیں، اور آپ کی ہاں کے بعد ہی شروع کرتے ہیں۔',
+    sourceNote: 'Service process (owner decision: worldwide services via "Quote lein" form; quote form takes PKR or USD).',
+    origin: 'translation of faq mp-services-price',
+    evidence: ['apps/site/src/components/islands/LeadForm.tsx'],
+  },
+  {
+    key: 'ur-svc-websites-abroad',
+    locale: 'ur',
+    topic: 'services',
+    question: 'کیا آپ پاکستان سے باہر کے کاروبار کی ویب سائٹ بھی بناتے ہیں؟',
+    answer:
+      'جی ہاں۔ Nafaa بنانے والی ٹیم پاکستان اور باہر کے کاروبار کے لیے ویب سائٹس، آن لائن اسٹور، موبائل ایپس اور کسٹم سافٹ ویئر بناتی ہے۔ [سروسز کے صفحے](/ur/services) پر "کوٹیشن لیں" فارم میں انگریزی یا اردو میں بتائیں کہ کیا چاہیے۔ کام شروع ہونے سے پہلے ہم پلان، وقت اور قیمت بھیج دیتے ہیں۔',
+    sourceNote: 'Owner decision (20 Oct 2026): worldwide services through the "Quote lein" form.',
+    origin: 'translation of faq services-worldwide',
+    evidence: ['docs/marketing-site/PLAN.md'],
+  },
+  {
+    key: 'ur-svc-websites-edit',
+    locale: 'ur',
+    topic: 'services',
+    question: 'ویب سائٹ لائیو ہونے کے بعد کیا ہماری ٹیم اسے خود بدل سکتی ہے؟',
+    answer:
+      'جی ہاں۔ ہر سائٹ کے ساتھ ایک کنٹینٹ ایڈیٹر ملتا ہے، جس سے آپ کی ٹیم ڈویلپر کے بغیر متن، تصویریں اور پوسٹس بدل سکتی ہے۔ لانچ پر ہم ان لوگوں کو ایڈیٹر چلا کر دکھاتے ہیں جو اسے استعمال کریں گے، اور انہی بلاکس سے بنے نئے صفحے ڈیزائن کو ایک جیسا رکھتے ہیں۔',
+    sourceNote: 'Service scope; this site runs on the Nafaa CMS (apps/api/src/admin-marketing/cms).',
+    origin: 'translation of faq svc-web-edit',
+    evidence: ['apps/api/src/admin-marketing/cms', 'apps/site'],
+  },
+  {
+    key: 'ur-svc-websites-domain',
+    locale: 'ur',
+    topic: 'services',
+    question: 'کیا ویب سائٹ کا ڈومین اور ہوسٹنگ بھی آپ سنبھالتے ہیں؟',
+    answer:
+      'لانچ کے مرحلے میں ہم آپ کا ڈومین جوڑتے ہیں اور سائٹ لائیو کرتے ہیں۔ اگر ابھی آپ کے پاس ڈومین نہیں ہے تو ہم آپ ہی کے نام پر رجسٹر کروانے میں مدد کرتے ہیں۔ جو خرچ کسی تیسری کمپنی کو جاتا ہے، جیسے ڈومین کا نام، وہ کوٹیشن میں الگ لکھا ہوتا ہے، تاکہ بعد میں کوئی حیرانی نہ ہو۔',
+    sourceNote: 'Service scope (launch stage).',
+    origin: 'translation of faq svc-web-domain',
+    evidence: ['apps/site'],
+  },
+];
+
+export const entry: SeedEntry = {
+  type: 'SERVICE',
+  locale: 'ur',
+  slug: 'websites',
+  title: 'ویب سائٹ ڈیزائن اور ڈویلپمنٹ',
+  seoTitle: 'ویب سائٹ ڈیزائن اور ڈویلپمنٹ، پاکستان اور دنیا بھر میں',
+  seoDescription:
+    'Nafaa کی ٹیم سے تیز، جدید کمپنی ویب سائٹ بنوائیں: SEO والا ڈھانچہ، لائٹ اور ڈارک تھیم اور آسان ایڈیٹر۔ PKR یا USD میں طے شدہ کوٹیشن۔',
+  focusKeyword: 'ویب سائٹ ڈویلپمنٹ کمپنی',
+  summary:
+    'Nafaa پاکستان اور دنیا بھر کے کاروبار کے لیے تیز اور جدید ویب سائٹس ڈیزائن کر کے بناتا ہے: کمپنی کی سائٹ، لینڈنگ پیج اور کنٹینٹ سائٹس، لائٹ اور ڈارک تھیم، سرچ کے لیے صاف ڈھانچہ، اور ایسا ایڈیٹر جو آپ کی ٹیم خود چلا سکے۔ قیمت PKR یا USD میں ایک طے شدہ کوٹیشن۔',
+  data: {
+    icon: 'globe',
+    shortName: 'ویب سائٹس',
+    areaServed: 'worldwide',
+    pricingModel: 'ہر سائٹ کی ایک طے شدہ کوٹیشن، PKR یا USD میں',
+    timeline: 'لکھے ہوئے پلان میں طے',
+  },
+  blocks: [
+    {
+      type: 'hero',
+      eyebrow: 'ویب سائٹس',
+      heading: 'ایسی ویب سائٹ جو جلدی کھلے اور سنجیدہ کاروبار لگے',
+      sub: 'کمپنی کی سائٹ، لینڈنگ پیج اور کنٹینٹ سائٹس، Nafaa بنانے والی ٹیم کے ڈیزائن اور ہاتھ سے: ہر فون پر تیز، سرچ انجن کے لیے پڑھنے میں آسان، اور آپ کی ٹیم کے لیے بدلنے میں آسان۔',
+      primaryCta: { label: 'کوٹیشن لیں', href: '#quote', variant: 'primary', trackAs: 'hero_quote' },
+      secondaryCta: { label: 'واٹس ایپ پر بات کریں', href: 'whatsapp', variant: 'secondary', trackAs: 'whatsapp' },
+      badges: ['موبائل پر تیز', 'سرچ کے لیے تیار', 'بدلنے میں آسان'],
+      layout: 'centered',
+      id: 'bd47d1d77b42',
+    },
+    {
+      type: 'featuresGrid',
+      heading: 'ہر سائٹ میں کیا ملتا ہے',
+      columns: 3,
+      items: [
+        { icon: 'zap', title: 'ہر جگہ تیز', body: 'سست موبائل انٹرنیٹ کو سامنے رکھ کر بنی، اور تصویریں جدید فارمیٹ میں۔' },
+        { icon: 'search', title: 'سرچ کے لیے تیار', body: 'صاف ڈھانچہ، metadata اور schema، تاکہ سرچ انجن سائٹ کو سمجھ سکیں۔' },
+        { icon: 'notebook-pen', title: 'آپ خود بدل سکیں', body: 'صفحے اور پوسٹس جو آپ کی ٹیم ڈویلپر کے بغیر بدل سکے۔' },
+        { icon: 'eye', title: 'لائٹ اور ڈارک', body: 'ایسا ڈیزائن جو دونوں تھیم اور ہر سائز کی اسکرین پر ٹھیک لگے۔' },
+        { icon: 'languages', title: 'انگریزی اور اردو', body: 'دو زبانوں والی سائٹ، جہاں ضرورت ہو وہاں دائیں سے بائیں اردو۔' },
+        { icon: 'chart-line', title: 'اینالیٹکس', body: 'وزیٹرز اور لیڈز کی گنتی پہلے دن سے سیٹ۔' },
+      ],
+      id: 'bb32aa0aceb9',
+    },
+    {
+      type: 'diagram',
+      heading: 'ہم آپ کی ویب سائٹ کیسے بناتے ہیں',
+      caption: 'آپ کے کنٹینٹ سے ایک تیز اور سرچ میں ملنے والی سائٹ تک، ایسے مرحلوں میں جو آپ دیکھ سکیں۔',
+      diagram: {
+        kind: 'flow',
+        nodes: [
+          { id: 'content', label: 'صفحے اور کنٹینٹ', icon: 'file-text' },
+          { id: 'design', label: 'ڈیزائن', icon: 'palette' },
+          { id: 'build', label: 'بنانا', icon: 'code-xml', note: 'Next.js' },
+          { id: 'seo', label: 'رفتار اور SEO', icon: 'gauge' },
+          { id: 'launch', label: 'لانچ', icon: 'rocket' },
+        ],
+        edges: [
+          { from: 'content', to: 'design' },
+          { from: 'design', to: 'build' },
+          { from: 'build', to: 'seo' },
+          { from: 'seo', to: 'launch' },
+        ],
+        animate: true,
+      },
+      id: 'b474e9d7081e',
+    },
+    {
+      type: 'steps',
+      heading: 'ویب سائٹ کا پراجیکٹ کیسے چلتا ہے',
+      items: [
+        { title: 'بریف', body: 'آپ کا کاروبار، آپ کے گاہک، کون سے صفحے چاہییں، اور چند سائٹس جو آپ کو پسند ہیں۔' },
+        { title: 'سائٹ میپ اور کنٹینٹ کا پلان', body: 'ہر صفحہ اپنے مقصد کے ساتھ لسٹ میں، تاکہ کوئی چیز دو بار ڈیزائن نہ ہو۔' },
+        { title: 'ڈیزائن', body: 'ڈیسک ٹاپ اور موبائل کے لیے صفحوں کا ڈیزائن، آپ کے ساتھ بیٹھ کر دیکھا ہوا۔' },
+        { title: 'بنانا', body: 'ہم سائٹ بناتے ہیں، فارم اور اینالیٹکس جوڑتے ہیں، اور آپ کا کنٹینٹ ڈالتے ہیں۔' },
+        { title: 'لانچ', body: 'ڈومین جڑا، سائٹ لائیو، پھر ایک سیشن جس میں آپ کی ٹیم کو ایڈیٹر دکھایا جاتا ہے۔' },
+      ],
+      id: 'b72f0b20307c',
+    },
+    {
+      type: 'diagram',
+      heading: 'ہر پراجیکٹ کیسے چلتا ہے',
+      caption: 'ہر پراجیکٹ پانچ مرحلوں سے گزرتا ہے: سمجھنا، ڈیزائن، بنانا، لانچ اور سپورٹ۔',
+      diagram: { kind: 'service-process' },
+      theme: 'muted',
+      id: 'b8030dd2bf2b',
+    },
+    {
+      type: 'comparisonTable',
+      heading: 'لانچ پر آپ کو کیا ملتا ہے',
+      caption: 'ہر ویب سائٹ پراجیکٹ کے آخر میں یہ سب تیار ہوتا ہے۔ آپ کی سائٹ کو جو اضافی چیز چاہیے وہ لکھے ہوئے پلان میں ہوتی ہے۔',
+      columns: [
+        { key: 'what', label: 'آپ کے لیے اس کا مطلب', highlight: true },
+        { key: 'stage', label: 'مرحلہ' },
+      ],
+      rows: [
+        { label: 'لائیو سائٹ', cells: { what: { value: 'طے شدہ ہر صفحہ، آپ کے ڈومین پر، ڈیسک ٹاپ اور موبائل دونوں پر' }, stage: { value: 'لانچ' } } },
+        { label: 'کنٹینٹ ایڈیٹر', cells: { what: { value: 'آپ کی ٹیم ڈویلپر کے بغیر متن، تصویریں اور پوسٹس بدلتی ہے' }, stage: { value: 'بنانا' } } },
+        { label: 'سرچ کی بنیادی چیزیں', cells: { what: { value: 'صفحوں کے ٹائٹل، ڈسکرپشن، structured data اور sitemap لگے ہوئے' }, stage: { value: 'بنانا' } } },
+        { label: 'رابطہ فارم', cells: { what: { value: 'لیڈز ای میل پر آپ تک پہنچتی ہیں، اور جہاں چاہیں واٹس ایپ کے لنک' }, stage: { value: 'بنانا' } } },
+        { label: 'اینالیٹکس', cells: { what: { value: 'وزیٹرز اور فارم کی گنتی پہلے دن سے چالو' }, stage: { value: 'بنانا' } } },
+        { label: 'حوالگی کا سیشن', cells: { what: { value: 'ایڈیٹر استعمال کرنے والے لوگوں کو پورا ایڈیٹر چلا کر دکھانا' }, stage: { value: 'لانچ' } } },
+      ],
+      id: 'bf0191efa918',
+    },
+    {
+      type: 'richText',
+      markdown:
+        '## اسی طرح بنی جیسے یہ سائٹ جو آپ پڑھ رہے ہیں\n\nیہ سائٹ ہمارا اپنا کام ہے: ایک ڈیزائن سسٹم، لائٹ اور ڈارک تھیم، کنٹینٹ ایڈیٹر سے چلنے والے صفحے، سرچ اور AI جوابات کے لیے structured data، اور اصل سافٹ ویئر سے لیے گئے اسکرین شاٹ۔ ہم وہی ٹولز استعمال کرتے ہیں جن پر خود Nafaa چلتا ہے: ویب پر React اور Next.js، Android اور iOS کے لیے React Native، ڈیسک ٹاپ کے لیے Electron، اور ان کے پیچھے NestJS اور PostgreSQL۔\n\n## ایسی سائٹ جو بیچے، صرف تعارف نہیں\n\nاگر آپ سامان بیچتے ہیں تو ویب سائٹ صرف اس کا تعارف نہیں، اس سے زیادہ کر سکتی ہے۔ ہم اسے [Nafaa](/ur/product/online-store) سے جوڑ سکتے ہیں تاکہ سائٹ کے آرڈر آپ کی کاؤنٹر سیل کے ساتھ آئیں اور وہی اسٹاک استعمال کریں، یا پورا [آن لائن اسٹور](/ur/services/online-store-setup) بنا سکتے ہیں۔ اگر صرف کمپنی کی سائٹ چاہیے تو وہی بناتے ہیں، ایسی اضافی چیزوں کے بغیر جو آپ استعمال نہیں کریں گے۔\n\n## پاکستان سے باہر سے ہمارے ساتھ کام\n\nباہر کے کلائنٹ بھی ویسے ہی کام کرتے ہیں جیسے پاکستان کے کلائنٹ۔ سب کچھ انگریزی میں ہوتا ہے، ویڈیو کال، ای میل اور واٹس ایپ پر۔ کوٹیشن امریکی ڈالر میں بھی ہو سکتی ہے، اور کال کا وقت ایسا رکھا جاتا ہے جو دونوں طرف کو سوٹ کرے؛ ٹیم پاکستان کے وقت (UTC+5) پر کام کرتی ہے۔ ہر مرحلے کے آخر میں آپ چلتا ہوا کام دیکھتے ہیں، اس لیے فاصلے کا مطلب یہ نہیں کہ آخر تک انتظار کریں کہ کیا بنا۔',
+      id: 'bd81d3d49e5f',
+    },
+    {
+      type: 'leadForm',
+      anchor: 'quote',
+      heading: 'کوٹیشن لیں',
+      intro: 'بتائیں آپ کیا بنوانا چاہتے ہیں۔ ہم سوالوں، پلان اور PKR یا USD میں طے شدہ قیمت کے ساتھ جواب دیتے ہیں، عام طور پر ایک کاروباری دن کے اندر۔',
+      form: 'quote',
+      formType: 'SALES',
+      subjectPrefix: 'Website',
+      successMessage: 'شکریہ! آپ کی درخواست مل گئی ہے۔ ہم ایک کاروباری دن کے اندر ای میل یا واٹس ایپ پر جواب دیں گے۔',
+      currencies: ['PKR', 'USD'],
+      whatsapp: true,
+      id: 'b9e6930d4336',
+    },
+    { type: 'faq', heading: 'عام سوالات', id: 'b907c6400e33' },
+    {
+      type: 'cta',
+      heading: 'ویب سائٹ کا پلان اور طے شدہ قیمت لیں',
+      primaryCta: { label: 'کوٹیشن لیں', href: '#quote', variant: 'primary', trackAs: 'hero_quote' },
+      secondaryCta: { label: 'واٹس ایپ پر بات کریں', href: 'whatsapp', variant: 'ghost', trackAs: 'whatsapp' },
+      id: 'bc66c13174fc',
+    },
+  ],
+  faqKeys: ['ur-svc-websites-price', 'ur-svc-websites-abroad', 'ur-svc-websites-edit', 'ur-svc-websites-domain'],
+  relations: [
+    { ref: 'SERVICE:online-store-setup@ur', kind: 'RELATED' },
+    { ref: 'SERVICE:custom-software@ur', kind: 'RELATED' },
+    { ref: 'SOLUTION:ecommerce@ur', kind: 'TAG' },
+  ],
+  sortOrder: 2,
+  origin: 'translation of content/main-pages/services.ts (26 Oct 2026)',
+  evidence: ['apps/site', 'apps/site/src/components/islands/LeadForm.tsx', 'apps/api/src/admin-marketing/cms'],
+  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  dropped: [],
+  needsOwner: [],
+};

@@ -48,7 +48,7 @@ const entry = industry({
     heading: "Every serial number, every warranty, every bundle",
     sub: "Keep TVs, laptops and appliances by serial or IMEI from the supplier's bill to the customer's, answer warranty questions in seconds, run claims to the company, and sell bundles with the profit worked out.",
     badges: ["Serial and IMEI", "Warranty claims", "Bundles"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.electronicsSerials, url: "app.nafaa.pk/electronics/serials" },
   },
   deepBlocks: [
     steps("A day at the electronics shop", [
@@ -59,28 +59,28 @@ const entry = industry({
       ["Closing", "Check claims open for more than a week (they turn red) and units whose warranty ends in 30 days, then count the galla."],
     ]),
     shot({
-      heading: "Profit on every model",
-      body: "Electronics margins are thin and differ a lot between models, brands and accessories. The profit report shows what each product earned after cost, by product, category, brand or supplier.",
-      id: SHOT.profitByProduct,
-      url: "app.nafaa.pk/reports/profit",
+      heading: "Warranty claims from the serial number",
+      body: "When a speaker or a smartwatch comes back, search its serial number to find the bill and the warranty left, and open a claim. Each claim shows whether it is new, in repair or with the brand, and is closed with a repair, a replacement or a refund.",
+      id: SHOT.electronicsClaims,
+      url: "app.nafaa.pk/electronics/warranty-claims",
       layout: "full",
-      caption: "Shared report, shown with a demo store's data.",
       callouts: [
-        { x: 51.5, y: 20, label: "Gross and net profit after expenses" },
-        { x: 35, y: 48.4, label: "By product, category, brand or supplier" },
-        { x: 85, y: 58.5, label: "Profit and margin on every product" },
+        { x: 20, y: 19.5, label: "Claims still open" },
+        { x: 37.5, y: 30.6, label: "Units in repair" },
+        { x: 40.6, y: 56.5, label: "Claim tied to the customer and serial" },
+        { x: 91.9, y: 55.3, label: "Close it: repair, replace or refund" },
       ],
     }),
     shot({
-      heading: "Stock value and margin on the shelf",
-      body: "Costly stock ties up a lot of money. The products page shows what the shelves are worth at cost and at sale price, with margin on every item and low stock flagged.",
-      id: SHOT.inventory,
-      url: "app.nafaa.pk/products",
+      heading: "Bundles that sell more than one item",
+      body: "Put a router, mouse and keyboard together at one price. Each bundle shows its price against the full price, the saving for the customer, your profit on it, the stock of every item and how many bundles that stock can make. Bundles show on the counter as one tap.",
+      id: SHOT.electronicsBundles,
+      url: "app.nafaa.pk/electronics/bundles",
       layout: "split-right",
-      caption: "Shared products screen, shown with a demo store's data.",
       callouts: [
-        { x: 34.5, y: 19.5, label: "Stock value and what it will sell for" },
-        { x: 22, y: 81, label: "Cost, price and margin on every item" },
+        { x: 39.5, y: 53.8, label: "Bundle price against the full price" },
+        { x: 41.8, y: 58.4, label: "Stock of each item" },
+        { x: 31, y: 68, label: "Saving, profit and how many you can make" },
       ],
     }),
     table("Warranty cards or Nafaa?", "How the main jobs of an electronics shop compare on paper and in Nafaa.", [
@@ -112,6 +112,7 @@ Nafaa covers each of these in the electronics setup, alongside the counter, purc
 /** Internal links: the products an electronics shop uses, related trades and terms. */
 export default {
   ...entry,
+  seoDescription: 'Software for electronics and gadget shops: serial and IMEI tracking, warranty claims, product specs, bundles and condition grades for used or open-box items.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

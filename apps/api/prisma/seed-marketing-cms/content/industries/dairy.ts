@@ -50,7 +50,7 @@ const entry = industry({
     heading: "Gawalas, home delivery and the monthly bill in one app",
     sub: "Enter every gawala's milk morning and evening, give riders a daily sheet for their route, let deliveries build each house's monthly bill on their own, and turn leftover milk into dahi at its real cost.",
     badges: ["Gawala slips", "Route delivery sheets", "Monthly bills on WhatsApp"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dairy/dashboard" },
+    media: { mediaId: SHOT.dairyDeliveries, url: "app.nafaa.pk/dairy/deliveries" },
   },
   deepBlocks: [
     steps("A day at the dairy", [
@@ -62,29 +62,31 @@ const entry = industry({
     ]),
     shot({
       heading: "Every delivery customer's balance in one khata",
-      body: "Because each delivery is posted as it happens, the monthly bill only shows what is already there. Payments taken from any screen reduce the same balance, so a customer who pays the rider and a customer who pays at the shop both stay right.",
-      id: SHOT.khata,
-      url: "app.nafaa.pk/khata",
+      body: "Each household and shop on the round has its route, its morning and evening litres and its rate. Every confirmed delivery is written to the customer's khata, so the balance due is always current and the monthly bill adds up by itself.",
+      id: SHOT.dairyCustomers,
+      url: "app.nafaa.pk/dairy/customers",
       layout: "full",
-      caption: "Shared khata screen, shown with demo data.",
       callouts: [
-        { x: 33, y: 19.5, label: "Total still to collect" },
-        { x: 49, y: 31, label: "How long each amount has been pending" },
-        { x: 90.5, y: 62, label: "Record a payment or send a WhatsApp reminder" },
+        { x: 21.4, y: 19.5, label: "Milk going out every day" },
+        { x: 31.6, y: 20.3, label: "Total still to collect" },
+        { x: 54.4, y: 55.5, label: "Route for each customer" },
+        { x: 74.4, y: 54.6, label: "Morning and evening litres" },
+        { x: 83.8, y: 55.5, label: "Balance due" },
       ],
     }),
     shot({
-      heading: "The day's money at a glance",
-      body: "From the phone in your pocket, see today's sale, the number of bills, the udhaar given and how much came in cash against online payments, even while you are out on a route.",
-      id: SHOT.dashboardPhone,
-      frame: "phone",
-      url: "app.nafaa.pk/dashboard",
+      heading: "Milk from every gawala, morning and evening",
+      body: "Write each gawala's litres as the milk arrives, with fat and quality. The rate and the fat bonus are applied for you, the day's total litres, amount and average fat stay at the top, and each gawala can be paid in cash from the same row.",
+      id: SHOT.dairyMilkCollection,
+      frame: "browser",
+      url: "app.nafaa.pk/dairy/farmer-supplies",
       layout: "split-right",
-      caption: "Shared dashboard on a phone, shown with a demo store's data.",
       callouts: [
-        { x: 50, y: 35, label: "Today's sale" },
-        { x: 72, y: 52, label: "Udhaar given today" },
-        { x: 50, y: 77, label: "Cash against online payments" },
+        { x: 22, y: 19.5, label: "Milk received today" },
+        { x: 61, y: 30.6, label: "Average fat" },
+        { x: 29, y: 50, label: "Enter a gawala's milk" },
+        { x: 56, y: 71.6, label: "Litres, rate, fat and bonus" },
+        { x: 91.5, y: 71.6, label: "Pay the gawala" },
       ],
     }),
     table("Copy and pencil, or Nafaa?", "How the main jobs of a dairy compare in a copy and in Nafaa.", [
@@ -116,6 +118,7 @@ Nafaa covers each of these in the dairy setup, with the counter, khata, expenses
 /** Internal links: the products a dairy uses, related food trades. */
 export default {
   ...entry,
+  seoDescription: 'Dairy and milk shop software: milk bought from gawalas, home delivery routes, a monthly bill per customer, dahi and makhan making, and loose milk sales.',
   relations: [
     { ref: 'PRODUCT:khata', kind: 'TAG' },
     { ref: 'PRODUCT:whatsapp-sms', kind: 'TAG' },

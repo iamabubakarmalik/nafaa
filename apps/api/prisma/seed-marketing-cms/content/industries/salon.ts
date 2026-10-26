@@ -119,6 +119,7 @@ Nafaa covers each of these in the salon setup, with the same khata, expenses and
 /** Internal links: the products a salon uses, related trades. */
 export default {
   ...entry,
+  seoDescription: 'Salon and beauty parlour software: appointment calendar, service price list, stylist commission, memberships, packages, gift vouchers and one bill for all.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:staff', kind: 'TAG' },

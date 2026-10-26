@@ -4,13 +4,16 @@
  */
 import { SHOT, diagram, prose, shot, steps } from '../../main-pages/_build';
 import { FAKE_AUTHOR, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'multi-shop-management-guide',
+  seoDescription: 'When a second shop makes sense, what to control centrally, how to choose a manager, move stock between branches, keep cash honest and read one report.',
   title: 'Running More Than One Shop in Pakistan',
   summary:
     'When a second shop makes sense, what to control centrally and what to leave to the branch, how to pick a manager, move stock between shops, keep cash honest and read one report for all of them.',
   category: 'business',
+  cover: PHOTO.multiShopManagementGuide,
   tags: ['PRODUCT:multi-shop', 'SOLUTION:retail-chains'],
   related: ['PRODUCT:staff', 'PRODUCT:reports', 'BLOG_POST:staff-theft-prevention-counter', 'BLOG_POST:stock-taking-guide'],
   blocks: [

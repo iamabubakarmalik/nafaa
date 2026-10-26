@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichSheikhupura = cityHub({
   slug: 'sheikhupura',
+  seoDescription: 'POS, stock and khata software for Sheikhupura distributors, hardware and building material shops, rice dealers and grocers, with offline billing during outages.',
   name: 'Sheikhupura',
   checkedOn: CHECKED,
   summary:

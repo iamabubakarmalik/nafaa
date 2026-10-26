@@ -50,7 +50,7 @@ const entry = industry({
     heading: "Today's rate, every tola and every karigar in one app",
     sub: "Set the 24K rate once and price every piece by its weight, banwai and stones, take old gold in at the counter, and know how much gold each karigar is holding.",
     badges: ["Daily gold rate", "Old gold exchange", "Karigar accounts"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/jewelry/dashboard" },
+    media: { mediaId: SHOT.jewelryRates, url: "app.nafaa.pk/jewelry/metal-rates" },
   },
   deepBlocks: [
     steps("A day at the jewellery shop", [
@@ -61,30 +61,29 @@ const entry = industry({
       ["Closing", "Check metal stock in the safe by karat, gold still with each karigar, and count the galla."],
     ]),
     shot({
-      heading: "Advances and balances on the khata",
-      body: "Custom orders and repairs often start with an advance, and families pay off a wedding set over weeks. Advances and balances sit on the customer's khata, with the age of each amount and a reminder one tap away.",
-      id: SHOT.khata,
-      url: "app.nafaa.pk/khata",
+      heading: "Every bill by karat, weight and making",
+      body: "Each jewellery bill keeps the karat, the weight in grams and the making charges (banwai) of every piece, priced at the day's rate. The sales record shows the day's total, what came into hand, the profit, and any balance a customer still owes on the khata.",
+      id: SHOT.jewelrySales,
+      url: "app.nafaa.pk/jewelry/sales",
       layout: "full",
-      caption: "Shared khata screen, shown with demo data.",
       callouts: [
-        { x: 33, y: 19.5, label: "Total still to collect" },
-        { x: 49, y: 31, label: "How long each amount has been pending" },
-        { x: 90.5, y: 62, label: "Record a payment or send a WhatsApp reminder" },
+        { x: 26.8, y: 19.5, label: "Sale for the day" },
+        { x: 23, y: 30.6, label: "Udhaar still to collect" },
+        { x: 43.2, y: 67.4, label: "Karat, weight and making charges" },
+        { x: 85, y: 66.2, label: "Udhaar left on the bill" },
       ],
     }),
     shot({
-      heading: "Profit after cost, not just weight sold",
-      body: "Gold moves a lot of money on a thin margin, so turnover says little. The profit and loss statement shows net sale, gross profit, expenses and net profit for any period, next to the period before.",
-      id: SHOT.profitLoss,
-      url: "app.nafaa.pk/reports/profit-loss",
+      heading: "Custom orders with advance and karigar",
+      body: "A bridal set or a pair of rings made to order is tracked from the advance to delivery: karat, expected weight, design, the karigar making it, the due date, the advance taken and the balance. The karigar's slip prints from the order.",
+      id: SHOT.jewelryOrders,
+      url: "app.nafaa.pk/jewelry/custom-orders",
       layout: "split-right",
-      caption: "Shared report, shown with a demo store's data.",
       callouts: [
-        { x: 25, y: 19, label: "Net profit for the period" },
-        { x: 64, y: 30, label: "Expenses" },
-        { x: 67, y: 54, label: "Compared with the period before" },
-        { x: 87, y: 70, label: "Where each 100 rupees of sale went" },
+        { x: 42.2, y: 20.3, label: "Advance held on open orders" },
+        { x: 32.5, y: 59.6, label: "Karat, weight and design" },
+        { x: 70, y: 61.2, label: "Estimate, advance and balance" },
+        { x: 85.3, y: 63.4, label: "Print the karigar's slip" },
       ],
     }),
     table("Kacha register or Nafaa?", "How the main jobs of a jewellery shop compare in a register and in Nafaa.", [
@@ -116,6 +115,7 @@ Nafaa covers each of these in the jewellery setup, with the khata, expenses and 
 /** Internal links: the products a jeweller uses, the gold rate article and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Jewellery shop software: today\'s gold and silver rate, pieces with metal and stones, custom orders, old gold buy-back, repairs and karigar work by weight.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },
@@ -125,5 +125,6 @@ export default {
     { ref: 'BLOG_POST:gold-rate-pricing-jewelry-shops', kind: 'RELATED' },
     { ref: 'INDUSTRY:garments', kind: 'RELATED' },
     { ref: 'INDUSTRY:cosmetics', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:tola', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

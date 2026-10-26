@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichJhelum = cityHub({
   slug: 'jhelum',
+  seoDescription: 'POS, stock and khata software for Jhelum bazaar shops, wood and marble dealers, building material suppliers and GT Road restaurants, with contractor credit.',
   name: 'Jhelum',
   checkedOn: CHECKED,
   summary:

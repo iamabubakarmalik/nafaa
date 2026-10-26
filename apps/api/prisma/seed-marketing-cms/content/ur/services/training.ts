@@ -1,0 +1,211 @@
+/** Urdu: training service page (/ur/services/training). Translation of content/main-pages/services.ts (training). */
+import type { SeedEntry, SeedFaq } from '../../../lib/types';
+import { SHOT } from '../../main-pages/_build';
+
+export const faqs: SeedFaq[] = [
+  {
+    key: 'ur-svc-training-price',
+    locale: 'ur',
+    topic: 'services',
+    question: 'Nafaa ٹریننگ کی قیمت کیسے طے ہوتی ہے؟',
+    answer:
+      'ایک مختصر کال کے بعد ہم لکھ دیتے ہیں کہ کن لوگوں کو کیا سکھانا ہے، اور اسی کام کی ایک طے شدہ کوٹیشن بھیجتے ہیں، PKR یا USD میں۔ ٹریننگ مرحلوں میں ہوتی ہے اور آپ ہر مرحلہ دیکھتے ہیں۔ بعد میں سیشن یا لوگ بڑھانے ہوں تو ہم پہلے اس تبدیلی کی قیمت بتاتے ہیں، اور آپ کی ہاں کے بعد ہی شروع کرتے ہیں۔',
+    sourceNote: 'Service process (owner decision: worldwide services via "Quote lein" form; quote form takes PKR or USD).',
+    origin: 'translation of faq mp-services-price',
+    evidence: ['apps/site/src/components/islands/LeadForm.tsx'],
+  },
+  {
+    key: 'ur-svc-training-devices',
+    locale: 'ur',
+    topic: 'getting-started',
+    question: 'کیا ٹریننگ اور روز کے کام کے لیے Nafaa کو کمپیوٹر چاہیے؟',
+    answer:
+      'نہیں۔ Nafaa ویب براؤزر میں چلتا ہے، اس لیے جو فون، ٹیبلٹ یا کمپیوٹر آپ کے پاس پہلے سے ہے وہی کافی ہے۔ بارکوڈ اسکینر اور رسید پرنٹر بعد میں لگ سکتے ہیں، شروع کرنے کے لیے ضروری نہیں۔ انٹرنیٹ نہ ہو تو بھی کاؤنٹر چلتا رہتا ہے اور کنکشن واپس آنے پر سیل آپ کے اکاؤنٹ میں بھیج دیتا ہے۔',
+    sourceNote: 'Web app; offline sales queue (core/lib/offline/offlineSales.ts); hardware and print modules.',
+    origin: 'translation of faq devices',
+    evidence: ['apps/web/src/core/lib/offline/offlineSales.ts', 'apps/web/src/core/hardware', 'apps/web/src/core/print'],
+  },
+  {
+    key: 'ur-svc-training-online',
+    locale: 'ur',
+    topic: 'services',
+    question: 'کیا Nafaa کی آن لائن ٹریننگ دکان پر آ کر دی گئی ٹریننگ جتنی اچھی ہے؟',
+    answer:
+      'زیادہ تر ٹیموں کے لیے، جی ہاں۔ سیشن ویڈیو کال پر ہوتے ہیں اور سیکھنے والا اپنی ہی ڈیوائس پر Nafaa چلاتا ہے، اس لیے وہ اسی اسکرین پر مشق کرتا ہے جو اسے روز استعمال کرنی ہے۔ اگر کوئی ٹیم سامنے بیٹھ کر سیکھنا چاہے تو بات طے کر کے دکان پر آ کر ٹریننگ بھی ہو سکتی ہے۔',
+    sourceNote: 'Service scope.',
+    origin: 'translation of faq svc-train-online',
+    evidence: ['apps/web/src/modules'],
+  },
+  {
+    key: 'ur-svc-training-new-staff',
+    locale: 'ur',
+    topic: 'services',
+    question: 'Nafaa ٹریننگ کے بعد نیا اسٹاف کیسے سیکھے گا؟',
+    answer:
+      'ہر اسکرین میں ایک گائیڈ موجود ہے جو G دبانے سے کھلتی ہے اور اس اسکرین کو آسان الفاظ میں سمجھاتی ہے، اور ہیلپ سینٹر میں عام کام لکھے ہیں۔ بہت سے مالک ٹریننگ لیے ہوئے کسی کیشیئر سے کہتے ہیں کہ وہ نئے اسٹاف کو کاؤنٹر دکھا دے، اور ضرورت پڑے تو گائیڈ ساتھ ہے۔',
+    sourceNote: 'PageGuide on every page (G key); modules/help.',
+    origin: 'translation of faq svc-train-new-staff',
+    evidence: ['apps/web/src/core/components/PageGuide.tsx', 'apps/web/src/modules/help'],
+  },
+];
+
+export const entry: SeedEntry = {
+  type: 'SERVICE',
+  locale: 'ur',
+  slug: 'training',
+  title: 'ٹریننگ',
+  summary:
+    'Nafaa آپ کی ٹیم کو ایپ پر کاروبار چلانا سکھاتا ہے: کیشیئر کو کاؤنٹر، مینیجر کو اسٹاک، کھاتہ اور رپورٹس، اور مالک کو پرافٹ اور کنٹرول۔ ٹریننگ آن لائن ویڈیو کال اور واٹس ایپ پر، یا بات طے کر کے دکان پر، اردو یا انگریزی میں۔',
+  data: {
+    icon: 'graduation-cap',
+    shortName: 'ٹریننگ',
+    areaServed: 'PK',
+    pricingModel: 'ہر سیشن یا ٹیم کے حساب سے کوٹیشن',
+    timeline: 'آپ کے ساتھ وقت طے کر کے',
+  },
+  blocks: [
+    {
+      type: 'hero',
+      eyebrow: 'ٹریننگ',
+      heading: 'پہلے دن سے ایک پُراعتماد ٹیم',
+      sub: 'اردو یا انگریزی میں چھوٹے، کام کے سیشن: کیشیئر کاؤنٹر سیکھتے ہیں، مینیجر اسٹاک اور کھاتہ، اور مالک وہ رپورٹس جو واقعی اہم ہیں۔ آن لائن، یا بات طے کر کے دکان پر۔',
+      primaryCta: { label: 'کوٹیشن لیں', href: '#quote', variant: 'primary', trackAs: 'hero_quote' },
+      secondaryCta: { label: 'واٹس ایپ پر بات کریں', href: 'whatsapp', variant: 'secondary', trackAs: 'whatsapp' },
+      badges: ['اردو یا انگریزی', 'آن لائن یا دکان پر'],
+      media: { kind: 'screenshot', mediaId: SHOT.dashboard, frame: 'browser', url: 'app.nafaa.pk/dashboard' },
+      layout: 'centered',
+      id: 'b24861fab650',
+    },
+    {
+      type: 'comparisonTable',
+      heading: 'کام کے حساب سے سیشن، اور اس کے بعد ہر شخص کیا کر سکتا ہے',
+      caption: 'ہر شخص اپنے کام کی اسکرینیں سیکھتا ہے، اور مشق آپ کی اپنی پروڈکٹس اور گاہکوں پر ہوتی ہے۔',
+      columns: [
+        { key: 'learn', label: 'کیا سکھایا جاتا ہے' },
+        { key: 'after', label: 'اس کے بعد وہ کر سکتے ہیں', highlight: true },
+      ],
+      rows: [
+        { label: 'کیشیئر', cells: { learn: { value: 'بل بنانا، یونٹ، ادائیگی، واپسی، آف لائن بل' }, after: { value: 'تیز بل بنانا، ہر طرح کی ادائیگی لینا، واپسی خود سنبھالنا' } } },
+        { label: 'اسٹاک کا عملہ', cells: { learn: { value: 'خریداری، کم اسٹاک، خراب مال، ٹرانسفر، گنتی' }, after: { value: 'آیا ہوا مال وصول کرنا، خراب مال درج کرنا اور اسٹاک ٹھیک کرنا' } } },
+        { label: 'کھاتہ اور وصولی', cells: { learn: { value: 'ادھار، ادھار کی حد، یاد دہانیاں' }, after: { value: 'ادائیگی وصول کرنا اور صحیح طریقے سے یاد دہانی بھیجنا' } } },
+        { label: 'مینیجر', cells: { learn: { value: 'کیش رجسٹر، روزنامچہ، اسٹاف اور کاؤنٹر کے قواعد' }, after: { value: 'دن بند کرنا، PIN سے منظوری دینا اور آڈٹ اسکرین پڑھنا' } } },
+        { label: 'مالک', cells: { learn: { value: 'ہر پروڈکٹ کا پرافٹ، P&L، برانچیں، ایکسپورٹ' }, after: { value: 'اہم نمبر پڑھنا اور کوئی بھی بل یا تبدیلی ڈھونڈ نکالنا' } } },
+      ],
+      id: 'be5de6d50179',
+    },
+    {
+      type: 'diagram',
+      heading: 'ایسی ٹریننگ جو یاد رہے',
+      caption: 'ہر شخص اپنے کام کی اسکرینیں سیکھتا ہے، پھر ہم واٹس ایپ پر حال پوچھتے ہیں۔',
+      diagram: {
+        kind: 'flow',
+        nodes: [
+          { id: 'owner', label: 'مالک کا سیٹ اپ', icon: 'user-cog' },
+          { id: 'cashier', label: 'کیشیئر', icon: 'scan-barcode' },
+          { id: 'stock', label: 'اسٹاک ٹیم', icon: 'boxes' },
+          { id: 'reports', label: 'مالک کی رپورٹس', icon: 'chart-column' },
+          { id: 'follow', label: 'بعد میں رابطہ', icon: 'message-circle' },
+        ],
+        edges: [
+          { from: 'owner', to: 'cashier' },
+          { from: 'cashier', to: 'stock' },
+          { from: 'stock', to: 'reports' },
+          { from: 'reports', to: 'follow' },
+        ],
+        animate: true,
+      },
+      id: 'b0a167af0b45',
+    },
+    {
+      type: 'featuresGrid',
+      heading: 'جو موضوع ہم ساتھ شامل کر سکتے ہیں',
+      columns: 2,
+      items: [
+        { icon: 'shield-check', title: 'کاؤنٹر کے قواعد', body: 'اجازتیں، مینیجر PIN، ڈسکاؤنٹ کی حد اور ایکٹیویٹی لاگ۔' },
+        { icon: 'receipt-text', title: 'ٹیکس انوائس', body: 'اگر آپ استعمال کرتے ہیں: یہ کیسے پرنٹ ہوتی ہیں اور اگر کوئی قطار میں رہ جائے تو کیا کرنا ہے۔' },
+        { icon: 'shopping-bag', title: 'آن لائن آرڈر', body: 'آرڈر قبول کرنا، کورئیر بک کرنا اور COD کا حساب برابر کرنا۔' },
+        { icon: 'users', title: 'اسٹاف کے ٹولز', body: 'حاضری، تنخواہ اور کمیشن، جہاں آپ انہیں استعمال کرتے ہوں۔' },
+      ],
+      id: 'b793e0e09a29',
+    },
+    {
+      type: 'steps',
+      heading: 'ٹریننگ کا پلان کیسے بنتا ہے',
+      items: [
+        { title: 'اپنی ٹیم کے بارے میں بتائیں', body: 'کس کا کیا کام ہے، کتنی برانچیں ہیں، اور آج کام کیسے ہوتا ہے۔' },
+        { title: 'پلان لیں', body: 'کام کے حساب سے سیشن، آن لائن یا دکان پر۔' },
+        { title: 'اپنے ڈیٹا پر سیکھیں', body: 'مشق آپ کی اپنی پروڈکٹس اور گاہکوں پر، کسی ڈیمو دکان پر نہیں۔' },
+        { title: 'بعد میں رابطہ', body: 'پہلے ہفتے کے بعد ایک بار حال پوچھنا، تاکہ اصل کام میں جو سوال اٹھیں ان کا جواب مل جائے۔' },
+      ],
+      id: 'b3527aca0b8e',
+    },
+    {
+      type: 'screenshot',
+      heading: 'ہر شخص کا اپنا لاگ اِن',
+      body: 'ٹریننگ کے آخر میں ہر شخص اپنے لاگ اِن اور اپنی اجازتوں کے ساتھ سائن اِن ہوتا ہے، اس لیے پہلے بل سے ایکٹیویٹی لاگ کو پتا ہوتا ہے کہ کس نے کیا کیا۔',
+      mediaId: SHOT.staff,
+      frame: 'browser',
+      url: 'app.nafaa.pk/staff',
+      layout: 'split-right',
+      id: 'bd29a74f3889',
+    },
+    {
+      type: 'richText',
+      markdown:
+        '## سیشن کے بعد بھی مدد ساتھ رہتی ہے\n\nٹریننگ ایپ سیکھنے کا ایک حصہ ہے۔ Nafaa کی ہر اسکرین میں ایک گائیڈ ہے (G دبائیں) جو اس اسکرین کو آسان الفاظ میں سمجھاتی ہے، اور ہیلپ سینٹر عام کام قدم بہ قدم بتاتا ہے۔ ٹریننگ کے بعد کے سوال اسی واٹس ایپ سپورٹ پر جاتے ہیں جو ہر اکاؤنٹ کو ملتی ہے۔\n\nٹریننگ سیٹ اپ کے فوراً بعد سب سے زیادہ کام آتی ہے۔ اگر آپ کی پروڈکٹس اور گاہک ابھی پرانے سسٹم میں ہیں تو اسے [ڈیٹا منتقلی](/ur/services/data-migration) کے ساتھ ملا لیں، تاکہ لوگ اپنے اصل ڈیٹا پر مشق کریں۔ کئی برانچوں کے مالک اکثر پہلے ایک برانچ کو سکھاتے ہیں، پھر اسی کی ٹیم اگلی برانچ کی مدد کرتی ہے۔ ہر شخص کی رسائی کیسے طے ہوتی ہے، یہ [اسٹاف اور اجازتیں](/ur/product/staff) کے صفحے پر دیکھیں۔',
+      id: 'b4544305ccb9',
+    },
+    {
+      type: 'diagram',
+      heading: 'ہر پروجیکٹ کیسے چلتا ہے',
+      caption: 'ہر پروجیکٹ پانچ مرحلوں سے گزرتا ہے: ضرورت سمجھنا، ڈیزائن، تیاری، لانچ اور سپورٹ۔',
+      diagram: { kind: 'service-process' },
+      theme: 'muted',
+      id: 'ba37ebea2163',
+    },
+    {
+      type: 'leadForm',
+      anchor: 'quote',
+      heading: 'کوٹیشن لیں',
+      intro: 'بتائیں کہ کتنے لوگوں کو ٹریننگ چاہیے، ان کے کام اور برانچیں کیا ہیں، اور آپ آن لائن چاہتے ہیں یا دکان پر۔ ہم ایک پلان اور قیمت کے ساتھ جواب دیتے ہیں۔',
+      form: 'quote',
+      formType: 'SALES',
+      subjectPrefix: 'Training',
+      successMessage: 'شکریہ! آپ کی درخواست مل گئی ہے۔ ہم ایک کام کے دن کے اندر ای میل یا واٹس ایپ پر جواب دیں گے۔',
+      currencies: ['PKR', 'USD'],
+      whatsapp: true,
+      id: 'b2909311215e',
+    },
+    { type: 'faq', heading: 'عام سوالات', id: 'b2144995efc2' },
+    {
+      type: 'cta',
+      heading: 'اپنی ٹیم کی ٹریننگ کا پلان بنائیں',
+      primaryCta: { label: 'کوٹیشن لیں', href: '#quote', variant: 'primary', trackAs: 'hero_quote' },
+      secondaryCta: { label: 'واٹس ایپ پر بات کریں', href: 'whatsapp', variant: 'ghost', trackAs: 'whatsapp' },
+      id: 'b19ffc136ed7',
+    },
+  ],
+  faqKeys: ['ur-svc-training-price', 'ur-svc-training-devices', 'ur-svc-training-online', 'ur-svc-training-new-staff'],
+  relations: [
+    { ref: 'SERVICE:data-migration@ur', kind: 'RELATED' },
+    { ref: 'PRODUCT:staff@ur', kind: 'TAG' },
+    { ref: 'SOLUTION:retail-chains@ur', kind: 'TAG' },
+    { ref: 'SOLUTION:restaurants@ur', kind: 'TAG' },
+  ],
+  seoTitle: 'کیشیئر، مینیجر اور مالک کے لیے Nafaa POS ٹریننگ',
+  seoDescription:
+    'کیشیئر، مینیجر اور مالک کے لیے Nafaa POS، اسٹاک، کھاتہ اور رپورٹس کی ٹریننگ، آن لائن یا بات طے کر کے دکان پر، اردو یا انگریزی میں۔ کوٹیشن لیں۔',
+  focusKeyword: 'POS ٹریننگ',
+  sortOrder: 8,
+  origin: 'translation of content/main-pages/services.ts (26 Oct 2026)',
+  evidence: [
+    'apps/web/src/modules',
+    'apps/web/src/core/components/PageGuide.tsx',
+    'apps/web/src/modules/help',
+    'apps/web/src/modules/hr',
+    'apps/web/src/modules/reports/audit/pages/AuditPage.tsx',
+  ],
+  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  dropped: [],
+  needsOwner: ['On-site training coverage (cities) and pricing.'],
+};

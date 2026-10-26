@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichMardan = cityHub({
   slug: 'mardan',
+  seoDescription: 'POS, stock and khata software for Mardan grocers and wholesalers, agri dealers, cloth and shoe shops and restaurants, with billing through PESCO outages.',
   name: 'Mardan',
   checkedOn: CHECKED,
   summary:

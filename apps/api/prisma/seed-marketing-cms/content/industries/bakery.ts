@@ -120,6 +120,7 @@ Nafaa does each of these in the bakery setup, alongside the same counter, khata 
 /** Internal links: the products a bakery uses, the food solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Bakery and sweet shop software: custom cake orders with an advance, daily baking plans, live recipe costs, freshness and waste, and bulk event orders.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },
@@ -131,5 +132,7 @@ export default {
     { ref: 'INDUSTRY:restaurant', kind: 'RELATED' },
     { ref: 'INDUSTRY:dairy', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:batch-tracking', kind: 'RELATED' },
+    { ref: 'BLOG_POST:reduce-bakery-wastage', kind: 'RELATED' },
+    { ref: 'BLOG_POST:how-to-start-a-bakery-pakistan', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

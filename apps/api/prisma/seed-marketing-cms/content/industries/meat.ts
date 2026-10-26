@@ -52,7 +52,7 @@ const entry = industry({
     heading: "Today's rate, the mandi and the cutting table in one app",
     sub: "Set the chicken and mutton rate each morning, bring mandi purchases into stock at cost, see what a carcass really yields, and supply restaurants on account at their own rate.",
     badges: ["Daily rates", "Mandi to cuts", "Restaurant accounts"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/meat/dashboard" },
+    media: { mediaId: SHOT.meatRates, url: "app.nafaa.pk/meat/rates" },
   },
   deepBlocks: [
     steps("A day at the meat shop", [
@@ -63,28 +63,30 @@ const entry = industry({
       ["Day close", "See each item from morning stock to what came in, what sold, what was wasted and what is left, then count the galla."],
     ]),
     shot({
-      heading: "Restaurant accounts and Qurbani advances on the khata",
-      body: "Restaurants and hotels buy on credit, and Qurbani customers pay advances weeks ahead. Both sit on the customer's khata, so you see who owes what, since when, and send a reminder with the exact amount.",
-      id: SHOT.khata,
-      url: "app.nafaa.pk/khata",
+      heading: "Restaurant accounts on weekly credit",
+      body: "Hotels and karahi shops take meat every morning and pay by the week. Each restaurant account has a credit limit and a delivery time, and shows its udhaar against the limit, how many bills are open and a button to record the payment.",
+      id: SHOT.meatWholesale,
+      url: "app.nafaa.pk/meat/wholesale",
       layout: "full",
-      caption: "Shared khata screen, shown with demo data.",
       callouts: [
-        { x: 33, y: 19.5, label: "Total udhaar to collect" },
-        { x: 49, y: 31, label: "How long each amount has been pending" },
-        { x: 90.5, y: 62, label: "Record a payment or send a WhatsApp reminder" },
+        { x: 30.5, y: 20.3, label: "Total udhaar from restaurants" },
+        { x: 32.5, y: 63.6, label: "Delivery time for each account" },
+        { x: 65, y: 55.6, label: "Udhaar against the credit limit" },
+        { x: 77, y: 55.6, label: "Record a payment" },
       ],
     }),
     shot({
-      heading: "Which cuts earn after cost",
-      body: "Because cutting jobs pass the carcass cost to each cut, the profit report shows the real margin on boneless, qeema and chops, not just the day's takings.",
-      id: SHOT.profitByProduct,
-      url: "app.nafaa.pk/reports/profit",
+      heading: "Orders by weight, with the advance",
+      body: "A walima order for 40 kg of beef or a family's dawat order is written with the cuts, the kilos, the cutting style and the delivery address, and the advance is taken. When the meat is weighed, the bill uses the actual weight and deducts the advance.",
+      id: SHOT.meatOrders,
+      url: "app.nafaa.pk/meat/weight-orders",
       layout: "split-right",
-      caption: "Shared report, shown with a demo store's data.",
       callouts: [
-        { x: 51.5, y: 20, label: "Gross and net profit after expenses" },
-        { x: 85, y: 58.5, label: "Profit and margin on every item" },
+        { x: 39.4, y: 24.3, label: "Advance taken on open orders" },
+        { x: 28.8, y: 61.3, label: "Cuts and kilos on each order" },
+        { x: 30.6, y: 67.2, label: "Weigh the actual cut" },
+        { x: 46.3, y: 67.2, label: "Bill it, advance deducted" },
+        { x: 77.5, y: 67.2, label: "Print the cutting slip" },
       ],
     }),
     table("Rough book or Nafaa?", "How the main jobs of a meat shop compare in a rough book and in Nafaa.", [
@@ -116,6 +118,7 @@ Nafaa covers each of these in the meat setup. Qurbani and Aqeeqa bookings are th
 /** Internal links: the products a meat shop uses, related food trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for meat and butcher shops: today\'s rate, orders by weight, live animals from the mandi, restaurant accounts, and Qurbani and Aqeeqa orders.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },

@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichMirpurKhas = cityHub({
   slug: 'mirpur-khas',
+  seoDescription: 'POS, stock and khata software for Mirpur Khas mango and produce traders, agri dealers and wholesalers supplying Thar, with offline billing and farmer credit.',
   name: 'Mirpur Khas',
   checkedOn: CHECKED,
   summary:

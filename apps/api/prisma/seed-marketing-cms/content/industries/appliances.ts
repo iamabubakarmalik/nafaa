@@ -52,7 +52,7 @@ const entry = industry({
     heading: "Sell, fit, deliver and service every appliance from one app",
     sub: "Track every unit by serial from the dealer to the customer's home, book fitting and delivery right after the bill, sell on qist with a guarantor, and keep repairs, AMC and brand claims in order.",
     badges: ["Serial and warranty", "Fitting and delivery", "Qist with guarantor"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.appliancesInstallations, url: "app.nafaa.pk/appliances/installations" },
   },
   deepBlocks: [
     steps("From the counter to the customer's home", [
@@ -62,16 +62,17 @@ const entry = industry({
       ["Set up the qist", "For a bill on udhaar, make a monthly plan with the guarantor and print the agreement for both signatures."],
     ], "Each step after the bill is optional; the sale is complete without it."),
     shot({
-      heading: "The showroom and the field work on one dashboard",
-      body: "The appliance dashboard adds the field work to the normal day: repairs and installations open, technicians out, AMC renewals coming up, deliveries and revenue by stream, next to today's sale, profit and cash.",
-      id: SHOT.dashboard,
-      url: "app.nafaa.pk/dashboard",
+      heading: "Repair calls from complaint to closing",
+      body: "A customer calls about a fridge that stopped cooling. The complaint is written with the product, the address and whether it is under warranty, a technician is given the visit, and the charge is billed when the job is closed. Urgent and late calls are counted at the top.",
+      id: SHOT.appliancesService,
+      url: "app.nafaa.pk/appliances/service-requests",
       layout: "full",
-      caption: "The shared dashboard, shown with demo shop data; appliance widgets sit on the same page.",
       callouts: [
-        { x: 28, y: 27, label: "Today's sale and bills" },
-        { x: 24, y: 52, label: "Profit after cost and expenses" },
-        { x: 91, y: 52, label: "Udhaar still to collect" },
+        { x: 20, y: 30.5, label: "Open complaints" },
+        { x: 30, y: 60.1, label: "Product and complaint" },
+        { x: 46.9, y: 60.1, label: "Under warranty or urgent" },
+        { x: 33, y: 64.6, label: "Technician and visit date" },
+        { x: 94.4, y: 60.1, label: "Visit charge" },
       ],
     }),
     shot({
@@ -116,6 +117,7 @@ Nafaa covers each of these with its own page, on the phone or computer you alrea
 /** Internal links: the products appliance shops use, the matching solutions and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for appliance shops: serial numbers and warranties, installations and repairs, AMC contracts, qist plans with a guarantor and trade-ins of old units.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

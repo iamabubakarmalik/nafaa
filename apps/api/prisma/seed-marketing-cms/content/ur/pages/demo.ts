@@ -7,13 +7,19 @@ export const entry: SeedEntry = {
   type: 'PAGE',
   locale: 'ur',
   slug: 'demo',
+  relations: [
+    { ref: 'PAGE:pricing@ur', kind: 'RELATED' },
+    { ref: 'PAGE:product@ur', kind: 'RELATED' },
+    { ref: 'PAGE:faq@ur', kind: 'RELATED' },
+    { ref: 'PAGE:contact@ur', kind: 'RELATED' },
+  ],
   title: 'ڈیمو بک کریں',
   summary:
     'Nafaa کا مفت لائیو ڈیمو بک کریں۔ ہماری ٹیم کا کوئی فرد آپ کے کاروبار کے حساب سے کاؤنٹر، اسٹاک، کھاتہ، آن لائن آرڈر اور رپورٹس دکھاتا ہے، اور آپ کے سوالوں کے جواب دیتا ہے۔',
   data: { template: 'contact' },
   seoTitle: 'Nafaa کا مفت ڈیمو بک کریں: POS اور بزنس سافٹ ویئر',
   seoDescription:
-    'اپنے کاروبار کے لیے Nafaa چلتا ہوا دیکھیں: POS، اسٹاک، کھاتہ، آن لائن اسٹور اور رپورٹس۔ دن اور وقت چنیں، ڈیمو مفت ہے۔',
+    'اپنے کاروبار کے لیے Nafaa چلتا ہوا دیکھیں: POS، اسٹاک، کھاتہ، آن لائن اسٹور اور رپورٹس۔ دن اور وقت چنیں، ٹیم سوالوں کے جواب دے گی۔ ڈیمو مفت ہے۔',
   focusKeyword: 'POS سافٹ ویئر ڈیمو',
   blocks: [
     {

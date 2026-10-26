@@ -5,7 +5,10 @@
  *
  * - Title: the API sends the final title without the brand; the root layout's
  *   template adds "| Nafaa". Home and Compare patterns already hold the brand
- *   (`titleIncludesBrand`), so they use `absolute`.
+ *   (`titleIncludesBrand`), so they use `absolute`. A title that would pass
+ *   60 characters with the suffix is sent without it (`absolute`), so search
+ *   results do not cut the page's own words; the brand still reaches search
+ *   engines through og:site_name and the WebSite node.
  * - Canonical: from the snapshot (self unless the editor set one).
  * - Robots: the snapshot's value, forced to noindex when SITE_INDEXABLE is not
  *   true (staging).
@@ -20,6 +23,21 @@ import type { PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { absoluteUrl, siteIndexable } from '@/lib/cms/env';
 import { DEFAULT_LOCALE, OG_LOCALE, hreflangFor, localizePath } from '@/lib/cms/locale';
 import { ogImageUrl } from '@/lib/media';
+
+/** Search results show about 60 characters of a title. */
+export const TITLE_MAX = 60;
+/**
+ * The brand as the layout's title template and og:site_name use it (settings
+ * `site.name`). A page-level openGraph object replaces the layout's, so the
+ * builders below set siteName again.
+ */
+const BRAND = 'Nafaa';
+const BRAND_SUFFIX_LENGTH = ` | ${BRAND}`.length;
+
+/** The page title, with the layout's brand suffix only when the whole title still fits in TITLE_MAX. */
+export function titleFor(title: string, includesBrand = false): NonNullable<Metadata['title']> {
+  return includesBrand || title.length + BRAND_SUFFIX_LENGTH > TITLE_MAX ? { absolute: title } : title;
+}
 
 const ARTICLE_TYPES = new Set(['BLOG_POST', 'GUIDE', 'CASE_STUDY', 'TEMPLATE', 'CHANGELOG', 'COMPLIANCE', 'BEST_OF', 'COMPARE', 'ALTERNATIVE']);
 
@@ -63,11 +81,12 @@ export function buildEntryMetadata(entry: PublicEntry, options: EntryMetadataOpt
   const otherLocales = entry.alternates.filter((alt) => alt.locale !== entry.locale).map((alt) => OG_LOCALE[alt.locale] ?? alt.locale);
 
   return {
-    title: seo.titleIncludesBrand ? { absolute: seo.title } : seo.title,
+    title: titleFor(seo.title, seo.titleIncludesBrand),
     description: seo.description,
     alternates: { canonical: seo.canonical, languages: languageAlternates(entry.alternates) },
     robots: robotsFor(seo.robots.index, seo.robots.follow),
     openGraph: {
+      siteName: BRAND,
       type: isArticle ? 'article' : 'website',
       url: entry.url,
       title: seo.title,
@@ -101,11 +120,11 @@ export interface PageMetadataInput {
 export function buildPageMetadata(input: PageMetadataInput): Metadata {
   const url = absoluteUrl(localizePath(input.locale ?? DEFAULT_LOCALE, input.path));
   return {
-    title: input.absoluteTitle ? { absolute: input.title } : input.title,
+    title: titleFor(input.title, input.absoluteTitle),
     description: input.description,
     alternates: { canonical: url },
     robots: robotsFor(!input.noindex, true),
-    openGraph: { type: 'website', url, title: input.title, description: input.description },
+    openGraph: { siteName: BRAND, type: 'website', url, title: input.title, description: input.description },
     twitter: { card: 'summary_large_image', title: input.title, description: input.description },
   };
 }

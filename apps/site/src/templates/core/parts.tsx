@@ -1,7 +1,9 @@
 /**
  * Template parts used by the entry templates (product, industry, solution,
  * service, hub): the breadcrumb + freshness row, the feature-status notice,
- * and the internal-link sections each template's SEO spec requires.
+ * and the internal-link sections each template's SEO spec requires. Every
+ * template ends its link sections with `relatedGroup`, so each RELATED
+ * relation the editor sets is rendered as a link somewhere on the page.
  */
 import Link from 'next/link';
 import { PageBreadcrumbs } from '@/components/layout/Breadcrumbs';
@@ -10,7 +12,7 @@ import { FEATURE_STATUS_BADGES, featureStatusOf, type Breadcrumb, type EntryCard
 import { DEFAULT_LOCALE } from '@/lib/cms/locale';
 import { uiStrings } from '@/lib/i18n/ui';
 import { CmsIcon } from '@/lib/icons';
-import { statusBadge } from '@/components/blocks/lib/i18n';
+import { statusBadge, strings as blockStrings } from '@/components/blocks/lib/i18n';
 import { Arrow, TileSection, Updated, uniqueCards } from './ui';
 
 /**
@@ -92,6 +94,25 @@ export function LinkSections({ groups, exceptId }: { groups: LinkGroup[]; except
       })}
     </>
   );
+}
+
+/** True when the editor placed a relatedLinks block for the RELATED list; the block then renders those links. */
+export function rendersRelatedBlock(entry: Pick<PublicEntry, 'blocks'>): boolean {
+  return entry.blocks.some((block) => block.type === 'relatedLinks' && block.source === 'related');
+}
+
+/**
+ * The entry's RELATED cards as the last link group. LinkSections skips cards
+ * an earlier group already shows, so this renders only the relations the
+ * template's typed groups leave out (glossary terms, posts, services, ...).
+ */
+export function relatedGroup(entry: PublicEntry): LinkGroup {
+  return { id: 'related-pages', title: blockStrings(entry.locale).relatedHeading, cards: rendersRelatedBlock(entry) ? [] : entry.related };
+}
+
+/** "Related" tiles for templates without their own link groups (default, legal, contact, hub, roadmap). */
+export function RelatedPages({ entry }: { entry: PublicEntry }) {
+  return <LinkSections groups={[relatedGroup(entry)]} exceptId={entry.id} />;
 }
 
 /** A quiet row of next-step links (pricing, demo, hub) closing a page. */

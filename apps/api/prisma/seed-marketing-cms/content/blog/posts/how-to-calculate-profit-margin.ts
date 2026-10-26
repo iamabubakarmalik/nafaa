@@ -5,20 +5,23 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'how-to-calculate-profit-margin',
+  seoDescription: 'Margin and markup explained with rupee examples, gross versus net profit, pricing loose and packaged goods, and the hidden costs that eat into a shop\'s profit.',
   title: 'How to Calculate Profit Margin for Your Shop',
   summary:
     'Margin and markup explained with simple rupee examples, the difference between gross and net profit, how to price loose and packaged goods, and the hidden costs that make a busy shop earn less than it should.',
   category: 'guides',
+  cover: PHOTO.howToCalculateProfitMargin,
   tags: ['PRODUCT:reports', 'INDUSTRY:kiryana'],
-  related: ['PRODUCT:inventory', 'BLOG_POST:stock-taking-guide', 'BLOG_POST:how-to-start-kiryana-store-pakistan'],
+  related: ['PRODUCT:inventory', 'BLOG_POST:stock-taking-guide', 'BLOG_POST:how-to-start-kiryana-store-pakistan', 'TOOL:profit-margin-calculator', 'TOOL:break-even-calculator'],
   isNew: true,
   blocks: [
     prose(`"Sale bohat hai, lekin paisa nazar nahi aata." Many shop owners say some version of this. The shop is busy, the galla fills every evening, and yet at the end of the month there is less money than the sales suggest. The answer is almost always in the margin: the share of each sale that is actually profit, after you pay for what you sold and for running the shop.
 
-This guide explains margin in plain terms, with examples you can check on a calculator.
+This guide explains margin in plain terms, with examples you can check on a calculator or with the free [profit margin calculator](/tools/profit-margin-calculator).
 
 ## Margin and markup are not the same
 

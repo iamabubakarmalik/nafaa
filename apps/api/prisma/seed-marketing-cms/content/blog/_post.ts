@@ -7,6 +7,7 @@
 
 import type { DraftBlock, Source } from '../../../../src/admin-marketing/cms/contract/cms-contract';
 import { richText, withIds, writerNotes } from '../../lib/blocks';
+import { loadManifest, mediaRef } from '../../lib/media';
 import type { EntryRef, SeedEntry } from '../../lib/types';
 
 export type Block = Omit<DraftBlock, 'id'>;
@@ -26,6 +27,11 @@ export interface PostSpec {
   tags?: EntryRef[];
   /** RELATED relations (further reading). */
   related?: EntryRef[];
+  /**
+   * Cover photo: a media key from `_media.ts` (PHOTO). Used as the card and
+   * social image and shown at the top of the post with its credit.
+   */
+  cover?: string;
   /** Legacy: the whole post as one markdown body. */
   body?: string;
   /** The post as blocks in reading order (preferred). */
@@ -79,9 +85,26 @@ function formatDate(iso: string): string {
   return `${d} ${months[(m ?? 1) - 1]} ${y}`;
 }
 
+const MANIFEST = loadManifest();
+
+/** The cover as the first block: the photo with its caption and credit from the manifest. */
+function coverBlock(key: string): Block {
+  const asset = MANIFEST.assets.find((a) => a.key === key);
+  if (!asset) throw new Error(`Blog cover "${key}" is not in media/manifest.json`);
+  const caption = [asset.caption, asset.credit].filter(Boolean).join(' · ');
+  return {
+    type: 'screenshot',
+    mediaId: mediaRef(key),
+    frame: 'none',
+    layout: 'full',
+    ...(caption ? { caption: caption.slice(0, 300) } : {}),
+  } as Block;
+}
+
 export function post(p: PostSpec, index: number): SeedEntry {
   const key = `BLOG_POST:${p.slug}`;
-  const content: Block[] = p.blocks ?? (p.body ? [richText(p.body)] : []);
+  const body: Block[] = p.blocks ?? (p.body ? [richText(p.body)] : []);
+  const content: Block[] = p.cover && body.length ? [coverBlock(p.cover), ...body] : body;
   const written = content.length > 0;
   const notes = `Outline: ${p.outline.join(' · ')}.\n\nEvery number needs a source with a date. No fake authors, customers or surveys.`;
   return {
@@ -96,6 +119,7 @@ export function post(p: PostSpec, index: number): SeedEntry {
       ...(p.tags ?? []).map((ref) => ({ ref, kind: 'TAG' as const })),
       ...(p.related ?? []).map((ref) => ({ ref, kind: 'RELATED' as const })),
     ],
+    ...(p.cover ? { imageId: mediaRef(p.cover), ogImageId: mediaRef(p.cover) } : {}),
     ...(p.seoTitle ? { seoTitle: p.seoTitle } : {}),
     ...(p.seoDescription ? { seoDescription: p.seoDescription } : {}),
     ...(p.focusKeyword ? { focusKeyword: p.focusKeyword } : {}),

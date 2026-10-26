@@ -50,7 +50,7 @@ const entry = industry({
     heading: "Quotations, site deliveries and contractor khata in one app",
     sub: "Quote a contractor at his rate, turn the quotation into a bill, send the goods to site in as many trips as it takes, and see every contractor's udhaar with its age and limit.",
     badges: ["Quotation to bill", "Delivery challans", "Contractor khata"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/hardware/dashboard" },
+    media: { mediaId: SHOT.hardwareQuotations, url: "app.nafaa.pk/hardware/quotations" },
   },
   deepBlocks: [
     steps("A day at the hardware store", [
@@ -62,28 +62,28 @@ const entry = industry({
     ]),
     shot({
       heading: "Reorder before the cement runs out",
-      body: "The low-stock list shows how many days each item will last at its recent selling rate, how much to order and from which supplier, and turns the lines into a purchase order.",
-      id: SHOT.lowStock,
-      url: "app.nafaa.pk/inventory/low-stock",
+      body: "Set a reorder point, an order quantity and a supplier on fast items like cement, pipes and cable. The reorder list then shows what has run out or dropped below its point, how much to order and from whom, and turns the list into a purchase order.",
+      id: SHOT.hardwareReorder,
+      url: "app.nafaa.pk/hardware/reorder-rules",
       layout: "full",
-      caption: "Shared low-stock screen, shown with a demo store's data.",
       callouts: [
-        { x: 61, y: 61, label: "How many days the stock will last" },
-        { x: 71, y: 61, label: "How much to order" },
-        { x: 85, y: 61, label: "Which supplier to order from" },
-        { x: 92, y: 12, label: "Turn the list into a purchase order" },
+        { x: 58.5, y: 57, label: "How much to order" },
+        { x: 67.5, y: 57, label: "Which supplier to order from" },
+        { x: 82, y: 57, label: "Out of stock or running low" },
+        { x: 83, y: 12.3, label: "Turn the list into a purchase order" },
       ],
     }),
     shot({
       heading: "Contractor udhaar you can actually collect",
-      body: "Contractors buy on credit for weeks. The khata shows the total out, how old each amount is and who has crossed their limit, with a reminder one tap away.",
-      id: SHOT.khata,
-      url: "app.nafaa.pk/khata",
+      body: "Contractors buy on credit for weeks. The contractor khata shows the total out, how old each amount is, each contractor's credit limit and days, and who has crossed them, with a payment button on every row.",
+      id: SHOT.hardwareKhata,
+      url: "app.nafaa.pk/hardware/credit-accounts",
       layout: "split-right",
-      caption: "Shared khata screen, shown with demo data.",
       callouts: [
-        { x: 33, y: 19.5, label: "Total udhaar to collect" },
-        { x: 49, y: 31, label: "How long each amount has been pending" },
+        { x: 26, y: 19.5, label: "Total contractor udhaar" },
+        { x: 23, y: 30.6, label: "How old the udhaar is" },
+        { x: 59.5, y: 57, label: "Credit limit and days per contractor" },
+        { x: 89.4, y: 57.8, label: "Record a payment" },
       ],
     }),
     table("Estimate pad or Nafaa?", "How the main jobs of a hardware store compare on an estimate pad and in Nafaa.", [
@@ -115,6 +115,8 @@ Nafaa covers each of these in the hardware setup, together with purchasing, expe
 /** Internal links: the products a hardware store uses, related trades. */
 export default {
   ...entry,
+  seoTitle: 'Hardware Store Software in Pakistan: POS & Khata',
+  seoDescription: 'Software for hardware and building material shops: sizes and shades, contractor and bulk rates, quotations into bills, delivery challans and site khata.',
   relations: [
     { ref: 'PRODUCT:khata', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },
@@ -124,5 +126,8 @@ export default {
     { ref: 'INDUSTRY:retail', kind: 'RELATED' },
     { ref: 'INDUSTRY:electronics', kind: 'RELATED' },
     { ref: 'INDUSTRY:autoparts', kind: 'RELATED' },
+    { ref: 'BLOG_POST:hardware-store-inventory-many-skus', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:delivery-challan', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:quotation', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

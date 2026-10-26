@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichFaisalabad = cityHub({
   slug: 'faisalabad',
+  seoDescription: 'POS, stock and khata software for Faisalabad cloth and yarn dealers, garment shops and agri stores. Sell by metre, bag or piece through FESCO load-shedding.',
   name: 'Faisalabad',
   checkedOn: CHECKED,
   summary:

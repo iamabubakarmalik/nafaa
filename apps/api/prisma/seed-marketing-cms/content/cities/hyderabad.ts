@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichHyderabad = cityHub({
   slug: 'hyderabad',
+  seoDescription: 'POS, stock and khata software for Hyderabad bangle and cosmetics shops, cloth sellers, agri dealers and bakeries. Billing continues through HESCO outages.',
   name: 'Hyderabad',
   checkedOn: CHECKED,
   summary:

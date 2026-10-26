@@ -4,12 +4,14 @@
  * calculated" with sources, examples and FAQs from the body blocks, related
  * pages and a closing CTA. `data.toolKey` picks the island; a `tool` block
  * places it inside the body instead when the editor wants text first.
- * Schema: WebPage + WebApplication (free) + FAQPage (S1 graph).
+ * Schema: WebPage + WebApplication (free) + FAQPage (S1 graph), plus a
+ * HowTo for each `steps` block marked `howTo` (added here as extra nodes).
  */
 import type { PublicEntity, PublicEntry, SiteSettings } from '@/lib/cms/contract/cms-contract';
 import { Container } from '@/components/ui/Container';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { ToolIsland, TOOL_META } from '@/components/islands/tools';
+import { markdownToPlain } from '@/lib/seo/text';
 import { Body, ClosingCta } from '../article/parts/Body';
 import { CardGrid, ContentCard } from '../article/parts/Cards';
 import { FixtureRibbon } from '../article/parts/FixtureRibbon';
@@ -19,11 +21,28 @@ import { PageHeader } from '../article/parts/Headers';
 
 const TYPE_LABEL: Partial<Record<string, string>> = { GUIDE: 'Guide', BLOG_POST: 'Article', TOOL: 'Free tool', GLOSSARY_TERM: 'Glossary', COMPLIANCE: 'Compliance', PRODUCT: 'Product' };
 
+/** HowTo nodes for the entry's "how to use" steps, mirroring the steps shown on the page. */
+function howToNodes(entry: PublicEntry): Record<string, unknown>[] {
+  return entry.blocks.flatMap((block, i) =>
+    block.type === 'steps' && block.howTo === true && !block.hidden
+      ? [
+          {
+            '@type': 'HowTo',
+            '@id': `${entry.url}#howto-${i + 1}`,
+            name: block.heading,
+            tool: { '@id': `${entry.url}#app` },
+            step: block.items.map((item, position) => ({ '@type': 'HowToStep', position: position + 1, name: item.title, text: markdownToPlain(item.body) })),
+          },
+        ]
+      : [],
+  );
+}
+
 export function ToolTemplate({ entry, site, entity }: { entry: PublicEntry; site: SiteSettings; entity: PublicEntity | null }) {
   if (entry.data.type !== 'TOOL') return null;
   const { toolKey } = entry.data;
   const placedInBody = entry.blocks.some((block) => block.type === 'tool' && !block.hidden);
-  const graph = s5Graph({ entry, site, entity });
+  const graph = s5Graph({ entry, site, entity, extra: howToNodes(entry) });
 
   return (
     <>

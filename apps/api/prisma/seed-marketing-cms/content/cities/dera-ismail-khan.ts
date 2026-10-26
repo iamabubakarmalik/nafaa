@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichDeraIsmailKhan = cityHub({
   slug: 'dera-ismail-khan',
+  seoDescription: 'POS, stock and khata software for Dera Ismail Khan bazaar shops, grocery wholesalers, agri dealers and restaurants, with billing that keeps going offline.',
   name: 'Dera Ismail Khan',
   checkedOn: CHECKED,
   summary:

@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichMultan = cityHub({
   slug: 'multan',
+  seoDescription: 'POS, stock and khata software for Multan shops, sweet makers, khussa sellers, agri dealers and restaurants, with billing through MEPCO outages.',
   name: 'Multan',
   checkedOn: CHECKED,
   summary:

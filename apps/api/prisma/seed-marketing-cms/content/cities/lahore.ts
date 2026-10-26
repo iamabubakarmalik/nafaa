@@ -31,6 +31,7 @@ export function enrichLahore(base: SeedEntry): SeedEntry {
   const key = 'CITY:lahore';
   return {
     ...base,
+    seoDescription: 'POS, stock and khata software for Lahore shops, restaurants and businesses. Runs on your own phone or computer, bills without internet and keeps udhaar digital.',
     summary:
       'Nafaa is POS, stock and khata software for shops, restaurants and businesses in Lahore. It runs on the phone or computer you already have, keeps billing without internet, and keeps udhaar in a digital khata, with setup help on WhatsApp.',
     data: {
@@ -124,6 +125,7 @@ Lahore's trade runs from wholesale markets in the old city to restaurant strips 
       { ref: 'INDUSTRY:garments', kind: 'TAG' },
       { ref: 'SOLUTION:retail-chains', kind: 'RELATED' },
       { ref: 'PRODUCT:fbr', kind: 'RELATED' },
+      { ref: 'COMPLIANCE:pra-punjab', kind: 'RELATED' },
     ],
     evidence: ['apps/web/src/core/lib/offline/offlineSales.ts', 'apps/api/src/integrations/tax-authority/adapters.ts', 'apps/web/src/modules/organization/shops', 'apps/web/src/industries'],
     factCheck: {

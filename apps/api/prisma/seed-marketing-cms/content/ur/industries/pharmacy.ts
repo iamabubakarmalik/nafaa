@@ -65,7 +65,7 @@ export const entry: SeedEntry = {
   slug: 'pharmacy',
   title: 'فارمیسی اور میڈیکل اسٹور',
   seoTitle: 'فارمیسی اور میڈیکل اسٹور کے لیے POS اور اسٹاک سافٹ ویئر',
-  seoDescription: 'میڈیکل اسٹور کے لیے Nafaa: دوائیں بیچ اور ایکسپائری کے ساتھ، اسٹاک الرٹ، سپلائر کی خریداری، کھاتہ اور تیز کاؤنٹر بلنگ۔',
+  seoDescription: 'میڈیکل اسٹور کے لیے Nafaa: سالٹ سے دوا کی تلاش، بیچ اور ایکسپائری، کنٹرولڈ دواؤں کا رجسٹر، سپلائر کی خریداری، کھاتہ اور تیز کاؤنٹر بلنگ۔',
   focusKeyword: 'فارمیسی سافٹ ویئر',
   summary:
     'Nafaa پاکستان میں فارمیسی اور میڈیکل اسٹور کے لیے سافٹ ویئر ہے: دوا کو سالٹ یا فارمولے سے ڈھونڈیں اور متبادل دیکھیں، بیچ اور ایکسپائری کا حساب رکھیں، نسخے اور ڈاکٹر محفوظ کریں، کنٹرولڈ اور نارکوٹک دواؤں کی سیل مریض اور ڈاکٹر کی تفصیل کے ساتھ رجسٹر میں لکھیں، اور کولڈ چین کے لیے فریج کا ٹمپریچر درج کریں۔',
@@ -231,6 +231,6 @@ export const entry: SeedEntry = {
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
   needsOwner: ['Any DRAP claim needs a written official source (carried over from the English entry).'],
-  // The English relations point to PRODUCT, SOLUTION, GLOSSARY and other INDUSTRY entries with no Urdu twin yet.
-  relations: [],
+  // Urdu pages link only to entries that have an Urdu version.
+  relations: [{ ref: 'PRODUCT:inventory@ur', kind: 'RELATED' }, { ref: 'PRODUCT:purchasing@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'INDUSTRY:clinic@ur', kind: 'RELATED' }],
 };

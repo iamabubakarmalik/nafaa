@@ -49,7 +49,7 @@ const entry = industry({
     heading: "School sets, books and stationery on one counter",
     sub: "Sell a whole class's book list in one tap during admission season, keep schools and publishers on their own khata, rent books against a deposit, and know what every title earns.",
     badges: ["School book lists", "ISBN search", "Book rentals"],
-    media: { mediaId: SHOT.inventory, url: "app.nafaa.pk/products" },
+    media: { mediaId: SHOT.bookstoreSchoolLists, url: "app.nafaa.pk/bookstore/school-lists" },
   },
   deepBlocks: [
     steps("Admission season at the bookstore", [
@@ -73,14 +73,15 @@ const entry = industry({
     }),
     shot({
       heading: "Schools and parents who pay later",
-      body: "A school that buys on credit gets a khata of its own, and so can a regular parent. See every balance by age and send a polite reminder on WhatsApp.",
-      id: SHOT.khata,
-      url: "app.nafaa.pk/khata",
+      body: "Each school has its own discount, credit days and limit. Book lists are linked to the school, its orders can be billed on udhaar, and the school's khata shows what is still to collect.",
+      id: SHOT.bookstoreSchools,
+      url: "app.nafaa.pk/bookstore/schools",
       layout: "split-right",
-      caption: "The shared khata, shown with demo shop data.",
       callouts: [
-        { x: 25, y: 19, label: "Total to collect" },
-        { x: 90, y: 55, label: "Payment or reminder" },
+        { x: 41.5, y: 54.8, label: "School discount" },
+        { x: 31, y: 63.4, label: "Credit days" },
+        { x: 27.4, y: 67.2, label: "Contact and credit limit" },
+        { x: 35.4, y: 71, label: "Bill the school on udhaar" },
       ],
     }),
     table("Register and lists on paper, or Nafaa?", "How the everyday jobs of a bookstore compare on paper and on Nafaa.", [
@@ -113,6 +114,7 @@ Nafaa does all of this on a phone or computer, and the counter keeps billing dur
 /** Internal links: the products bookstores use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for bookstores and stationery shops: ISBN and publishers, textbooks by class, school book sets, schools on credit and book rentals with a deposit.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

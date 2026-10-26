@@ -19,38 +19,35 @@ import Link from 'next/link';
 import type { Block, EntryCard, PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { blockHeadingId } from '@/components/blocks/BlockRenderer';
 import { CmsIcon } from '@/lib/icons';
-import { livePaths, loadCards } from '../core/data';
+import { uiStrings } from '@/lib/i18n/ui';
+import { liveLinks, loadCards } from '../core/data';
 import { PageFrame, faqPageNode } from '../core/frame';
+import { RelatedPages } from '../core/parts';
 import { Arrow } from '../core/ui';
 import { BuildArt } from '../showcase/BuildArt';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { SectionTitle, ShowcaseSection, TrustRibbon } from '../showcase/kit';
 import { HubCards } from './HubCards';
 
-const HUBS: { path: string; label: string; icon: string; note: string }[] = [
-  { path: '/product', label: 'Product', icon: 'layout-grid', note: 'Everything Nafaa does' },
-  { path: '/solutions', label: 'Solutions', icon: 'network', note: 'Setups by how you sell' },
-  { path: '/industries', label: 'Industries', icon: 'store', note: 'Screens for your trade' },
-  { path: '/services', label: 'Services', icon: 'briefcase', note: 'We build it for you' },
-  { path: '/integrations', label: 'Integrations', icon: 'plug', note: 'Connect your tools' },
-  { path: '/marketplace', label: 'Nafaa Bazaar', icon: 'shopping-basket', note: 'Sell on the marketplace' },
-  { path: '/pricing', label: 'Pricing', icon: 'tag', note: 'Plans in rupees' },
-  { path: '/roadmap', label: 'Roadmap', icon: 'flag', note: 'What comes next' },
+/** Sibling hubs with their icons; labels and notes come from the locale's strings. */
+const HUBS: { path: string; icon: string }[] = [
+  { path: '/product', icon: 'layout-grid' },
+  { path: '/solutions', icon: 'network' },
+  { path: '/industries', icon: 'store' },
+  { path: '/services', icon: 'briefcase' },
+  { path: '/integrations', icon: 'plug' },
+  { path: '/marketplace', icon: 'shopping-basket' },
+  { path: '/pricing', icon: 'tag' },
+  { path: '/roadmap', icon: 'flag' },
 ];
-
-const KICKERS: Record<string, { grid: string; features: string; pill: string }> = {
-  PRODUCT: { grid: 'The platform', features: 'Why Nafaa', pill: 'Platform' },
-  SOLUTION: { grid: 'Solutions', features: 'Capabilities', pill: 'Every business' },
-  SERVICE: { grid: 'Services', features: 'Why us', pill: 'Worldwide' },
-  INDUSTRY: { grid: 'Industries', features: 'Every trade gets', pill: 'Every trade' },
-  INTEGRATION: { grid: 'Integrations', features: 'Connections', pill: 'Connected' },
-};
 
 type GridBlock = Extract<Block, { type: 'entryGrid' }>;
 
 export async function HubTemplate({ entry }: { entry: PublicEntry }) {
+  const ui = uiStrings(entry.locale);
+  const t = ui.pages.hub;
   const grids = entry.blocks.filter((b): b is GridBlock => b.type === 'entryGrid' && b.hidden !== true);
-  const [lists, live] = await Promise.all([
+  const [lists, links] = await Promise.all([
     Promise.all(
       grids.map((g) =>
         loadCards({
@@ -66,13 +63,18 @@ export async function HubTemplate({ entry }: { entry: PublicEntry }) {
         }),
       ),
     ),
-    livePaths(HUBS.map((h) => h.path)),
+    liveLinks(HUBS.map((h) => h.path), entry.locale),
   ]);
   const cardsByGrid = new Map<string, EntryCard[]>(grids.map((g, i) => [g.id, (lists[i] ?? []).filter((c) => c.id !== entry.id)]));
   const items = lists.flat().map((card) => ({ name: card.title, url: card.url }));
-  const siblings = HUBS.filter((h) => h.path !== entry.path && live.has(h.path));
+  const ownPath = entry.path.replace(/^\/ur(?=\/|$)/, '') || '/';
+  const siblings = HUBS.flatMap((h) => {
+    const href = links.get(h.path);
+    const [label, note] = t.hubs[h.path] ?? [h.path, ''];
+    return href && h.path !== ownPath ? [{ ...h, href, label, note }] : [];
+  });
   const hubOf = entry.data.type === 'PAGE' ? entry.data.hubOf : undefined;
-  const words = (hubOf && KICKERS[hubOf]) || { grid: entry.title, features: 'Highlights', pill: 'Nafaa' };
+  const words = (hubOf && t.kickers[hubOf]) || { grid: entry.title, features: t.highlights, pill: 'Nafaa' };
 
   const render = (block: Block) => {
     if (block.type !== 'entryGrid' || block.layout !== 'cards') return undefined;
@@ -93,19 +95,19 @@ export async function HubTemplate({ entry }: { entry: PublicEntry }) {
         showUpdated={false}
         pill={words.pill}
         heroArt={hubOf === 'SERVICE' ? <BuildArt /> : undefined}
-        afterHero={<TrustRibbon className="mb-8" />}
-        kickers={{ featuresGrid: words.features, steps: 'How it works', screenshot: 'Inside the app' }}
+        afterHero={<TrustRibbon locale={entry.locale} className="mb-8" />}
+        kickers={{ featuresGrid: words.features, steps: ui.howItWorks, screenshot: ui.insideTheApp }}
         render={render}
         beforeEnd={
           siblings.length ? (
             <ShowcaseSection labelledBy="hub-siblings" spacing="compact">
               <div className="mx-auto box-content max-w-container px-gutter">
-                <SectionTitle id="hub-siblings" title="More of Nafaa" kicker="Explore" />
+                <SectionTitle id="hub-siblings" title={t.more} kicker={t.explore} />
                 <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   {siblings.map((hub) => (
                     <li key={hub.path}>
                       <Link
-                        href={hub.path}
+                        href={hub.href}
                         prefetch={false}
                         className="group flex items-center gap-3.5 rounded-xl border border-line bg-surface px-4 py-3.5 shadow-e1 transition-[border-color,box-shadow,transform] duration-base hover:-translate-y-0.5 hover:border-line-strong hover:shadow-e2 ink:shadow-none"
                       >
@@ -126,6 +128,7 @@ export async function HubTemplate({ entry }: { entry: PublicEntry }) {
           ) : null
         }
       />
+      <RelatedPages entry={entry} />
     </PageFrame>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * Server entry point for the six calculator islands (ARCH 4.3, contract
+ * Server entry point for the calculator islands (ARCH 4.3, contract
  * ToolKey). The Tool template, and the `tool` block through the template's
  * `renderTool`, render `<ToolIsland toolKey=... />`.
  *
@@ -19,6 +19,14 @@ const PosCostCalculator = dynamic(() => import('./PosCostCalculator'));
 const InvoiceGenerator = dynamic(() => import('./InvoiceGenerator'));
 const GoldRateCalculator = dynamic(() => import('./GoldRateCalculator'));
 const FbrTier1Checker = dynamic(() => import('./FbrTier1Checker'));
+const BreakEvenCalculator = dynamic(() => import('./BreakEvenCalculator'));
+const DiscountCalculator = dynamic(() => import('./DiscountCalculator'));
+const ReorderLevelCalculator = dynamic(() => import('./ReorderLevelCalculator'));
+const KhataAgeingCalculator = dynamic(() => import('./KhataAgeingCalculator'));
+const FoodCostCalculator = dynamic(() => import('./FoodCostCalculator'));
+const BarcodeGenerator = dynamic(() => import('./BarcodeGenerator'));
+const ZakatCalculator = dynamic(() => import('./ZakatCalculator'));
+const ReceiptMaker = dynamic(() => import('./ReceiptMaker'));
 
 async function posPlans(): Promise<PosCostPlan[]> {
   try {
@@ -53,6 +61,22 @@ export async function ToolIsland({ toolKey }: { toolKey: ToolKey }) {
       return <GoldRateCalculator />;
     case 'fbr-tier-1-checker':
       return <FbrTier1Checker />;
+    case 'break-even-calculator':
+      return <BreakEvenCalculator />;
+    case 'discount-calculator':
+      return <DiscountCalculator />;
+    case 'reorder-level-calculator':
+      return <ReorderLevelCalculator />;
+    case 'khata-ageing-calculator':
+      return <KhataAgeingCalculator />;
+    case 'food-cost-calculator':
+      return <FoodCostCalculator />;
+    case 'barcode-generator':
+      return <BarcodeGenerator />;
+    case 'zakat-calculator':
+      return <ZakatCalculator />;
+    case 'receipt-maker':
+      return <ReceiptMaker />;
     default:
       return null;
   }

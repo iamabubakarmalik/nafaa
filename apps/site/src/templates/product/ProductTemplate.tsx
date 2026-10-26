@@ -15,16 +15,18 @@
  * always noindex (robots from the API snapshot).
  */
 import type { EntryCard, PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { uiStrings } from '@/lib/i18n/ui';
 import { CmsIcon } from '@/lib/icons';
-import { livePaths, loadCards, loadPlans } from '../core/data';
+import { liveLinks, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
+import { LinkSections, NextSteps, relatedGroup, type LinkGroup } from '../core/parts';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { TrustRibbon } from '../showcase/kit';
 import { formatDate } from '@/components/blocks/lib/format';
 
 function IntegrationFacts({ entry }: { entry: PublicEntry }) {
   if (entry.data.type !== 'INTEGRATION') return null;
+  const t = uiStrings(entry.locale).pages.product;
   const { category, vendorUrl, verifiedAt } = entry.data;
   let vendorHost: string | null = null;
   try {
@@ -36,12 +38,12 @@ function IntegrationFacts({ entry }: { entry: PublicEntry }) {
     <div className="mx-auto box-content max-w-container px-gutter">
       <dl className="flex flex-wrap gap-x-10 gap-y-4 rounded-lg border border-line bg-surface-2 px-5 py-4 text-small">
         <div>
-          <dt className="text-eyebrow uppercase text-fg-subtle">Category</dt>
+          <dt className="text-eyebrow uppercase text-fg-subtle">{t.category}</dt>
           <dd className="mt-1 font-medium text-fg-strong">{category}</dd>
         </div>
         {vendorUrl && vendorHost ? (
           <div>
-            <dt className="text-eyebrow uppercase text-fg-subtle">Vendor</dt>
+            <dt className="text-eyebrow uppercase text-fg-subtle">{t.vendor}</dt>
             <dd className="mt-1">
               <a href={vendorUrl} rel="noopener" className="inline-flex items-center gap-1 font-medium text-link underline decoration-link/30 underline-offset-2">
                 {vendorHost}
@@ -52,7 +54,7 @@ function IntegrationFacts({ entry }: { entry: PublicEntry }) {
         ) : null}
         {verifiedAt ? (
           <div>
-            <dt className="text-eyebrow uppercase text-fg-subtle">Checked</dt>
+            <dt className="text-eyebrow uppercase text-fg-subtle">{t.checked}</dt>
             <dd className="mt-1 font-medium text-fg-strong">{formatDate(verifiedAt)}</dd>
           </div>
         ) : null}
@@ -64,44 +66,56 @@ function IntegrationFacts({ entry }: { entry: PublicEntry }) {
 export async function ProductTemplate({ entry }: { entry: PublicEntry }) {
   const isIntegration = entry.type === 'INTEGRATION';
   const hasIndustryGrid = entry.blocks.some((b) => b.type === 'entryGrid' && b.entryType === 'INDUSTRY');
-  const [plans, live, taggedIndustries, siblings] = await Promise.all([
+  const ui = uiStrings(entry.locale);
+  const t = ui.pages.product;
+  const [plans, links, taggedIndustries, siblings] = await Promise.all([
     loadPlans(),
-    livePaths(['/pricing', '/product', '/integrations', '/industries', '/roadmap']),
-    hasIndustryGrid ? Promise.resolve([] as EntryCard[]) : loadCards({ type: 'INDUSTRY', tag: entry.id, limit: 6 }),
-    loadCards({ type: entry.type, limit: 12 }),
+    liveLinks(['/pricing', '/product', '/integrations', '/industries', '/roadmap'], entry.locale),
+    hasIndustryGrid ? Promise.resolve([] as EntryCard[]) : loadCards({ type: 'INDUSTRY', locale: entry.locale, tag: entry.id, limit: 6 }),
+    loadCards({ type: entry.type, locale: entry.locale, limit: 12 }),
   ]);
+  const link = (path: string, label: string) => {
+    const href = links.get(path);
+    return href ? { href, label } : undefined;
+  };
 
   const industries = [...(entry.tags.INDUSTRY ?? []), ...taggedIndustries].slice(0, 6);
   const relatedSame = entry.related.filter((c) => c.type === entry.type);
   const relatedOther = entry.related.filter((c) => c.type !== entry.type);
-  const hub = isIntegration ? { href: '/integrations', label: 'All integrations' } : { href: '/product', label: 'All products' };
+  const hubPath = isIntegration ? '/integrations' : '/product';
+  const hubLabel = isIntegration ? t.allIntegrations : t.allProducts;
 
   const groups: LinkGroup[] = [
-    { id: 'industries-using', title: isIntegration ? 'Industries it helps' : 'Industries using it', cards: industries, link: live.has('/industries') ? { href: '/industries', label: 'All industries' } : undefined },
-    { id: 'related', title: 'Related', cards: relatedOther },
+    { id: 'industries-using', title: isIntegration ? t.industriesHelps : t.industriesUsing, cards: industries, link: link('/industries', ui.allIndustries) },
+    { id: 'related', title: t.related, cards: relatedOther },
     {
       id: 'more',
-      title: isIntegration ? 'More integrations' : 'More from Nafaa',
+      title: isIntegration ? t.moreIntegrations : t.moreFrom,
       cards: [...relatedSame, ...siblings].slice(0, 6),
-      link: live.has(hub.href) ? hub : undefined,
+      link: link(hubPath, hubLabel),
     },
+    relatedGroup(entry),
   ];
 
   return (
     <PageFrame entry={entry} plans={plans}>
       <ShowcaseBody
         entry={entry}
-        afterHero={isIntegration ? <IntegrationFacts entry={entry} /> : <TrustRibbon className="mb-4" />}
+        afterHero={isIntegration ? <IntegrationFacts entry={entry} /> : <TrustRibbon locale={entry.locale} className="mb-4" />}
         beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />}
-        kickers={{ featuresGrid: 'Features', steps: 'How it works', screenshot: 'Inside the app' }}
-        pill={isIntegration ? 'Integration' : 'Product'}
+        kickers={{ featuresGrid: t.features, steps: ui.howItWorks, screenshot: ui.insideTheApp }}
+        pill={isIntegration ? t.integrationPill : t.pill}
       />
       <NextSteps
+        locale={entry.locale}
         links={[
-          { href: '/pricing', label: 'See pricing', icon: 'tag' },
-          { href: hub.href, label: hub.label, icon: 'layout-grid' },
-          { href: '/roadmap', label: 'Roadmap', icon: 'flag' },
-        ].filter((link) => live.has(link.href))}
+          { path: '/pricing', label: ui.seePricing, icon: 'tag' },
+          { path: hubPath, label: hubLabel, icon: 'layout-grid' },
+          { path: '/roadmap', label: t.roadmap, icon: 'flag' },
+        ].flatMap(({ path, ...rest }) => {
+          const href = links.get(path);
+          return href ? [{ href, ...rest }] : [];
+        })}
       />
     </PageFrame>
   );

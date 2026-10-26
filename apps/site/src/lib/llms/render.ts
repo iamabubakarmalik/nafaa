@@ -5,6 +5,7 @@
  * site. Format: https://llmstxt.org (H1, blockquote, then H2 link sections).
  */
 import type { LlmsPayload, PublicFaq } from '@/lib/cms/contract/cms-contract';
+import { absoluteUrl } from '@/lib/cms/env';
 import { markdownToPlain } from '@/lib/seo/text';
 
 /** llms-full.txt is capped at 500 KB (ARCH 10). */
@@ -23,6 +24,7 @@ function keyFacts(payload: LlmsPayload): string[] {
   const facts: string[] = [];
   if (entity.plans.length) {
     facts.push(`Plans (monthly, PKR): ${entity.plans.map((p) => `${p.name} ${formatPkr(p.priceMonthly)}`).join(' / ')}`);
+    facts.push(`Pricing source: ${absoluteUrl('/pricing')} (current plan table; prices above are generated from it)`);
   }
   if (entity.counts.industries) facts.push(`Industries covered: ${entity.counts.industries}`);
   if (entity.counts.integrationsLive) facts.push(`Live integrations: ${entity.counts.integrationsLive}`);
@@ -32,6 +34,9 @@ function keyFacts(payload: LlmsPayload): string[] {
   const hq = entity.offices.find((office) => office.isHq);
   if (hq) facts.push(`Head office: ${hq.city}, ${hq.region}, Pakistan`);
   if (entity.foundingDate) facts.push(`Founded: ${entity.foundingDate}`);
+  facts.push(`Website: ${absoluteUrl('/')}`);
+  const contact = [entity.contact.email, entity.contact.phone].filter(Boolean).join(', ');
+  if (contact) facts.push(`Contact: ${contact}`);
   return facts;
 }
 

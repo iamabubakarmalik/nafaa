@@ -7,6 +7,12 @@ export const entry: SeedEntry = {
   type: 'PAGE',
   locale: 'ur',
   slug: 'contact',
+  relations: [
+    { ref: 'PAGE:demo@ur', kind: 'RELATED' },
+    { ref: 'PAGE:faq@ur', kind: 'RELATED' },
+    { ref: 'PAGE:services@ur', kind: 'RELATED' },
+    { ref: 'PAGE:pricing@ur', kind: 'RELATED' },
+  ],
   title: 'Nafaa سے رابطہ',
   summary:
     'Nafaa کی ٹیم سے واٹس ایپ، ای میل یا فون پر بات کریں، یا فارم سے پیغام بھیجیں۔ ہم پلان، سیٹ اپ، دوسرے سسٹم سے ڈیٹا لانے اور آپ کے اپنے سافٹ ویئر پروجیکٹ میں مدد کرتے ہیں۔',

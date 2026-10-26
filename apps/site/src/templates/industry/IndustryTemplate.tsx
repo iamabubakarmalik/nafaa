@@ -21,7 +21,7 @@ import type { CmsEntryType, EntryCard, PublicEntry } from '@/lib/cms/contract/cm
 import { uiStrings, type UiStrings } from '@/lib/i18n/ui';
 import { liveLinks, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
+import { LinkSections, NextSteps, relatedGroup, type LinkGroup } from '../core/parts';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { TrustRibbon } from '../showcase/kit';
 
@@ -60,6 +60,7 @@ export async function IndustryTemplate({ entry }: { entry: PublicEntry }) {
       cards: [...relatedIndustries, ...sameGroup].slice(0, 3),
       link: industriesHref ? { href: industriesHref, label: ui.allIndustries } : undefined,
     },
+    relatedGroup(entry),
   ];
 
   return (

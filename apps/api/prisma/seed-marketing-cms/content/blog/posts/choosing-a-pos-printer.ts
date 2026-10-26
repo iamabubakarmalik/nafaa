@@ -4,13 +4,16 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'choosing-a-pos-printer',
+  seoDescription: 'How to pick a receipt printer in Pakistan: 58mm or 80mm, USB, Bluetooth or serial, cash drawers, kitchen and label printers, and a test to run before you pay.',
   title: 'Choosing a Receipt Printer for Your Shop',
   summary:
     'How to pick a receipt printer for a shop or restaurant in Pakistan: 58mm or 80mm paper, USB, Bluetooth or serial, cash drawers, kitchen printers, label printers and A4 invoices, with a test to run before you pay.',
   category: 'guides',
+  cover: PHOTO.choosingAPosPrinter,
   tags: ['PRODUCT:pos', 'SERVICE:hardware'],
   related: ['BLOG_POST:barcode-setup-guide', 'BLOG_POST:restaurant-kot-system-guide', 'BLOG_POST:best-pos-kiryana-2026'],
   isNew: true,

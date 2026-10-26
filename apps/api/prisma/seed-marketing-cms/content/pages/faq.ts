@@ -8,6 +8,12 @@ import type { SeedEntry } from '../../lib/types';
 export const faqHub: SeedEntry = {
   type: 'PAGE',
   slug: 'faq',
+  relations: [
+    { ref: 'PAGE:pricing', kind: 'RELATED' },
+    { ref: 'PAGE:contact', kind: 'RELATED' },
+    { ref: 'PAGE:demo', kind: 'RELATED' },
+    { ref: 'PAGE:product', kind: 'RELATED' },
+  ],
   title: 'Frequently asked questions',
   summary:
     'Answers about Nafaa: who it is for, devices, working offline, prices and the free trial, FBR and PRA invoicing, khata, online selling and the trade screens for each kind of business.',

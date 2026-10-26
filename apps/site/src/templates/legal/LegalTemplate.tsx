@@ -11,7 +11,7 @@ import { blockOutline } from '@/components/blocks/BlockRenderer';
 import type { PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { Blocks } from '../core/Blocks';
 import { PageFrame } from '../core/frame';
-import { MetaRow } from '../core/parts';
+import { MetaRow, RelatedPages } from '../core/parts';
 import { Updated } from '../core/ui';
 
 export function LegalTemplate({ entry }: { entry: PublicEntry }) {
@@ -62,6 +62,7 @@ export function LegalTemplate({ entry }: { entry: PublicEntry }) {
           </div>
         </div>
       </div>
+      <RelatedPages entry={entry} />
     </PageFrame>
   );
 }

@@ -1,25 +1,42 @@
 /*
- * Print rules for the invoice generator: when the visitor prints, only the
- * invoice sheet is printed, at full width, without the site chrome.
+ * Print rules for the islands that print a sheet (invoice, receipt, barcode
+ * labels): when the visitor prints, only the sheet is printed, from the top
+ * of the page, without the site chrome.
+ *
+ * Every element that neither holds the sheet nor sits inside it is removed;
+ * the sheet's ancestors lose their box styling and positioning, so the
+ * sheet starts at the top of the first page and scroll containers do not
+ * clip it.
  */
 @media print {
-  :global(body):has(.sheet) * {
-    visibility: hidden;
+  :global(body):has(.sheet) *:not(:has(.sheet)):not(.sheet):not(.sheet *) {
+    display: none !important;
   }
 
-  .sheet,
-  .sheet * {
-    visibility: visible;
+  :global(body):has(.sheet) *:has(.sheet) {
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    background: none !important;
+    transform: none !important;
   }
 
   .sheet {
-    position: absolute;
-    inset: 0 0 auto 0;
     margin: 0;
     border: 0;
     border-radius: 0;
     box-shadow: none;
     padding: 0;
     font-size: 12pt;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .receipt {
+    font-size: 10pt;
   }
 }

@@ -17,6 +17,12 @@ const evidence = [
 export const contact: SeedEntry = {
   type: 'PAGE',
   slug: 'contact',
+  relations: [
+    { ref: 'PAGE:demo', kind: 'RELATED' },
+    { ref: 'PAGE:faq', kind: 'RELATED' },
+    { ref: 'PAGE:services', kind: 'RELATED' },
+    { ref: 'PAGE:pricing', kind: 'RELATED' },
+  ],
   title: 'Contact Nafaa',
   summary:
     'Talk to the Nafaa team on WhatsApp, by email or by phone, or send a message with the form. We help with plans, setup, FBR and PRA invoicing, moving from another system and custom software projects.',
@@ -72,6 +78,12 @@ export const contact: SeedEntry = {
 export const demo: SeedEntry = {
   type: 'PAGE',
   slug: 'demo',
+  relations: [
+    { ref: 'PAGE:pricing', kind: 'RELATED' },
+    { ref: 'PAGE:product', kind: 'RELATED' },
+    { ref: 'PAGE:faq', kind: 'RELATED' },
+    { ref: 'PAGE:contact', kind: 'RELATED' },
+  ],
   title: 'Book a demo',
   summary:
     'Book a free live demo of Nafaa. Someone from our team shows you the counter, stock, khata, FBR and PRA invoicing, online orders and reports set up for your type of business, and answers your questions.',

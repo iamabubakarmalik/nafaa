@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichGujrat = cityHub({
   slug: 'gujrat',
+  seoDescription: 'POS, stock and khata software for Gujrat fan and appliance dealers, furniture showrooms and building material shops, with serials, custom orders and qist.',
   name: 'Gujrat',
   checkedOn: CHECKED,
   summary:

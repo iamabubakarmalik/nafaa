@@ -87,3 +87,40 @@ export const GOLD = {
   rattiPerMasha: 8,
   karats: [24, 22, 21, 18] as const,
 } as const;
+
+const PUNJAB_TEXTBOOK_ZAKAT: FactSource = {
+  title: 'Mathematics Grade 7, Financial Arithmetic (Zakat: 2.5%, nisab 7.5 tolas of gold or 52.5 tolas of silver)',
+  publisher: 'Government of the Punjab, elearn.gov.pk',
+  url: 'https://www.elearn.gov.pk/onlinepdf/math/7math/chapter7/files/basic-html/page10.html',
+  checkedAt: '2026-10-26',
+};
+
+const WIKIPEDIA_NISAB: FactSource = {
+  title: 'Nisab (gold and silver standards, and why scholars differ on which to use)',
+  publisher: 'Wikipedia',
+  url: 'https://en.wikipedia.org/wiki/Nisab',
+  checkedAt: '2026-10-26',
+};
+
+/**
+ * Zakat rate and nisab weights. Which metal sets the nisab is a matter of
+ * fiqh, so the tool lets the visitor choose and asks them to confirm with
+ * their own scholar; the rate per tola is always typed by the visitor.
+ */
+export const ZAKAT = {
+  ratePercent: 2.5,
+  nisabTola: { gold: 7.5, silver: 52.5 },
+  source: PUNJAB_TEXTBOOK_ZAKAT,
+  methodSource: WIKIPEDIA_NISAB,
+} as const;
+
+/** GS1 prefixes 200-299 are restricted-circulation numbers: not unique worldwide, fit only for labels used inside one shop or business. */
+export const BARCODE = {
+  inStorePrefixes: '200-299',
+  source: {
+    title: 'List of GS1 prefixes (200-299: restricted circulation numbers)',
+    publisher: 'Wikipedia',
+    url: 'https://en.wikipedia.org/wiki/List_of_GS1_country_codes',
+    checkedAt: '2026-10-26',
+  } satisfies FactSource,
+} as const;

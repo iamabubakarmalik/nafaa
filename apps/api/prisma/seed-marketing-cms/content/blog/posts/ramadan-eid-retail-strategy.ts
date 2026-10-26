@@ -4,15 +4,18 @@
  */
 import { SHOT, diagram, prose, shot, steps } from '../../main-pages/_build';
 import { FAKE_AUTHOR, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'ramadan-eid-retail-strategy',
+  seoDescription: 'How to plan stock, cash, staff and the counter for Ramadan, Chand Raat and Eid: what to order and when, the last-night rush, simple offers and the week after.',
   title: 'Ramadan and Eid Planning for Retail Shops',
   summary:
     'How to plan stock, cash, staff and the counter for Ramadan, Chand Raat and Eid: what to order and when, how to handle late nights and the last-night rush, simple offers that work, and what to do in the quiet week after.',
   category: 'business',
+  cover: PHOTO.ramadanEidRetailStrategy,
   tags: ['INDUSTRY:kiryana', 'INDUSTRY:garments'],
-  related: ['PRODUCT:pos', 'PRODUCT:inventory', 'BLOG_POST:whatsapp-customer-retention', 'BLOG_POST:stock-taking-guide'],
+  related: ['PRODUCT:pos', 'PRODUCT:inventory', 'BLOG_POST:whatsapp-customer-retention', 'BLOG_POST:stock-taking-guide', 'TOOL:zakat-calculator', 'BLOG_POST:festival-season-planning-pakistan'],
   blocks: [
     prose(`For many shops in Pakistan, Ramadan and the run-up to Eid are the busiest weeks of the year. Grocery stores sell more dates, besan, oil, sugar and drinks in the first week of Ramadan than in a normal month. Garments, shoes, bangles and cosmetics shops do a large share of their year's business in the last ten days, with Chand Raat as the single biggest night. Bakeries and sweet shops sell boxes of mithai and sewaiyan by the hundred.
 

@@ -11,6 +11,7 @@ const LOW_SETTINGS = 'apps/web/src/modules/inventory/low-stock/components/Settin
 export const stockTerms: TermSpec[] = [
   {
     slug: 'fifo',
+    seoDescription: 'FIFO (First In, First Out) is the stock rule that the oldest stock is sold first. Here is how it affects shelf order, stock value and profit in a shop.',
     imported: true,
     term: 'FIFO (First In, First Out)',
     definition: 'FIFO is the stock rule that the oldest stock is sold first.',
@@ -31,6 +32,7 @@ Nafaa saves the cost on each bill line at the time of sale, and for batch-tracke
   },
   {
     slug: 'fefo',
+    seoDescription: 'FEFO (First Expiry, First Out) means the batch with the nearest expiry date is sold first, whatever order it arrived in. Pharmacies and food shops rely on it.',
     term: 'FEFO (First Expiry, First Out)',
     definition: 'FEFO is the stock rule that the batch with the nearest expiry date is sold or used first, whatever order it arrived in.',
     definitionRomanUrdu: 'FEFO ka matlab hai jis batch ki expiry sab se qareeb ho woh pehle bike ya istemal ho, chahe woh baad me aaya ho.',
@@ -50,6 +52,7 @@ Batch-tracked products in Nafaa are sold from the branch's batches with the earl
   },
   {
     slug: 'batch-tracking',
+    seoDescription: 'Batch tracking records each purchase lot separately with its own expiry date, so a pharmacy or food shop knows which stock to sell first and what to return.',
     imported: true,
     term: 'Batch Tracking',
     definition: 'Batch tracking records each purchase lot separately with its own expiry date.',
@@ -70,6 +73,7 @@ In Nafaa batches belong to a branch. Receiving a purchase creates or tops up bat
   },
   {
     slug: 'expiry-management',
+    seoDescription: 'Expiry management is tracking expiry dates, selling near-expiry stock in time and removing expired goods before they reach a customer.',
     term: 'Expiry Management',
     definition: 'Expiry management is the routine of tracking expiry dates, selling near-expiry stock in time, and removing or returning expired goods before they reach customers.',
     definitionRomanUrdu: 'Expiry management matlab expiry dates par nazar rakhna, qareeb-ul-expiry maal waqt par bechna, aur expire hone wala maal gahak tak pohanchne se pehle hatana ya wapas karna.',
@@ -146,6 +150,7 @@ Each product in Nafaa can have its own low stock limit. The low stock page also 
   },
   {
     slug: 'landed-cost',
+    seoDescription: 'Landed cost is the full cost of getting goods into your shop: purchase price plus freight, loading, duties and other charges, less any discount.',
     term: 'Landed Cost',
     definition: 'Landed cost is the full cost of getting goods into your shop: the purchase price plus freight, loading, duties, taxes that cannot be claimed back, and other charges, less any discount.',
     definitionRomanUrdu: 'Landed cost maal ko dukaan tak laane ki poori qeemat hai: khareed ki qeemat jama kiraya, loading, duty aur doosre kharchay, minus discount.',
@@ -260,6 +265,7 @@ Stock adjustments in Nafaa record the reason and value and appear in each produc
   },
   {
     slug: 'dead-stock',
+    seoDescription: 'Dead stock is inventory that has not sold for a long time and is unlikely to sell at its normal price. Here is how to spot it early and clear it.',
     term: 'Dead Stock',
     definition: 'Dead stock is inventory that has not sold for a long time and is unlikely to sell at its normal price.',
     definitionRomanUrdu: 'Dead stock woh maal hai jo kaafi arse se nahi bika aur normal qeemat par bikne ka imkaan kam hai.',
@@ -279,6 +285,7 @@ The Nafaa stock report marks dead stock (no sale for a period you choose: 30, 60
   },
   {
     slug: 'abc-analysis',
+    seoDescription: 'ABC analysis sorts products into A, B and C groups by their share of sales or profit, so a shop knows which few items deserve the closest watch.',
     term: 'ABC Analysis',
     definition: 'ABC analysis sorts products into three groups by their share of sales or profit: A for the few that bring most of it, B for the middle, and C for the many that bring little.',
     definitionRomanUrdu: 'ABC analysis products ko teen groups me baantti hai: A jo zyada sale ya profit laate hain, B darmiyan wale, aur C jo bohat se hain magar kam laate hain.',
@@ -298,6 +305,7 @@ Nafaa's profit report lists top earners against top sellers by product, category
   },
   {
     slug: 'inventory-turnover',
+    seoDescription: 'Inventory turnover is how many times a business sells through its average stock in a period: cost of goods sold divided by average stock at cost.',
     term: 'Inventory Turnover',
     definition: 'Inventory turnover is how many times a business sells through its average stock in a period, calculated as cost of goods sold divided by average stock at cost.',
     definitionRomanUrdu: 'Inventory turnover batata hai ke ek muddat me average stock kitni baar bik kar dobara aaya: COGS taqseem average stock (cost par).',
@@ -317,6 +325,7 @@ Nafaa's low stock page shows how many days each item's stock will last at its re
   },
   {
     slug: 'stock-valuation',
+    seoDescription: 'Stock valuation is the money value of the inventory a business holds on a date, usually counted at cost. Here is how shops in Pakistan work it out.',
     term: 'Stock Valuation',
     definition: 'Stock valuation is the money value of the inventory a business holds on a date, usually counted at cost.',
     definitionRomanUrdu: 'Stock valuation kisi tareekh par dukaan me maujood maal ki raqam hai, aam taur par cost par gini jati hai.',
@@ -336,6 +345,7 @@ The Nafaa stock report shows stock and its value by branch, with filters for ite
   },
   {
     slug: 'wastage',
+    seoDescription: 'Wastage is stock that is damaged, spoilt, expired or used up without being sold, and must be written off. Here is how shops record and reduce it.',
     term: 'Wastage',
     definition: 'Wastage is stock that is damaged, spoilt, expired or used up without being sold, and must be written off.',
     definitionRomanUrdu: 'Wastage woh maal hai jo toot jaye, kharab ho, expire ho ya bike baghair zaya ho jaye aur use khaate se nikalna pare.',
@@ -450,6 +460,7 @@ Nafaa bakeries keep raw materials with recipe costing at today's rates, and rest
   },
   {
     slug: 'work-order',
+    seoDescription: 'A work order is an instruction to carry out a job, such as a repair, installation or production run, with the work, parts and person responsible.',
     term: 'Work Order',
     definition: 'A work order is an instruction to carry out a specific job, such as a repair, an installation or a production run, with the work, parts and person responsible.',
     definitionRomanUrdu: 'Work order ek khaas kaam ki hidayat hai, jaise marammat, installation ya production, jis me kaam, parts aur zimmedar shakhs likha hota hai.',

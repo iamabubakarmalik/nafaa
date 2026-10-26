@@ -27,6 +27,7 @@ import { jumpItemsFromBlocks } from '../city/common/jump';
 import { loadPlans, summarisePlans, type NafaaPriceSummary } from '../city/common/plans';
 import { stringsFor, type TemplateStrings } from '../city/common/strings';
 import { JumpNav, MetaBar, SourceNote, TemplateFrame } from '../city/common/ui';
+import { RelatedSection } from '../city/common/related';
 import styles from '../city/common/s4.module.css';
 
 type BestOfData = Extract<EntryData, { type: 'BEST_OF' }>;
@@ -214,6 +215,7 @@ export async function BestOfTemplate({ entry }: { entry: PublicEntry }) {
             </>
           ),
           ...(at && at.type !== 'hero' ? { after: { [at.id]: list } } : {}),
+          end: <RelatedSection entry={entry} />,
         }}
       />
     </TemplateFrame>

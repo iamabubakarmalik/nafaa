@@ -47,7 +47,7 @@ const entry = industry({
     heading: "Pet food, live animals and grooming in one app",
     sub: "Keep a health record for every animal you sell, book grooming visits with your groomers, sell food by the pack or by weight, and catch vet medicine before it expires.",
     badges: ["Animal health records", "Grooming slots", "Medicine expiry"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.petshopAnimals, url: "app.nafaa.pk/petshop/live-animals" },
   },
   deepBlocks: [
     steps("A day at the pet shop", [
@@ -58,16 +58,17 @@ const entry = industry({
       ["Closing", "Check animals on hold for customers and write the day's vaccine and vet visits on their records."],
     ]),
     shot({
-      heading: "Animals, grooming and expiry on one dashboard",
-      body: "The pet shop dashboard puts grooming appointments and pickups, live animals and their health, and medicines near expiry beside today's sale, profit and cash.",
-      id: SHOT.dashboard,
-      url: "app.nafaa.pk/dashboard",
+      heading: "Grooming bookings for the day",
+      body: "Book each grooming with the pet's name, breed, the owner's phone and the service, from a bath to full grooming. The day's list shows the time, the charge and what is still to collect, and each booking moves from start to pickup.",
+      id: SHOT.petshopGrooming,
+      url: "app.nafaa.pk/petshop/grooming",
       layout: "full",
-      caption: "The shared dashboard, shown with demo data; pet shop widgets sit on the same page.",
       callouts: [
-        { x: 28, y: 27, label: "Today's sale and bills" },
-        { x: 24, y: 52, label: "Profit after cost and expenses" },
-        { x: 40, y: 72, label: "What needs you today" },
+        { x: 24.4, y: 54.6, label: "Pet and breed" },
+        { x: 27, y: 56.6, label: "Owner and service" },
+        { x: 69, y: 55.5, label: "Booked time" },
+        { x: 80.3, y: 55.5, label: "Charge and balance" },
+        { x: 94, y: 55.5, label: "Start the grooming" },
       ],
     }),
     shot({
@@ -112,6 +113,7 @@ Nafaa covers each of these on the phone or computer at your counter, and keeps b
 /** Internal links: the products pet shops use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for pet shops and vet stores: food, accessories and vet medicine at the counter, live animals with health records, and grooming appointments.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

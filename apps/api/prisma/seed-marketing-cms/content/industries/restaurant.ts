@@ -110,7 +110,7 @@ A restaurant is judged on two things at once: food that reaches the table on tim
 - **Route dishes to stations.** A karahi and a mint margarita should not print on the same slip. Each category should go to its own printer or screen.
 - **Show the kitchen what is late.** Tickets that change colour as they wait help a head cook more than any report.
 - **Handle the floor.** Moving guests to another table, merging tables, voiding a dish and splitting the bill are daily events, not exceptions.
-- **Know your food cost.** Recipes that take ingredients out of stock and show plate cost at today's rates tell you which dishes to reprice.
+- **Know your food cost.** Recipes that take ingredients out of stock and show plate cost at today's rates tell you which dishes to reprice. To check one dish first, try the free [food cost calculator](/tools/food-cost-calculator).
 - **Run delivery properly.** Riders, their trips and the cash they carry need their own record.
 - **Keep billing during load-shedding or a dropped connection.**
 
@@ -122,6 +122,7 @@ Nafaa covers each of these in the restaurant setup. Cafes and fast-food counters
 /** Internal links: the restaurant solution, the products a restaurant uses and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Restaurant and cafe software for dine-in, takeaway and delivery: table layout, KOT to each kitchen station, add-ons, recipes, riders and split bills.',
   relations: [
     { ref: 'SOLUTION:restaurants', kind: 'TAG' },
     { ref: 'PRODUCT:pos', kind: 'TAG' },
@@ -131,5 +132,12 @@ export default {
     { ref: 'INDUSTRY:bakery', kind: 'RELATED' },
     { ref: 'INDUSTRY:hotel', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:kot', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:srb-sindh', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:pra-punjab', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:kpra-khyber-pakhtunkhwa', kind: 'RELATED' },
+    { ref: 'TOOL:food-cost-calculator', kind: 'RELATED' },
+    { ref: 'BLOG_POST:restaurant-menu-engineering', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:kitchen-display-system', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:modifiers', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

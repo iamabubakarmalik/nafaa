@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichSargodha = cityHub({
   slug: 'sargodha',
+  seoDescription: 'POS, stock and khata software for Sargodha fruit traders, agri dealers, jewellers, cloth and shoe shops and bakeries. Bills through power cuts without internet.',
   name: 'Sargodha',
   checkedOn: CHECKED,
   summary:

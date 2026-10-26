@@ -7,6 +7,7 @@ import { EV, SRC, type TermSpec } from './_term';
 export const foodHealthTerms: TermSpec[] = [
   {
     slug: 'kot',
+    seoDescription: 'A KOT (Kitchen Order Ticket) tells the kitchen what to cook for an order, on paper or on a screen. Here is how restaurants route KOTs to each station.',
     imported: true,
     term: 'KOT (Kitchen Order Ticket)',
     definition: 'A KOT is the ticket, printed or on a screen, that tells the kitchen what to cook for an order.',
@@ -27,6 +28,7 @@ The Nafaa restaurant pack sends KOTs per station, with only new items sent when 
   },
   {
     slug: 'kitchen-display-system',
+    seoDescription: 'A kitchen display system (KDS) is a kitchen screen that shows incoming orders instead of printed tickets, where cooks mark dishes as cooking and ready.',
     term: 'Kitchen Display System (KDS)',
     definition: 'A kitchen display system is a screen in the kitchen that shows incoming orders in place of printed tickets, and lets cooks mark dishes as cooking and ready.',
     definitionRomanUrdu: 'Kitchen display system kitchen me lagi screen hai jo printed parchi ki jagah order dikhati hai aur cook dishes ko "ban raha" aur "tayyar" mark karte hain.',
@@ -46,6 +48,7 @@ The Nafaa kitchen display shows tickets per station in new, cooking and ready la
   },
   {
     slug: 'table-turnover',
+    seoDescription: 'Table turnover is how many times a restaurant table is used by new guests during a meal period or a day. Here is how to measure and improve it.',
     term: 'Table Turnover',
     definition: 'Table turnover is how many times a restaurant table is used by new guests during a meal period or a day.',
     definitionRomanUrdu: 'Table turnover batata hai ke ek khane ke waqt ya din me ek table par kitni baar naye mehman baithe.',
@@ -103,6 +106,7 @@ In Nafaa, recipes are set on the shared product editor and their cost follows pu
   },
   {
     slug: 'menu-engineering',
+    seoDescription: 'Menu engineering reviews each dish by how often it sells and how much it earns, to decide which dishes to promote, reprice, change or drop.',
     term: 'Menu Engineering',
     definition: 'Menu engineering is the review of each dish by how often it sells and how much profit it earns, to decide which dishes to promote, reprice, change or remove.',
     definitionRomanUrdu: 'Menu engineering har dish ko is hisaab se dekhti hai ke woh kitni bikti hai aur kitna profit deti hai, taake faisla ho ke kis ko aage karein, qeemat badlein ya menu se hatayein.',
@@ -141,6 +145,7 @@ The Nafaa restaurant pack can split a table's order by items into separate bills
   },
   {
     slug: 'service-charge',
+    seoDescription: 'A service charge is a percentage or fixed amount a restaurant or service business adds to the bill for service, separate from food prices and tax.',
     term: 'Service Charge',
     definition: 'A service charge is a percentage or fixed amount a restaurant or service business adds to the bill for service, separate from the price of food and from tax.',
     definitionRomanUrdu: 'Service charge woh percentage ya fixed raqam hai jo restaurant ya service karobar bill par service ke liye lagata hai, khane ki qeemat aur tax se alag.',
@@ -160,6 +165,7 @@ An open restaurant order in Nafaa can carry a service charge percentage along wi
   },
   {
     slug: 'modifiers',
+    seoDescription: 'Modifiers are options chosen with a menu item, such as extras, removals, spice level or size. They can change the price and go to the kitchen with the order.',
     term: 'Modifiers (Add-ons)',
     definition: 'Modifiers are options a customer chooses with an item, such as extras, removals, spice level or size, which may change the price and are passed to the kitchen.',
     definitionRomanUrdu: 'Modifiers woh options hain jo gahak item ke saath chunta hai, jaise extra cheese, pyaz ke baghair, mirch ka level ya size, jo qeemat badal sakte hain aur kitchen tak jaate hain.',
@@ -179,6 +185,7 @@ The Nafaa restaurant pack has add-on groups for extras, removals, spice, cooking
   },
   {
     slug: 'drap',
+    seoDescription: 'DRAP, the Drug Regulatory Authority of Pakistan, is the federal body that regulates medicines. Here is what it means for pharmacies and medical stores.',
     imported: true,
     term: 'DRAP',
     definition: 'DRAP, the Drug Regulatory Authority of Pakistan, is the federal body that regulates medicines in Pakistan.',
@@ -224,6 +231,7 @@ The Nafaa pharmacy pack records each medicine's salts and strength. The salts pa
   },
   {
     slug: 'controlled-drugs-register',
+    seoDescription: 'A controlled drugs register is a pharmacy\'s record of every purchase and sale of narcotic and restricted medicines, with patient and prescriber details.',
     term: 'Controlled Drugs Register',
     definition: 'A controlled drugs register is a record a pharmacy keeps of every purchase and sale of narcotic and other restricted medicines, with patient and prescriber details.',
     definitionRomanUrdu: 'Controlled drugs register woh record hai jo pharmacy narcotic aur doosri pabandi wali dawaiyon ki har khareed aur bikri ka rakhti hai, mareez aur doctor ki tafseel ke saath.',

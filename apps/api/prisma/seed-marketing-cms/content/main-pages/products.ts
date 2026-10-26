@@ -91,7 +91,7 @@ The owner also decides what the counter shows: product images, categories, quick
 
 Most billing software is built for one price per item and one way to pay. Pakistani counters are different: the same cooking oil sells by the bottle and by the carton, regular customers pay at the end of the month, and more and more bills are paid on JazzCash or Easypaisa. Nafaa handles all of that on one screen, in English or Roman Urdu.
 
-It is also built for the realities of load-shedding and weak signal. The counter does not stop when the internet does, and the Windows desktop app prints straight to the receipt printer and opens the cash drawer without extra clicks.`),
+It is also built for the realities of load-shedding and weak signal. The counter does not stop when the internet does, and the Windows desktop app prints straight to the receipt printer and opens the cash drawer without extra clicks. If you are still choosing, the [guide to POS software in Pakistan](/best/pos-software-pakistan) lists what to check in any demo.`),
     pricing('Start free, upgrade when you grow'),
   ],
   faqKeys: ['mp-pos-hardware', 'mp-pos-payments', ...COMMON_FAQ],
@@ -113,6 +113,10 @@ It is also built for the realities of load-shedding and weak signal. The counter
     { ref: 'PRODUCT:payments', kind: 'RELATED' },
     { ref: 'PRODUCT:offline-pos', kind: 'RELATED' },
     { ref: 'PRODUCT:fbr', kind: 'RELATED' },
+    { ref: 'BEST_OF:pos-software-pakistan', kind: 'RELATED' },
+    { ref: 'ALTERNATIVE:desktop-pos-alternative', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:hold-bill', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:customer-display', kind: 'RELATED' },
   ],
   sortOrder: 1,
   featured: true,
@@ -224,7 +228,9 @@ Any business that buys goods and sells them on: kiryana and general stores with 
 - **Units.** Can you buy a carton of 24 and sell single pieces without doing the maths yourself?
 - **Re-import safety.** If you import the same file twice, does stock double? In Nafaa, "set stock to the file" posts only the difference.
 - **A reason for every change.** Damage, adjustments and transfers should leave a trail with a name, so a missing carton can be traced.
-- **Speed of change.** Price rises come often. A bulk editor that saves only the changed cells saves an evening of typing.`),
+- **Speed of change.** Price rises come often. A bulk editor that saves only the changed cells saves an evening of typing.
+
+For the routines behind good stock, from reorder levels to counting without closing the shop, read the [inventory management guide](/guides/inventory-management-small-business).`),
   ],
   faqKeys: ['mp-inventory-import', 'mp-branches-transfer', 'offline'],
   cta: { heading: 'Put your stock in order this week', body: 'Import or paste your products and see your real stock value today.' },
@@ -245,6 +251,13 @@ Any business that buys goods and sells them on: kiryana and general stores with 
     { ref: 'PRODUCT:pos', kind: 'RELATED' },
     { ref: 'PRODUCT:purchasing', kind: 'RELATED' },
     { ref: 'PRODUCT:multi-shop', kind: 'RELATED' },
+    { ref: 'GUIDE:inventory-management-small-business', kind: 'RELATED' },
+    { ref: 'BEST_OF:inventory-software-pakistan', kind: 'RELATED' },
+    { ref: 'ALTERNATIVE:excel-alternative', kind: 'RELATED' },
+    { ref: 'TOOL:reorder-level-calculator', kind: 'RELATED' },
+    { ref: 'TEMPLATE:stock-take-sheet', kind: 'RELATED' },
+    { ref: 'TEMPLATE:product-import-template', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:opening-stock', kind: 'RELATED' },
   ],
   sortOrder: 2,
   featured: true,
@@ -335,7 +348,7 @@ const khata = page({
     shot({ heading: 'Balances in your pocket', body: 'The khata works on a phone, so you can answer "kitna banta hai?" from home or the market, not only at the counter. Payments taken without internet are saved on the phone and sync later.', id: SHOT.khataPhone, frame: 'phone', layout: 'split-left' }),
     prose(`## Why a digital khata beats the register
 
-A paper register cannot remind anyone, cannot add up ageing, and is lost the day it gets wet. With Nafaa, the khata is written by the counter itself, so there are no missed entries, and every balance can be shown to the customer line by line. Shops that move their old register into Nafaa usually start with the opening balances only, using the "Purana khata" entry, then let the counter do the rest.
+A paper register cannot remind anyone, cannot add up ageing, and is lost the day it gets wet. For limits, reminders and old balances, read the [udhaar and khata guide](/guides/managing-udhaar-and-khata). With Nafaa, the khata is written by the counter itself, so there are no missed entries, and every balance can be shown to the customer line by line. Shops that move their old register into Nafaa usually start with the opening balances only, using the "Purana khata" entry, then let the counter do the rest.
 
 ## Who it is for
 
@@ -364,6 +377,12 @@ Any business that sells on trust: kiryana and general stores with monthly accoun
     { ref: 'BLOG_POST:digital-khata-vs-paper-ledger', kind: 'RELATED' },
     { ref: 'PRODUCT:pos', kind: 'RELATED' },
     { ref: 'PRODUCT:whatsapp-sms', kind: 'RELATED' },
+    { ref: 'GUIDE:managing-udhaar-and-khata', kind: 'RELATED' },
+    { ref: 'BEST_OF:khata-apps-compared', kind: 'RELATED' },
+    { ref: 'ALTERNATIVE:paper-khata-register', kind: 'RELATED' },
+    { ref: 'TOOL:khata-ageing-calculator', kind: 'RELATED' },
+    { ref: 'TEMPLATE:khata-udhaar-register', kind: 'RELATED' },
+    { ref: 'BLOG_POST:cash-vs-credit-sales', kind: 'RELATED' },
   ],
   sortOrder: 3,
   featured: true,
@@ -468,7 +487,7 @@ Services are taxed by the provinces. Restaurants, cafes, salons, gyms and other 
 
 ## Before you switch to live
 
-Register the POS with your authority and get the POS ID and credentials for each branch, enter them in Nafaa, and send a test bill to the sandbox. When the test is accepted, switch to live. Our team can do this with you as a paid setup if you prefer.`),
+Register the POS with your authority ([FBR](/compliance/fbr-pos-integration), [PRA](/compliance/pra-punjab), [SRB](/compliance/srb-sindh) or [KPRA](/compliance/kpra-khyber-pakhtunkhwa)) and get the POS ID and credentials for each branch, enter them in Nafaa, and send a test bill to the sandbox. When the test is accepted, switch to live. Our team can do this with you as a paid setup if you prefer.`),
   ],
   faqKeys: ['mp-fbr-who', 'mp-fbr-offline', 'offline'],
   cta: { heading: 'Get compliant without changing how you sell', body: 'Our team can set up the integration with you. Start with the free trial.' },
@@ -487,6 +506,10 @@ Register the POS with your authority and get the POS ID and credentials for each
     { ref: 'GLOSSARY_TERM:ntn', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:strn', kind: 'RELATED' },
     { ref: 'BLOG_POST:fbr-e-invoicing-complete-guide-2026', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:fbr-pos-integration', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:pra-punjab', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:srb-sindh', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:kpra-khyber-pakhtunkhwa', kind: 'RELATED' },
   ],
   sortOrder: 4,
   featured: true,
@@ -609,6 +632,8 @@ Garment, shoe and cosmetics shops that sell on Instagram and a website, electron
     { ref: 'GLOSSARY_TERM:cod', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory', kind: 'RELATED' },
     { ref: 'PRODUCT:payments', kind: 'RELATED' },
+    { ref: 'GUIDE:start-selling-online-pakistan', kind: 'RELATED' },
+    { ref: 'BLOG_POST:selling-online-pakistan', kind: 'RELATED' },
   ],
   sortOrder: 5,
   featured: true,
@@ -736,6 +761,8 @@ Owners with a second shop in another bazaar, chains of pharmacies or grocery sto
     { ref: 'PRODUCT:reports', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory', kind: 'RELATED' },
     { ref: 'PRODUCT:staff', kind: 'RELATED' },
+    { ref: 'BLOG_POST:opening-a-second-branch', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:stock-transfer', kind: 'RELATED' },
   ],
   sortOrder: 6,
   evidence: [
@@ -849,6 +876,9 @@ Owners who close the shop and still do not know what they earned that day. A kir
     { ref: 'SOLUTION:enterprise', kind: 'RELATED' },
     { ref: 'PRODUCT:multi-shop', kind: 'RELATED' },
     { ref: 'PRODUCT:ai-assistant', kind: 'RELATED' },
+    { ref: 'BLOG_POST:how-to-read-profit-and-loss-report', kind: 'RELATED' },
+    { ref: 'BLOG_POST:daily-cash-closing-routine', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:day-book', kind: 'RELATED' },
   ],
   sortOrder: 7,
   evidence: [
@@ -956,6 +986,8 @@ Every counter that takes more than cash: a kiryana where half the bills are paid
     { ref: 'PRODUCT:online-store', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:raast', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:cod', kind: 'RELATED' },
+    { ref: 'GLOSSARY_TERM:ibft', kind: 'RELATED' },
+    { ref: 'BLOG_POST:digital-payments-jazzcash-easypaisa-raast', kind: 'RELATED' },
   ],
   sortOrder: 8,
   evidence: [
@@ -1063,6 +1095,9 @@ Shops in markets with weak signal, counters on a mobile hotspot, branches outsid
     { ref: 'SOLUTION:retail-chains', kind: 'TAG' },
     { ref: 'PRODUCT:pos', kind: 'RELATED' },
     { ref: 'PRODUCT:khata', kind: 'RELATED' },
+    { ref: 'BEST_OF:pos-software-pakistan', kind: 'RELATED' },
+    { ref: 'ALTERNATIVE:desktop-pos-alternative', kind: 'RELATED' },
+    { ref: 'BLOG_POST:load-shedding-proof-billing', kind: 'RELATED' },
   ],
   sortOrder: 9,
   evidence: [
@@ -1172,6 +1207,8 @@ Kiryana and general stores buying from distributors several times a week, pharma
     { ref: 'GLOSSARY_TERM:fifo', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory', kind: 'RELATED' },
     { ref: 'PRODUCT:reports', kind: 'RELATED' },
+    { ref: 'TEMPLATE:purchase-order-template', kind: 'RELATED' },
+    { ref: 'TOOL:reorder-level-calculator', kind: 'RELATED' },
   ],
   sortOrder: 10,
   evidence: [
@@ -1275,6 +1312,7 @@ Owners who cannot stand at the counter all day: a kiryana with two cashiers and 
     { ref: 'SOLUTION:restaurants', kind: 'TAG' },
     { ref: 'PRODUCT:multi-shop', kind: 'RELATED' },
     { ref: 'PRODUCT:reports', kind: 'RELATED' },
+    { ref: 'BLOG_POST:hire-and-train-counter-staff', kind: 'RELATED' },
   ],
   sortOrder: 11,
   evidence: [
@@ -1383,6 +1421,7 @@ Any shop whose customers live on WhatsApp, which in Pakistan is nearly all of th
     { ref: 'PRODUCT:pos', kind: 'RELATED' },
     { ref: 'PRODUCT:loyalty', kind: 'RELATED' },
     { ref: 'BLOG_POST:digital-khata-vs-paper-ledger', kind: 'RELATED' },
+    { ref: 'BLOG_POST:whatsapp-business-for-shops', kind: 'RELATED' },
   ],
   sortOrder: 12,
   evidence: [
@@ -1487,6 +1526,7 @@ Shops where the same people buy every week: grocery and kiryana stores, pharmaci
     { ref: 'PRODUCT:pos', kind: 'RELATED' },
     { ref: 'PRODUCT:whatsapp-sms', kind: 'RELATED' },
     { ref: 'PRODUCT:reports', kind: 'RELATED' },
+    { ref: 'BLOG_POST:loyalty-programs-pakistan', kind: 'RELATED' },
   ],
   sortOrder: 13,
   evidence: [

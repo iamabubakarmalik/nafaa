@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichMingora = cityHub({
   slug: 'mingora',
+  seoDescription: 'POS, stock and khata software for Mingora hotels, restaurants, wholesalers supplying Swat and shawl shops, with trade credit and room bills in one app.',
   name: 'Mingora',
   checkedOn: CHECKED,
   summary:

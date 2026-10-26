@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichBahawalpur = cityHub({
   slug: 'bahawalpur',
+  seoDescription: 'POS, stock and khata software for Bahawalpur agri dealers, dairy and meat shops, cloth and shoe sellers and cafes, with farmer and household credit in a khata.',
   name: 'Bahawalpur',
   checkedOn: CHECKED,
   summary:

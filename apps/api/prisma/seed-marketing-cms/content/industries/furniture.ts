@@ -45,7 +45,7 @@ const entry = industry({
     heading: "Showroom sales, made-to-order work and deliveries in one place",
     sub: "Quote a custom bed, take the advance, put a karigar on it, follow it to the customer's door and bill it when it leaves, while the showroom keeps selling ready stock.",
     badges: ["Custom orders", "Karigar pay", "Delivery and fitting"],
-    media: { mediaId: SHOT.khata, url: "app.nafaa.pk/khata" },
+    media: { mediaId: SHOT.furnitureOrders, url: "app.nafaa.pk/furniture/custom-orders" },
   },
   deepBlocks: [
     steps("A custom order from quote to delivery", [
@@ -110,6 +110,7 @@ Nafaa covers each of these on a phone or computer, with the same counter, khata 
 /** Internal links: the products furniture businesses use, the matching solutions and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for furniture showrooms with workshops: custom orders against a deposit, karigar workload, deliveries with assembly, and khata for part payments.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },

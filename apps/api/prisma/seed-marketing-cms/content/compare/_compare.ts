@@ -34,6 +34,7 @@ export interface CompareSpec {
   dropped: string[];
   needsOwner: string[];
   seoDescription?: string;
+  seoTitle?: string;
 }
 
 export function src(title: string, url: string, publisher: string): Source {
@@ -86,6 +87,7 @@ export function comparePage(p: CompareSpec, index: number): SeedEntry {
     ]),
     relations: p.relations,
     ...(p.seoDescription ? { seoDescription: p.seoDescription } : {}),
+    ...(p.seoTitle ? { seoTitle: p.seoTitle } : {}),
     sortOrder: index + 1,
     origin: `${ORIGIN}#${p.slug}`,
     evidence: p.evidence,

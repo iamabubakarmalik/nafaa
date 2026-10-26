@@ -5,6 +5,7 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { FAKE_AUTHOR, src, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const SOURCES = [
   src('Punjab Food Authority: Apply for license', 'https://pfa.gop.pk/for-businesses/apply-for-license/', 'Punjab Food Authority'),
@@ -13,12 +14,14 @@ const SOURCES = [
 
 const spec: PostSpec = {
   slug: 'how-to-start-kiryana-store-pakistan',
+  seoDescription: 'A practical plan for opening a kiryana store in Pakistan: location, budget, registration, first stock, prices, the counter setup and the first 90 days.',
   title: 'How to Start a Kiryana Store in Pakistan',
   summary:
     'A practical plan for opening a kiryana or general store: choosing the location, working out your budget, registration, buying the first stock, setting prices, setting up the counter and getting through the first 90 days.',
   category: 'guides',
+  cover: PHOTO.howToStartKiryanaStorePakistan,
   tags: ['INDUSTRY:kiryana', 'GLOSSARY_TERM:udhaar'],
-  related: ['SOLUTION:single-shop', 'PRODUCT:pos', 'BLOG_POST:how-to-calculate-profit-margin', 'BLOG_POST:digital-khata-vs-paper-ledger'],
+  related: ['SOLUTION:single-shop', 'PRODUCT:pos', 'BLOG_POST:how-to-calculate-profit-margin', 'BLOG_POST:digital-khata-vs-paper-ledger', 'GUIDE:running-a-retail-shop-pakistan'],
   blocks: [
     prose(`A kiryana store looks simple from the customer's side of the counter: shelves of atta, ghee, daal, soap and biscuits, a fridge of milk and drinks, and an owner who knows everyone by name. From the owner's side it is a business of thin margins, fast turnover and a lot of small decisions. Done well it is steady, everyday income. Done carelessly, money disappears into udhaar, expired stock and items that never sell.
 

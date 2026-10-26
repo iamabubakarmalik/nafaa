@@ -1,0 +1,341 @@
+/** Urdu: enterprise solution page (/ur/solutions/enterprise). Translation of content/main-pages/solutions.ts (enterprise). */
+import type { SeedEntry, SeedFaq } from '../../../lib/types';
+import { SHOT } from '../../main-pages/_build';
+
+export const faqs: SeedFaq[] = [
+  {
+    key: 'ur-sol-enterprise-api',
+    locale: 'ur',
+    topic: 'solutions',
+    question: 'بڑی کمپنی کے لیے کیا Nafaa ہمارے دوسرے سسٹمز سے جڑ سکتا ہے؟',
+    answer:
+      'جی ہاں۔ Nafaa کا API پروڈکٹس، اسٹاک، کسٹمرز، سیل اور آن لائن آرڈر پڑھتا ہے اور کسٹمر بنا بھی سکتا ہے، ان keys سے جو آپ سیٹنگز میں بناتے ہیں۔ Webhooks آپ کے سسٹمز کو بتاتے ہیں جب کوئی سیل یا آرڈر ہو۔ اکاؤنٹنگ جرنل QuickBooks، Xero یا Zoho Books میں جاتے ہیں، اور ہماری ٹیم کوئی بھی کنیکٹر بنا سکتی ہے جس کی آپ کو ضرورت ہو۔',
+    sourceNote: 'integrations/public-api (api-keys, webhooks, events); integrations/accounting.',
+    origin: 'translation of faq mp-enterprise-api',
+    evidence: ['apps/api/src/integrations/public-api', 'apps/api/src/integrations/accounting'],
+  },
+  {
+    key: 'ur-sol-enterprise-permissions',
+    locale: 'ur',
+    topic: 'product',
+    question: 'کئی برانچوں والی کمپنی میں کیا اسٹاف کو ڈسکاؤنٹ یا ریفنڈ دینے سے روک سکتے ہیں؟',
+    answer:
+      'جی ہاں۔ ہر اسٹاف ممبر کو ایک رول ملتا ہے جس کی اپنی اجازتیں ہوتی ہیں، اور کاؤنٹر کے رولز طے کرتے ہیں کہ کس کام کے لیے مینیجر چاہیے۔ پہلے سے ریفنڈ کے لیے مینیجر PIN چاہیے، اور آپ کی رکھی حد سے زیادہ ڈسکاؤنٹ کے لیے بھی۔ ہر حساس کام ایکٹیویٹی لاگ میں کرنے والے کے نام کے ساتھ لکھا جاتا ہے۔',
+    sourceNote: 'core/security/ManagerPin.tsx; counter rules (refund PIN default on, discount limit); reports/activity-log.',
+    origin: 'translation of faq mp-staff-permissions',
+    evidence: ['apps/web/src/core/security/ManagerPin.tsx', 'apps/web/src/modules/reports/activity-log', 'apps/web/src/modules/hr/staff'],
+  },
+  {
+    key: 'ur-sol-enterprise-data-out',
+    locale: 'ur',
+    topic: 'solutions',
+    question: 'کیا کمپنی اپنا سارا ڈیٹا Nafaa سے باہر نکال سکتی ہے؟',
+    answer:
+      'جی ہاں۔ ایکسپورٹس سے کسی بھی مدت اور برانچ کے کاروباری ریکارڈ کی Excel فائلیں ملتی ہیں، اور یہ ریکارڈ بھی کہ کس نے کون سی فائل ڈاؤن لوڈ کی۔ مالک سارے ریکارڈ کا بیک اپ ایک فائل میں بھی ڈاؤن لوڈ کر سکتا ہے۔ ایکسپورٹ اور بیک اپ پلان کے فیچر ہیں؛ قیمتوں کا صفحہ بتاتا ہے کہ کن پلانز میں شامل ہیں۔',
+    sourceNote: 'ExportsPage (Excel, download history); BackupPage (owner-only JSON backup).',
+    origin: 'translation of faq sol-ent-data-out',
+    evidence: ['apps/web/src/modules/reports/exports/pages/ExportsPage.tsx', 'apps/web/src/modules/backup/pages/BackupPage.tsx'],
+  },
+  {
+    key: 'ur-sol-enterprise-accounting',
+    locale: 'ur',
+    topic: 'solutions',
+    question: 'Nafaa ہمارے اکاؤنٹنگ سافٹ ویئر میں کمپنی کے اعداد و شمار کیسے بھیجتا ہے؟',
+    answer:
+      'Nafaa ہر دن کا ایک خلاصہ جرنل Zoho Books، QuickBooks یا Xero میں بھیجتا ہے: سیل، ڈسکاؤنٹ، ادھار، ریفنڈ اور ایکسپینس، آپ کے اپنے اکاؤنٹس کے ساتھ ملا کر، اور ادائیگی کا ہر طریقہ اس اکاؤنٹ میں جاتا ہے جو آپ چنیں۔ Tally کے لیے Nafaa ہر دن کے سیل، رسید اور ادائیگی کے واؤچرز کی فائل بناتا ہے جو امپورٹ ہو سکتی ہے۔',
+    sourceNote: 'AccountingPage (daily summary journal, payment-method mapping); TallyCard (voucher file).',
+    origin: 'translation of faq sol-ent-accounting',
+    evidence: [
+      'apps/web/src/integrations/accounting/AccountingPage.tsx',
+      'apps/web/src/integrations/accounting/TallyCard.tsx',
+      'apps/api/src/integrations/accounting',
+    ],
+  },
+  {
+    key: 'ur-sol-enterprise-migration',
+    locale: 'ur',
+    topic: 'services',
+    question: 'کمپنی کے پرانے سسٹم سے Nafaa میں کیا کیا منتقل ہو سکتا ہے؟',
+    answer:
+      'قیمت، کاسٹ، بارکوڈ اور اسٹاک کے ساتھ پروڈکٹس، پرانے ادھار کے ساتھ کسٹمرز، اور سپلائرز اس کے ساتھ جو آپ نے انہیں دینا ہے۔ ہم Excel یا CSV فائلیں، پرانے سافٹ ویئر کا ایکسپورٹ یا رجسٹر کی تصویریں لیتے ہیں۔ پروڈکٹس ایپ کے اپنے امپورٹ سے پہلے آزمائشی چلا کر جاتی ہیں، بیلنس پرانے کھاتے اور سپلائر بیلنس کے طور پر جاتے ہیں، اور شروع کرنے سے پہلے ہم آپ کے ساتھ ٹوٹل چیک کرتے ہیں۔',
+    sourceNote: 'Product bulk import (dry run); customer opening balance (Purana khata); supplier opening balance.',
+    origin: 'translation of faq mp-migration-what',
+    evidence: [
+      'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx',
+      'apps/web/src/modules/customers',
+      'apps/web/src/modules/purchasing/suppliers',
+    ],
+  },
+  {
+    key: 'ur-sol-enterprise-export',
+    locale: 'ur',
+    topic: 'product',
+    question: 'کیا کئی برانچوں کی رپورٹس Excel یا اکاؤنٹنٹ کے سافٹ ویئر میں جا سکتی ہیں؟',
+    answer:
+      'جی ہاں۔ رپورٹس Excel میں ایکسپورٹ ہوتی ہیں اور PDF میں پرنٹ ہوتی ہیں، تاکہ آپ پارٹنر کو دے سکیں یا ریکارڈ میں رکھ سکیں۔ جن کاروباروں کا اکاؤنٹنٹ ہے وہ ہر دن کی سیل، واپسی، ایکسپینس اور ادائیگیاں جرنل کی صورت میں QuickBooks، Xero یا Zoho Books میں بھیج سکتے ہیں، یا Tally کے لیے ایکسپورٹ کر سکتے ہیں۔',
+    sourceNote: 'reports/exports; integrations/accounting (QuickBooks, Xero, Zoho adapters; Tally export).',
+    origin: 'translation of faq mp-reports-export',
+    evidence: ['apps/web/src/modules/reports/exports', 'apps/api/src/integrations/accounting'],
+  },
+];
+
+export const entry: SeedEntry = {
+  type: 'SOLUTION',
+  locale: 'ur',
+  slug: 'enterprise',
+  title: 'انٹرپرائز',
+  summary:
+    'بڑے کاروباروں کے لیے Nafaa کئی برانچیں، ٹیمیں اور سسٹم جوڑتا ہے: ہر شخص اور برانچ کی اپنی اجازتیں، آڈٹ اور ایکٹیویٹی لاگ، Nafaa کا API اور webhooks، QuickBooks، Xero یا Zoho Books میں روز کے اکاؤنٹنگ جرنل، صرف مالک کا بیک اپ، اور ہماری اپنی ٹیم سے کسٹم ماڈیول اور ڈیٹا منتقلی۔',
+  data: {
+    icon: 'landmark',
+    shortName: 'انٹرپرائز',
+    outcome: 'برانچیں، سسٹم اور ٹیمیں جڑی ہوئی',
+    segment: 'انٹرپرائز',
+    status: 'live',
+  },
+  blocks: [
+    {
+      type: 'hero',
+      eyebrow: 'انٹرپرائز کے لیے',
+      heading: 'ایسا بزنس پلیٹ فارم جو آپ کی کمپنی میں فٹ ہو',
+      sub: 'ہر برانچ Nafaa پر چلائیں اور اسے ان سسٹمز سے جوڑیں جو آپ کے پاس پہلے سے ہیں: اکاؤنٹنگ روز کے جرنل سے، آپ کی اپنی ایپس API اور webhooks سے، اور آن لائن چینل تیار کنکشنز سے۔ باقی ہماری ٹیم بناتی ہے۔',
+      primaryCta: { label: 'سیلز سے بات کریں', href: '#quote', variant: 'primary', trackAs: 'hero_demo' },
+      secondaryCta: { label: 'API کی دستاویز پڑھیں', href: '/developers', variant: 'secondary', trackAs: 'hero_docs' },
+      badges: ['API اور webhooks', 'اکاؤنٹنگ سنک', 'آڈٹ لاگ'],
+      media: {
+        kind: 'diagram',
+        diagram: {
+          kind: 'hub',
+          center: { label: 'Nafaa', icon: 'layers' },
+          spokes: [
+            { label: 'برانچیں', icon: 'building-2' },
+            { label: 'API اور webhooks', icon: 'webhook' },
+            { label: 'اکاؤنٹنگ', icon: 'file-spreadsheet' },
+            { label: 'اسٹاف اور اجازتیں', icon: 'users' },
+            { label: 'آن لائن چینل', icon: 'globe' },
+            { label: 'Nafaa Bazaar', icon: 'store' },
+          ],
+        },
+      },
+      layout: 'split',
+      id: 'b00762812bf8',
+    },
+    {
+      type: 'answerBox',
+      facts: [
+        { label: 'پیمانہ', value: 'ایک اکاؤنٹ میں کئی برانچیں اور ٹیمیں' },
+        { label: 'کنٹرول', value: 'ہر شخص اور برانچ کی اجازتیں، مینیجر PIN، آڈٹ اور ایکٹیویٹی لاگ' },
+        { label: 'جوڑیں', value: 'REST API، webhooks، QuickBooks، Xero، Zoho Books، Tally ایکسپورٹ' },
+        { label: 'ہماری ٹیم', value: 'کسٹم ماڈیول، انٹیگریشن، ڈیٹا منتقلی اور ٹریننگ' },
+      ],
+      romanUrdu:
+        'Bari companies ke liye: bohat si branches, har shakhs ki alag ijazat, audit log, API aur webhooks, accounting software se roz ka hisaab, aur hamari team se custom modules aur data migration.',
+      id: 'bee8b592b282',
+    },
+    {
+      type: 'featuresGrid',
+      heading: 'انٹرپرائز کی ضرورتیں، پوری',
+      columns: 3,
+      items: [
+        { icon: 'building-2', title: 'کئی برانچیں', body: 'برانچ کا تجزیہ، برانچ کا پرافٹ اینڈ لاس، اور پوری کمپنی میں ٹرانسفر۔' },
+        { icon: 'user-cog', title: 'اجازتیں', body: 'تیار رول، پھر ہر شخص کی اپنی اجازتوں اور برانچوں کی لسٹ۔' },
+        { icon: 'eye', title: 'آڈٹ کا ریکارڈ', body: 'خطرے والے کاموں کے لیے نگرانی، اور ایکٹیویٹی لاگ کہ کس نے کیا بدلا۔' },
+        { icon: 'braces', title: 'API اور webhooks', body: 'پروڈکٹس، اسٹاک، کسٹمرز، سیل اور آرڈر پڑھیں؛ واقعات ہوتے ہی خبر پائیں۔' },
+        { icon: 'file-spreadsheet', title: 'اکاؤنٹنگ سنک', body: 'QuickBooks، Xero یا Zoho Books میں روز کے جرنل، یا Tally ایکسپورٹ۔' },
+        { icon: 'code-xml', title: 'کسٹم ماڈیول', body: 'ہماری ٹیم وہ اسکرینیں اور کنیکٹر بناتی ہے جو آپ کے طریقے کو چاہییں۔' },
+      ],
+      id: 'bcd9f4f3720f',
+    },
+    {
+      type: 'diagram',
+      heading: 'ہر برانچ، ایک ڈیش بورڈ',
+      caption: 'ہر برانچ اپنے بل اور اسٹاک خود سنبھالتی ہے؛ ہیڈ آفس سب کو لائیو دیکھتا ہے اور ان کے بیچ اسٹاک منتقل کرتا ہے۔',
+      diagram: { kind: 'multi-branch', animate: true },
+      theme: 'muted',
+      id: 'b45ff5a6788e',
+    },
+    {
+      type: 'diagram',
+      heading: 'آپ کا ڈیٹا کہاں جا سکتا ہے',
+      caption: 'کاروباری ڈیٹا Nafaa سے آپ کے دوسرے سسٹمز تک جانے کا ہر راستہ، ہر ایک اجازتوں سے کنٹرول اور ریکارڈ میں درج۔',
+      diagram: {
+        kind: 'hub',
+        center: { label: 'آپ کا Nafaa ڈیٹا', icon: 'database' },
+        spokes: [
+          { label: 'REST API', icon: 'braces', href: '/developers' },
+          { label: 'سائن شدہ webhooks', icon: 'webhook' },
+          { label: 'اکاؤنٹنگ جرنل', icon: 'file-spreadsheet' },
+          { label: 'Tally واؤچر فائل', icon: 'book-open' },
+          { label: 'Excel ایکسپورٹ', icon: 'download' },
+          { label: 'مالک کا بیک اپ', icon: 'lock' },
+        ],
+        animate: true,
+      },
+      theme: 'muted',
+      id: 'bbae858398d4',
+    },
+    {
+      type: 'comparisonTable',
+      heading: 'وہ کنٹرول جن کے بارے میں IT اور فنانس پوچھتے ہیں',
+      caption: 'رسائی، آڈٹ اور ڈیٹا کے لیے Nafaa آج کیا کرتا ہے۔ ہر لائن ایپ کی ایک اسکرین ہے۔',
+      columns: [
+        { key: 'nafaa', label: 'Nafaa میں', highlight: true },
+        { key: 'where', label: 'کہاں' },
+      ],
+      rows: [
+        {
+          label: 'رسائی',
+          cells: {
+            nafaa: { value: 'ہر شخص کا اپنا لاگ اِن؛ تیار رول ایک بار اجازتیں بھر دیتے ہیں، پھر ہر شخص کی اپنی لسٹ رہتی ہے، صرف اس کی برانچوں تک' },
+            where: { value: 'اسٹاف، رول اور اجازتیں' },
+          },
+        },
+        {
+          label: 'حساس کام',
+          cells: {
+            nafaa: { value: 'پہلے سے ریفنڈ کے لیے مینیجر PIN چاہیے؛ ہاتھ سے ڈسکاؤنٹ کی حد ہے؛ بل منسوخ کرنا اور قیمت بدلنا لاگ ہوتا ہے' },
+            where: { value: 'کاؤنٹر سیٹنگز' },
+          },
+        },
+        {
+          label: 'آڈٹ',
+          cells: {
+            nafaa: { value: 'منسوخ بل، ریفنڈ، بڑے ڈسکاؤنٹ، کاسٹ سے کم پر سیل، دراز میں کمی، مال کو ختم لکھنا، اور ناکام یا نئی ڈیوائس سے لاگ اِن' },
+            where: { value: 'نگرانی' },
+          },
+        },
+        {
+          label: 'تبدیلیوں کی تاریخ',
+          cells: {
+            nafaa: { value: 'کس نے کیا اور کب بدلا، فلٹر کے ساتھ، اور CSV میں ایکسپورٹ' },
+            where: { value: 'ایکٹیویٹی لاگ' },
+          },
+        },
+        {
+          label: 'ڈیٹا باہر',
+          cells: {
+            nafaa: { value: 'Excel ایکسپورٹ ڈاؤن لوڈ کے ریکارڈ کے ساتھ، اور سارے ریکارڈ کا صرف مالک والا بیک اپ ایک فائل میں' },
+            where: { value: 'ایکسپورٹ اور بیک اپ' },
+          },
+        },
+        {
+          label: 'فنانس',
+          cells: {
+            nafaa: { value: 'QuickBooks، Xero یا Zoho Books میں روز کے جرنل، اور Tally ایکسپورٹ' },
+            where: { value: 'اکاؤنٹنگ' },
+          },
+        },
+      ],
+      id: 'bb72a1d6e339',
+    },
+    {
+      type: 'diagram',
+      heading: 'اپنے سسٹم جوڑیں',
+      caption: 'آپ کے سسٹم Nafaa کا API کال کرتے ہیں؛ جب سیل، اسٹاک یا آرڈر بدلتے ہیں تو Nafaa سائن شدہ webhooks بھیجتا ہے۔',
+      diagram: { kind: 'api-webhooks', animate: true },
+      theme: 'muted',
+      id: 'bcfc2dfb8ed7',
+    },
+    {
+      type: 'screenshot',
+      heading: 'پوری کمپنی ایک نظر میں',
+      body: 'ہیڈ آفس کسی بھی مدت کے لیے ہر برانچ کا موازنہ کرتا ہے، جبکہ ہر برانچ اپنا دن خود چلاتی ہے۔',
+      mediaId: SHOT.branches,
+      frame: 'browser',
+      url: 'app.nafaa.pk/branches',
+      layout: 'split-right',
+      id: 'b4da189f27c5',
+    },
+    {
+      type: 'steps',
+      heading: 'انٹرپرائز میں Nafaa کیسے شروع ہوتا ہے',
+      items: [
+        { title: 'سمجھنا', body: 'ہم آپ کی برانچیں، رول، ریٹ لسٹیں اور وہ سسٹم لکھتے ہیں جن سے Nafaa کو بات کرنی ہے۔' },
+        { title: 'ڈیٹا منتقلی', body: 'پروڈکٹس، کسٹمرز، بیلنس اور سپلائرز امپورٹ ہوتے ہیں اور آپ کے ساتھ چیک ہوتے ہیں۔' },
+        { title: 'انٹیگریشن', body: 'اکاؤنٹنگ اور آپ کے اپنے سسٹم API اور webhooks سے جوڑے جاتے ہیں۔' },
+        { title: 'ٹریننگ اور شروعات', body: 'ٹیموں کو برانچ برانچ ٹریننگ دی جاتی ہے، پھر ہر برانچ لائیو ہوتی ہے۔' },
+      ],
+      id: 'ba7e2e41aa19',
+    },
+    {
+      type: 'screenshot',
+      heading: 'ساری سیٹنگز ایک جگہ',
+      body: 'کاروبار کی تفصیل، یوزرز، کاؤنٹر رولز، ٹیکس اور سیٹ اپ کی صحت کا چیک، تاکہ ہیڈ آفس دیکھ سکے کہ اکاؤنٹ کا ہر حصہ کس طرح سیٹ ہے۔',
+      mediaId: SHOT.settings,
+      frame: 'browser',
+      url: 'app.nafaa.pk/settings',
+      layout: 'split-left',
+      id: 'b101ff8eedad',
+    },
+    {
+      type: 'richText',
+      markdown:
+        '## جب تیار پروڈکٹ کافی نہ ہو\n\nبڑے کاروبار کسی بھی سافٹ ویئر میں پوری طرح فٹ نہیں ہوتے۔ Nafaa ہر برانچ کا روز کا کام سنبھالتا ہے، اور جو کمی رہ جائے وہ تین میں سے کسی ایک طریقے سے پوری ہوتی ہے:\n\n1. **سیٹنگز۔** اجازتیں، کاؤنٹر رولز، رسید کا ڈیزائن، قیمت کے یونٹ اور کاروبار کی اسکرینیں سیٹنگز ہیں، کوڈ نہیں۔\n2. **انٹیگریشن۔** [ڈویلپر API](/developers) اور سائن شدہ webhooks سے آپ کے اپنے سسٹم Nafaa کا ڈیٹا پڑھ سکتے ہیں اور سیل اور آرڈر پر ردعمل دے سکتے ہیں۔ اکاؤنٹنگ روز کے جرنل سے جڑتی ہے۔\n3. **کسٹم ماڈیول۔** جب کوئی طریقہ صرف آپ کی کمپنی کا ہو، تو Nafaa کی انجینئرنگ ٹیم اسے [کسٹم سافٹ ویئر](/ur/services/custom-software) پروجیکٹ کے طور پر بناتی ہے، لکھے ہوئے اسکوپ اور ایک طے شدہ قیمت کے ساتھ۔\n\nہر شروعات میں [ڈیٹا منتقلی](/ur/services/data-migration) اور رول کے حساب سے [ٹریننگ](/ur/services/training) شامل ہے، تاکہ ٹیمیں پہلے دن سے اپنی پروڈکٹس، کسٹمرز اور بیلنس کے ساتھ کام شروع کریں۔',
+      id: 'b1e67fc8344a',
+    },
+    {
+      type: 'leadForm',
+      anchor: 'quote',
+      heading: 'ہماری ٹیم سے بات کریں',
+      intro: 'ہمیں اپنی برانچوں، ٹیموں اور ان سسٹمز کے بارے میں بتائیں جن سے Nafaa کو جڑنا ہے۔ ہم سوالات اور شروعات کے پلان کے ساتھ جواب دیتے ہیں، عام طور پر ایک کاروباری دن میں۔',
+      form: 'contact',
+      formType: 'ENTERPRISE',
+      subjectPrefix: 'Enterprise',
+      successMessage: 'شکریہ! آپ کی درخواست ہمیں مل گئی ہے، ہم ایک کاروباری دن میں ای میل یا واٹس ایپ پر جواب دیں گے۔',
+      currencies: ['PKR', 'USD'],
+      whatsapp: true,
+      id: 'b43d6d05331d',
+    },
+    { type: 'faq', heading: 'عام سوالات', id: 'bedeb59bfbb3' },
+    {
+      type: 'cta',
+      heading: 'ہماری ٹیم کے ساتھ اپنی شروعات کا پلان بنائیں',
+      body: 'ہمیں اپنی برانچوں اور سسٹمز کے بارے میں بتائیں۔ ہم ایک پلان کے ساتھ جواب دیں گے۔',
+      primaryCta: { label: 'سیلز سے بات کریں', href: 'demo', variant: 'primary', trackAs: 'cta_demo' },
+      secondaryCta: { label: 'واٹس ایپ پر پوچھیں', href: 'whatsapp', variant: 'ghost', trackAs: 'whatsapp' },
+      id: 'b061d97613d0',
+    },
+  ],
+  faqKeys: [
+    'ur-sol-enterprise-api',
+    'ur-sol-enterprise-permissions',
+    'ur-sol-enterprise-data-out',
+    'ur-sol-enterprise-accounting',
+    'ur-sol-enterprise-migration',
+    'ur-sol-enterprise-export',
+  ],
+  relations: [
+    { ref: 'PRODUCT:multi-shop@ur', kind: 'TAG' },
+    { ref: 'PRODUCT:staff@ur', kind: 'TAG' },
+    { ref: 'PRODUCT:reports@ur', kind: 'TAG' },
+    { ref: 'PRODUCT:online-store@ur', kind: 'TAG' },
+    { ref: 'SERVICE:custom-software@ur', kind: 'TAG' },
+    { ref: 'SERVICE:data-migration@ur', kind: 'TAG' },
+    { ref: 'SERVICE:training@ur', kind: 'TAG' },
+    { ref: 'INDUSTRY:retail@ur', kind: 'TAG' },
+    { ref: 'INDUSTRY:pharmacy@ur', kind: 'TAG' },
+  ],
+  seoTitle: 'پاکستان میں انٹرپرائز POS اور بزنس سافٹ ویئر',
+  seoDescription:
+    'برانچیں، اجازتیں، آڈٹ لاگ، API اور webhooks اور اکاؤنٹنگ سنک، Nafaa کی ٹیم سے کسٹم ماڈیول اور ڈیٹا منتقلی کے ساتھ۔ ہم سے بات کریں۔',
+  focusKeyword: 'انٹرپرائز POS سافٹ ویئر پاکستان',
+  sortOrder: 7,
+  origin: 'translation of content/main-pages/solutions.ts (26 Oct 2026)',
+  evidence: [
+    'apps/web/src/modules/organization/shops/pages/ShopsOverviewPage.tsx',
+    'apps/web/src/modules/hr/staff/components/RolesPanel.tsx',
+    'apps/web/src/modules/hr/staff/components/PermissionPicker.tsx',
+    'apps/web/src/core/security/ManagerPin.tsx',
+    'apps/web/src/modules/reports/audit/pages/AuditPage.tsx',
+    'apps/web/src/modules/reports/activity-log/pages/ActivityLogPage.tsx',
+    'apps/web/src/modules/reports/exports/pages/ExportsPage.tsx',
+    'apps/web/src/modules/backup/pages/BackupPage.tsx',
+    'apps/web/src/integrations/accounting/AccountingPage.tsx',
+    'apps/web/src/integrations/developer/DeveloperPage.tsx',
+    'apps/api/src/integrations/public-api',
+    'apps/api/src/integrations/accounting',
+  ],
+  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  dropped: [],
+  needsOwner: [],
+};

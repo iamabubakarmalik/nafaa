@@ -188,6 +188,8 @@ export const PLATFORM_STAT_METRICS: readonly StatMetric[] = ['platform.bills30d'
 export const TOOL_KEYS = [
   'gst-calculator', 'profit-margin-calculator', 'pos-cost-calculator',
   'invoice-generator', 'gold-rate-calculator', 'fbr-tier-1-checker',
+  'break-even-calculator', 'discount-calculator', 'reorder-level-calculator', 'khata-ageing-calculator',
+  'food-cost-calculator', 'barcode-generator', 'zakat-calculator', 'receipt-maker',
 ] as const;
 export const toolKeySchema = z.enum(TOOL_KEYS);
 export type ToolKey = z.infer<typeof toolKeySchema>;

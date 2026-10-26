@@ -45,7 +45,7 @@ export const faqs: SeedFaq[] = [
     topic: 'pricing',
     question: 'Nafaa کی قیمت کتنی ہے؟',
     answer:
-      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
+      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/ur/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
     sourceNote: 'Plan table (GET /api/plans): free-trial description "koi credit card nahi chahiye". Prices come from tokens.',
     origin: 'translation of faq pricing',
     evidence: ['apps/api/src/modules/billing/plans/plans.service.ts'],
@@ -58,7 +58,7 @@ export const entry: SeedEntry = {
   slug: 'retail',
   title: 'جنرل ریٹیل دکان',
   seoTitle: 'جنرل ریٹیل دکان کے لیے POS، اسٹاک اور کھاتہ سافٹ ویئر',
-  seoDescription: 'ریٹیل دکان کے لیے Nafaa: تیز کاؤنٹر، بارکوڈ، اسٹاک الرٹ، ادھار کا ڈیجیٹل کھاتہ اور پرافٹ کی رپورٹ، ایک ہی ایپ میں۔',
+  seoDescription: 'ریٹیل دکان کے لیے Nafaa: کوئک کیز اور بارکوڈ والا تیز کاؤنٹر، اسٹاک الرٹ، Excel سے امپورٹ، ادھار کا ڈیجیٹل کھاتہ اور پرافٹ کی رپورٹ، ایک ہی ایپ میں۔',
   focusKeyword: 'ریٹیل دکان سافٹ ویئر',
   summary:
     'جو دکان کسی خاص انڈسٹری میں نہیں آتی، Nafaa اس کے لیے بھی کام کرتا ہے: کوئک کیز اور بارکوڈ والا تیز کاؤنٹر، کومبو، کم اسٹاک اور خراب مال کے ریکارڈ کے ساتھ اسٹاک، Excel سے بلک امپورٹ، ادھار کے لیے ڈیجیٹل کھاتہ، اور سیل اور پرافٹ کی رپورٹس، سب ایک ایپ میں۔',
@@ -228,5 +228,8 @@ export const entry: SeedEntry = {
   needsOwner: [],
   relations: [
     { ref: 'INDUSTRY:kiryana@ur', kind: 'RELATED' },
+    { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
+    { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' },
+    { ref: 'SOLUTION:single-shop@ur', kind: 'RELATED' },
   ],
 };

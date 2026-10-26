@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichSahiwal = cityHub({
   slug: 'sahiwal',
+  seoDescription: 'POS, stock and khata software for Sahiwal dairies and milk shops, feed and agri dealers, butchers and grocers, with farmer credit in a digital khata.',
   name: 'Sahiwal',
   checkedOn: CHECKED,
   summary:

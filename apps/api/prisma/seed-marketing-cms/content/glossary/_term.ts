@@ -23,6 +23,10 @@ export interface TermSpec {
   term: string;
   /** One sentence, shown under the H1 (max 400 characters). */
   definition: string;
+  /** Meta description (120-160 characters) when the definition is too short or too long for one. */
+  seoDescription?: string;
+  /** Page title when the pattern would run past 60 characters. */
+  seoTitle?: string;
   definitionRomanUrdu: string;
   /** Markdown; a short worked example from a Pakistani business. */
   example: string;
@@ -52,13 +56,13 @@ export const SRC = {
   fbrDi: source('FBR: Digital invoicing legal provisions', 'https://fbr.gov.pk/di-legal-provisions/173967/173968', 'Federal Board of Revenue'),
   fbrStBasics: source('FBR: Sales Tax Basics', 'https://fbr.gov.pk/sales-tax-basics/51148/101149', 'Federal Board of Revenue'),
   fbrActs: source('FBR: Acts, Rules and Ordinances', 'https://fbr.gov.pk/act-rules-ordinances/131226', 'Federal Board of Revenue'),
-  fbrWht: source('FBR: Withholding tax rates', 'https://fbr.gov.pk/withholding-tax-rates/51147/81155', 'Federal Board of Revenue'),
+  fbrWht: source('FBR: Withholding tax rates', 'https://fbr.gov.pk/withholding-taxes-rate-card/174298/174301', 'Federal Board of Revenue'),
   fbrAtl: source('FBR: Active Taxpayer List (Income Tax)', 'https://fbr.gov.pk/categ/active-taxpayer-list-income-tax/51147/30859/71167', 'Federal Board of Revenue'),
   fbrAtlSt: source('FBR: Active Taxpayer List (Sales Tax)', 'https://fbr.gov.pk/atl-sales-tax/163223', 'Federal Board of Revenue'),
   iris: source('FBR IRIS taxpayer portal', 'https://iris.fbr.gov.pk/public/txplogin.xhtml', 'Federal Board of Revenue'),
   pra: source('Punjab Revenue Authority', 'https://pra.punjab.gov.pk/', 'Punjab Revenue Authority'),
   praEims: source('PRA electronic invoice monitoring (e-IMS)', 'https://e.pra.punjab.gov.pk/public/eims.xhtml', 'Punjab Revenue Authority'),
-  srb: source('Sindh Revenue Board', 'https://srb.gos.pk', 'Sindh Revenue Board'),
+  srb: source('Sindh Revenue Board', 'https://www.srb.gos.pk/srb/', 'Sindh Revenue Board'),
   kpra: source('Khyber Pakhtunkhwa Revenue Authority', 'https://kpra.kp.gov.pk', 'Khyber Pakhtunkhwa Revenue Authority'),
   dirbs: source('PTA Device Identification, Registration and Blocking System (DIRBS)', 'https://dirbs.pta.gov.pk/', 'Pakistan Telecommunication Authority'),
   drap: source('Drug Regulatory Authority of Pakistan', 'https://www.dra.gov.pk/', 'Drug Regulatory Authority of Pakistan'),
@@ -173,6 +177,8 @@ export function term(t: TermSpec, index: number): SeedEntry {
     },
     blocks: withIds(key, [richText(t.body)]),
     relations: (t.related ?? []).map((ref) => ({ ref, kind: 'RELATED' as const })),
+    ...(t.seoTitle ? { seoTitle: t.seoTitle } : {}),
+    ...(t.seoDescription ? { seoDescription: t.seoDescription } : {}),
     sortOrder: index + 1,
     origin: t.imported ? `${OLD_ORIGIN}#${t.slug} (expanded 26 Oct 2026)` : NEW_ORIGIN,
     evidence: t.evidence ?? [],

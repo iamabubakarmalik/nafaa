@@ -3,8 +3,9 @@
  * qualified person, premises, suppliers, first stock, pricing and systems.
  * No fees or licence categories stated; sources are DRAP and Punjab health.
  */
-import { prose, steps } from '../../main-pages/_build';
+import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { CHECKED_ON, checkRules, sourcesBlock, src, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const SOURCES = [
   src('PMU Provincial DRAP: sale licensing, inspections and pharmacy management in Punjab', 'https://mss.pshealthpunjab.gov.pk/PublicHome/PmuProvincialDrap', 'Primary & Secondary Healthcare Department, Punjab'),
@@ -15,12 +16,14 @@ const SOURCES = [
 
 const spec: PostSpec = {
   slug: 'how-to-start-a-pharmacy-pakistan',
+  seoDescription: 'The steps to open a pharmacy in Pakistan: location, drug sale licence and qualified person, premises, licensed suppliers, first stock and records from day one.',
   title: 'How to Start a Pharmacy or Medical Store in Pakistan',
   summary:
     'The steps to open a pharmacy or medical store: choosing the location, the drug sale licence and qualified person, setting up the premises, finding licensed suppliers, building the first stock, pricing, and the systems that keep you compliant from day one.',
   category: 'industry',
+  cover: PHOTO.howToStartAPharmacyPakistan,
   tags: ['INDUSTRY:pharmacy', 'GLOSSARY_TERM:drap', 'GLOSSARY_TERM:batch-tracking'],
-  related: ['BLOG_POST:drap-compliance-pharmacy', 'PRODUCT:inventory', 'GLOSSARY_TERM:fifo'],
+  related: ['BLOG_POST:drap-compliance-pharmacy', 'PRODUCT:inventory', 'GLOSSARY_TERM:fifo', 'COMPLIANCE:drap-pharmacy'],
   isNew: true,
   sources: SOURCES,
   blocks: [
@@ -94,6 +97,14 @@ Our checklist of DRAP rules for pharmacies, linked below, covers these in more d
 ## How Nafaa helps a new pharmacy
 
 Nafaa's pharmacy setup stores each medicine with its salt (formula), schedule and whether it needs a prescription, and shows substitutes with the same salt. Purchases are received with batch and expiry, and the expiry screen lists what is close to expiring. At the counter, controlled medicines prompt a register entry, prescriptions and doctors are saved for repeat patients, a cold-chain log records fridge temperatures, and medicines can be sold by box, strip or tablet from the same stock.`),
+    shot({
+      heading: 'Know what to reorder before the shelf is empty',
+      body: 'The low-stock list shows medicines below their alert level, how many days of stock are left and what to order, next to stock that expires within 30 days.',
+      id: SHOT.pharmacyLowStock,
+      url: 'app.nafaa.pk/low-stock',
+      layout: 'full',
+      caption: 'Pharmacy low-stock list in Nafaa (demo data): medicines below their alert level, days of stock left and what to order.',
+    }),
     tip('Before opening, ask two or three nearby doctors which medicines they prescribe most and which ones patients struggle to find. It is the best first-order list you can get.', 'Ask the doctors next door'),
     sourcesBlock(SOURCES),
   ],

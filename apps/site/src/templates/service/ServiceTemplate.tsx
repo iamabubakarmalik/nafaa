@@ -16,10 +16,11 @@
  */
 import Link from 'next/link';
 import type { CmsEntryType, EntryCard, PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { uiStrings } from '@/lib/i18n/ui';
 import { CmsIcon } from '@/lib/icons';
-import { livePaths, loadCards } from '../core/data';
+import { liveLinks, loadCards } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
+import { LinkSections, NextSteps, relatedGroup, type LinkGroup } from '../core/parts';
 import { BuildArt } from '../showcase/BuildArt';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { Arrow } from '../core/ui';
@@ -27,12 +28,13 @@ import { Arrow } from '../core/ui';
 function ServiceFacts({ entry }: { entry: PublicEntry }) {
   if (entry.data.type !== 'SERVICE') return null;
   const { areaServed, pricingModel, timeline } = entry.data;
+  const t = uiStrings(entry.locale).pages.service;
   const form = entry.blocks.find((b) => b.type === 'leadForm');
   const formHref = form ? `#${form.anchor ?? `h-${form.id}`}` : null;
   const facts = [
-    { icon: areaServed === 'worldwide' ? 'globe' : 'map-pin', label: 'Area served', value: areaServed === 'worldwide' ? 'Pakistan and worldwide' : 'Pakistan' },
-    pricingModel ? { icon: 'banknote', label: 'Pricing', value: pricingModel } : null,
-    timeline ? { icon: 'calendar-clock', label: 'Timeline', value: timeline } : null,
+    { icon: areaServed === 'worldwide' ? 'globe' : 'map-pin', label: t.areaServed, value: areaServed === 'worldwide' ? t.areaWorldwide : t.areaPakistan },
+    pricingModel ? { icon: 'banknote', label: t.pricing, value: pricingModel } : null,
+    timeline ? { icon: 'calendar-clock', label: t.timeline, value: timeline } : null,
   ].filter((f): f is { icon: string; label: string; value: string } => f !== null);
 
   return (
@@ -51,7 +53,7 @@ function ServiceFacts({ entry }: { entry: PublicEntry }) {
         </dl>
         {formHref ? (
           <Link href={formHref} className="group inline-flex shrink-0 items-center gap-1.5 text-small font-semibold text-link">
-            Quote lein
+            {t.quote}
             <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
           </Link>
         ) : null}
@@ -61,17 +63,24 @@ function ServiceFacts({ entry }: { entry: PublicEntry }) {
 }
 
 export async function ServiceTemplate({ entry }: { entry: PublicEntry }) {
-  const [live, siblings] = await Promise.all([
-    livePaths(['/services', '/solutions', '/integrations', '/developers', '/contact']),
-    loadCards({ type: 'SERVICE', limit: 6 }),
+  const ui = uiStrings(entry.locale);
+  const t = ui.pages.service;
+  const [links, siblings] = await Promise.all([
+    liveLinks(['/services', '/solutions', '/integrations', '/developers', '/contact'], entry.locale),
+    loadCards({ type: 'SERVICE', locale: entry.locale, limit: 6 }),
   ]);
+  const link = (path: string, label: string) => {
+    const href = links.get(path);
+    return href ? { href, label } : undefined;
+  };
   const byType = (type: CmsEntryType): EntryCard[] => [...(entry.tags[type] ?? []), ...entry.related.filter((c) => c.type === type)];
 
   const groups: LinkGroup[] = [
-    { id: 'solutions', title: 'Solutions', cards: byType('SOLUTION'), link: live.has('/solutions') ? { href: '/solutions', label: 'All solutions' } : undefined },
-    { id: 'integrations', title: 'Integrations', cards: byType('INTEGRATION'), link: live.has('/integrations') ? { href: '/integrations', label: 'All integrations' } : undefined },
-    { id: 'products', title: 'Built on Nafaa', cards: byType('PRODUCT') },
-    { id: 'more-services', title: 'Other services', cards: siblings, link: live.has('/services') ? { href: '/services', label: 'All services' } : undefined },
+    { id: 'solutions', title: t.solutions, cards: byType('SOLUTION'), link: link('/solutions', t.allSolutions) },
+    { id: 'integrations', title: t.integrations, cards: byType('INTEGRATION'), link: link('/integrations', t.allIntegrations) },
+    { id: 'products', title: t.builtOn, cards: byType('PRODUCT') },
+    { id: 'more-services', title: t.others, cards: siblings, link: link('/services', t.allServices) },
+    relatedGroup(entry),
   ];
 
   return (
@@ -80,17 +89,21 @@ export async function ServiceTemplate({ entry }: { entry: PublicEntry }) {
         entry={entry}
         afterHero={<ServiceFacts entry={entry} />}
         beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />}
-        kickers={{ featuresGrid: 'Capabilities', steps: 'Process', screenshot: 'In Nafaa' }}
-        pill={entry.data.type === 'SERVICE' && entry.data.areaServed === 'worldwide' ? 'Worldwide' : 'Service'}
+        kickers={{ featuresGrid: t.capabilities, steps: t.process, screenshot: t.inNafaa }}
+        pill={entry.data.type === 'SERVICE' && entry.data.areaServed === 'worldwide' ? t.worldwidePill : t.pill}
         ctaFacts={[]}
         heroArt={entry.data.type === 'SERVICE' && entry.data.areaServed === 'worldwide' ? <BuildArt /> : undefined}
       />
       <NextSteps
+        locale={entry.locale}
         links={[
-          { href: '/contact', label: 'Contact the team', icon: 'message-circle' },
-          { href: '/developers', label: 'Developer docs', icon: 'code-xml' },
-          { href: '/services', label: 'All services', icon: 'layout-grid' },
-        ].filter((link) => live.has(link.href))}
+          { path: '/contact', label: t.contact, icon: 'message-circle' },
+          { path: '/developers', label: t.docs, icon: 'code-xml' },
+          { path: '/services', label: t.allServices, icon: 'layout-grid' },
+        ].flatMap(({ path, ...rest }) => {
+          const href = links.get(path);
+          return href ? [{ href, ...rest }] : [];
+        })}
       />
     </PageFrame>
   );

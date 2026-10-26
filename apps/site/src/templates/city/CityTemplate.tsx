@@ -11,22 +11,26 @@
  * - on a city hub, "Industry guides" linking only the pair pages that pass
  *   their quality gate (900 words + evidence, under the similarity limit);
  *   pairs below the gate stay live but noindex and are not linked from here;
- * - on a pair page, links back to the city hub and the national industry page.
+ * - on a pair page, links back to the city hub and the national industry page;
+ * - the entry's RELATED cards, and on a city hub up to six other cities (same
+ *   province first), so every city page is linked from its neighbours.
  *
  * JSON-LD: WebPage `about` Place with the Wikidata sameAs, SoftwareApplication
- * `areaServed`, FAQPage (lib/seo/graph). A pair page describes its parent
+ * `areaServed` with the paid plans as offers, FAQPage (lib/seo/graph). A pair page describes its parent
  * city's Place.
  */
 import type { EntryCard, EntryData, PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { getLayout } from '@/lib/cms/client';
 import { buildEntryGraph } from '@/lib/seo/graph';
 import { Blocks as CoreBlocks } from '../core/Blocks';
+import { loadPlans } from '../core/data';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { TrustRibbon } from '../showcase/kit';
 import { authorityName } from './common/authorities';
 import { blockTargetId } from './common/blocks';
 import { isFixture, loadEntity, loadEntries, loadEntriesFor, loadEntry } from './common/data';
 import { insertJumpItem, jumpItemsFromBlocks } from './common/jump';
+import { RelatedSection, otherCities } from './common/related';
 import { stringsFor } from './common/strings';
 import { CardGrid, CodePill, JumpNav, MetaBar, TemplateFrame, TemplateSection } from './common/ui';
 
@@ -56,9 +60,10 @@ function cityDataOf(entry: PublicEntry | null): CityData | null {
 export async function CityTemplate({ entry }: { entry: PublicEntry }) {
   const t = stringsFor(entry.locale);
   const isPair = entry.type === 'CITY_INDUSTRY';
-  const [{ site }, entity, parentCity] = await Promise.all([
+  const [{ site }, entity, plans, parentCity] = await Promise.all([
     getLayout(entry.locale),
     loadEntity(entry.locale),
+    loadPlans(),
     isPair && entry.parent ? loadEntry(entry.parent.path, entry.locale) : Promise.resolve(null),
   ]);
   const city = isPair ? cityDataOf(parentCity) : cityDataOf(entry);
@@ -66,9 +71,9 @@ export async function CityTemplate({ entry }: { entry: PublicEntry }) {
 
   // The pair page is about its parent city's Place (name, Wikidata, geo).
   const graphEntry = isPair && city ? { ...entry, data: city } : entry;
-  const graph = buildEntryGraph(graphEntry as PublicEntry, { site, entity });
+  const graph = buildEntryGraph(graphEntry as PublicEntry, { site, entity, plans });
 
-  const pairs = isPair ? [] : await listablePairs(entry);
+  const [pairs, nearby]: [EntryCard[], EntryCard[]] = isPair ? [[], []] : await Promise.all([listablePairs(entry), otherCities(entry, city?.province)]);
   const industry = entry.tags.INDUSTRY?.[0] ?? null;
 
   // Template sections go before the FAQ when there is one, else at the end.
@@ -102,10 +107,18 @@ export async function CityTemplate({ entry }: { entry: PublicEntry }) {
     </li>
   ) : null;
 
+  const citiesSection = nearby.length ? (
+    <TemplateSection id="other-cities" title={t.otherCities} muted>
+      <CardGrid cards={nearby} locale={entry.locale} fallbackIcon="map-pin" />
+    </TemplateSection>
+  ) : null;
+
   const templateSections = (
     <>
       {pairSection}
       {backSection}
+      <RelatedSection entry={entry} exclude={[...backLinks, ...pairs, ...nearby]} />
+      {citiesSection}
     </>
   );
 

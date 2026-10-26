@@ -5,13 +5,16 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'clothing-size-inventory-guide',
+  seoDescription: 'How garment and shoe shops track stock by size and colour: setting up variants, labels, reordering the sizes that sell, exchanges and seasonal planning.',
   title: 'Managing Stock by Size and Colour in a Clothing Shop',
   summary:
     'How garments and shoe shops can track stock by size and colour without drowning in product names: setting up variants, labelling, reordering the sizes that actually sell, handling exchanges and seasons, and what to plan when starting a clothing shop.',
   category: 'industry',
+  cover: PHOTO.clothingSizeInventoryGuide,
   tags: ['INDUSTRY:garments', 'INDUSTRY:shoe', 'GLOSSARY_TERM:sku'],
   related: ['BLOG_POST:barcode-setup-guide', 'BLOG_POST:stock-taking-guide', 'BLOG_POST:ramadan-eid-retail-strategy'],
   isNew: true,

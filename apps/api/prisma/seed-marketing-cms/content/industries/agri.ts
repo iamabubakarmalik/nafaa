@@ -49,20 +49,21 @@ const entry = industry({
     heading: "Farmer khata, season orders and the counter for your agri store",
     sub: "Give fertiliser and seed on udhaar against the coming harvest and see it season by season, book bulk orders with an advance, and stop expired sprays from being sold.",
     badges: ["Udhaar by crop season", "Bags and maund", "Subsidy claims"],
-    media: { mediaId: SHOT.khata, url: "app.nafaa.pk/khata" },
+    media: { mediaId: SHOT.agriBulkOrders, url: "app.nafaa.pk/agri/bulk-orders" },
   },
   deepBlocks: [
     shot({
       heading: "Farmer udhaar that follows the harvest",
-      body: "Most of an agri store's money sits with farmers until the crop is sold. Every farmer is also a customer on the khata, so the counter, the farmer page and the reports show the same balance. The Farmers page splits it into what is due because the season's harvest has passed and what is still within the season.",
-      id: SHOT.khata,
-      url: "app.nafaa.pk/khata",
+      body: "Each farmer has a record with land, crop and a credit limit. Fertilizer and seed taken on credit sit on the farmer's khata with a due date after the harvest, and the list shows who owes what, who has crossed the limit and who is due now.",
+      id: SHOT.agriFarmers,
+      url: "app.nafaa.pk/agri/farmers",
       layout: "full",
-      caption: "The shared khata, shown here with demo shop data.",
       callouts: [
-        { x: 25, y: 19, label: "Total udhaar to collect" },
-        { x: 58, y: 30, label: "Balances by age" },
-        { x: 90, y: 55, label: "Take a payment or send a reminder" },
+        { x: 22.8, y: 19.5, label: "Total farmer udhaar" },
+        { x: 33.3, y: 70.4, label: "Land and crop" },
+        { x: 46, y: 67.6, label: "Udhaar against the credit limit" },
+        { x: 59, y: 70.4, label: "Due after the harvest" },
+        { x: 85.6, y: 70.4, label: "Collect the payment" },
       ],
     }),
     steps("A day at the agri store", [
@@ -114,6 +115,7 @@ Nafaa does this on the phone or computer you already have, and the counter keeps
 /** Internal links: the products agri stores use, the matching solutions and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for agri stores that sell seeds, fertiliser, pesticides and feed: farmer khata, bulk orders, seasonal stock and subsidy claims next to the counter.',
   relations: [
     { ref: 'PRODUCT:khata', kind: 'TAG' },
     { ref: 'PRODUCT:pos', kind: 'TAG' },

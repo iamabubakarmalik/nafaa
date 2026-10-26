@@ -4,8 +4,9 @@
  * amounts or licence fees are stated; sources are DRAP and the Punjab
  * health department.
  */
-import { prose, steps } from '../../main-pages/_build';
+import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { CHECKED_ON, FAKE_AUTHOR, checkRules, sourcesBlock, src, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const SOURCES = [
   src('Drug Regulatory Authority of Pakistan (DRAP)', 'https://www.dra.gov.pk/', 'Drug Regulatory Authority of Pakistan'),
@@ -15,12 +16,14 @@ const SOURCES = [
 
 const spec: PostSpec = {
   slug: 'drap-compliance-pharmacy',
+  seoDescription: 'What DRAP regulates, what your province licenses, and the records a pharmacy keeps every day: purchases, batches, expiry, prescriptions and controlled drugs.',
   title: 'DRAP Rules for Pharmacies in Pakistan: A Practical Checklist',
   summary:
     'What DRAP regulates, what your province licenses and inspects, and the day-to-day records a pharmacy or medical store keeps: purchases, batches and expiry, prescriptions, controlled medicines, storage and recalls.',
   category: 'compliance',
+  cover: PHOTO.drapCompliancePharmacy,
   tags: ['INDUSTRY:pharmacy', 'GLOSSARY_TERM:drap', 'GLOSSARY_TERM:batch-tracking'],
-  related: ['PRODUCT:inventory', 'BLOG_POST:how-to-start-a-pharmacy-pakistan', 'GLOSSARY_TERM:fifo'],
+  related: ['PRODUCT:inventory', 'BLOG_POST:how-to-start-a-pharmacy-pakistan', 'GLOSSARY_TERM:fifo', 'COMPLIANCE:drap-pharmacy'],
   blocks: [
     prose(`Running a pharmacy in Pakistan means answering to two levels of government. The federal regulator, DRAP, decides which medicines may be sold and how they are made, priced and recalled. Your province licenses your premises, sets the qualified-person rules and sends the inspector. Most of the day-to-day work of staying compliant is not legal at all: it is keeping clean records of what you bought, what you sold and what you threw away.
 
@@ -28,7 +31,7 @@ This checklist is written for owners and pharmacists of retail pharmacies and me
     checkRules(`Drug laws and rules are federal and provincial, and both change. Confirm licence requirements with your provincial drug control office and read DRAP notices on dra.gov.pk before you rely on this checklist. Checked on ${CHECKED_ON}.`),
     prose(`## Who does what
 
-**DRAP (Drug Regulatory Authority of Pakistan)** was set up under the DRAP Act, 2012 and works with the Drugs Act, 1976. Its work that touches a pharmacy counter includes:
+**DRAP (Drug Regulatory Authority of Pakistan)** was set up under the DRAP Act, 2012 and works with the Drugs Act, 1976. [Drug laws for pharmacies](/compliance/drap-pharmacy) covers the licence, the counter rules and the penalties in one place. Its work that touches a pharmacy counter includes:
 
 - Registration of medicines: only registered products may be sold.
 - Pricing of medicines: the price printed on the pack is set under the federal pricing rules, and you should not sell above it.
@@ -82,6 +85,14 @@ A pharmacy POS will not get you a licence, but it makes the records above a by-p
 - Prescriptions and doctors are saved, so repeat patients are quicker to serve.
 - A cold-chain log records fridge temperatures.
 - Strips, boxes and loose tablets are sold from the same stock, so a loose sale still reduces the right item.`),
+    shot({
+      heading: 'Batches close to expiry, in one list',
+      body: 'The expiry screen groups batches due in the next 30 and 90 days, with batch number, expiry date, stock and value, so the monthly sweep starts from a list instead of the shelf.',
+      id: SHOT.pharmacyExpiry,
+      url: 'app.nafaa.pk/pharmacy/expiring',
+      layout: 'full',
+      caption: 'Pharmacy expiry list in Nafaa (demo data): batches due in 30 and 90 days with batch number, expiry date, stock and value.',
+    }),
     tip('When a recall alert names a batch, search your stock by that batch number first. If your purchases were entered with batches, you will know in seconds whether you hold any.', 'Make recalls a five-minute job'),
     prose(`## Before an inspection
 

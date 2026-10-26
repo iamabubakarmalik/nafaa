@@ -14,6 +14,7 @@ import { CmsIcon } from '@/lib/icons';
 import { uiStrings } from '@/lib/i18n/ui';
 import { loadEntity, loadSite } from '../core/data';
 import { PageFrame } from '../core/frame';
+import { RelatedPages } from '../core/parts';
 import { StandardBody } from '../core/Standard';
 import { Arrow } from '../core/ui';
 
@@ -90,7 +91,7 @@ export async function ContactTemplate({ entry }: { entry: PublicEntry }) {
   const [site, entity] = await Promise.all([loadSite(entry.locale), loadEntity(entry.locale)]);
   return (
     <PageFrame entry={entry}>
-      <StandardBody entry={entry} showUpdated={false} afterHero={<Channels site={site} entity={entity} locale={entry.locale} />} />
+      <StandardBody entry={entry} showUpdated={false} afterHero={<Channels site={site} entity={entity} locale={entry.locale} />} beforeEnd={<RelatedPages entry={entry} />} />
     </PageFrame>
   );
 }

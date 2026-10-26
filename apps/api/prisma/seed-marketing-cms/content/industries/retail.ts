@@ -119,6 +119,7 @@ Nafaa covers each of these in the same app, on the phone or computer you already
 /** Internal links: the products a general shop uses, the matching solutions and related trades. */
 export default {
   ...entry,
+  seoDescription: 'POS for any shop: a fast counter with quick keys and barcodes, combos, stock with low-stock alerts, Excel import, a digital khata, and sales and profit reports.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

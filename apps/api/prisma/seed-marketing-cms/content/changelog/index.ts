@@ -10,7 +10,7 @@
  */
 
 import { richText, withIds } from '../../lib/blocks';
-import type { SeedEntry } from '../../lib/types';
+import type { EntryRef, SeedEntry } from '../../lib/types';
 
 type Kind = 'new' | 'improved' | 'fixed';
 
@@ -19,8 +19,12 @@ interface ChangeSpec {
   title: string;
   date: string;
   kind: Kind;
-  /** One or two sentences; also the SEO description (cut at 155 characters). */
+  /** One or two sentences; also the SEO description unless `seoDescription` is set. */
   summary: string;
+  /** Meta description (120-160 characters) when the summary is longer. */
+  seoDescription?: string;
+  /** Pages this change affects (shown as related links). */
+  related?: EntryRef[];
   markdown: string;
   commits: string[];
   evidence: string[];
@@ -40,7 +44,8 @@ function change(c: ChangeSpec): SeedEntry {
     data: { date: c.date, kind: c.kind },
     blocks: withIds(key, [richText(c.markdown)]),
     seoTitle: c.title,
-    seoDescription: c.summary.slice(0, 155),
+    seoDescription: c.seoDescription ?? c.summary,
+    relations: (c.related ?? []).map((ref) => ({ ref, kind: 'RELATED' as const })),
     focusKeyword: `nafaa ${c.title.toLowerCase().split(' ').slice(0, 2).join(' ')}`,
     origin: `new (changelog from commits ${c.commits.join(', ')}; 26 Oct 2026)`,
     evidence: c.evidence,
@@ -53,6 +58,7 @@ function change(c: ChangeSpec): SeedEntry {
 const CHANGES: ChangeSpec[] = [
   {
     slug: 'keyboard-first-pos-counter',
+    related: ['PRODUCT:pos', 'SERVICE:training'],
     title: 'Keyboard-first POS counter and four layouts',
     date: '2026-10-26',
     kind: 'new',
@@ -80,6 +86,7 @@ If your staff used the old keys: F2 now opens the customer (it was camera scan),
   },
   {
     slug: 'keyboard-shortcuts-across-the-app',
+    related: ['PRODUCT:pos', 'PRODUCT:inventory'],
     title: 'Keyboard shortcuts across the whole Nafaa app',
     date: '2026-10-26',
     kind: 'improved',
@@ -104,6 +111,7 @@ Clients told us that reaching for the mouse slows down busy staff. Most daily wo
   },
   {
     slug: 'bulk-import-create-edit',
+    related: ['PRODUCT:inventory', 'SERVICE:data-migration', 'TEMPLATE:product-import-template'],
     title: 'Product import rebuilt, plus bulk create and edit',
     date: '2026-10-26',
     kind: 'improved',
@@ -134,6 +142,7 @@ Changing stock through import or bulk edit needs the stock adjustments permissio
   },
   {
     slug: 'new-nafaa-website',
+    related: ['PAGE:industries', 'PAGE:pricing'],
     title: 'A new nafaa.pk website',
     date: '2026-10-21',
     kind: 'new',
@@ -156,6 +165,8 @@ Links to the old site keep working: every old address was checked and leads to t
   },
   {
     slug: 'industry-tools-round-two',
+    related: ['PAGE:industries', 'INDUSTRY:gym', 'INDUSTRY:hotel'],
+    seoDescription: 'Gym, hotel, dairy, meat, optical, bookstore, toy, shoe, sports, florist, pet, agri, carpet, gaming, furniture and other businesses got deeper tools in Nafaa.',
     title: 'Industry tools for gym, hotel, dairy and more',
     date: '2026-10-20',
     kind: 'new',
@@ -178,6 +189,8 @@ Native browser pop-ups were replaced with in-app confirm dialogs, more pages mov
   },
   {
     slug: 'industry-tools-round-one',
+    related: ['PAGE:industries', 'INDUSTRY:restaurant', 'INDUSTRY:pharmacy'],
+    seoDescription: 'Restaurant, retail, electronics, pharmacy, mobile, garments, bakery, hardware, salon, clinic, jewellery and auto parts tools were rebuilt on the shared POS.',
     title: 'Industry tools for restaurants, pharmacies and more',
     date: '2026-10-19',
     kind: 'new',
@@ -197,6 +210,7 @@ All of these now bill through the shared POS and checkout, with the same counter
   },
   {
     slug: 'split-payments-and-trade-in',
+    related: ['PRODUCT:payments', 'PRODUCT:khata'],
     title: 'Split payments, khata payment method and trade-in',
     date: '2026-10-19',
     kind: 'new',
@@ -213,6 +227,7 @@ Drawer cash, bank and wallet balances, the day book, reports, dashboards, accoun
   },
   {
     slug: 'batches-follow-real-stock',
+    related: ['PRODUCT:inventory', 'GLOSSARY_TERM:batch-tracking'],
     title: 'Batches and expiry now follow real stock',
     date: '2026-10-19',
     kind: 'improved',
@@ -231,6 +246,7 @@ Expiry lists, the pharmacy dashboard, low stock, the stock report and the catalo
   },
   {
     slug: 'settings-sidebar-shared-products',
+    related: ['PRODUCT:inventory', 'PAGE:product'],
     title: 'Settings in one sidebar and shared product pages',
     date: '2026-10-19',
     kind: 'improved',
@@ -256,6 +272,7 @@ Industry counters use the shared checkout with split payments, and batch-tracked
   },
   {
     slug: 'product-delete-keeps-bills',
+    related: ['PRODUCT:inventory', 'PRODUCT:reports'],
     title: 'Deleting a product never removes bills',
     date: '2026-10-14',
     kind: 'fixed',
@@ -273,6 +290,7 @@ A product that was ever sold or bought is now switched off instead of deleted, w
   },
   {
     slug: 'staff-approval-pin',
+    related: ['PRODUCT:staff', 'BLOG_POST:staff-theft-prevention-counter'],
     title: 'Staff approval PIN and discount above the limit',
     date: '2026-10-13',
     kind: 'new',
@@ -286,6 +304,7 @@ A product that was ever sold or bought is now switched off instead of deleted, w
   },
   {
     slug: 'shorter-sign-up',
+    related: ['PAGE:pricing', 'PAGE:demo'],
     title: 'Shorter sign-up and five-step onboarding',
     date: '2026-10-13',
     kind: 'improved',
@@ -302,6 +321,7 @@ The same release rebuilt branches, notifications, billing, profile, help, backup
   },
   {
     slug: 'offline-bills-safe-on-logout',
+    related: ['PRODUCT:offline-pos', 'BLOG_POST:load-shedding-proof-billing'],
     title: 'Offline bills are no longer lost on logout',
     date: '2026-10-13',
     kind: 'fixed',
@@ -318,6 +338,8 @@ Logout now removes only rows that were already synced. Unsent bills stay on the 
   },
   {
     slug: 'reports-centre-and-cash',
+    related: ['PRODUCT:reports', 'BLOG_POST:daily-cash-closing-routine'],
+    seoDescription: 'A shared reports centre with profit by product, stock, profit and loss and shop accounts, plus a rebuilt cash register with shifts and a Z report.',
     title: 'Reports centre, shop accounts and cash register',
     date: '2026-10-13',
     kind: 'new',
@@ -336,6 +358,8 @@ Logout now removes only rows that were already synced. Unsent bills stay on the 
   },
   {
     slug: 'stock-tools-every-industry',
+    related: ['PRODUCT:inventory', 'PAGE:industries'],
+    seoDescription: 'Low stock and reorder, transfers, stock counts, damage and wastage, barcode labels, combos, multi-units and quick keys now work alike in every industry.',
     title: 'Shared stock tools for every business type',
     date: '2026-10-13',
     kind: 'new',

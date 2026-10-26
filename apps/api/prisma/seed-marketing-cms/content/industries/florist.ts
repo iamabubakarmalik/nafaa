@@ -45,7 +45,7 @@ const entry = industry({
     heading: "Bouquets, deliveries and wedding decoration in one app",
     sub: "Sell stems and bouquets at the counter, send deliveries with the card message and time slot, run wedding decoration from quote to final bill, and catch flowers before they wilt.",
     badges: ["Delivery slots", "Shaadi contracts", "Freshness alerts"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.floristOrders, url: "app.nafaa.pk/florist/orders" },
   },
   deepBlocks: [
     steps("A day at the flower shop", [
@@ -56,16 +56,16 @@ const entry = industry({
       ["Closing", "Write wilted stems off as wastage for the manager to approve, or put them on sale cheaper tomorrow."],
     ]),
     shot({
-      heading: "Today's orders, weddings and wilting stock on one screen",
-      body: "The florist dashboard adds the trade's own numbers to the normal day: deliveries due, wedding work coming up, stems near their last day and subscription rounds, next to today's sale, profit and cash.",
-      id: SHOT.dashboard,
-      url: "app.nafaa.pk/dashboard",
+      heading: "Wedding contracts from quote to final bill",
+      body: "A wedding is written as a contract: the couple, the family contact, the venue, the date and what is included, from the stage to the car and the garlands. The list shows the weddings coming up, the quoted amount, the advance on the family's khata and the balance.",
+      id: SHOT.floristWeddings,
+      url: "app.nafaa.pk/florist/weddings",
       layout: "full",
-      caption: "The shared dashboard, shown with demo shop data; florist widgets sit on the same page.",
       callouts: [
-        { x: 28, y: 27, label: "Today's sale and bills" },
-        { x: 24, y: 52, label: "Profit after cost and expenses" },
-        { x: 40, y: 72, label: "What needs you today" },
+        { x: 42.8, y: 20.3, label: "Balance on open contracts" },
+        { x: 23.4, y: 54.6, label: "Couple, contact and venue" },
+        { x: 67.5, y: 55.5, label: "Wedding date and days left" },
+        { x: 79.6, y: 55.5, label: "Quoted amount and balance" },
       ],
     }),
     shot({
@@ -109,6 +109,7 @@ Nafaa does this on the phone or computer you already have, and the counter keeps
 /** Internal links: the products florists use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for florists: bouquet and occasion orders, the day\'s delivery list, wedding decoration contracts, flower subscriptions and freshness tracking.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },

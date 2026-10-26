@@ -4,13 +4,16 @@
  */
 import { SHOT, diagram, prose, shot, steps } from '../../main-pages/_build';
 import { FAKE_AUTHOR, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'restaurant-kot-system-guide',
+  seoDescription: 'What a KOT is, how orders reach the right kitchen station, printers versus kitchen screens, and the mistakes that cause wrong or late dishes.',
   title: 'Kitchen Order Tickets (KOT): How They Work in a Restaurant',
   summary:
     'What a KOT is, how orders reach the right kitchen station, when to use printers or a kitchen screen, and a clear flow from the waiter\'s order to the table, with the mistakes that cause wrong and late dishes.',
   category: 'industry',
+  cover: PHOTO.restaurantKotSystemGuide,
   tags: ['INDUSTRY:restaurant', 'GLOSSARY_TERM:kot'],
   related: ['SOLUTION:restaurants', 'PRODUCT:pos', 'BLOG_POST:choosing-a-pos-printer'],
   blocks: [

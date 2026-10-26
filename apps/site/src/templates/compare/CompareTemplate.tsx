@@ -31,6 +31,7 @@ import { jumpItemsFromBlocks } from '../city/common/jump';
 import { loadPlans, summarisePlans, type NafaaPriceSummary } from '../city/common/plans';
 import { stringsFor } from '../city/common/strings';
 import { CardGrid, JumpNav, MetaBar, SourceNote, TemplateFrame, TemplateSection } from '../city/common/ui';
+import { RelatedSection } from '../city/common/related';
 import styles from '../city/common/s4.module.css';
 
 type CompareData = Extract<EntryData, { type: 'COMPARE' | 'ALTERNATIVE' }>;
@@ -224,16 +225,21 @@ export async function CompareTemplate({ entry }: { entry: PublicEntry }) {
             </>
           ),
           ...(answer ? { after: { [answer.id]: card } } : {}),
-          end: more.length ? (
-            <TemplateSection id="more-comparisons" title={t.moreComparisons} muted>
-              <CardGrid
-                cards={more}
-                locale={entry.locale}
-                fallbackIcon="arrow-left-right"
-                meta={(c) => (c.type === 'ALTERNATIVE' ? t.alternativeEyebrow : t.compareEyebrow)}
-              />
-            </TemplateSection>
-          ) : null,
+          end: (
+            <>
+              <RelatedSection entry={entry} />
+              {more.length ? (
+                <TemplateSection id="more-comparisons" title={t.moreComparisons} muted>
+                  <CardGrid
+                    cards={more}
+                    locale={entry.locale}
+                    fallbackIcon="arrow-left-right"
+                    meta={(c) => (c.type === 'ALTERNATIVE' ? t.alternativeEyebrow : t.compareEyebrow)}
+                  />
+                </TemplateSection>
+              ) : null}
+            </>
+          ),
         }}
       />
     </TemplateFrame>

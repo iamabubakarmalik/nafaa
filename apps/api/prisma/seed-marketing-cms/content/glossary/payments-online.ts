@@ -12,6 +12,7 @@ const PAYMENT_LINKS = 'apps/api/src/integrations/online-orders/payment-links.ser
 export const paymentTerms: TermSpec[] = [
   {
     slug: 'raast',
+    seoDescription: 'Raast is the State Bank of Pakistan\'s instant payment system for real-time transfers between bank and wallet accounts using a Raast ID.',
     imported: true,
     term: 'Raast',
     definition: "Raast is the State Bank of Pakistan's instant payment system for real-time transfers between bank and wallet accounts, using a Raast ID such as a mobile number.",
@@ -76,6 +77,7 @@ The Nafaa counter records JazzCash as its own payment method, including as one p
   },
   {
     slug: 'easypaisa',
+    seoDescription: 'Easypaisa is a Pakistani mobile wallet and digital bank used to send money, pay bills and pay shops by account number or QR code.',
     term: 'Easypaisa',
     definition: 'Easypaisa is a mobile wallet and digital banking service in Pakistan, used to send and receive money, pay bills and pay merchants by account number or QR code.',
     definitionRomanUrdu: 'Easypaisa Pakistan ka mobile wallet aur digital banking service hai, jis se paise bheje aur liye jaate hain, bill diye jaate hain aur dukaan ko QR se payment hoti hai.',
@@ -114,6 +116,7 @@ Nafaa records bank transfers as their own payment method on bills, on khata paym
   },
   {
     slug: 'split-payment',
+    seoDescription: 'A split payment is one bill paid by more than one method, such as part cash and part card, wallet or khata. Here is how shops record it correctly.',
     term: 'Split Payment',
     definition: 'A split payment is one bill paid with more than one method, such as part cash and part card, wallet or khata.',
     definitionRomanUrdu: 'Split payment matlab ek bill ko ek se zyada tareeqon se ada karna, jaise kuch cash aur kuch card, wallet ya khata.',
@@ -171,6 +174,7 @@ Nafaa records a trade-in as a payment, not a discount, so profit stays correct a
   },
   {
     slug: 'cod',
+    seoDescription: 'Cash on delivery (COD) means the customer pays when the parcel arrives, not when the order is placed. Here is how sellers in Pakistan manage COD and returns.',
     imported: true,
     term: 'COD (Cash on Delivery)',
     definition: 'Cash on delivery means the customer pays when the order is delivered, not when it is placed.',
@@ -211,6 +215,7 @@ The Nafaa COD page shows what is still on the road, what each courier has collec
   },
   {
     slug: 'rto',
+    seoDescription: 'RTO (Return to Origin) is a parcel the courier could not deliver, or the customer refused, sent back to the seller. Here is how sellers cut RTO losses.',
     term: 'RTO (Return to Origin)',
     definition: 'RTO is a parcel that the courier could not deliver, or the customer refused, and that is sent back to the seller.',
     definitionRomanUrdu: 'RTO woh parcel hai jo courier deliver na kar saka ya gahak ne lene se inkar kiya, aur woh wapas bechne wale ke paas bheja jata hai.',
@@ -267,6 +272,7 @@ For online orders, Nafaa can create a payment link for the full amount or an adv
   },
   {
     slug: 'escrow',
+    seoDescription: 'Escrow is when a neutral party holds a payment until both buyer and seller have done their part. Here is how it works on marketplaces in Pakistan.',
     imported: true,
     term: 'Escrow',
     definition: 'Escrow is when a neutral party holds a payment until both buyer and seller have done their part.',
@@ -287,6 +293,7 @@ Nafaa does not offer an escrow service.`,
   },
   {
     slug: 'gmv',
+    seoDescription: 'GMV (Gross Merchandise Value) is the total value of goods sold through a platform before fees, returns and discounts. Here is why it differs from revenue.',
     imported: true,
     term: 'GMV (Gross Merchandise Value)',
     definition: 'GMV is the total value of goods sold through a platform before fees, returns and discounts are taken off.',
@@ -307,6 +314,7 @@ Nafaa reports online orders next to counter sales, and its profit report works f
   },
   {
     slug: 'dropshipping',
+    seoDescription: 'Dropshipping is selling online without holding stock: the seller passes each order to a supplier, who ships it straight to the customer.',
     term: 'Dropshipping',
     definition: 'Dropshipping is selling products online without holding stock: when an order comes in, the seller buys the item from a supplier who ships it straight to the customer.',
     definitionRomanUrdu: 'Dropshipping matlab stock rakhe baghair online bechna: order aane par bechne wala supplier se cheez khareedta hai aur supplier seedha gahak ko bhejta hai.',
@@ -325,6 +333,7 @@ Nafaa is built for businesses that hold their own stock; it does not run supplie
   },
   {
     slug: 'marketplace',
+    seoDescription: 'An online marketplace is a website or app where many sellers list products and customers buy from them, with the platform running the storefront.',
     term: 'Online Marketplace',
     definition: 'An online marketplace is a website or app where many sellers list products and customers buy from them, with the platform handling the storefront and often payment and delivery.',
     definitionRomanUrdu: 'Online marketplace woh website ya app hai jahan bohat se seller apne products lagate hain aur gahak un se khareedte hain; platform dukaan, aur aksar payment aur delivery sambhalta hai.',

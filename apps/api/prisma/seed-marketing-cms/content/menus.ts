@@ -189,7 +189,8 @@ export const menus: SeedMenu[] = [
               { id: 'r-blog', kind: 'url', label: 'Blog', url: '/blog', icon: 'book-open', description: 'Guides for running a business' },
               { id: 'r-guides', kind: 'url', label: 'Guides', url: '/guides', icon: 'notebook-pen', description: 'Step-by-step playbooks' },
               { id: 'r-glossary', kind: 'url', label: 'Glossary', url: '/glossary', icon: 'list', description: 'Business and tax terms explained' },
-              { id: 'r-tools', kind: 'url', label: 'Free tools', url: '/tools', icon: 'calculator', description: 'GST, margin and invoice tools' },
+              { id: 'r-tools', kind: 'url', label: 'Free tools', url: '/tools', icon: 'calculator', description: 'Margin, GST, discount and stock calculators' },
+              { id: 'r-templates', kind: 'url', label: 'Templates', url: '/templates', icon: 'file-spreadsheet', description: 'Khata, stock-take and cash-closing sheets' },
             ],
           },
           {
@@ -198,6 +199,7 @@ export const menus: SeedMenu[] = [
             label: 'Compare & comply',
             children: [
               { id: 'r-compare-all', kind: 'url', label: 'Compare', url: '/compare', icon: 'arrow-left-right', description: 'Nafaa next to other tools' },
+              { id: 'r-best', kind: 'url', label: 'How to choose', url: '/best', icon: 'list-checks', description: 'POS, inventory and khata apps compared' },
               { id: 'r-compliance', kind: 'url', label: 'Tax compliance', url: '/compliance', icon: 'landmark', description: 'FBR, PRA, SRB and KPRA rules' },
               { id: 'r-cities', kind: 'url', label: 'POS by city', url: '/pos-software', icon: 'map-pin', description: 'Local support and tax facts' },
             ],
@@ -297,7 +299,9 @@ export const menus: SeedMenu[] = [
           { id: 'f-guides', kind: 'url', label: 'Guides', url: '/guides' },
           { id: 'f-glossary', kind: 'url', label: 'Glossary', url: '/glossary' },
           { id: 'f-tools', kind: 'url', label: 'Free tools', url: '/tools' },
+          { id: 'f-templates', kind: 'url', label: 'Templates', url: '/templates' },
           { id: 'f-compare', kind: 'url', label: 'Compare', url: '/compare' },
+          { id: 'f-best', kind: 'url', label: 'How to choose', url: '/best' },
           { id: 'f-compliance', kind: 'url', label: 'Tax compliance', url: '/compliance' },
           { id: 'f-developers', kind: 'url', label: 'Developers', url: '/developers' },
         ],
@@ -308,7 +312,6 @@ export const menus: SeedMenu[] = [
         kind: 'group',
         label: 'Company',
         children: [
-          { id: 'f-about', kind: 'url', label: 'About', url: '/about' },
           { id: 'f-roadmap', kind: 'url', label: 'Roadmap', url: '/roadmap' },
           { id: 'f-changelog', kind: 'url', label: 'Changelog', url: '/changelog' },
           { id: 'f-faq', kind: 'url', label: 'FAQ', url: '/faq' },

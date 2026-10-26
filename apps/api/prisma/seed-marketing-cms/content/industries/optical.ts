@@ -52,7 +52,7 @@ const entry = industry({
     heading: "Eye tests, prescriptions and glasses orders in one app",
     sub: "Book eye tests with your optometrist, save every customer's nuskha, send glasses to the lab with a slip that shows no prices, and hand them over with the bill when the advance is already counted.",
     badges: ["Nuskha with SPH, CYL, axis", "Lab tracking", "Advance on orders"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.opticalLensOrders, url: "app.nafaa.pk/optical/lens-orders" },
   },
   deepBlocks: [
     steps("From eye test to new glasses", [
@@ -62,28 +62,29 @@ const entry = industry({
       ["Hand-over", "At the counter, the customer's ready glasses show under their name. Take what is left; the bill is made at hand-over."],
     ]),
     shot({
-      heading: "Tests, lab orders and pickups on one dashboard",
-      body: "The optical dashboard adds today's eye tests, orders at the lab, overdue and ready glasses, expiring prescriptions and money still to collect to the day's sale, profit and cash.",
-      id: SHOT.dashboard,
-      url: "app.nafaa.pk/dashboard",
+      heading: "Eye tests booked by the hour",
+      body: "Book each eye test with the customer's age, complaint and optometrist. The day's list shows who is coming at what time, which tests are running or done, and the test fee still to take, with a button to start the test and record the result.",
+      id: SHOT.opticalEyeTests,
+      url: "app.nafaa.pk/optical/eye-tests",
       layout: "full",
-      caption: "The shared dashboard, shown with demo data; optical widgets sit on the same page.",
       callouts: [
-        { x: 28, y: 27, label: "Today's sale and bills" },
-        { x: 24, y: 52, label: "Profit after cost and expenses" },
-        { x: 40, y: 72, label: "What needs you today" },
+        { x: 20, y: 58.4, label: "Booked time" },
+        { x: 42.5, y: 60.6, label: "Age and complaint" },
+        { x: 79.4, y: 60.6, label: "Test fee still due" },
+        { x: 87.6, y: 59.5, label: "Start the test" },
       ],
     }),
     shot({
-      heading: "Frames and lenses, priced and counted",
-      body: "Frames show brand, model, colour and size on every card; stock lenses their index and coating; contact lenses their fit and nearest expiry. Price, cost and stock sit on each card, with the total stock value on top.",
-      id: SHOT.inventory,
-      url: "app.nafaa.pk/products",
+      heading: "Every customer's eye number on file",
+      body: "Each prescription keeps the right and left eye power, cylinder, axis, add and PD, with its type and the optometrist. When a customer comes back, the number is there with its validity, and a glasses order starts from it in one tap.",
+      id: SHOT.opticalPrescriptions,
+      url: "app.nafaa.pk/optical/prescriptions",
       layout: "split-right",
-      caption: "The shared products page, shown with demo data.",
       callouts: [
-        { x: 26, y: 19, label: "Stock value at cost" },
-        { x: 30, y: 80, label: "Price, cost and margin per item" },
+        { x: 47.8, y: 30.6, label: "Prescriptions expiring in 60 days" },
+        { x: 23.8, y: 60.6, label: "Date and type" },
+        { x: 53.8, y: 58.5, label: "Right and left eye power and PD" },
+        { x: 89.3, y: 59.5, label: "Start a glasses order" },
       ],
     }),
     table("Card file and order book, or Nafaa?", "How the everyday jobs of an optical shop compare on paper and on Nafaa.", [
@@ -116,6 +117,7 @@ Nafaa covers each of these on the counter computer or a phone, with the same kha
 /** Internal links: the products optical shops use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Optical shop software: eye tests and prescriptions with SPH, CYL, axis and PD, glasses orders with an advance, lab tracking, repairs, frames and lenses.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

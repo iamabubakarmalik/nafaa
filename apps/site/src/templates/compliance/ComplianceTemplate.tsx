@@ -26,6 +26,7 @@ import { Blocks } from '../city/common/blocks';
 import { loadEntity, loadEntries } from '../city/common/data';
 import { formatDate, isoDay } from '../city/common/format';
 import { jumpItemsFromBlocks, insertJumpItem } from '../city/common/jump';
+import { RelatedSection } from '../city/common/related';
 import { stringsFor } from '../city/common/strings';
 import { CardGrid, CodePill, JumpNav, MetaBar, SourceNote, TemplateFrame, TemplateSection } from '../city/common/ui';
 
@@ -142,6 +143,7 @@ export async function ComplianceTemplate({ entry }: { entry: PublicEntry }) {
           <CardGrid cards={otherPages} locale={entry.locale} fallbackIcon="landmark" />
         </TemplateSection>
       ) : null}
+      <RelatedSection entry={entry} exclude={[...cities, ...otherPages]} />
     </>
   );
 

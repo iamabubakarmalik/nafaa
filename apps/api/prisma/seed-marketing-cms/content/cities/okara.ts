@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichOkara = cityHub({
   slug: 'okara',
+  seoDescription: 'POS, stock and khata software for Okara agri and feed dealers, cloth shops, milk sellers and bakeries, with billing through LESCO outages and digital udhaar.',
   name: 'Okara',
   checkedOn: CHECKED,
   summary:

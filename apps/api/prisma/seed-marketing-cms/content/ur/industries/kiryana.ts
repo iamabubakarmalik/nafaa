@@ -67,7 +67,7 @@ export const faqs: SeedFaq[] = [
     topic: 'pricing',
     question: 'Nafaa کی قیمت کتنی ہے؟',
     answer:
-      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
+      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/ur/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
     sourceNote: 'Plan table (GET /api/plans): free-trial description "koi credit card nahi chahiye". Prices come from tokens.',
     origin: 'translation of faq pricing',
     evidence: ['apps/api/src/modules/billing/plans/plans.service.ts'],
@@ -230,5 +230,7 @@ export const entry: SeedEntry = {
   relations: [
     { ref: 'CITY:lahore@ur', kind: 'TAG' },
     { ref: 'INDUSTRY:retail@ur', kind: 'RELATED' },
+    { ref: 'PRODUCT:khata@ur', kind: 'RELATED' },
+    { ref: 'PRODUCT:pos@ur', kind: 'RELATED' },
   ],
 };

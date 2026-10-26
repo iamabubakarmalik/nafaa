@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichKamoke = cityHub({
   slug: 'kamoke',
+  seoDescription: 'POS, stock and khata software for Kamoke rice and paddy traders, commission agents and agri dealers. Sell by the sack or kilo and keep every account in a khata.',
   name: 'Kamoke',
   checkedOn: CHECKED,
   summary:

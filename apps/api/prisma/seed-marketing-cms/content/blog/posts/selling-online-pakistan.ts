@@ -4,15 +4,18 @@
  */
 import { SHOT, diagram, prose, shot, steps } from '../../main-pages/_build';
 import { tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'selling-online-pakistan',
+  seoDescription: 'How an existing shop can start selling online in Pakistan: WhatsApp, social media, a website or marketplaces, COD and couriers, returns and one shared stock.',
   title: 'Selling Online in Pakistan: A Guide for Shop Owners',
   summary:
     'How an existing shop can start selling online in Pakistan: choosing between WhatsApp, social media, your own website and marketplaces, handling cash on delivery and couriers, cutting returned parcels, taking payments, and keeping shop and online stock in step.',
   category: 'business',
+  cover: PHOTO.sellingOnlinePakistan,
   tags: ['PRODUCT:online-store', 'SOLUTION:ecommerce', 'GLOSSARY_TERM:cod'],
-  related: ['SERVICE:online-store-setup', 'BLOG_POST:whatsapp-customer-retention', 'PRODUCT:payments'],
+  related: ['SERVICE:online-store-setup', 'BLOG_POST:whatsapp-customer-retention', 'PRODUCT:payments', 'GUIDE:start-selling-online-pakistan'],
   isNew: true,
   blocks: [
     prose(`Many shops already sell online without calling it that. A customer sends a WhatsApp message, the owner sends photos, the customer picks one, and a rider takes it across the city. The step from there to a proper online business is not a big website; it is handling orders, deliveries, payments and stock in a way that does not fall apart when orders grow.
@@ -30,7 +33,7 @@ Start with one or two channels, and add more once orders are running smoothly.
 | Marketplaces | Reaching buyers who do not know you yet | Commission and marketplace rules |
 | Food delivery apps | Restaurants and bakeries | Commission; menu and prices to keep in sync |
 
-Whatever the channel, the work behind it is the same: take the order, confirm it, pack it, hand it to a courier or rider, collect the money and handle returns.`),
+Whatever the channel, the work behind it is the same: take the order, confirm it, pack it, hand it to a courier or rider, collect the money and handle returns. The [guide to selling online](/guides/start-selling-online-pakistan) takes each step in order.`),
     diagram(
       'Orders from every channel land in one place, stock is reserved, the parcel is booked with a courier, and the cash comes back to you.',
       {

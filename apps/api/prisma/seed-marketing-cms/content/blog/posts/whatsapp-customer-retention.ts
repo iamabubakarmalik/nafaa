@@ -5,18 +5,22 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { FAKE_AUTHOR, src, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const SOURCES = [
   src('WhatsApp Help Center', 'https://faq.whatsapp.com/', 'WhatsApp'),
-  src('WhatsApp Business Messaging Policy', 'https://business.whatsapp.com/policy', 'WhatsApp'),
+  src('WhatsApp Business Messaging Policy', 'https://whatsappbusiness.com/policy/', 'WhatsApp'),
 ];
 
 const spec: PostSpec = {
   slug: 'whatsapp-customer-retention',
+  seoTitle: 'WhatsApp Templates for Shops That Bring Customers Back',
+  seoDescription: 'When a shop should message customers on WhatsApp, with Roman Urdu templates for thanks, new stock, birthdays and udhaar, and how to stay within the rules.',
   title: 'WhatsApp Messages for Shops: Templates That Bring Customers Back',
   summary:
     'When a shop should message customers on WhatsApp, ready-to-use templates in Roman Urdu for thanks, new stock, birthdays, quiet customers and udhaar, and how to stay polite and within WhatsApp\'s rules.',
   category: 'business',
+  cover: PHOTO.whatsappCustomerRetention,
   tags: ['PRODUCT:whatsapp-sms', 'PRODUCT:khata'],
   related: ['PRODUCT:loyalty', 'BLOG_POST:how-to-reduce-udhaar', 'BLOG_POST:ramadan-eid-retail-strategy'],
   blocks: [
@@ -38,7 +42,7 @@ This post covers when to message, what to say, and a set of templates you can co
 3. **Be useful.** A new stock arrival they asked about, an order ready for pickup, their balance. Not a daily poster.
 4. **Send less than you think.** A couple of messages a month to the same customer is plenty for most shops.
 
-WhatsApp has its own rules for business use, and accounts that are reported as spam can be limited. Read the [WhatsApp Business Messaging Policy](https://business.whatsapp.com/policy) once, and remember that a broadcast from the WhatsApp app reaches only people who have saved your number.`),
+WhatsApp has its own rules for business use, and accounts that are reported as spam can be limited. Read the [WhatsApp Business Messaging Policy](https://whatsappbusiness.com/policy/) once, and remember that a broadcast from the WhatsApp app reaches only people who have saved your number.`),
     prose(`## Templates you can copy
 
 Change the words to sound like you. Keep them short.

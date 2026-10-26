@@ -47,7 +47,7 @@ const entry = industry({
     heading: "Station clocks, top-up cards and the counter on one bill",
     sub: "Run every PC and console station on a live clock, sell PUBG UC and PSN cards by code, rent consoles against a deposit and hold tournaments, with one bill for time, cards and snacks.",
     badges: ["Live station billing", "Card codes", "Rentals with deposit"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.gamingStations, url: "app.nafaa.pk/gaming/stations" },
   },
   deepBlocks: [
     steps("An evening at the gaming zone", [
@@ -58,16 +58,17 @@ const entry = industry({
       ["Closing", "See each station's hours and money, and revenue split between cafe time, top-ups and rentals."],
     ]),
     shot({
-      heading: "Cafe, cards and rentals on one dashboard",
-      body: "The gaming dashboard shows live sessions and stations, rentals out, top-up card stock and revenue by stream, beside the day's sale, profit and the cash that should be in the drawer.",
-      id: SHOT.dashboard,
-      url: "app.nafaa.pk/dashboard",
+      heading: "Every station's clock and bill, live",
+      body: "Start a session on a PC, PS5 or simulator and the time runs against that station's hourly rate. The live view shows which stations are busy, who is playing what, the time played and the running bill, and the session is billed with snacks in one step.",
+      id: SHOT.gamingCafe,
+      url: "app.nafaa.pk/gaming/cafe",
       layout: "full",
-      caption: "The shared dashboard, shown with demo shop data; gaming widgets sit on the same page.",
       callouts: [
-        { x: 28, y: 27, label: "Today's sale and bills" },
-        { x: 57, y: 52, label: "Cash in the galla" },
-        { x: 40, y: 72, label: "What needs you today" },
+        { x: 20, y: 19.5, label: "Stations running now" },
+        { x: 29.8, y: 20.3, label: "Running bill" },
+        { x: 25, y: 65, label: "Time played, player and game" },
+        { x: 27.7, y: 72.4, label: "Bill the session" },
+        { x: 88.1, y: 72.2, label: "Start a free station" },
       ],
     }),
     shot({
@@ -112,6 +113,7 @@ Nafaa does this on the computer or phone at your counter, with the same stock, k
 /** Internal links: the products gaming zones use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for gaming shops and cyber cafes: live billing for PC and console stations, console rentals, top-up cards, tournaments and counter sales.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },

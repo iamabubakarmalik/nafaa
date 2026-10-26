@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichChiniot = cityHub({
   slug: 'chiniot',
+  seoDescription: 'POS, stock and khata software for Chiniot furniture showrooms and workshops, timber and hardware dealers, with custom orders, deposits and karigar work tracked.',
   name: 'Chiniot',
   checkedOn: CHECKED,
   summary:

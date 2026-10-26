@@ -47,7 +47,7 @@ const entry = industry({
     heading: "Shades, expiry dates and testers, all accounted for",
     sub: "Keep every lipstick shade and perfume size on its own stock, sell the oldest batch first, see what expires in the next 90 days, and record testers so the shelf and the books agree.",
     badges: ["Shades as variants", "Batch expiry", "Tester records"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/cosmetics/dashboard" },
+    media: { mediaId: SHOT.cosmeticsProducts, url: "app.nafaa.pk/products" },
   },
   deepBlocks: [
     steps("A day at the cosmetics shop", [
@@ -58,28 +58,31 @@ const entry = industry({
       ["Closing", "See today's sale and profit, the parlours who owe on khata, and count the galla."],
     ]),
     shot({
-      heading: "Running low or close to expiry",
-      body: "The low-stock list shows items that are out or low, near-expiry stock, how many days each will last at its recent selling rate, and what to order from which distributor.",
-      id: SHOT.lowStock,
-      url: "app.nafaa.pk/inventory/low-stock",
+      heading: "Sell the old batch before it expires",
+      body: "Foundations, serums and sunblock carry a batch and an expiry date. The expiry list shows what has already expired, what expires in 30 and in 90 days, with the batch number, days left, stock and the cost at risk, so near-date stock goes on discount in time.",
+      id: SHOT.cosmeticsExpiry,
+      url: "app.nafaa.pk/cosmetics/expiry",
       layout: "full",
-      caption: "Shared low-stock screen, shown with a demo store's data.",
       callouts: [
-        { x: 74, y: 30, label: "Stock expiring in the next 30 days" },
-        { x: 61, y: 61, label: "How many days the stock will last" },
-        { x: 85, y: 61, label: "Which distributor to order from" },
+        { x: 25.4, y: 19.5, label: "Cost of stock already expired" },
+        { x: 38.5, y: 20.3, label: "Cost expiring in 30 and 90 days" },
+        { x: 51.9, y: 59.5, label: "Batch number" },
+        { x: 61.6, y: 60.6, label: "Days left before expiry" },
+        { x: 90.5, y: 59.5, label: "Cost at risk" },
       ],
     }),
     shot({
-      heading: "Which brands and products earn",
-      body: "Imported fragrance and local skincare earn very different margins. The profit report shows what each product, category or brand earned after cost.",
-      id: SHOT.profitByProduct,
-      url: "app.nafaa.pk/reports/profit",
+      heading: "Testers counted, not lost",
+      body: "Opening a lipstick or a perfume as a tester takes it out of saleable stock and records its cost. The testers page lists every tester with its date, quantity and cost, the month's total, and which ones still wait for the owner's approval.",
+      id: SHOT.cosmeticsTesters,
+      url: "app.nafaa.pk/cosmetics/testers",
       layout: "split-right",
-      caption: "Shared report, shown with a demo store's data.",
       callouts: [
-        { x: 35, y: 48.4, label: "By product, category, brand or supplier" },
-        { x: 85, y: 58.5, label: "Profit and margin on every product" },
+        { x: 25.3, y: 19.5, label: "Tester cost this month" },
+        { x: 40, y: 53.5, label: "Each tester opened" },
+        { x: 80.6, y: 53.5, label: "Cost of each tester" },
+        { x: 88, y: 53.5, label: "Waiting for approval" },
+        { x: 92, y: 12.3, label: "Open a tester from stock" },
       ],
     }),
     table("Shelf check or Nafaa?", "How the main jobs of a cosmetics shop compare by eye and in Nafaa.", [
@@ -111,6 +114,7 @@ Nafaa covers each of these in the cosmetics setup, together with the counter, pu
 /** Internal links: the products a cosmetics shop uses, related trades and terms. */
 export default {
   ...entry,
+  seoDescription: 'Software for cosmetics and beauty shops: brands and shades, batch expiry, tester records, deals and gift sets, and loyalty points for regular customers.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

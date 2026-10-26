@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichQuetta = cityHub({
   slug: 'quetta',
+  seoDescription: 'POS, stock and khata software for Quetta dry fruit traders, tea hotels, garment and blanket sellers and grocers, with offline billing and trade credit.',
   name: 'Quetta',
   checkedOn: CHECKED,
   summary:

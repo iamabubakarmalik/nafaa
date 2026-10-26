@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichKasur = cityHub({
   slug: 'kasur',
+  seoDescription: 'POS, stock and khata software for Kasur leather traders, shoe and garment shops, sweet shops and grocers, with offline billing and supplier credit in one place.',
   name: 'Kasur',
   checkedOn: CHECKED,
   summary:

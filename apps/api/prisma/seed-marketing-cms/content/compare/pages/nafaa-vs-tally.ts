@@ -8,7 +8,7 @@ import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { compareTable, src, type CompareSpec } from '../_compare';
 
 const TALLY = src('TallyPrime product page (features, editions, licences)', 'https://tallysolutions.com/tally-prime/', 'Tally Solutions');
-const TALLY_IMPORT = src('Import Data into TallyPrime (help)', 'https://help.tallysolutions.com/import-data-in-tally', 'Tally Solutions');
+const TALLY_IMPORT = src('Import Data into TallyPrime (help)', 'https://help.tallysolutions.com/import-data-in-tally/', 'Tally Solutions');
 const SOURCES = [TALLY, TALLY_IMPORT];
 
 const SUMMARY =
@@ -16,6 +16,7 @@ const SUMMARY =
 
 const spec: CompareSpec = {
   slug: 'nafaa-vs-tally',
+  seoDescription: 'Nafaa vs TallyPrime for Pakistani businesses: counter billing, stock and khata against accounting-first software, when Tally fits better, and using both.',
   title: 'Nafaa vs Tally',
   competitorName: 'Tally',
   competitorUrl: 'https://tallysolutions.com/',

@@ -48,7 +48,7 @@ const entry = industry({
     heading: "Roll stock you can trust, cut by cut",
     sub: "Cut carpet to the customer's size at the counter, price it by the square foot, keep every leftover strip as stock, and always know how many feet are left on each roll.",
     badges: ["Sq ft pricing", "Remnants kept", "Works offline"],
-    media: { mediaId: SHOT.inventory, url: "app.nafaa.pk/products" },
+    media: { mediaId: SHOT.carpetRolls, url: "app.nafaa.pk/carpet-rolls" },
   },
   deepBlocks: [
     steps("How a carpet sale works in Nafaa", [
@@ -112,6 +112,7 @@ Nafaa covers each of these on a phone or computer, alongside the customer khata 
 /** Internal links: the products carpet shops use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for carpet and flooring shops that sell by the roll: roll length in stock, cut pieces with a size calculator, square-foot pricing and leftover pieces.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

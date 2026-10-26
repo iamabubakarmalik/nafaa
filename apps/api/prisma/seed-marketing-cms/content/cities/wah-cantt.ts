@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichWahCantt = cityHub({
   slug: 'wah-cantt',
+  seoDescription: 'POS, stock and khata software for Wah Cantt township stores, bookshops, pharmacies, bakeries and salons, with offline billing and families on a digital khata.',
   name: 'Wah Cantt',
   checkedOn: CHECKED,
   summary:

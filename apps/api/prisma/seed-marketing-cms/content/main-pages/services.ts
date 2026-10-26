@@ -382,6 +382,8 @@ Keep using your old system while we work. Go-live is a day you choose, usually t
     { ref: 'SOLUTION:retail-chains', kind: 'TAG' },
     { ref: 'SERVICE:training', kind: 'RELATED' },
     { ref: 'COMPARE:nafaa-vs-excel', kind: 'RELATED' },
+    { ref: 'TEMPLATE:product-import-template', kind: 'RELATED' },
+    { ref: 'ALTERNATIVE:excel-alternative', kind: 'RELATED' },
   ],
   sortOrder: 5,
   evidence: [
@@ -447,7 +449,7 @@ Have these ready and the setup goes quickly:
 - **Your POS registration** with the authority, which gives the POS ID for each counter or branch.
 - **A list of branches** with their addresses, so each one is linked to the right authority.
 
-If you are not sure whether your business must integrate at all, read the official guidance first: [FBR](https://www.fbr.gov.pk), [Punjab Revenue Authority](https://pra.punjab.gov.pk), [Sindh Revenue Board](https://srb.gos.pk) and [Khyber Pakhtunkhwa Revenue Authority](https://kpra.kp.gov.pk). Our [FBR integration](/product/fbr) page explains how invoices are reported, and what happens when the internet drops: bills are queued and sent when the connection returns.`),
+If you are not sure whether your business must integrate at all, read the official guidance first: [FBR](https://www.fbr.gov.pk), [Punjab Revenue Authority](https://pra.punjab.gov.pk), [Sindh Revenue Board](https://www.srb.gos.pk/srb/) and [Khyber Pakhtunkhwa Revenue Authority](https://kpra.kp.gov.pk). Our [FBR integration](/product/fbr) page explains how invoices are reported, and what happens when the internet drops: bills are queued and sent when the connection returns.`),
     quote('FBR integration setup', 'Tell us your business type, city and number of branches, and which authority you report to if you know it. We reply with a plan and a price.'),
   ],
   faqKeys: ['mp-fbr-who', 'mp-fbr-offline', 'svc-fbr-ready', 'svc-fbr-branches', 'mp-services-price'],
@@ -459,6 +461,10 @@ If you are not sure whether your business must integrate at all, read the offici
     { ref: 'GLOSSARY_TERM:ntn', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:tier-1-retailer', kind: 'RELATED' },
     { ref: 'BLOG_POST:fbr-e-invoicing-complete-guide-2026', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:fbr-pos-integration', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:pra-punjab', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:srb-sindh', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:kpra-khyber-pakhtunkhwa', kind: 'RELATED' },
   ],
   sortOrder: 6,
   evidence: ['apps/api/src/integrations/fbr', 'apps/api/src/integrations/tax-authority/adapters.ts', 'apps/web/src/integrations/fbr', 'apps/web/src/integrations/tax-authority/TaxAuthorityReceiptBadge.tsx'],
@@ -528,6 +534,8 @@ Each counter keeps its own devices, so a second counter can use different hardwa
     { ref: 'SOLUTION:single-shop', kind: 'TAG' },
     { ref: 'SOLUTION:restaurants', kind: 'TAG' },
     { ref: 'INDUSTRY:meat', kind: 'TAG' },
+    { ref: 'BLOG_POST:pos-hardware-kit-guide', kind: 'RELATED' },
+    { ref: 'BLOG_POST:barcode-vs-no-barcode-store', kind: 'RELATED' },
   ],
   sortOrder: 7,
   evidence: [

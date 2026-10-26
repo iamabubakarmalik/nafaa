@@ -49,7 +49,7 @@ const entry = industry({
     heading: "Parts counter and workshop job cards in one app",
     sub: "Find the part that fits by model and year, open a job card for every vehicle, credit labour to the mechanic who did it, and remind owners when the next oil change or token tax is due.",
     badges: ["Fits by make and model", "Job cards", "WhatsApp service reminders"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.autopartsParts, url: "app.nafaa.pk/autoparts/parts" },
   },
   deepBlocks: [
     steps("A vehicle's day in the workshop", [
@@ -59,16 +59,17 @@ const entry = industry({
       ["Hand-over", "Take what is left, set the next service reminder and the work warranty, and post the bill. Anything unpaid goes on the customer's khata."],
     ]),
     shot({
-      heading: "The counter and the workshop on one dashboard",
-      body: "The auto parts dashboard puts the job board, promised dates, service reminders and mechanic output next to the day's counter sale, profit and cash, so the owner sees both halves of the business at once.",
-      id: SHOT.dashboard,
-      url: "app.nafaa.pk/dashboard",
+      heading: "Every car in the workshop on one job board",
+      body: "Each car gets a job card with its registration number, the customer's complaint, the labour and parts used and the time it was promised. The board shows which cars are being worked on, which are ready to hand over, the bill on each and how much is still to collect.",
+      id: SHOT.autopartsJobs,
+      url: "app.nafaa.pk/autoparts/jobs",
       layout: "full",
-      caption: "The shared dashboard, shown with demo shop data; workshop widgets sit on the same page.",
       callouts: [
-        { x: 28, y: 27, label: "Today's sale and bills" },
-        { x: 57, y: 52, label: "Cash in the galla" },
-        { x: 40, y: 72, label: "What needs you today" },
+        { x: 20, y: 19.5, label: "Cars in the workshop now" },
+        { x: 55, y: 30.5, label: "Ready to hand over, with the amount due" },
+        { x: 25, y: 60.1, label: "Car and registration number" },
+        { x: 34.4, y: 62.6, label: "Customer's complaint" },
+        { x: 93.7, y: 61.2, label: "Bill and balance on each job" },
       ],
     }),
     shot({
@@ -113,6 +114,7 @@ Nafaa does all of this on a phone or computer, and the counter keeps billing whe
 /** Internal links: the products parts shops and workshops use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for auto parts shops and workshops: parts matched to make and model, job cards with mechanics, service reminders and returned old parts.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

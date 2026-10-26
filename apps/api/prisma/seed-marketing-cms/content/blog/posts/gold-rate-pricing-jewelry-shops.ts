@@ -3,15 +3,18 @@
  * wastage, stones and old-gold exchange. The worked example uses a round
  * placeholder rate, labelled as such; no market rate is quoted.
  */
-import { prose, steps } from '../../main-pages/_build';
+import { diagram, prose, steps } from '../../main-pages/_build';
 import { FAKE_AUTHOR, note, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'gold-rate-pricing-jewelry-shops',
+  seoDescription: 'How a jewellery bill is built from karat, the daily gold rate, making charges, wastage, stones and old-gold exchange, with a worked example in rupees.',
   title: 'How Jewellery Shops Price Gold in Pakistan',
   summary:
     'Karat and purity, the daily rate, making charges, wastage, stones and old-gold exchange: how a jewellery bill is built, with a worked example and tips for showing each part clearly to the customer.',
   category: 'industry',
+  cover: PHOTO.goldRatePricingJewelryShops,
   tags: ['INDUSTRY:jewelry'],
   related: ['PRODUCT:pos', 'PRODUCT:inventory', 'BLOG_POST:how-to-calculate-profit-margin'],
   blocks: [
@@ -65,6 +68,29 @@ Stones are priced separately, by carat or per piece, and their weight should be 
         ['Tax and total', 'Add tax where it applies, then total. Show every line on the bill, not just the total.'],
       ],
       'The method is the same for any rate. The numbers below are placeholders to show the arithmetic.',
+    ),
+    diagram(
+      'Each line of a jewellery bill builds on the one before it. Showing every line is what lets the customer check the total.',
+      {
+        kind: 'flow',
+        nodes: [
+          { id: 'rate', label: "Today's rate", icon: 'calendar', note: 'For the karat of the piece' },
+          { id: 'gold', label: 'Gold value', icon: 'calculator', note: 'Net weight × rate' },
+          { id: 'wastage', label: 'Wastage', icon: 'percent', note: 'Percent or grams' },
+          { id: 'making', label: 'Making', icon: 'hammer', note: 'Per gram, percent or fixed' },
+          { id: 'extras', label: 'Stones and extras', icon: 'gem', note: 'Polish, hallmark' },
+          { id: 'total', label: 'Bill total', icon: 'receipt', note: 'Tax where it applies' },
+        ],
+        edges: [
+          { from: 'rate', to: 'gold' },
+          { from: 'gold', to: 'wastage' },
+          { from: 'wastage', to: 'making' },
+          { from: 'making', to: 'extras' },
+          { from: 'extras', to: 'total' },
+        ],
+        animate: true,
+      },
+      'How the bill adds up',
     ),
     prose(`## Old gold exchange
 

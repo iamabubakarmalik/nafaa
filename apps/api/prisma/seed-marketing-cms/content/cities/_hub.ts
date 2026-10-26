@@ -26,6 +26,8 @@ export interface CityCopy {
   slug: string;
   name: string;
   summary: string;
+  /** Meta description, 120-160 characters (the summary is longer). */
+  seoDescription?: string;
   hero: { sub: string; media: { id: string; url: string }; badges: string[] };
   facts: [label: string, value: string][];
   romanUrdu: string;
@@ -85,6 +87,7 @@ export function cityHub(copy: CityCopy): (base: SeedEntry) => SeedEntry {
     return {
       ...base,
       summary: copy.summary,
+      ...(copy.seoDescription ? { seoDescription: copy.seoDescription } : {}),
       data: {
         ...base.data,
         markets: copy.markets,

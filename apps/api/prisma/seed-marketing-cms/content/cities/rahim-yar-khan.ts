@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichRahimYarKhan = cityHub({
   slug: 'rahim-yar-khan',
+  seoDescription: 'POS, stock and khata software for Rahim Yar Khan agri dealers, fruit and grain traders, grocers and clothing shops, with farmer credit kept in a digital khata.',
   name: 'Rahim Yar Khan',
   checkedOn: CHECKED,
   summary:

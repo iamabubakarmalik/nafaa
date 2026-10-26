@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichAbbottabad = cityHub({
   slug: 'abbottabad',
+  seoDescription: 'POS, stock and khata software for Abbottabad hotels, restaurants, bookshops, uniform shops and pharmacies, ready for the tourist season and the school year.',
   name: 'Abbottabad',
   checkedOn: CHECKED,
   summary:

@@ -10,27 +10,35 @@
  * contact page (published ones only).
  */
 import type { CmsEntryType, EntryCard, PublicEntry } from '@/lib/cms/contract/cms-contract';
-import { livePaths, loadCards, loadPlans } from '../core/data';
+import { uiStrings } from '@/lib/i18n/ui';
+import { liveLinks, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { LinkSections, NextSteps, type LinkGroup } from '../core/parts';
+import { LinkSections, NextSteps, relatedGroup, type LinkGroup } from '../core/parts';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { IndustryMarquee, TrustRibbon } from '../showcase/kit';
 
 export async function SolutionTemplate({ entry }: { entry: PublicEntry }) {
-  const [plans, live, siblings] = await Promise.all([
+  const ui = uiStrings(entry.locale);
+  const t = ui.pages.solution;
+  const [plans, links, siblings] = await Promise.all([
     loadPlans(),
-    livePaths(['/solutions', '/pricing', '/contact', '/services']),
-    loadCards({ type: 'SOLUTION', limit: 6 }),
+    liveLinks(['/solutions', '/pricing', '/contact', '/services', '/industries'], entry.locale),
+    loadCards({ type: 'SOLUTION', locale: entry.locale, limit: 6 }),
   ]);
-  const industries = await loadCards({ type: 'INDUSTRY', limit: 40 });
+  const industries = await loadCards({ type: 'INDUSTRY', locale: entry.locale, limit: 40 });
+  const link = (path: string, label: string) => {
+    const href = links.get(path);
+    return href ? { href, label } : undefined;
+  };
   const byType = (type: CmsEntryType): EntryCard[] => [...(entry.tags[type] ?? []), ...entry.related.filter((c) => c.type === type)];
 
   const groups: LinkGroup[] = [
-    { id: 'products', title: 'Products in this setup', cards: byType('PRODUCT') },
-    { id: 'industries', title: 'Industries it fits', cards: byType('INDUSTRY'), columns: 4 },
-    { id: 'integrations', title: 'Integrations', cards: byType('INTEGRATION') },
-    { id: 'services', title: 'Services that help', cards: byType('SERVICE'), link: live.has('/services') ? { href: '/services', label: 'All services' } : undefined },
-    { id: 'more-solutions', title: 'Other solutions', cards: siblings, link: live.has('/solutions') ? { href: '/solutions', label: 'All solutions' } : undefined },
+    { id: 'products', title: t.products, cards: byType('PRODUCT') },
+    { id: 'industries', title: t.industries, cards: byType('INDUSTRY'), columns: 4 },
+    { id: 'integrations', title: t.integrations, cards: byType('INTEGRATION') },
+    { id: 'services', title: t.services, cards: byType('SERVICE'), link: link('/services', t.allServices) },
+    { id: 'more-solutions', title: t.others, cards: siblings, link: link('/solutions', t.allSolutions) },
+    relatedGroup(entry),
   ];
 
   return (
@@ -39,20 +47,24 @@ export async function SolutionTemplate({ entry }: { entry: PublicEntry }) {
         entry={entry}
         afterHero={
           <>
-            <TrustRibbon className="mb-12" />
-            <IndustryMarquee cards={industries} title={`Runs ${industries.length} kinds of business on one platform`} link={live.has('/industries') ? { href: '/industries', label: 'All industries' } : undefined} />
+            <TrustRibbon locale={entry.locale} className="mb-12" />
+            <IndustryMarquee cards={industries} title={t.runsKinds(industries.length)} link={link('/industries', ui.allIndustries)} />
           </>
         }
         beforeEnd={<LinkSections groups={groups} exceptId={entry.id} />}
-        kickers={{ featuresGrid: 'Capabilities', steps: 'How it runs', screenshot: 'Inside the app' }}
-        pill="Solution"
+        kickers={{ featuresGrid: t.capabilities, steps: t.howItRuns, screenshot: ui.insideTheApp }}
+        pill={t.pill}
       />
       <NextSteps
+        locale={entry.locale}
         links={[
-          { href: '/pricing', label: 'See pricing', icon: 'tag' },
-          { href: '/contact', label: 'Talk to the team', icon: 'message-circle' },
-          { href: '/solutions', label: 'All solutions', icon: 'layout-grid' },
-        ].filter((link) => live.has(link.href))}
+          { path: '/pricing', label: ui.seePricing, icon: 'tag' },
+          { path: '/contact', label: t.talk, icon: 'message-circle' },
+          { path: '/solutions', label: t.allSolutions, icon: 'layout-grid' },
+        ].flatMap(({ path, ...rest }) => {
+          const href = links.get(path);
+          return href ? [{ href, ...rest }] : [];
+        })}
       />
     </PageFrame>
   );

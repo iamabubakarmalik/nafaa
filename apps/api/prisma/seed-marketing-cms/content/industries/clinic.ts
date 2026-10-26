@@ -51,7 +51,7 @@ const entry = industry({
     heading: "Reception, the doctor's room and the fee counter in one app",
     sub: "Give tokens at reception, show the line on a waiting-room screen, keep each visit's vitals, prescription and lab tests on the patient's record, and close every doctor's fees with the day.",
     badges: ["Tokens and live line", "Patient records", "Doctor day close"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/clinic/dashboard" },
+    media: { mediaId: SHOT.clinicAppointments, url: "app.nafaa.pk/clinic/appointments" },
   },
   deepBlocks: [
     steps("A day at the clinic", [
@@ -62,29 +62,29 @@ const entry = industry({
       ["Day close", "Close each doctor's day: patients seen, fees and lab billed, cash against khata, and the doctor's share."],
     ]),
     shot({
-      heading: "Patient balances on the khata",
-      body: "Some patients pay later, and fees can go on a patient's khata at reception. The khata shows every balance, how long it has been pending, and lets you record a payment or send a reminder.",
-      id: SHOT.khata,
-      url: "app.nafaa.pk/khata",
+      heading: "A record for every patient",
+      body: "Each patient gets an MR number with phone, blood group, allergies and long-term conditions on one line, so reception and the doctor see the warnings before the visit. Visit count and any khata balance sit next to a button that gives the next token.",
+      id: SHOT.clinicPatients,
+      url: "app.nafaa.pk/clinic/patients",
       layout: "full",
-      caption: "Shared khata screen, shown with demo data.",
       callouts: [
-        { x: 33, y: 19.5, label: "Total still to collect" },
-        { x: 49, y: 31, label: "How long each amount has been pending" },
-        { x: 90.5, y: 62, label: "Record a payment or send a reminder" },
+        { x: 20.6, y: 19.5, label: "Patients registered" },
+        { x: 22.5, y: 58.6, label: "MR number on every record" },
+        { x: 56, y: 57.5, label: "Blood group, allergies and conditions" },
+        { x: 94.5, y: 57.5, label: "Give a token" },
       ],
     }),
     shot({
-      heading: "The clinic's month in one statement",
-      body: "Fees, lab and medicine sales are ordinary bills, so the profit and loss statement covers the whole clinic: income, expenses such as rent and staff, and net profit, next to the period before.",
-      id: SHOT.profitLoss,
-      url: "app.nafaa.pk/reports/profit-loss",
+      heading: "Prescriptions written in the doctor's room",
+      body: "The doctor writes the diagnosis and medicines with strength, dose and days during the visit. Every prescription is listed with the patient and doctor, prints for the patient, and is marked once the medicine has been given at the counter.",
+      id: SHOT.clinicPrescriptions,
+      url: "app.nafaa.pk/clinic/prescriptions",
       layout: "split-right",
-      caption: "Shared report, shown with a demo store's data.",
       callouts: [
-        { x: 25, y: 19, label: "Net profit for the period" },
-        { x: 64, y: 30, label: "Expenses" },
-        { x: 67, y: 54, label: "Compared with the period before" },
+        { x: 48.8, y: 40.8, label: "Doctor and diagnosis" },
+        { x: 63, y: 39.7, label: "Medicines with strength" },
+        { x: 84.4, y: 40.8, label: "Print for the patient" },
+        { x: 90.6, y: 44, label: "Mark as dispensed" },
       ],
     }),
     table("Token slips or Nafaa?", "How the main jobs of a clinic compare on paper and in Nafaa.", [
@@ -116,6 +116,7 @@ Nafaa covers each of these in the clinic setup. Medicine sold at the clinic coun
 /** Internal links: the products a clinic uses, related health trades. */
 export default {
   ...entry,
+  seoDescription: 'Clinic software: reception tokens and a live queue, visits with prescriptions and lab orders, patient records, doctor fees and vaccinations, with billing.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },

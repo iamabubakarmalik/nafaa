@@ -13,42 +13,47 @@
  * /services/hardware and the demo page (published ones only).
  */
 import type { PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { uiStrings } from '@/lib/i18n/ui';
 import { Blocks } from '../core/Blocks';
-import { livePaths, loadCards, loadPlans } from '../core/data';
+import { liveLinks, loadCards, loadPlans } from '../core/data';
 import { PageFrame } from '../core/frame';
-import { LinkSections, NextSteps } from '../core/parts';
+import { LinkSections, NextSteps, relatedGroup } from '../core/parts';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { TrustRibbon } from '../showcase/kit';
 import { PlanMatrix } from './PlanMatrix';
 
 export async function PricingTemplate({ entry }: { entry: PublicEntry }) {
-  const [plans, products, live] = await Promise.all([
+  const ui = uiStrings(entry.locale);
+  const t = ui.pages.pricing;
+  const [plans, products, links] = await Promise.all([
     loadPlans(),
-    loadCards({ type: 'PRODUCT', limit: 6, status: ['live', 'beta'] }),
-    livePaths(['/best/pos-software-pakistan', '/services/hardware', '/demo', '/product', '/contact']),
+    loadCards({ type: 'PRODUCT', locale: entry.locale, limit: 6, status: ['live', 'beta'] }),
+    liveLinks(['/best/pos-software-pakistan', '/services/hardware', '/demo', '/product', '/contact'], entry.locale),
   ]);
+  const productHub = links.get('/product');
   const pricingBlock = entry.blocks.find((b) => b.type === 'pricingTable');
   const highlight = pricingBlock?.type === 'pricingTable' ? pricingBlock.highlightPlan : undefined;
-  const matrix = <PlanMatrix plans={plans} highlight={highlight} />;
+  const matrix = <PlanMatrix plans={plans} highlight={highlight} locale={entry.locale} />;
 
   return (
     <PageFrame entry={entry} plans={plans}>
       <ShowcaseBody
         entry={entry}
         showUpdated={false}
-        pill="Pricing"
-        afterHero={<TrustRibbon className="mb-2" />}
-        kickers={{ featuresGrid: 'Included', steps: 'Billing' }}
+        pill={t.pill}
+        afterHero={<TrustRibbon locale={entry.locale} className="mb-2" />}
+        kickers={{ featuresGrid: t.included, steps: t.billing }}
         beforeEnd={
           <LinkSections
             exceptId={entry.id}
             groups={[
               {
                 id: 'explore-product',
-                title: 'Explore the product',
+                title: t.explore,
                 cards: products,
-                link: live.has('/product') ? { href: '/product', label: 'All products' } : undefined,
+                link: productHub ? { href: productHub, label: t.allProducts } : undefined,
               },
+              relatedGroup(entry),
             ]}
           />
         }
@@ -63,12 +68,16 @@ export async function PricingTemplate({ entry }: { entry: PublicEntry }) {
       />
       {pricingBlock ? null : matrix}
       <NextSteps
+        locale={entry.locale}
         links={[
-          { href: '/demo', label: 'Book a demo', icon: 'calendar' },
-          { href: '/best/pos-software-pakistan', label: 'Best POS software in Pakistan', icon: 'trophy' },
-          { href: '/services/hardware', label: 'POS hardware', icon: 'printer' },
-          { href: '/contact', label: 'Contact sales', icon: 'message-circle' },
-        ].filter((link) => live.has(link.href))}
+          { path: '/demo', label: ui.bookDemo, icon: 'calendar' },
+          { path: '/best/pos-software-pakistan', label: t.bestPos, icon: 'trophy' },
+          { path: '/services/hardware', label: t.hardware, icon: 'printer' },
+          { path: '/contact', label: t.contactSales, icon: 'message-circle' },
+        ].flatMap(({ path, ...rest }) => {
+          const href = links.get(path);
+          return href ? [{ href, ...rest }] : [];
+        })}
       />
     </PageFrame>
   );

@@ -13,6 +13,8 @@ const SUMMARY =
 
 const spec: CompareSpec = {
   slug: 'nafaa-vs-paper-register',
+  seoTitle: 'Nafaa vs Paper Khata Register: Which Should Your Shop Use?',
+  seoDescription: 'Paper khata and sales register compared with Nafaa: what paper does well, where it loses money and time, and how to move old balances in one sitting.',
   title: 'Nafaa vs Paper Register',
   competitorName: 'Paper register (khata book)',
   verdict:

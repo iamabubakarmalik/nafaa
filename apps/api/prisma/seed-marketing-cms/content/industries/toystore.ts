@@ -47,7 +47,7 @@ const entry = industry({
     heading: "The right toy for every age, and a reason to come back",
     sub: "Find a gift by age and budget in seconds, sell Eid boxes and birthday hampers as one pack, keep unsafe toys away from small children, and message parents before their child's birthday.",
     badges: ["Gift finder", "Gift packs", "Birthday reminders"],
-    media: { mediaId: SHOT.inventory, url: "app.nafaa.pk/products" },
+    media: { mediaId: SHOT.toystoreGiftPacks, url: "app.nafaa.pk/toystore/gift-packs" },
   },
   deepBlocks: [
     steps("A busy evening at the toy store", [
@@ -57,16 +57,17 @@ const entry = industry({
       ["Birthdays", "Save the child's birth date with the parent's number. A week before the day, the parent shows on the list to message, with a ready WhatsApp text and toys that fit the child's age and budget."],
     ]),
     shot({
-      heading: "Every toy with its age, price and stock",
-      body: "The products page shows age, type and brand under every toy, with badges for small parts and cells not in the box, Eid gift marks, and price, cost and stock on each card.",
-      id: SHOT.inventory,
-      url: "app.nafaa.pk/products",
+      heading: "Birthdays that bring customers back",
+      body: "Save the child's birthday, interests and the parent's phone when a gift is bought. The birthday list shows who has a birthday coming in the next 30 days, and a WhatsApp message goes to the parent a week before.",
+      id: SHOT.toystoreBirthdays,
+      url: "app.nafaa.pk/toystore/birthdays",
       layout: "full",
-      caption: "The shared products page, shown with demo data.",
       callouts: [
-        { x: 26, y: 19, label: "Stock value at cost" },
-        { x: 40, y: 33, label: "Items running low" },
-        { x: 30, y: 80, label: "Price, cost and margin per item" },
+        { x: 21.3, y: 30.5, label: "Birthdays in the next 30 days" },
+        { x: 23.1, y: 59.8, label: "Child and interests" },
+        { x: 40.3, y: 59.8, label: "Parent and phone" },
+        { x: 54.7, y: 58.7, label: "Days to the birthday" },
+        { x: 89.4, y: 59.9, label: "Send a WhatsApp message" },
       ],
     }),
     shot({
@@ -111,6 +112,7 @@ Nafaa covers each of these on the counter computer or a phone, and keeps billing
 /** Internal links: the products toy stores use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Toy store software: filter toys by age, record safety certification, build gift packs, help parents with a gift finder and keep birthdays for reminders.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

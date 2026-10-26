@@ -46,9 +46,15 @@ import { pageEntries } from './pages';
 import { faqs as libraryFaqs } from './faqs';
 import { exportedEntries } from './exported';
 import { urEntries, urFaqs } from './ur';
+import { toolEntries, toolsFaqs } from './tools';
+import { templateEntries, templatesFaqs } from './templates';
+import { compliance, complianceFaqList } from './compliance';
+import { bestOf, bestOfFaqList } from './bestof';
+import { alternatives, alternativeFaqList } from './alternatives';
+import { guides, guideFaqList } from './guides';
 
 /** Shared FAQ library plus the main pages' own FAQs. */
-export const faqs = [...libraryFaqs, ...mainPageFaqs, ...urFaqs];
+export const faqs = [...libraryFaqs, ...mainPageFaqs, ...urFaqs, ...toolsFaqs, ...templatesFaqs, ...complianceFaqList, ...bestOfFaqList, ...alternativeFaqList, ...guideFaqList];
 export { settings } from './settings';
 export { menus } from './menus';
 export { redirects, redirectsNeedingOwner } from './redirects';
@@ -92,4 +98,4 @@ const industries: SeedEntry[] = [
  * Entries in apply order: categories before posts, so TAG relations resolve on
  * the same run. Exported admin entries (developer docs) come last, parents first.
  */
-export const entries: SeedEntry[] = [...industries, ...cities, ...glossary, ...compare, ...blogCategories, ...blogPosts, ...mainPageEntries, ...changelogEntries, ...pageEntries, ...exportedEntries, ...urEntries];
+export const entries: SeedEntry[] = [...industries, ...cities, ...glossary, ...compare, ...blogCategories, ...blogPosts, ...mainPageEntries, ...changelogEntries, ...pageEntries, ...exportedEntries, ...urEntries, ...toolEntries, ...templateEntries, ...compliance, ...bestOf, ...alternatives, ...guides];

@@ -117,6 +117,7 @@ Nafaa covers each of these in the mobile shop setup, along with the counter, acc
 /** Internal links: the products a mobile shop uses, related trades and terms. */
 export default {
   ...entry,
+  seoDescription: 'Mobile shop software: stock by IMEI with PTA status, used phone purchases and trade-ins, repair job cards and qist plans, with the usual counter and khata.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },
@@ -126,5 +127,6 @@ export default {
     { ref: 'INDUSTRY:electronics', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:imei', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:pta-approved', kind: 'RELATED' },
+    { ref: 'BLOG_POST:mobile-shop-imei-records', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

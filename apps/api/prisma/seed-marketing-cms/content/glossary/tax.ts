@@ -14,6 +14,7 @@ const TAX_REPORT = 'apps/web/src/modules/tax/components/MonthlyReportView.tsx';
 export const taxTerms: TermSpec[] = [
   {
     slug: 'fbr-pos',
+    seoDescription: 'FBR POS integration links a retailer\'s point of sale to FBR, so each sale invoice is reported live and carries an FBR invoice number and QR code.',
     imported: true,
     term: 'FBR POS Integration',
     definition: "FBR POS integration is the live link between a retailer's point of sale and the Federal Board of Revenue, so that each sale invoice is reported to FBR and carries an FBR invoice number and QR code.",
@@ -40,6 +41,7 @@ Nafaa offers optional FBR and provincial integration from its Tax page: each cou
   },
   {
     slug: 'tier-1-retailer',
+    seoDescription: 'A Tier-1 retailer is a larger retailer, such as a chain outlet or a shop in an air-conditioned mall, that must integrate its POS with FBR.',
     imported: true,
     term: 'Tier-1 Retailer',
     definition: 'Tier-1 retailer is the sales tax category for larger retailers, such as chain-store outlets and shops in air-conditioned malls, that must integrate their POS with FBR.',
@@ -66,6 +68,7 @@ The Nafaa Tax page includes FBR POS among its optional integrations, with a shor
   },
   {
     slug: 'ntn',
+    seoDescription: 'The National Tax Number (NTN) is a taxpayer\'s identification number with FBR, obtained through the IRIS portal. Here is when a business needs one.',
     imported: true,
     term: 'NTN (National Tax Number)',
     definition: "The National Tax Number is a taxpayer's identification number with FBR, obtained through FBR's IRIS portal.",
@@ -92,6 +95,8 @@ The Nafaa Tax settings store the NTN with each POS terminal where an authority's
   },
   {
     slug: 'strn',
+    seoDescription: 'The Sales Tax Registration Number (STRN) identifies a business registered with FBR for sales tax. Here is who needs one and where it appears on bills.',
+    seoTitle: 'What is STRN? Sales Tax Registration Number in Urdu',
     imported: true,
     term: 'STRN (Sales Tax Registration Number)',
     definition: 'The Sales Tax Registration Number identifies a business registered with FBR for sales tax.',
@@ -117,6 +122,7 @@ Nafaa's tax settings hold the registration details each authority's integration 
   },
   {
     slug: 'sales-tax',
+    seoDescription: 'Sales tax, often called GST in Pakistan, is charged on goods under the federal Sales Tax Act, 1990, while the provinces tax services separately.',
     term: 'Sales Tax (GST)',
     definition: 'Sales tax, often called GST in Pakistan, is a tax on the supply of goods charged under the federal Sales Tax Act, 1990, with services taxed separately by the provinces.',
     definitionRomanUrdu: 'Sales tax, jise Pakistan me aam taur par GST kehte hain, saman ki supply par federal Sales Tax Act, 1990 ke tehat lagta hai; services par sooba alag tax lagata hai.',
@@ -141,6 +147,7 @@ Nafaa's tax module covers FBR POS, PRA, SRB and KPRA in one place: taxable sales
   },
   {
     slug: 'sales-tax-invoice',
+    seoDescription: 'A sales tax invoice is the invoice a registered person must issue for a taxable supply, showing both parties\' registration numbers and the tax charged.',
     term: 'Sales Tax Invoice',
     definition: 'A sales tax invoice is the invoice a sales tax registered person must issue for a taxable supply, showing the details the Sales Tax Act, 1990 requires, including both parties\' registration numbers and the tax charged.',
     definitionRomanUrdu: 'Sales tax invoice woh invoice hai jo sales tax registered shakhs taxable supply par deta hai, jis me Sales Tax Act ke mutabiq dono parties ke registration number aur tax ki raqam hoti hai.',
@@ -165,6 +172,7 @@ The Sales Tax Act, 1990 on [FBR: Acts, Rules and Ordinances](https://fbr.gov.pk/
   },
   {
     slug: 'input-tax',
+    seoDescription: 'Input tax is the sales tax a registered business pays on purchases; output tax is what it charges on sales. The business pays FBR the difference.',
     term: 'Input Tax and Output Tax',
     definition: 'Input tax is the sales tax a registered business pays on its purchases; output tax is the sales tax it charges on its sales. The business pays the difference.',
     definitionRomanUrdu: 'Input tax woh sales tax hai jo registered karobar apni khareedari par deta hai; output tax woh jo apni sale par leta hai. Dono ka farq jama karwaya jata hai.',
@@ -205,13 +213,14 @@ Nafaa records payments received and paid; withholding tax certificates and retur
 
 ## Official source
 
-[FBR: Withholding tax rates](https://fbr.gov.pk/withholding-tax-rates/51147/81155) and the Income Tax Ordinance, 2001 on [FBR: Acts, Rules and Ordinances](https://fbr.gov.pk/act-rules-ordinances/131226). ${TAX_RULES_NOTE}`,
+[FBR: Withholding tax rates](https://fbr.gov.pk/withholding-taxes-rate-card/174298/174301) and the Income Tax Ordinance, 2001 on [FBR: Acts, Rules and Ordinances](https://fbr.gov.pk/act-rules-ordinances/131226). ${TAX_RULES_NOTE}`,
     alsoKnownAs: ['WHT', 'tax deducted at source', 'advance tax', 'tax deduction'],
     related: ['GLOSSARY_TERM:active-taxpayer-list', 'GLOSSARY_TERM:ntn', 'GLOSSARY_TERM:accounts-receivable'],
     sources: [SRC.fbrWht, SRC.fbrActs],
   },
   {
     slug: 'active-taxpayer-list',
+    seoDescription: 'The Active Taxpayer List (ATL) is FBR\'s list of people who have filed their income tax return. Being on it decides whether lower filer rates apply.',
     term: 'Active Taxpayer List (ATL)',
     definition: 'The Active Taxpayer List is FBR\'s published list of persons who have filed their income tax return (or are otherwise active), which decides whether lower filer tax rates apply to them.',
     definitionRomanUrdu: 'Active Taxpayer List FBR ki list hai un logon ki jinhon ne income tax return file kiya ho; isi se tay hota hai ke un par filer wale kam tax rates lagenge ya nahi.',
@@ -235,6 +244,7 @@ Nafaa does not check ATL status; use FBR's online verification.
   },
   {
     slug: 'sales-tax-on-services',
+    seoDescription: 'Sales tax on services is charged by the provinces on restaurants, salons, gyms, couriers and more, and collected by PRA, SRB, KPRA and BRA.',
     term: 'Sales Tax on Services',
     definition: 'Sales tax on services is the tax provinces charge on services such as restaurants, salons, gyms and courier work, collected by PRA, SRB, KPRA and BRA under provincial laws.',
     definitionRomanUrdu: 'Sales tax on services woh tax hai jo sooba restaurant, salon, gym aur courier jaisi services par lagata hai, aur PRA, SRB, KPRA aur BRA wasool karte hain.',
@@ -251,7 +261,7 @@ Nafaa's Tax page supports PRA, SRB and KPRA alongside FBR POS as optional integr
 
 ## Official source
 
-[Punjab Revenue Authority](https://pra.punjab.gov.pk/) and its [e-IMS](https://e.pra.punjab.gov.pk/public/eims.xhtml), [Sindh Revenue Board](https://srb.gos.pk) and [Khyber Pakhtunkhwa Revenue Authority](https://kpra.kp.gov.pk). ${TAX_RULES_NOTE}`,
+[Punjab Revenue Authority](https://pra.punjab.gov.pk/) and its [e-IMS](https://e.pra.punjab.gov.pk/public/eims.xhtml), [Sindh Revenue Board](https://www.srb.gos.pk/srb/) and [Khyber Pakhtunkhwa Revenue Authority](https://kpra.kp.gov.pk). ${TAX_RULES_NOTE}`,
     alsoKnownAs: ['provincial sales tax', 'PST', 'services tax', 'PRA tax', 'SRB tax'],
     related: ['GLOSSARY_TERM:sales-tax', 'GLOSSARY_TERM:service-charge', 'GLOSSARY_TERM:e-invoicing', 'INDUSTRY:restaurant', 'BLOG_POST:sales-tax-guide-punjab-2026'],
     evidence: [EV.taxMeta, TAX_SETTINGS],
@@ -259,6 +269,7 @@ Nafaa's Tax page supports PRA, SRB and KPRA alongside FBR POS as optional integr
   },
   {
     slug: 'e-invoicing',
+    seoDescription: 'E-invoicing is issuing sales tax invoices through a system linked to the tax authority, which checks each invoice and gives it a unique number.',
     term: 'E-Invoicing (Digital Invoicing)',
     definition: 'E-invoicing is issuing sales tax invoices electronically through a system connected to the tax authority, which validates each invoice and gives it a unique number.',
     definitionRomanUrdu: 'E-invoicing matlab sales tax invoices ko aise system se banana jo tax authority se juda ho, jo har invoice ko check kar ke usay unique number deta hai.',

@@ -1,0 +1,225 @@
+/** Urdu: Purchasing product page (/ur/product/purchasing). Translation of the purchasing entry in content/main-pages/products.ts. */
+import type { SeedEntry, SeedFaq } from '../../../lib/types';
+import { SHOT } from '../../main-pages/_build';
+
+export const faqs: SeedFaq[] = [
+  {
+    key: 'ur-prod-purchasing-import',
+    locale: 'ur',
+    topic: 'product',
+    question: 'خریداری شروع کرنے سے پہلے کیا اپنی پروڈکٹس کی لسٹ Excel سے Nafaa میں لا سکتے ہیں؟',
+    answer:
+      'جی ہاں۔ امپورٹ ٹیمپلیٹ ڈاؤن لوڈ کریں، اس میں نام، قیمتیں، کاسٹ، اسٹاک اور بارکوڈ بھریں، اور اپ لوڈ کر دیں۔ Nafaa پہلے فائل جانچتا ہے اور ہر وہ لائن دکھاتا ہے جو وہ شامل کرے گا یا بدلے گا، تاکہ کچھ محفوظ ہونے سے پہلے آپ غلطیاں ٹھیک کر لیں۔ پروڈکٹس کسی بھی وقت واپس Excel میں ایکسپورٹ ہو سکتی ہیں۔',
+    sourceNote: 'ProductBulkImportPage and import/columns.ts; reports/exports.',
+    origin: 'translation of faq mp-inventory-import',
+    evidence: [
+      'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx',
+      'apps/web/src/modules/inventory/products/import/columns.ts',
+      'apps/web/src/modules/reports/exports',
+    ],
+  },
+  {
+    key: 'ur-prod-purchasing-pricing',
+    locale: 'ur',
+    topic: 'pricing',
+    question: 'سپلائر اور خریداری کے حساب والے Nafaa کی قیمت کتنی ہے؟',
+    answer:
+      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/ur/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
+    sourceNote: 'Plan table (GET /api/plans): free-trial description "koi credit card nahi chahiye". Prices come from tokens.',
+    origin: 'translation of faq pricing',
+    evidence: ['apps/api/src/modules/billing/plans/plans.service.ts'],
+  },
+];
+
+export const entry: SeedEntry = {
+  type: 'PRODUCT',
+  locale: 'ur',
+  slug: 'purchasing',
+  title: 'خریداری',
+  seoTitle: 'پاکستان میں خریداری اور سپلائر مینجمنٹ سافٹ ویئر',
+  seoDescription:
+    'سپلائر، خریداری کے بل، واجب ادائیگیاں اور کم اسٹاک سے دوبارہ آرڈر، کاسٹ اور اسٹاک خود اپ ڈیٹ۔ Nafaa POS کا حصہ۔ 7 دن کا فری ٹرائل شروع کریں۔',
+  focusKeyword: 'سپلائر مینجمنٹ سافٹ ویئر',
+  summary:
+    'Nafaa خریداری بتاتی ہے کہ کیا خریدا اور کس کا کتنا دینا ہے: سپلائر کا کھاتہ اور ریٹ کی تاریخ، کسی بھی یونٹ میں بل جو اصل کاسٹ پر اسٹاک بڑھائیں، مال آنے تک رکے پرچیز آرڈر، سپلائر کو واپسی، پوری یا جزوی ادائیگی، اور کم اسٹاک سے سیدھا نیا آرڈر۔',
+  data: {
+    icon: 'clipboard-list',
+    shortName: 'خریداری',
+    benefit: 'سپلائر اور ادائیگیاں ترتیب میں',
+    status: 'live',
+    appRoute: '/purchases',
+  },
+  blocks: [
+    {
+      type: 'hero',
+      eyebrow: 'خریداری',
+      heading: 'سمجھداری سے خریدیں، اور ہمیشہ جانیں کس کا کتنا دینا ہے',
+      sub: 'سپلائر کا بل ایک بار درج کریں: اسٹاک بڑھ جاتا ہے، کاسٹ اپ ڈیٹ ہو جاتی ہے، اور واجب رقم سپلائر کے کھاتے میں چلی جاتی ہے۔ کم اسٹاک کی لسٹ سے دوبارہ آرڈر کریں اور اسی جگہ سے سپلائرز کو ادائیگی کریں۔',
+      primaryCta: { label: 'فری ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
+      secondaryCta: { label: 'ڈیمو بک کریں', href: 'demo', variant: 'secondary', trackAs: 'hero_demo' },
+      badges: ['سپلائر کا کھاتہ', 'پرچیز آرڈر', 'کم اسٹاک سے دوبارہ آرڈر'],
+      media: { kind: 'screenshot', mediaId: SHOT.lowStock, frame: 'browser', url: 'app.nafaa.pk/low-stock' },
+      layout: 'centered',
+      id: 'bfb518416a28',
+    },
+    {
+      type: 'answerBox',
+      facts: [
+        { label: 'سپلائر', value: 'رابطہ اور بینک کی تفصیل، خریداری کی تاریخ، ریٹ کی تاریخ اور واجب رقم' },
+        { label: 'خریداری کے بل', value: 'ایک ہی قدم میں اسٹاک بڑھائیں اور اوسط کاسٹ اپ ڈیٹ کریں' },
+        { label: 'اصل کاسٹ', value: 'بل پر کرایہ، ٹیکس اور ڈسکاؤنٹ چیزوں کی کاسٹ میں بانٹ دیے جاتے ہیں' },
+        { label: 'آرڈر', value: 'پرچیز آرڈر سے اسٹاک تب تک نہیں ہلتا جب تک مال پورا یا کچھ وصول نہ ہو' },
+        { label: 'واجب ادائیگیاں', value: 'سپلائرز کو پوری یا جزوی ادائیگی، دراز سے یا کسی اکاؤنٹ سے' },
+      ],
+      romanUrdu:
+        'Supplier ka bill ek dafa daalein: Stock barh jata hai, Cost update hoti hai, aur supplier ka hisaab khud ban jata hai. Kam stock ki list se seedha order banayein.',
+      id: 'b6f7a59c68e4',
+    },
+    {
+      type: 'steps',
+      heading: 'چار قدم میں ایک خریداری',
+      items: [
+        { title: 'سپلائر چنیں', body: 'یا فون، پتے اور بینک کی تفصیل کے ساتھ نیا سپلائر شامل کریں۔' },
+        { title: 'بل درج کریں', body: 'چیزیں سرچ یا اسکین کریں۔ ہر لائن پیس میں، پروڈکٹ کے کارٹن میں، یا صرف خریداری والے یونٹ میں خریدی جا سکتی ہے، جیسے 50 کلو کی بوری۔ جہاں ضرورت ہو بیچ اور ایکسپائری بھی ڈالیں۔' },
+        { title: 'اسٹاک اور کاسٹ اپ ڈیٹ', body: 'اسٹاک بڑھ جاتا ہے، اور بل پر کرایہ، ٹیکس اور ڈسکاؤنٹ ہر چیز کی کاسٹ میں بٹ جاتے ہیں، اس لیے اوسط کاسٹ درست رہتی ہے۔' },
+        { title: 'ابھی دیں یا بعد میں', body: 'پوری یا کچھ ادائیگی کریں؛ باقی سپلائر کے کھاتے میں رہتی ہے۔' },
+      ],
+      id: 'b2f290ccfb53',
+    },
+    {
+      type: 'diagram',
+      heading: 'سپلائر سے شیلف تک',
+      caption: 'خریداری کا بل مال کو اس کی اصل کاسٹ پر اسٹاک میں لاتا ہے اور جو آپ کو دینا ہے وہ سپلائر کے اکاؤنٹ میں ڈال دیتا ہے۔',
+      diagram: {
+        kind: 'flow',
+        nodes: [
+          { id: 'supplier', label: 'سپلائر', icon: 'handshake', note: 'رابطہ اور بیلنس' },
+          { id: 'bill', label: 'خریداری کا بل', icon: 'file-text', note: 'چیزیں، یونٹ اور کاسٹ' },
+          { id: 'stock', label: 'اسٹاک میں', icon: 'boxes', note: 'نئی کاسٹ پر' },
+          { id: 'payable', label: 'سپلائر کا بیلنس', icon: 'notebook-pen', note: 'جو آپ کو دینا ہے' },
+          { id: 'pay', label: 'ادائیگی', icon: 'banknote', note: 'بیلنس صاف' },
+        ],
+        edges: [
+          { from: 'supplier', to: 'bill' },
+          { from: 'bill', to: 'stock' },
+          { from: 'bill', to: 'payable' },
+          { from: 'payable', to: 'pay' },
+        ],
+        animate: true,
+      },
+      id: 'bd69c41cb83e',
+    },
+    {
+      type: 'featuresGrid',
+      heading: 'ایسی خریداری جو مارجن کو سچا رکھے',
+      columns: 3,
+      items: [
+        { icon: 'handshake', title: 'سپلائر کا کھاتہ', body: 'ہر سپلائر کا ہر بل، ادائیگی، واپسی اور پرانا بیلنس، اور یہ کہ کتنا دینا ہے اور کب سے۔' },
+        { icon: 'calculator', title: 'اصل کاسٹ', body: 'پرافٹ رپورٹس کرایہ اور ڈسکاؤنٹ کے بعد والی اوسط کاسٹ استعمال کرتی ہیں، اس لیے مارجن درست رہتا ہے۔' },
+        { icon: 'clipboard-check', title: 'پرچیز آرڈر', body: 'آرڈر بھیجیں، پھر جو واقعی پہنچا وہ وصول کریں۔ وصولی سے پہلے کچھ اسٹاک میں نہیں آتا۔' },
+        { icon: 'rotate-ccw', title: 'سپلائر کو واپسی', body: 'خراب یا غلط مال واپس بھیجیں؛ اسٹاک اور سپلائر کا بیلنس دونوں کم ہو جاتے ہیں۔' },
+        { icon: 'trending-up', title: 'ریٹ کی تاریخ', body: 'اگلا ریٹ طے کرنے سے پہلے دیکھیں کہ وقت کے ساتھ سپلائر کی قیمتیں کیسے بدلیں۔' },
+        { icon: 'printer', title: 'پرنٹ ہونے والے بل', body: 'A4 پر خریداری کے بل اور سپلائر کی اسٹیٹمنٹ پرنٹ کریں، یا واٹس ایپ پر بھیجیں۔' },
+      ],
+      id: 'b7f37398c6e5',
+    },
+    {
+      type: 'screenshot',
+      heading: 'جو ختم ہو رہا ہے وہاں سے شروع کریں',
+      body: 'کم اسٹاک کی لسٹ ہی خریداری کی لسٹ ہے: الرٹ لیول سے نیچے والی چیزیں، ہر ایک کتنے دن چلے گی، کتنا منگوانا ہے اور کس سپلائر سے۔ دوبارہ آرڈر والی ٹیب اسے ہر سپلائر اور برانچ کے ایک کارڈ میں جمع کر دیتی ہے، جو پرچیز آرڈر، واٹس ایپ میسج یا پرنٹ شدہ شیٹ بننے کے لیے تیار ہوتا ہے۔',
+      mediaId: SHOT.lowStock,
+      frame: 'browser',
+      url: 'app.nafaa.pk/low-stock',
+      callouts: [
+        { x: 25, y: 19, label: 'پورے آرڈر کی کاسٹ' },
+        { x: 33, y: 48, label: 'سپلائر کے حساب سے دوبارہ آرڈر کی لسٹ' },
+        { x: 70, y: 60, label: 'تجویز کردہ مقدار اور کاسٹ' },
+        { x: 85, y: 61, label: 'سپلائر اور آخری خریداری' },
+        { x: 92, y: 12, label: 'آرڈر بنائیں' },
+      ],
+      layout: 'full',
+      id: 'bc9237e46ca9',
+    },
+    {
+      type: 'diagram',
+      heading: 'کم اسٹاک کی لسٹ سے شیلف تک',
+      caption: 'دوبارہ آرڈر کی لسٹ ختم ہوتی چیزوں کو سپلائر اور برانچ کے حساب سے جمع کرتی ہے؛ ہر کارڈ پرچیز آرڈر بن جاتا ہے، اور اسٹاک صرف مال وصول ہونے پر ہلتا ہے۔',
+      diagram: {
+        kind: 'flow',
+        nodes: [
+          { id: 'low', label: 'ختم ہو رہا ہے', icon: 'triangle-alert', note: 'اسٹاک کتنے دن کا باقی' },
+          { id: 'reorder', label: 'دوبارہ آرڈر کی لسٹ', icon: 'clipboard-list', note: 'ہر سپلائر کا ایک کارڈ' },
+          { id: 'order', label: 'پرچیز آرڈر', icon: 'send', note: 'یا واٹس ایپ میسج' },
+          { id: 'receive', label: 'وصول', icon: 'package-check', note: 'پورا یا کچھ' },
+          { id: 'shelf', label: 'اسٹاک اور کاسٹ', icon: 'boxes', note: 'اوسط کاسٹ اپ ڈیٹ' },
+        ],
+        edges: [
+          { from: 'low', to: 'reorder' },
+          { from: 'reorder', to: 'order' },
+          { from: 'order', to: 'receive' },
+          { from: 'receive', to: 'shelf' },
+        ],
+        animate: true,
+      },
+      theme: 'muted',
+      id: 'bcb0f22f6504',
+    },
+    {
+      type: 'comparisonTable',
+      heading: 'خریداری کا بل یا پرچیز آرڈر؟',
+      caption: 'جب مال دکان میں آ چکا ہو تو بل استعمال کریں، اور جب سپلائر سے مال منگوا رہے ہوں تو آرڈر۔',
+      columns: [
+        { key: 'bill', label: 'خریداری کا بل', highlight: true },
+        { key: 'order', label: 'پرچیز آرڈر' },
+      ],
+      rows: [
+        { label: 'کب استعمال کریں', cells: { bill: { value: 'مال سپلائر کے بل کے ساتھ پہنچ گیا ہے' }, order: { value: 'آپ فون یا واٹس ایپ پر آرڈر دے رہے ہیں' } } },
+        { label: 'اسٹاک', cells: { bill: { value: 'فوراً بڑھ جاتا ہے' }, order: { value: 'صرف وصول کرنے پر بڑھتا ہے، پورا یا کچھ' } } },
+        { label: 'سپلائر کا بیلنس', cells: { bill: { value: 'بقایا رقم جتنا بڑھ جاتا ہے' }, order: { value: 'جیسے جیسے مال وصول ہو، بڑھتا ہے' } } },
+        { label: 'کاسٹ', cells: { bill: { value: 'اوسط کاسٹ فوراً اپ ڈیٹ' }, order: { value: 'وصولی پر اپ ڈیٹ' } } },
+      ],
+      id: 'beacf2229e1c',
+    },
+    {
+      type: 'richText',
+      markdown:
+        '## یہ کس کے لیے ہے\n\n[کریانہ](/ur/industries/kiryana) اور جنرل اسٹور جو ہفتے میں کئی بار ڈسٹری بیوٹرز سے خریدتے ہیں، [فارمیسیاں](/ur/industries/pharmacy) جنہیں ہر خریداری پر بیچ اور ایکسپائری چاہیے، [ہارڈ ویئر](/ur/industries/hardware) اور بلڈنگ میٹیریل کی دکانیں جو بوری، ٹن یا فٹ کے حساب سے خریدتی ہیں، [بیکریاں](/ur/industries/bakery) جو آٹا، چینی اور گھی خام مال کے طور پر اسی بل پر خریدتی ہیں، اور وہ ہول سیلرز جن پر سپلائرز کے بڑے بیلنس ہوتے ہیں۔\n\n## خریداری کے سافٹ ویئر میں کیا دیکھیں\n\n- **اصل کاسٹ۔** اگر کرایہ اور سپلائر کا ڈسکاؤنٹ کاسٹ کا حصہ نہیں، تو اس کے بعد کی ہر پرافٹ رپورٹ غلط ہے۔\n- **بل جیسے یونٹ۔** سپلائر کارٹن اور بوری میں بل بناتا ہے؛ آپ پیس اور کلو میں بیچتے ہیں۔ یونٹ سافٹ ویئر بدلے، آپ نہیں۔\n- **سپلائر کا کھاتہ، صرف بل نہیں۔** ادائیگیاں، واپسیاں اور پرانے بیلنس ایک ہی اسٹیٹمنٹ میں ہوں جو آپ سپلائر کو بھیج سکیں۔\n- **آرڈر بل سے الگ۔** جو آپ نے منگوایا اور جو پہنچا، اکثر مختلف ہوتے ہیں۔ وصولی پر یہ فرق درج ہونا چاہیے۔',
+      id: 'bf0b55063418',
+    },
+    { type: 'faq', heading: 'عام سوالات', id: 'b2fb0c6657ae' },
+    {
+      type: 'cta',
+      heading: 'اپنے سپلائرز کا حساب ترتیب میں لائیں',
+      primaryCta: { label: 'فری ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
+      secondaryCta: { label: 'واٹس ایپ پر پوچھیں', href: 'whatsapp', variant: 'ghost', trackAs: 'whatsapp' },
+      id: 'b2d2c76ea11e',
+    },
+  ],
+  faqKeys: ['ur-prod-purchasing-import', 'ur-prod-purchasing-pricing'],
+  relations: [
+    { ref: 'INDUSTRY:kiryana@ur', kind: 'TAG' },
+    { ref: 'INDUSTRY:pharmacy@ur', kind: 'TAG' },
+    { ref: 'INDUSTRY:hardware@ur', kind: 'TAG' },
+    { ref: 'INDUSTRY:bakery@ur', kind: 'TAG' },
+    { ref: 'INDUSTRY:autoparts@ur', kind: 'TAG' },
+    { ref: 'SOLUTION:wholesale-distribution@ur', kind: 'TAG' },
+    { ref: 'SOLUTION:manufacturing@ur', kind: 'TAG' },
+    { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' },
+    { ref: 'PRODUCT:reports@ur', kind: 'RELATED' },
+  ],
+  sortOrder: 10,
+  origin: 'translation of content/main-pages/products.ts (26 Oct 2026)',
+  evidence: [
+    'apps/web/src/modules/purchasing/purchases/editor/PurchaseEditorPage.tsx',
+    'apps/web/src/modules/purchasing/purchases/editor/sources.ts',
+    'apps/web/src/modules/purchasing/purchases/pages/PurchaseDetailPage.tsx',
+    'apps/web/src/modules/purchasing/purchases/api/purchases.api.ts',
+    'apps/web/src/modules/purchasing/suppliers/pages/SupplierDetailPage.tsx',
+    'apps/web/src/modules/purchasing/suppliers/components/SupplierMoneyModal.tsx',
+    'apps/web/src/modules/purchasing/print.ts',
+    'apps/web/src/modules/inventory/low-stock/components/ReorderView.tsx',
+  ],
+  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  dropped: [],
+  needsOwner: [],
+};

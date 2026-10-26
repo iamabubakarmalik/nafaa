@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichGujranwala = cityHub({
   slug: 'gujranwala',
+  seoDescription: 'POS, stock and khata software for Gujranwala appliance showrooms, hardware dealers and rice traders, with serial numbers, warranties and qist plans.',
   name: 'Gujranwala',
   checkedOn: CHECKED,
   summary:

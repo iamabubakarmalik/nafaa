@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichRawalpindi = cityHub({
   slug: 'rawalpindi',
+  seoDescription: 'POS, stock and khata software for Rawalpindi wholesalers, cloth and jewellery shops, grocers and restaurants that keeps billing when the signal is weak.',
   name: 'Rawalpindi',
   checkedOn: CHECKED,
   summary:

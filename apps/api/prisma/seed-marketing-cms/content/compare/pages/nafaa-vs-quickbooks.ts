@@ -16,6 +16,7 @@ const SUMMARY =
 
 const spec: CompareSpec = {
   slug: 'nafaa-vs-quickbooks',
+  seoDescription: 'Nafaa vs QuickBooks Online for a business in Pakistan: POS, stock and khata against cloud accounting, when QuickBooks fits better and how to use both.',
   title: 'Nafaa vs QuickBooks',
   competitorName: 'QuickBooks',
   competitorUrl: 'https://quickbooks.intuit.com/',

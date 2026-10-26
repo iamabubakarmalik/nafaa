@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichPeshawar = cityHub({
   slug: 'peshawar',
+  seoDescription: 'POS, stock and khata software for Peshawar restaurants, meat shops, jewellers, dry fruit and carpet dealers, with offline billing and trade credit in a khata.',
   name: 'Peshawar',
   checkedOn: CHECKED,
   summary:
@@ -117,6 +118,7 @@ Yes. The counter takes the weight and prices it at the rate you set.`,
     { ref: 'INDUSTRY:electronics', kind: 'TAG' },
     { ref: 'INDUSTRY:kiryana', kind: 'TAG' },
     { ref: 'PRODUCT:offline-pos', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:kpra-khyber-pakhtunkhwa', kind: 'RELATED' },
   ],
   evidence: [
     'apps/web/src/industries/restaurant',

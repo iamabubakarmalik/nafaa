@@ -118,6 +118,7 @@ Nafaa covers each of these in the garments setup, together with the counter, kha
 /** Internal links: the products a garment shop uses, related trades and terms. */
 export default {
   ...entry,
+  seoDescription: 'Software for garment shops and boutiques: stock by size and colour, silai and alteration orders, saved measurements, items on hold, qist plans and exchanges.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },
@@ -129,5 +130,6 @@ export default {
     { ref: 'INDUSTRY:cosmetics', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:layaway', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:sku', kind: 'RELATED' },
+    { ref: 'BLOG_POST:garment-shop-seasonal-stock-planning', kind: 'RELATED' },
   ],
 } satisfies typeof entry;

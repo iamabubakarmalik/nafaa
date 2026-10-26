@@ -4,15 +4,18 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { note, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'stock-taking-guide',
+  seoDescription: 'How to count stock without closing the shop: full counts versus weekly cycle counts, how to prepare and count, and what to do when numbers do not match.',
   title: 'Stock Taking for Shops: A Practical Guide',
   summary:
     'How to count your stock without closing the shop for days: full counts versus small weekly counts, how to prepare, how to count accurately, and what to do when the shelf and the system do not match.',
   category: 'guides',
+  cover: PHOTO.stockTakingGuide,
   tags: ['PRODUCT:inventory', 'GLOSSARY_TERM:sku'],
-  related: ['BLOG_POST:how-to-calculate-profit-margin', 'BLOG_POST:staff-theft-prevention-counter', 'BLOG_POST:barcode-setup-guide'],
+  related: ['BLOG_POST:how-to-calculate-profit-margin', 'BLOG_POST:staff-theft-prevention-counter', 'BLOG_POST:barcode-setup-guide', 'GUIDE:inventory-management-small-business', 'BEST_OF:inventory-software-pakistan', 'ALTERNATIVE:excel-alternative', 'TEMPLATE:stock-take-sheet', 'TOOL:reorder-level-calculator'],
   isNew: true,
   blocks: [
     prose(`Stock taking means counting what is physically on your shelves and in your godown, and comparing it with what your records say should be there. Most shop owners know they should do it and put it off, because it sounds like a weekend of closing the shop and counting tins. It does not have to be.
@@ -47,7 +50,7 @@ const spec: PostSpec = {
         ['Recount big differences', 'A second person recounts any item with a large difference. Many differences disappear on a recount.'],
         ['Confirm and adjust', 'Once you are sure, save the count so the system matches the shelf, and note the reason for each difference.'],
       ],
-      'The same steps work for a ten-minute cycle count or a full count.',
+      'The same steps work for a ten-minute cycle count or a full count. A printable [stock-take sheet](/templates/stock-take-sheet) helps if you count on paper first.',
       true,
     ),
     prose(`## Investigating differences

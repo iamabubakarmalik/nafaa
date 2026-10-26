@@ -1,0 +1,232 @@
+/** Urdu: solutions hub (/ur/solutions). Translation of content/main-pages/hubs.ts (solutions). */
+import type { SeedEntry, SeedFaq } from '../../../lib/types';
+import { SHOT } from '../../main-pages/_build';
+
+export const faqs: SeedFaq[] = [
+  {
+    key: 'ur-page-solutions-every-business',
+    locale: 'ur',
+    topic: 'getting-started',
+    question: 'کیا Nafaa کے سولوشنز صرف دکانوں کے لیے ہیں؟',
+    answer:
+      'نہیں۔ Nafaa دکان کے کاؤنٹر سے شروع ہوا، مگر وہی اکاؤنٹ ریسٹورنٹ (ٹیبل، کچن ٹکٹ، ڈیلیوری)، آن لائن بیچنے والے (اپنا اسٹور اور Nafaa Bazaar مارکیٹ پلیس)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی اسکرینیں ملتی ہیں۔',
+    sourceNote: 'apps/web/src/industries (31 packs), restaurant, multi-branch, online orders and marketplace publishing modules.',
+    origin: 'translation of faq every-business',
+    evidence: ['apps/web/src/industries', 'apps/web/src/modules/multi-branch', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
+  },
+  {
+    key: 'ur-page-solutions-combine',
+    locale: 'ur',
+    topic: 'solutions',
+    question: 'کیا ایک کاروبار Nafaa کے ایک سے زیادہ سولوشن استعمال کر سکتا ہے؟',
+    answer:
+      'جی ہاں۔ سولوشن الگ الگ پروڈکٹ نہیں بلکہ ایک ہی Nafaa اکاؤنٹ کو سیٹ کرنے کے طریقے ہیں۔ ریسٹورنٹ آن لائن بھی بیچ سکتا ہے، ہول سیلر ریٹیل کاؤنٹر بھی چلا سکتا ہے، اور دکان برانچیں بڑھا سکتی ہے، سب ایک اکاؤنٹ پر، ایک اسٹاک اور ایک ہی رپورٹس کے ساتھ۔',
+    sourceNote: 'Single account model; channels, branches and industry packs on one tenant.',
+    origin: 'translation of faq hub-solutions-combine',
+    evidence: ['apps/web/src/modules/organization/shops', 'apps/web/src/integrations/online-orders', 'apps/web/src/industries'],
+  },
+  {
+    key: 'ur-page-solutions-sell-online',
+    locale: 'ur',
+    topic: 'getting-started',
+    question: 'Nafaa کے ای کامرس سولوشن سے کیا میں آن لائن بیچ سکتا ہوں؟',
+    answer:
+      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں آپ کی کاؤنٹر سیل کے ساتھ آتے ہیں اور اسی شیلف کے اسٹاک سے کٹتے ہیں۔ نئے خریدار تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa کی مارکیٹ پلیس، Nafaa Bazaar، پر بھی لگا سکتے ہیں۔',
+    sourceNote: 'Online orders (website, Shopify, WooCommerce normaliser) and marketplace publishing.',
+    origin: 'translation of faq sell-online',
+    evidence: ['apps/api/src/integrations/online-orders/order-normalizer.ts', 'apps/api/src/integrations/channels/custom-website', 'apps/api/src/marketplace/publishing'],
+  },
+  {
+    key: 'ur-page-solutions-transfer',
+    locale: 'ur',
+    topic: 'product',
+    question: 'ریٹیل چین سولوشن میں کیا ایک برانچ سے دوسری برانچ میں اسٹاک بھیج سکتے ہیں؟',
+    answer:
+      'جی ہاں۔ ایک برانچ سے اسٹاک ٹرانسفر بنائیں، اور وصول کرنے والی برانچ کنفرم کرتی ہے کہ کیا پہنچا۔ اسٹاک ایک دکان سے نکل کر دوسری میں آ جاتا ہے، اور ریکارڈ رہتا ہے کہ کس نے بھیجا اور کس نے وصول کیا۔ ہیڈ آفس ہر برانچ کا اسٹاک، سیل اور پرافٹ اینڈ لاس ساتھ ساتھ دیکھتا ہے۔',
+    sourceNote: 'inventory/transfers; multi-branch center, pnl and day-book pages.',
+    origin: 'translation of faq mp-branches-transfer',
+    evidence: ['apps/web/src/modules/inventory/transfers', 'apps/web/src/modules/multi-branch'],
+  },
+  {
+    key: 'ur-page-solutions-api',
+    locale: 'ur',
+    topic: 'solutions',
+    question: 'انٹرپرائز سولوشن میں کیا Nafaa ہمارے دوسرے سسٹمز سے جڑ سکتا ہے؟',
+    answer:
+      'جی ہاں۔ Nafaa API پروڈکٹس، اسٹاک، گاہک، سیل اور آن لائن آرڈر پڑھتا ہے اور گاہک بنا سکتا ہے، ان keys کے ذریعے جو آپ Settings میں بناتے ہیں۔ Webhooks آپ کے سسٹمز کو بتاتے ہیں کہ کب کوئی سیل یا آرڈر ہوا۔ اکاؤنٹنگ کی انٹریاں QuickBooks، Xero یا Zoho Books میں جاتی ہیں، اور ہماری ٹیم آپ کی ضرورت کا کوئی بھی کنیکٹر بنا سکتی ہے۔',
+    sourceNote: 'integrations/public-api (api-keys, webhooks, events); integrations/accounting.',
+    origin: 'translation of faq mp-enterprise-api',
+    evidence: ['apps/api/src/integrations/public-api', 'apps/api/src/integrations/accounting'],
+  },
+];
+
+export const entry: SeedEntry = {
+  type: 'PAGE',
+  locale: 'ur',
+  slug: 'solutions',
+  relations: [
+    { ref: 'PAGE:product@ur', kind: 'RELATED' },
+    { ref: 'PAGE:industries@ur', kind: 'RELATED' },
+    { ref: 'PAGE:services@ur', kind: 'RELATED' },
+    { ref: 'PAGE:pricing@ur', kind: 'RELATED' },
+  ],
+  title: 'سولوشنز',
+  summary:
+    'Nafaa کے سیٹ اپ اس حساب سے کہ کاروبار کیسے چلتا ہے، صرف اس سے نہیں کہ کیا بکتا ہے: ایک دکان، کئی برانچوں والی ریٹیل چین، اپنے اسٹور اور Nafaa مارکیٹ پلیس والے آن لائن سیلر، ریسٹورنٹ، ہول سیل اور ڈسٹری بیوشن، مینوفیکچرنگ، اور وہ بڑی کمپنیاں جنہیں اپنے سسٹمز جوڑنے ہوں۔',
+  data: { template: 'hub', hubOf: 'SOLUTION' },
+  blocks: [
+    {
+      type: 'hero',
+      eyebrow: 'سولوشنز',
+      heading: 'ہر طرح سے بیچنے کے لیے پورا بزنس سافٹ ویئر',
+      sub: 'ایک کاؤنٹر سے برانچوں کی چین تک، دکان سے آن لائن اسٹور تک، کچن سے فیکٹری تک: Nafaa سیل، اسٹاک، پیسہ اور لوگ ایک سسٹم میں لاتا ہے جو آپ کے ساتھ بڑھتا ہے۔',
+      primaryCta: { label: 'فری ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
+      secondaryCta: { label: 'ڈیمو بک کریں', href: 'demo', variant: 'secondary', trackAs: 'hero_demo' },
+      badges: ['دکان سے بڑی کمپنی تک', 'آن لائن اور دکان میں', 'ایک اسٹاک، ایک حساب'],
+      media: { kind: 'screenshot', mediaId: SHOT.branches, frame: 'browser', url: 'app.nafaa.pk/branches' },
+      layout: 'centered',
+      id: 'ba86f952f179',
+    },
+    {
+      type: 'answerBox',
+      heading: 'آپ کے لیے کون سا سیٹ اپ',
+      facts: [
+        { label: 'ایک دکان', value: 'کاؤنٹر، اسٹاک اور کھاتہ ایک ایپ میں' },
+        { label: 'کئی برانچیں', value: 'ہیڈ آفس کا منظر، اسٹاک ٹرانسفر اور ہر برانچ کا P&L' },
+        { label: 'آن لائن سیل', value: 'اپنا اسٹور، Shopify، WooCommerce، Daraz اور Nafaa Bazaar، ایک ہی اسٹاک سے' },
+        { label: 'کھانے کا کاروبار', value: 'ٹیبل، کچن ٹکٹ، ٹیک اوے اور ڈیلیوری' },
+        { label: 'تجارت اور پیداوار', value: 'کارٹن کی قیمت، تجارتی کھاتہ، خام مال اور کاسٹنگ' },
+      ],
+      romanUrdu:
+        'Aik dukaan ho, kai branches, online store, restaurant, wholesale ya factory: Nafaa sab ke liye ek hi system hai jisme sale, stock, paisa aur staff ek jagah hain.',
+      id: 'b45ad9c9e16e',
+    },
+    {
+      type: 'entryGrid',
+      heading: 'اپنا کاروبار چلانے کا طریقہ چنیں',
+      intro: 'ہر سولوشن دکھاتا ہے کہ وہ کون سی پروڈکٹس استعمال کرتا ہے، اصل اسکرینیں، اور ٹیمیں اسے کیسے شروع کرتی ہیں۔',
+      entryType: 'SOLUTION',
+      sort: 'order',
+      limit: 60,
+      layout: 'cards',
+      id: 'b547fced7911',
+    },
+    {
+      type: 'diagram',
+      heading: 'ہر برانچ، ایک ڈیش بورڈ',
+      caption: 'ہر برانچ اپنا بل اور اسٹاک خود چلاتی ہے؛ ہیڈ آفس سب کو لائیو دیکھتا ہے اور ان کے بیچ اسٹاک منتقل کرتا ہے۔',
+      diagram: { kind: 'multi-branch', animate: true },
+      theme: 'muted',
+      id: 'be8cc3fdddb1',
+    },
+    {
+      type: 'comparisonTable',
+      heading: 'سولوشنز ایک نظر میں',
+      caption: 'ہر سولوشن ایک ہی Nafaa اکاؤنٹ پر چلتا ہے، اس لیے بعد میں بیچنے کا نیا طریقہ جوڑنا ہو تو ڈیٹا منتقل نہیں کرنا پڑتا۔',
+      columns: [
+        { key: 'who', label: 'کس کے لیے بہتر' },
+        { key: 'core', label: 'سیٹ اپ کی بنیاد', highlight: true },
+      ],
+      rows: [
+        { label: '[ریٹیل اور دکانیں](/ur/solutions/single-shop)', cells: { who: { value: 'کریانہ، فارمیسی، گارمنٹس، موبائل اور ہر ایک کاؤنٹر والی دکان' }, core: { value: 'POS، اسٹاک، کھاتہ، رپورٹس' } } },
+        { label: '[ریٹیل چین](/ur/solutions/retail-chains)', cells: { who: { value: 'ایک مالک کی دو یا زیادہ برانچیں' }, core: { value: 'برانچیں، اسٹاک ٹرانسفر، اسٹاف کے رول، ہر برانچ کا P&L' } } },
+        { label: '[ای کامرس](/ur/solutions/ecommerce)', cells: { who: { value: 'آن لائن اسٹور، سوشل میڈیا یا مارکیٹ پلیس سے آرڈر لینے والے سیلر' }, core: { value: 'آن لائن آرڈر، چینلز، کورئیر، Nafaa Bazaar' } } },
+        { label: '[ریسٹورنٹ](/ur/solutions/restaurants)', cells: { who: { value: 'ریسٹورنٹ، کیفے، بیکری اور کلاؤڈ کچن' }, core: { value: 'ٹیبل، کچن ٹکٹ، مینو، ڈیلیوری' } } },
+        { label: '[ہول سیل اور ڈسٹری بیوشن](/ur/solutions/wholesale-distribution)', cells: { who: { value: 'ہول سیلر، ڈسٹری بیوٹر اور ڈیلر' }, core: { value: 'کارٹن کی قیمت، تجارتی کھاتہ، A4 انوائس' } } },
+        { label: '[مینوفیکچرنگ](/ur/solutions/manufacturing)', cells: { who: { value: 'چھوٹے اور درمیانے پیداواری یونٹ' }, core: { value: 'خام مال، پیداوار، کاسٹنگ، سیل' } } },
+        { label: '[انٹرپرائز](/ur/solutions/enterprise)', cells: { who: { value: 'کئی ٹیموں، سسٹمز اور برانچوں والے گروپ' }, core: { value: 'API، webhooks، اکاؤنٹنگ، اپنی مرضی کے ماڈیول' } } },
+      ],
+      id: 'b3ccc02a2c5a',
+    },
+    {
+      type: 'diagram',
+      heading: 'دکان اور آن لائن، ایک ہی اسٹاک سے',
+      caption: 'ہر چینل کے آرڈر ایک لسٹ میں آتے ہیں؛ اسٹاک کی تبدیلی واپس ہر چینل تک جاتی ہے۔',
+      diagram: { kind: 'store-sync' },
+      theme: 'muted',
+      id: 'b38d466d5766',
+    },
+    {
+      type: 'screenshot',
+      heading: 'آن لائن آرڈر کاؤنٹر کے ساتھ ہی آتے ہیں',
+      body: 'ویب سائٹ کا آرڈر آتے ہی POS اسکرین پر Accept اور View کے ساتھ سامنے آ جاتا ہے، اس لیے وہی ٹیم دکان پر آنے والے اور آن لائن گاہک، دونوں کو ایک ہی شیلف سے مال دیتی ہے۔',
+      mediaId: SHOT.posOnlineAlert,
+      frame: 'browser',
+      url: 'app.nafaa.pk/pos',
+      layout: 'split-right',
+      id: 'b18be9455628',
+    },
+    {
+      type: 'steps',
+      heading: 'اپنا سیٹ اپ کیسے چنیں',
+      items: [
+        { title: 'دیکھیں آپ کیسے بیچتے ہیں', body: 'ایک کاؤنٹر، کئی برانچیں، آن لائن، کھانے کا کاروبار، ادھار پر تجارت یا پیداوار۔' },
+        { title: 'اس سے ملتا سولوشن کھولیں', body: 'ہر صفحہ اسکرینیں، روز کا کام اور ٹیمیں اسے کیسے شروع کرتی ہیں، دکھاتا ہے۔' },
+        { title: 'فری ٹرائل پر آزمائیں', body: 'ہر سولوشن ایک ہی اکاؤنٹ پر چلتا ہے، اس لیے آپ کسی ایک میں بندھ نہیں جاتے۔' },
+        { title: 'اگلا بعد میں جوڑیں', body: 'کاروبار بڑھے تو دوسری برانچ یا آن لائن اسٹور اسی ڈیٹا سے جڑ جاتا ہے۔' },
+      ],
+      id: 'baaf6b902834',
+    },
+    {
+      type: 'diagram',
+      heading: 'سسٹم بدلے بغیر آگے بڑھیں',
+      caption: 'ایک کاؤنٹر سے شروع کریں اور اسی اکاؤنٹ پر برانچیں، آن لائن سیل اور کنکشن جوڑتے جائیں۔',
+      diagram: {
+        kind: 'flow',
+        nodes: [
+          { id: 'shop', label: 'ایک دکان', icon: 'store' },
+          { id: 'branches', label: 'مزید برانچیں', icon: 'building-2' },
+          { id: 'online', label: 'آن لائن اسٹور', icon: 'globe' },
+          { id: 'bazaar', label: 'Nafaa Bazaar', icon: 'shopping-basket' },
+          { id: 'api', label: 'آپ کے سسٹمز', icon: 'webhook', note: 'API اور webhooks' },
+        ],
+        edges: [
+          { from: 'shop', to: 'branches' },
+          { from: 'branches', to: 'online' },
+          { from: 'online', to: 'bazaar' },
+          { from: 'bazaar', to: 'api' },
+        ],
+        animate: true,
+      },
+      id: 'b4ef3a570c2a',
+    },
+    {
+      type: 'richText',
+      markdown:
+        '## زیادہ تر کاروبار ایک سے زیادہ استعمال کرتے ہیں\n\nسولوشن الگ الگ پروڈکٹ نہیں ہیں۔ ڈیلیوری والا ریسٹورنٹ آن لائن بھی بیچتا ہے؛ ہول سیلر کے آگے اکثر ایک ریٹیل کاؤنٹر بھی ہوتا ہے؛ دکانوں کی چین اپنا کچھ مال خود بھی بناتی ہے۔ چونکہ ہر سولوشن ایک ہی Nafaa اکاؤنٹ پر چلتا ہے، اس لیے آپ ایک چننے کے بجائے انہیں ملا کر چلاتے ہیں۔ ایک کریانہ اسٹور [ایک دکان](/ur/solutions/single-shop) سے شروع ہو سکتا ہے، دوسری برانچ کھول کر [ریٹیل چین](/ur/solutions/retail-chains) بن سکتا ہے، پھر [آن لائن اسٹور](/ur/solutions/ecommerce) کھول سکتا ہے، اور ایک بھی ریکارڈ منتقل نہیں کرنا پڑتا۔\n\nاگر آپ کا کاروبار ان میں سے کسی میں فٹ نہیں ہوتا تو [انڈسٹریز](/ur/industries) کے صفحے پر اپنے کام سے شروع کریں، یا ہمیں بتائیں کہ آپ کیسے کام کرتے ہیں اور ہماری ٹیم صحیح سیٹ اپ بتا دے گی۔ جو کام ایپ میں نہیں، وہ ہماری [سروسز](/ur/services) ٹیم بنا دیتی ہے۔',
+      id: 'b787a7bc04b8',
+    },
+    { type: 'faq', heading: 'عام سوالات', id: 'b9d82d3aeee2' },
+    {
+      type: 'cta',
+      heading: 'ہمیں بتائیں آپ کا کاروبار کیسے چلتا ہے',
+      body: 'ہم صحیح سیٹ اپ بتائیں گے اور کال پر دکھائیں گے، یا ابھی 7 دن کا فری ٹرائل شروع کریں۔',
+      primaryCta: { label: 'ڈیمو بک کریں', href: 'demo', variant: 'primary', trackAs: 'cta_demo' },
+      secondaryCta: { label: 'واٹس ایپ پر بات کریں', href: 'whatsapp', variant: 'ghost', trackAs: 'whatsapp' },
+      id: 'b6c0d760ac03',
+    },
+  ],
+  faqKeys: [
+    'ur-page-solutions-every-business',
+    'ur-page-solutions-combine',
+    'ur-page-solutions-sell-online',
+    'ur-page-solutions-transfer',
+    'ur-page-solutions-api',
+  ],
+  seoTitle: 'بزنس سافٹ ویئر سولوشنز: ریٹیل، آن لائن، ریسٹورنٹ',
+  seoDescription:
+    'پاکستان میں دکانوں، ریٹیل چین، آن لائن سیلرز، ریسٹورنٹ، ہول سیل، مینوفیکچرنگ اور بڑی کمپنیوں کے لیے بزنس سافٹ ویئر سیٹ اپ، ایک ہی Nafaa اکاؤنٹ پر۔',
+  focusKeyword: 'بزنس مینجمنٹ سافٹ ویئر پاکستان',
+  sortOrder: 2,
+  origin: 'translation of content/main-pages/hubs.ts (26 Oct 2026)',
+  evidence: [
+    'apps/web/src/modules/organization/shops',
+    'apps/api/src/integrations/core/integration.service.ts',
+    'apps/api/src/modules/b2b-wholesale',
+    'apps/web/src/modules/bookings',
+    'apps/api/src/integrations/public-api',
+  ],
+  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  dropped: [],
+  needsOwner: [],
+};

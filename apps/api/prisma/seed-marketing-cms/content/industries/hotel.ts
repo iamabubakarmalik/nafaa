@@ -49,7 +49,7 @@ const entry = industry({
     heading: "Rooms, guests and the front desk in one app",
     sub: "See every room's state on one board, book and check in guests with their ID, post room service and laundry to the folio, and close each night with an audit that matches the cash.",
     badges: ["Room board", "Folio and check-out", "Night audit"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.hotelRoomBoard, url: "app.nafaa.pk/hotel/rooms" },
   },
   deepBlocks: [
     steps("A guest's stay, from booking to check-out", [
@@ -61,15 +61,16 @@ const entry = industry({
     ]),
     shot({
       heading: "The front desk's day on one screen",
-      body: "The hotel dashboard adds rooms, today's check-ins and check-outs, guests in house, housekeeping and booking sources to the day's sale, profit and cash.",
-      id: SHOT.dashboard,
-      url: "app.nafaa.pk/dashboard",
+      body: "Bookings are grouped the way the desk works: arriving today, in the hotel, leaving today, coming later and balance due. Each booking shows the room, dates, nights, phone and where it came from, such as walk-in, phone, a company or Booking.com, with the total and what is still to collect.",
+      id: SHOT.hotelBookings,
+      url: "app.nafaa.pk/hotel/bookings",
       layout: "full",
-      caption: "The shared dashboard, shown with demo data; hotel widgets sit on the same page.",
       callouts: [
-        { x: 28, y: 27, label: "Today's sale and bills" },
-        { x: 57, y: 52, label: "Cash in the drawer" },
-        { x: 40, y: 72, label: "What needs you today" },
+        { x: 20.1, y: 19.5, label: "Guests in the hotel now" },
+        { x: 83.8, y: 30.6, label: "Bookings with balance due" },
+        { x: 20.8, y: 61.2, label: "Room" },
+        { x: 36, y: 62.4, label: "Dates, nights and booking source" },
+        { x: 91.8, y: 62.2, label: "Total and balance due" },
       ],
     }),
     shot({
@@ -114,6 +115,7 @@ Nafaa does all of this in the browser on the desk computer or a phone, and its c
 /** Internal links: the products hotels use, the matching solutions and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for hotels and guest houses: a room board, bookings and guests, housekeeping, seasonal rates, extras posted to the room bill and a night audit.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },

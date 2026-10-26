@@ -59,6 +59,19 @@ function eyebrowFor(entry: PublicEntry): { label: string; href?: string } {
   }
 }
 
+/** The entries nearest to `id` in a dated list (one newer, then older ones), for neighbour links. */
+function neighbours(list: readonly EntryCard[], id: string, count: number): EntryCard[] {
+  const i = list.findIndex((card) => card.id === id);
+  if (i < 0) return list.slice(0, count);
+  const order = [i - 1, i + 1, i + 2, i - 2, i + 3, i - 3, i + 4, i - 4];
+  return order.filter((j) => j >= 0 && j < list.length).slice(0, count).map((j) => list[j]!);
+}
+
+/**
+ * "Keep reading": every RELATED card the editor set (glossary terms have their
+ * own chip row), up to six, padded to three with same-category posts. A
+ * changelog entry links its neighbours, so older updates stay reachable.
+ */
 async function moreReading(entry: PublicEntry): Promise<{ heading: string; cards: EntryCard[] }> {
   const seen = new Set([entry.id, ...entry.related.map((c) => c.id)]);
   let extra: EntryCard[] = [];
@@ -68,9 +81,11 @@ async function moreReading(entry: PublicEntry): Promise<{ heading: string; cards
   } else if (entry.type === 'GUIDE') {
     extra = await loadCards({ type: 'BLOG_POST', locale: entry.locale, tag: entry.id, sort: 'recent', limit: 6 });
   } else if (entry.type === 'CHANGELOG') {
-    extra = await loadCards({ type: 'CHANGELOG', locale: entry.locale, sort: 'recent', limit: 4 });
+    extra = neighbours(await loadCards({ type: 'CHANGELOG', locale: entry.locale, sort: 'recent', limit: 50 }), entry.id, 3);
   }
-  const cards = [...entry.related.filter((c) => c.type !== 'GLOSSARY_TERM'), ...extra.filter((c) => !seen.has(c.id))].slice(0, 3);
+  const related = entry.related.filter((c) => c.type !== 'GLOSSARY_TERM' && c.id !== entry.id).slice(0, 6);
+  const limit = Math.max(3, related.length);
+  const cards = [...related, ...extra.filter((c) => !seen.has(c.id))].slice(0, limit);
   return { heading: entry.type === 'GUIDE' ? 'Posts in this guide' : entry.type === 'CHANGELOG' ? 'More updates' : 'Keep reading', cards };
 }
 
@@ -135,7 +150,9 @@ export async function ArticleTemplate({ entry, site, entity }: ArticleTemplatePr
   const eyebrow = eyebrowFor(entry);
   const toc = (entry.data as { toc?: boolean }).toc !== false ? outline(entry, { withFaqs: true }) : [];
   const [more] = await Promise.all([moreReading(entry)]);
-  const terms = entry.tags.GLOSSARY_TERM ?? [];
+  const terms = [...(entry.tags.GLOSSARY_TERM ?? []), ...entry.related.filter((c) => c.type === 'GLOSSARY_TERM')].filter(
+    (card, i, list) => list.findIndex((other) => other.id === card.id) === i,
+  );
   const graph = s5Graph({ entry, site, entity, faq: true });
 
   return (

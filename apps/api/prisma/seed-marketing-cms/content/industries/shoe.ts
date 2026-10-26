@@ -48,7 +48,7 @@ const entry = industry({
     heading: "Every pair, every size, every colour on its own barcode",
     sub: "Build an article's size grid in one go, see which sizes are finished before customers walk out, swap sizes on the old bill, and tell customers on WhatsApp when the size they asked for is back.",
     badges: ["Size × colour grid", "Size requests", "Exchanges"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/shoe/dashboard" },
+    media: { mediaId: SHOT.shoeProducts, url: "app.nafaa.pk/products" },
   },
   deepBlocks: [
     steps("A day at the shoe store", [
@@ -59,28 +59,29 @@ const entry = industry({
       ["Closing", "Open the size reorder list for sizes running out, and count the galla."],
     ]),
     shot({
-      heading: "Every article with its cost, price and stock",
-      body: "The products page shows each article with stock, cost, price and margin, and the total value of the pairs on the shelves, so you know how much money sits in each season's stock.",
-      id: SHOT.inventory,
+      heading: "Reorder by size, not by article",
+      body: "A shoe shop rarely runs out of an article; it runs out of size 9. The size reorder view looks at the stock left and the last 30 days of sales for every size and lists what to order, article by article, ready to turn into a purchase.",
+      id: SHOT.shoeSizeReorder,
       url: "app.nafaa.pk/products",
       layout: "full",
-      caption: "Shared products screen, shown with a demo store's data.",
       callouts: [
-        { x: 34.5, y: 19.5, label: "Stock value and what it will sell for" },
-        { x: 50, y: 33, label: "Low stock flagged before it runs out" },
-        { x: 22, y: 81, label: "Cost, price and margin on every item" },
+        { x: 33, y: 50.8, label: "What to order, counted by size" },
+        { x: 27, y: 58.4, label: "Size, pairs left, sold and to order" },
+        { x: 85, y: 55.3, label: "Pairs sold in the last 30 days" },
+        { x: 93.3, y: 49.3, label: "Turn it into a purchase" },
       ],
     }),
     shot({
-      heading: "Sizes in the other branch",
-      body: "Stores with more than one branch compare sale and stock side by side and send pairs across by size and colour, instead of losing a sale to a size that sits in the other shop.",
-      id: SHOT.branches,
-      url: "app.nafaa.pk/branches",
+      heading: "Customers waiting for a size",
+      body: "When size 40 is not in stock, write the request with the customer's phone instead of losing the sale. The list shows what each customer wants, flags the request when that size arrives, and sends the message on WhatsApp.",
+      id: SHOT.shoeSizeRequests,
+      url: "app.nafaa.pk/shoe/try-on",
       layout: "split-right",
-      caption: "Shared branches screen, shown with a demo store's data.",
       callouts: [
-        { x: 34.5, y: 19.5, label: "Sale, profit and average bill" },
-        { x: 35.6, y: 75, label: "Branches compared side by side" },
+        { x: 20, y: 19.5, label: "Open size requests" },
+        { x: 56, y: 54.4, label: "Article, size and colour wanted" },
+        { x: 49.4, y: 58.7, label: "Flag when the size arrives" },
+        { x: 75.6, y: 56.7, label: "Tell the customer on WhatsApp" },
       ],
     }),
     table("Stock register or Nafaa?", "How the main jobs of a shoe store compare in a register and in Nafaa.", [
@@ -112,6 +113,7 @@ Nafaa covers each of these in the shoe store setup, together with the counter, p
 /** Internal links: the products a shoe store uses, related trades and terms. */
 export default {
   ...entry,
+  seoDescription: 'Shoe store software: every pair by size and colour with its own barcode, brands and seasons, size-wise reorder, exchanges and sizes customers asked for.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

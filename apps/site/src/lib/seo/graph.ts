@@ -22,7 +22,7 @@ import {
   type SiteSettings,
 } from '@/lib/cms/contract/cms-contract';
 import { absoluteUrl } from '@/lib/cms/env';
-import { hreflangFor } from '@/lib/cms/locale';
+import { DEFAULT_LOCALE, hreflangFor } from '@/lib/cms/locale';
 import { stableImageUrl } from '@/lib/media';
 import { breadcrumbListNode } from './breadcrumbs';
 import { markdownToPlain } from './text';
@@ -75,6 +75,17 @@ export function organizationNode(ctx: GraphContext): Node {
     sameAs,
     email: entity?.contact.email,
     telephone: entity?.contact.phone,
+    contactPoint:
+      entity?.contact.email || entity?.contact.phone
+        ? compact({
+            '@type': 'ContactPoint',
+            contactType: 'customer support',
+            email: entity.contact.email,
+            telephone: entity.contact.phone,
+            areaServed: 'PK',
+            availableLanguage: entity.languages.length ? entity.languages : undefined,
+          })
+        : undefined,
     address: hq
       ? compact({
           '@type': 'PostalAddress',
@@ -172,8 +183,18 @@ function personRef(person: PublicEntry['author']): Node | undefined {
   return compact({ '@type': 'Person', '@id': `${person.url}#person`, name: person.title, url: person.url, sameAs: person.sameAs });
 }
 
+/** Types whose route has an opengraph-image file, so `{url}/opengraph-image` is a real 1200x630 card. */
+const OG_ROUTE_TYPES = new Set(['BLOG_POST', 'GUIDE', 'CASE_STUDY', 'TEMPLATE', 'CHANGELOG', 'COMPLIANCE', 'BEST_OF', 'COMPARE', 'ALTERNATIVE']);
+
+/** Article image: the entry's own image, else its generated share card (Article rich results need one). */
+function articleImage(entry: PublicEntry): string | undefined {
+  if (entry.image) return stableImageUrl(entry.image);
+  if (entry.locale === DEFAULT_LOCALE && OG_ROUTE_TYPES.has(entry.type)) return `${entry.url.replace(/\/+$/, '')}/opengraph-image`;
+  return undefined;
+}
+
 function articleNode(entry: PublicEntry, type: string): Node {
-  const image = entry.image ? stableImageUrl(entry.image) : undefined;
+  const image = articleImage(entry);
   return compact({
     '@type': type,
     '@id': `${entry.url}#article`,
@@ -287,7 +308,7 @@ function templateNodes(entry: PublicEntry, ctx: GraphContext): Node[] {
       nodes.push(webPageNode(entry, 'WebPage'), articleNode(entry, 'Article'), faq);
       break;
     case 'article':
-      nodes.push(webPageNode(entry, 'WebPage'), articleNode(entry, entry.type === 'BLOG_POST' ? 'BlogPosting' : 'Article'));
+      nodes.push(webPageNode(entry, 'WebPage'), articleNode(entry, entry.type === 'BLOG_POST' ? 'BlogPosting' : 'Article'), ...howToNodes(entry));
       break;
     case 'docs':
       nodes.push(webPageNode(entry, 'WebPage'), articleNode(entry, 'TechArticle'));

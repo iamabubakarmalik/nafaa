@@ -192,6 +192,14 @@ const TOOL_LABEL: Record<ToolKey, string> = {
   'invoice-generator': 'Invoice generator',
   'gold-rate-calculator': 'Gold rate calculator',
   'fbr-tier-1-checker': 'FBR Tier-1 checker',
+  'break-even-calculator': 'Break-even calculator',
+  'discount-calculator': 'Discount calculator',
+  'reorder-level-calculator': 'Reorder level calculator',
+  'khata-ageing-calculator': 'Khata ageing calculator',
+  'food-cost-calculator': 'Food cost calculator',
+  'barcode-generator': 'Barcode generator',
+  'zakat-calculator': 'Zakat calculator',
+  'receipt-maker': 'Receipt maker',
 };
 
 export function ToolForm({ block, set, err }: BlockFormProps<'tool'>) {

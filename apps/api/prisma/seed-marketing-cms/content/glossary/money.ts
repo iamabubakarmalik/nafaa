@@ -31,6 +31,7 @@ Nafaa keeps a khata for every customer. Bills left unpaid post to it automatical
   },
   {
     slug: 'udhaar',
+    seoDescription: 'Udhaar is credit given to a customer: goods are taken now and paid for later. Here is how Pakistani shops keep udhaar under control with a khata.',
     imported: true,
     term: 'Udhaar',
     definition: 'Udhaar is credit given to a customer: goods are taken now and paid for later.',
@@ -70,6 +71,7 @@ The Nafaa product editor shows margin as the price is typed, and the profit repo
   },
   {
     slug: 'markup',
+    seoDescription: 'Markup is the amount added to the cost price to reach the selling price, usually as a percentage of cost. Here is how it differs from margin.',
     term: 'Markup',
     definition: 'Markup is the amount added to the cost price to get the selling price, usually expressed as a percentage of cost.',
     definitionRomanUrdu: 'Markup woh raqam hai jo cost price par laga kar selling price banti hai, aam taur par cost ka percentage.',
@@ -108,6 +110,7 @@ Nafaa saves the cost on every bill line when the sale is made, at landed cost fr
   },
   {
     slug: 'gross-profit',
+    seoDescription: 'Gross profit is sales minus the cost of the goods sold, before rent, salaries and other expenses. Here is how a shop in Pakistan works it out.',
     term: 'Gross Profit',
     definition: 'Gross profit is sales minus the cost of the goods sold, before rent, salaries, bills and other expenses are taken off.',
     definitionRomanUrdu: 'Gross profit sale minus bikne wale saman ki cost hai, kiraya, tankhwah aur bills nikalne se pehle.',
@@ -127,6 +130,7 @@ The Nafaa profit report shows what each product, variant, category, brand, suppl
   },
   {
     slug: 'net-profit',
+    seoDescription: 'Net profit is what is left from sales after the cost of goods and all business expenses are taken off. Here is how a shop in Pakistan works it out.',
     term: 'Net Profit',
     definition: 'Net profit is what is left from sales after the cost of goods and all business expenses have been taken off.',
     definitionRomanUrdu: 'Net profit woh hai jo sale me se saman ki cost aur karobar ke tamam kharchay nikalne ke baad bachta hai.',
@@ -203,6 +207,7 @@ The Nafaa P&L page has a cash in and cash out view, and Shop accounts shows mone
   },
   {
     slug: 'accounts-receivable',
+    seoDescription: 'Accounts receivable is the money customers owe a business for goods or services supplied on credit, which most Pakistani shops know as udhaar.',
     term: 'Accounts Receivable',
     definition: 'Accounts receivable is the money customers owe a business for goods or services already supplied on credit.',
     definitionRomanUrdu: 'Accounts receivable woh raqam hai jo gahakon ne udhaar par liye gaye saman ya service ke badle dukaan ko deni hai.',
@@ -222,6 +227,7 @@ Every customer's khata balance in Nafaa adds up to the shop's receivables. The c
   },
   {
     slug: 'accounts-payable',
+    seoDescription: 'Accounts payable is the money a business owes its suppliers for goods or services already received. Here is how shops in Pakistan track and pay it.',
     term: 'Accounts Payable',
     definition: 'Accounts payable is the money a business owes its suppliers for goods or services it has received but not yet paid for.',
     definitionRomanUrdu: 'Accounts payable woh raqam hai jo dukaan ne suppliers ko deni hai, un saman ya services ke liye jo mil chuki hain magar paise abhi nahi diye.',

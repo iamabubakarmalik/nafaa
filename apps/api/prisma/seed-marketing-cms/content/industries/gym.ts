@@ -52,7 +52,7 @@ const entry = industry({
     heading: "Memberships, check-in and fees for your gym in one app",
     sub: "Check members in at the desk in seconds, stop expired cards politely, renew and freeze memberships, pay trainers their PT commission, and see who owes fees before the month ends.",
     badges: ["Fast check-in", "Renewals and freezes", "PT commission"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.gymMembers, url: "app.nafaa.pk/gym/members" },
   },
   deepBlocks: [
     steps("A day at the gym desk", [
@@ -63,28 +63,30 @@ const entry = industry({
       ["Day close", "Check everyone out, take the day's renewals, and send WhatsApp reminders to members whose fees are due."],
     ]),
     shot({
-      heading: "Fees owed, by member and by age",
-      body: "Every membership, renewal, PT package and locker rent posts a bill. Whatever is not paid goes on the member's khata, so the fee register is always the same as the accounts, and overdue members stand out.",
-      id: SHOT.khata,
-      url: "app.nafaa.pk/khata",
+      heading: "Fees owed and renewals due, by member",
+      body: "Every membership shows its plan, dates, days left, the price and what has been paid. Memberships ending within seven days and those with fee still due have their own tabs, and the fee, renewal or freeze is one tap from the row.",
+      id: SHOT.gymMemberships,
+      url: "app.nafaa.pk/gym/memberships",
       layout: "full",
-      caption: "The shared khata, shown with demo data.",
       callouts: [
-        { x: 25, y: 19, label: "Total fees to collect" },
-        { x: 58, y: 30, label: "Dues by age" },
-        { x: 90, y: 55, label: "Take a payment or remind" },
+        { x: 26.6, y: 20.3, label: "Ending within 7 days" },
+        { x: 36, y: 20.3, label: "Memberships with fee due" },
+        { x: 48.6, y: 72.3, label: "Dates and days left" },
+        { x: 72.8, y: 70, label: "Fee still due" },
+        { x: 88.3, y: 68, label: "Take the fee or renew" },
       ],
     }),
     shot({
-      heading: "Trainers and desk staff with the right access",
-      body: "Staff and roles decide who can sell memberships, take fees or pay commission. Trainer commission is earned on each completed session, and paying it is recorded as an expense.",
-      id: SHOT.staff,
-      url: "app.nafaa.pk/staff",
+      heading: "Check-in at the door",
+      body: "Scan a member's card or QR code, or type the member number or phone, and the check-in is recorded against the membership. The desk sees who is inside now, since when, and checks members out at closing in one step.",
+      id: SHOT.gymCheckIn,
+      url: "app.nafaa.pk/gym/attendance",
       layout: "split-right",
-      caption: "The shared staff screen, shown with demo data.",
       callouts: [
-        { x: 22, y: 19, label: "Who is at work" },
-        { x: 32, y: 48, label: "Roles and permissions" },
+        { x: 47.5, y: 32, label: "Scan a card or QR, or type the number" },
+        { x: 19.8, y: 46.1, label: "Members inside now" },
+        { x: 43, y: 65.7, label: "Time in and time spent" },
+        { x: 94.2, y: 65.7, label: "Check out" },
       ],
     }),
     table("Fee register or Nafaa?", "How the everyday jobs of a gym compare on a paper register and on Nafaa.", [
@@ -117,6 +119,7 @@ Nafaa does this on a phone, tablet or computer at the desk, with the same report
 /** Internal links: the products gyms use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Gym software: fast member check-in, memberships and renewals, personal training with trainer commission, group classes, lockers and fee records in one place.',
   relations: [
     { ref: 'PRODUCT:khata', kind: 'TAG' },
     { ref: 'PRODUCT:pos', kind: 'TAG' },

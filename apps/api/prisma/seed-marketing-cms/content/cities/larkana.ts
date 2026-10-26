@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichLarkana = cityHub({
   slug: 'larkana',
+  seoDescription: 'POS, stock and khata software for Larkana rice dealers, agri stores, pharmacies and grocers. Billing keeps running through long power cuts without internet.',
   name: 'Larkana',
   checkedOn: CHECKED,
   summary:

@@ -8,6 +8,7 @@ import { EV, type TermSpec } from './_term';
 export const counterTerms: TermSpec[] = [
   {
     slug: 'pos',
+    seoDescription: 'A point of sale (POS) is where a sale is completed: items are scanned, payment is taken and a receipt is given. Here is what POS software does for a shop.',
     imported: true,
     term: 'POS (Point of Sale)',
     definition: 'The point of sale is where a sale is completed: items are scanned or picked, payment is taken and a receipt is given.',
@@ -29,6 +30,7 @@ The Nafaa counter works fully from the keyboard: search, change quantity, add a 
   },
   {
     slug: 'galla',
+    seoDescription: 'A galla is the cash drawer at a shop counter where the day\'s cash sales are kept and change is given. Here is how shops count and close it each day.',
     term: 'Galla',
     definition: 'A galla is the cash box or drawer at a shop counter where the day\'s cash sales are kept and change is given from.',
     definitionRomanUrdu: 'Galla counter ka woh dabba ya drawer hai jis me din bhar ka cash rakha jata hai aur jis se change diya jata hai.',
@@ -195,7 +197,7 @@ Held bills should stay on the counter's screen with a name or note, and anything
 
 On the Nafaa counter, F6 puts the current bill on hold and opens a fresh one. The held bills list shows each one with its items and total, ready to resume or remove.`,
     alsoKnownAs: ['park sale', 'suspend bill', 'hold cart'],
-    related: ['GLOSSARY_TERM:pos', 'GLOSSARY_TERM:layaway'],
+    related: ['GLOSSARY_TERM:pos', 'GLOSSARY_TERM:layaway', 'PRODUCT:pos'],
     evidence: [EV.posHold, EV.posShortcuts],
   },
   {
@@ -219,6 +221,7 @@ In Nafaa a return starts from the bill, typed or scanned, so prices come from th
   },
   {
     slug: 'refund',
+    seoDescription: 'A refund is money paid back to a customer for a returned item or a cancelled order. Here is how shops record refunds and keep the cash drawer right.',
     term: 'Refund',
     definition: 'A refund is money paid back to a customer for a returned item or a cancelled order.',
     definitionRomanUrdu: 'Refund matlab wapas kiye gaye saman ya cancel order ke paise gahak ko lautana.',
@@ -257,6 +260,7 @@ At the Nafaa counter, F4 opens the discount on the bill. Shops can set a discoun
   },
   {
     slug: 'combo-deal',
+    seoDescription: 'A combo deal is a set of products sold together at one price, usually lower than buying each item on its own. Here is how shops set and track them.',
     term: 'Combo Deal',
     definition: 'A combo deal is a set of products sold together at one price, usually lower than buying each item separately.',
     definitionRomanUrdu: 'Combo deal kuch products ka set hai jo ek qeemat par becha jata hai, aksar alag alag khareedne se sasta.',
@@ -333,6 +337,7 @@ Nafaa has a customer display page that runs on a second screen of the same compu
   },
   {
     slug: 'thermal-printer',
+    seoDescription: 'A thermal receipt printer prints bills on heat-sensitive paper rolls without ink, usually 58 mm or 80 mm wide. Here is how shops choose and use one.',
     term: 'Thermal Receipt Printer',
     definition: 'A thermal receipt printer prints bills on heat-sensitive paper rolls without ink, usually 58 mm or 80 mm wide.',
     definitionRomanUrdu: 'Thermal printer garmi se chhapne wala printer hai jo bina ink ke kaghaz ke roll par bill chhapta hai, aam taur par 58 ya 80 mm chaura.',

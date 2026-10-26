@@ -54,7 +54,7 @@ export const entry: SeedEntry = {
   slug: 'mobile-shop',
   title: 'موبائل فون شاپ',
   seoTitle: 'موبائل فون شاپ کے لیے POS: IMEI، اسٹاک اور کھاتہ',
-  seoDescription: 'موبائل شاپ کے لیے Nafaa: IMEI کے ساتھ فون کی سیل، ایکسیسریز کا اسٹاک، ادھار کا کھاتہ اور پرافٹ کی رپورٹ ایک ہی جگہ۔',
+  seoDescription: 'موبائل شاپ کے لیے Nafaa: IMEI اور PTA اسٹیٹس کے ساتھ فون کی سیل، پرانے فون اور ٹریڈ اِن، ریپیئر جاب کارڈ، قسط پلان، کھاتہ اور پرافٹ رپورٹ۔',
   focusKeyword: 'موبائل شاپ سافٹ ویئر',
   summary:
     'Nafaa موبائل فون شاپ کے لیے ہے: اسٹاک IMEI کے حساب سے رکھیں، ہر فون کا PTA اسٹیٹس لکھیں، پرانے فون خریدیں اور ٹریڈ اِن لیں، ریپیئر کے جاب کارڈ بنائیں، اور قسط پلان پر فون بیچیں۔ کاؤنٹر، کھاتہ اور رپورٹس ویسے ہی چلتے ہیں جیسے کسی بھی دکان میں۔',
@@ -219,6 +219,6 @@ export const entry: SeedEntry = {
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
   needsOwner: [],
-  // The English relations point to PRODUCT, SOLUTION, GLOSSARY and other INDUSTRY entries with no Urdu twin yet.
-  relations: [],
+  // Urdu pages link only to entries that have an Urdu version.
+  relations: [{ ref: 'PRODUCT:pos@ur', kind: 'RELATED' }, { ref: 'PRODUCT:khata@ur', kind: 'RELATED' }, { ref: 'INDUSTRY:electronics@ur', kind: 'RELATED' }],
 };

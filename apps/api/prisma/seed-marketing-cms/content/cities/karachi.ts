@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichKarachi = cityHub({
   slug: 'karachi',
+  seoDescription: 'POS, stock and khata software for Karachi shops, wholesalers and restaurants. Billing keeps going through K-Electric outages and credit stays in one khata.',
   name: 'Karachi',
   checkedOn: CHECKED,
   summary:
@@ -103,7 +104,7 @@ No extra software. Keep the billing device charged or on a UPS, as you would for
 Yes. Add each upcountry buyer as a khata customer with a credit limit. Their balance, every bill and every payment stay in one ledger, and one tap sends them a WhatsApp reminder of the balance before their next visit.
 
 ### Do Karachi restaurants need SRB integration?
-Restaurants in Sindh deal with the Sindh Revenue Board for sales tax on services. Nafaa has an optional tax integration; whether your restaurant must use one depends on your registration, so confirm with your tax adviser first.`,
+Restaurants in Sindh deal with the Sindh Revenue Board for sales tax on services, and [SRB POS integration](/compliance/srb-sindh) explains which of them must connect a POS. Nafaa has an optional tax integration; whether your restaurant must use one depends on your registration, so confirm with your tax adviser first.`,
   support:
     'Setup, data import and training happen remotely on WhatsApp and video calls, in Urdu or English. There is no Nafaa office in Karachi; the team works with you from your own counter.',
   pricingHeading: 'Plans for Karachi businesses',
@@ -120,6 +121,7 @@ Restaurants in Sindh deal with the Sindh Revenue Board for sales tax on services
     { ref: 'INDUSTRY:restaurant', kind: 'TAG' },
     { ref: 'SOLUTION:wholesale-distribution', kind: 'RELATED' },
     { ref: 'PRODUCT:offline-pos', kind: 'RELATED' },
+    { ref: 'COMPLIANCE:srb-sindh', kind: 'RELATED' },
   ],
   evidence: [
     'apps/web/src/industries/mobile',

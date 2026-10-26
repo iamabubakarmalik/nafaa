@@ -10,6 +10,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichSukkur = cityHub({
   slug: 'sukkur',
+  seoDescription: 'POS, stock and khata software for Sukkur date and grain traders, agri dealers and wholesalers serving upper Sindh, with trade and farmer credit in one khata.',
   name: 'Sukkur',
   checkedOn: CHECKED,
   summary:

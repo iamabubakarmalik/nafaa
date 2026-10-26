@@ -8,6 +8,7 @@ import { EV, SRC, type TermSpec } from './_term';
 export const productTerms: TermSpec[] = [
   {
     slug: 'sku',
+    seoDescription: 'An SKU (Stock Keeping Unit) is a code for one exact product variant, so each size, colour or pack size is counted separately. Here is how to set them up.',
     imported: true,
     term: 'SKU (Stock Keeping Unit)',
     definition: 'An SKU is a code for one exact product variant in stock, so each size, colour or pack size is counted separately.',
@@ -80,11 +81,12 @@ The practical issue for a shop is matching: one scanner may send 12 digits and a
 
 Nafaa stores whatever code the scanner reads and finds the product by it at the counter, so entering a product by scanning it once keeps imported UPC items consistent.`,
     alsoKnownAs: ['UPC-A', 'universal product code', '12 digit barcode'],
-    related: ['GLOSSARY_TERM:ean-13', 'GLOSSARY_TERM:barcode'],
+    related: ['GLOSSARY_TERM:ean-13', 'GLOSSARY_TERM:barcode', 'BLOG_POST:barcode-setup-guide', 'TOOL:barcode-generator'],
     evidence: [EV.pos],
   },
   {
     slug: 'scale-barcode',
+    seoDescription: 'A scale barcode is a label printed by a weighing scale that carries the item code with its weight or price, so loose items can be billed by scanning.',
     term: 'Scale Barcode',
     definition: 'A scale barcode is a label printed by a weighing scale that carries the item code together with its weight or price, so the counter can bill a loose item by scanning it.',
     definitionRomanUrdu: 'Scale barcode woh label hai jo kanta (weighing scale) chhapta hai, jis me item ka code aur wazan ya qeemat hoti hai, taake counter par scan kar ke bill ho jaye.',
@@ -185,6 +187,7 @@ The Sales Tax Act, 1990 and its schedules are published on [FBR: Acts, Rules and
   },
   {
     slug: 'imei',
+    seoDescription: 'An IMEI is the 15-digit number that identifies a mobile phone handset. Mobile shops in Pakistan use it to track stock, PTA status, warranty and theft.',
     imported: true,
     term: 'IMEI',
     definition: 'An IMEI is the 15-digit number that identifies a mobile phone handset.',
@@ -224,12 +227,13 @@ The Nafaa mobile pack records each phone's PTA status (approved, non-PTA, patche
 
 [PTA DIRBS](https://dirbs.pta.gov.pk/), Pakistan Telecommunication Authority.`,
     alsoKnownAs: ['PTA registered', 'PTA approved phone', 'DIRBS'],
-    related: ['GLOSSARY_TERM:imei', 'INDUSTRY:mobile-shop'],
+    related: ['GLOSSARY_TERM:imei', 'INDUSTRY:mobile-shop', 'BLOG_POST:mobile-shop-imei-records'],
     evidence: [EV.imeiApi, 'apps/web/src/industries/mobile/dashboard/useMobileOps.ts'],
     sources: [SRC.dirbs],
   },
   {
     slug: 'serial-number',
+    seoDescription: 'Serial number tracking records the unique serial of each high-value unit from purchase to sale, so every piece can be traced for warranty and returns.',
     term: 'Serial Number Tracking',
     definition: 'Serial number tracking records the unique serial of each high-value unit from purchase to sale, so every piece can be traced for warranty, returns and theft.',
     definitionRomanUrdu: 'Serial number tracking har qeemti unit ka apna serial khareed se bikri tak record karti hai, taake warranty, return aur chori me har piece ka pata chale.',
@@ -268,6 +272,7 @@ Nafaa's electronics and appliance packs keep warranty months per product, start 
   },
   {
     slug: 'tola',
+    seoDescription: 'A tola is the traditional unit for weighing gold and silver, about 11.66 grams, and the unit in which gold rates are quoted in Pakistan.',
     term: 'Tola',
     definition: 'A tola is the traditional South Asian unit for weighing gold and silver, equal to about 11.66 grams, and the unit in which gold rates are quoted in Pakistan.',
     definitionRomanUrdu: 'Tola sone aur chandi ka riwayati wazan hai, taqreeban 11.66 gram, aur Pakistan me sone ka rate isi me bataya jata hai.',
@@ -306,6 +311,7 @@ The Nafaa jewellery pack stores making charges per gram, as a fixed amount or as
   },
   {
     slug: 'layaway',
+    seoDescription: 'Layaway is reserving an item and paying for it in parts, then taking it home once it is fully paid. Here is how shops in Pakistan keep track of it.',
     imported: true,
     term: 'Layaway',
     definition: 'Layaway is reserving an item and paying for it in parts; the customer takes it home once it is fully paid.',

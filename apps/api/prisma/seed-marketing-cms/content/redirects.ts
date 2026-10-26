@@ -61,8 +61,9 @@ const merges: [string, string][] = [
   ['/founder-letter', '/contact'],
   ['/press', '/changelog'],
   ['/academy', '/blog'],
-  ['/guides', '/blog/category/guides'],
   ['/help', '/faq'],
+  // No vendor to compare with: the paper register page is an ALTERNATIVE.
+  ['/compare/nafaa-vs-paper-register', '/alternatives/paper-khata-register'],
   ['/case-studies', '/industries'],
   ['/migrate', '/services/data-migration'],
   ['/api-docs', '/developers'],
@@ -102,11 +103,9 @@ const temporary: [string, string][] = [
   ['/partner-portal', '/contact'],
   ['/status', '/changelog'],
   ['/search', '/'],
-  ['/templates', '/blog/category/guides'],
   ['/compare/nafaa-vs-excel', '/compare'],
   ['/compare/nafaa-vs-tally', '/compare'],
   ['/compare/nafaa-vs-quickbooks', '/compare'],
-  ['/compare/nafaa-vs-paper-register', '/compare'],
   // Integrations: the closest live page until INTEGRATION entries are published.
   ['/integrations/fbr', '/product/fbr'],
   ['/integrations/pra', '/product/fbr'],

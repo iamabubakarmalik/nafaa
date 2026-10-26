@@ -5,15 +5,18 @@
  */
 import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { FAKE_AUTHOR, note, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const spec: PostSpec = {
   slug: 'best-pos-kiryana-2026',
+  seoDescription: 'A fair buyer\'s guide to POS software for kiryana and general stores: what to check, a ten-minute demo test, how pricing works, and when simpler is enough.',
   title: 'How to Choose POS Software for a Kiryana Store in Pakistan',
   summary:
     'A fair buyer\'s guide to POS software for kiryana and general stores: the kinds of software on offer, what to check, a ten-minute test to run in any demo, how pricing usually works, and when a simpler tool is enough.',
   category: 'industry',
+  cover: PHOTO.bestPosKiryana2026,
   tags: ['INDUSTRY:kiryana', 'GLOSSARY_TERM:pos'],
-  related: ['PRODUCT:pos', 'PRODUCT:offline-pos', 'COMPARE:nafaa-vs-excel', 'BLOG_POST:choosing-a-pos-printer'],
+  related: ['PRODUCT:pos', 'PRODUCT:offline-pos', 'COMPARE:nafaa-vs-excel', 'BLOG_POST:choosing-a-pos-printer', 'BEST_OF:pos-software-pakistan', 'ALTERNATIVE:desktop-pos-alternative'],
   blocks: [
     note('Nafaa is our product, so read this with that in mind. We have not ranked other products, because we could not test them all fairly. Instead this guide gives you the questions and the test we would want any shop to run, including on us.', 'A note before you read'),
     prose(`Search for "best POS for kiryana" and you will find lists that put the writer's own product first. This is not one of those. A kiryana store has specific needs: fast billing of small baskets, loose goods by weight, udhaar for regular customers, frequent stock from many suppliers, and power cuts. The best software for your shop is the one that handles those well, at a price you can carry every month, from a company that will still answer the phone next year.

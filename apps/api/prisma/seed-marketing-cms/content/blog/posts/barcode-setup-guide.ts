@@ -2,19 +2,22 @@
  * Setting up barcodes in a shop: which barcode types, scanners, labels for
  * own and loose items, and a step-by-step rollout.
  */
-import { prose, steps } from '../../main-pages/_build';
+import { SHOT, prose, shot, steps } from '../../main-pages/_build';
 import { note, src, tip, type PostSpec } from '../_post';
+import { PHOTO } from '../_media';
 
 const SOURCES = [src('GS1 member organisations (where manufacturers get a company prefix)', 'https://www.gs1.org/contact/overview', 'GS1')];
 
 const spec: PostSpec = {
   slug: 'barcode-setup-guide',
+  seoDescription: 'How to start billing by barcode: barcode types, choosing a scanner, printing labels for unlabelled items, loose goods and variants, and a calm rollout.',
   title: 'Barcode Setup for a Shop: Scanners, Labels and Codes',
   summary:
     'How to start billing by barcode: which barcode types you will meet, choosing a scanner, printing labels for items without a barcode, handling loose goods and variants, and rolling it out without stopping the counter.',
   category: 'guides',
+  cover: PHOTO.barcodeSetupGuide,
   tags: ['PRODUCT:inventory', 'PRODUCT:pos', 'GLOSSARY_TERM:sku'],
-  related: ['BLOG_POST:choosing-a-pos-printer', 'BLOG_POST:stock-taking-guide', 'BLOG_POST:clothing-size-inventory-guide'],
+  related: ['BLOG_POST:choosing-a-pos-printer', 'BLOG_POST:stock-taking-guide', 'BLOG_POST:clothing-size-inventory-guide', 'TOOL:barcode-generator', 'GLOSSARY_TERM:upc'],
   isNew: true,
   sources: SOURCES,
   blocks: [
@@ -80,7 +83,15 @@ Many kiryana stores use both: pre-packed sizes for the rush, weighing at the cou
     tip('After labelling, do a five-minute test: scan ten random items from the shelf and check the name and price on the bill. Fix any that are wrong before the evening rush.', 'Test before the rush'),
     prose(`## How Nafaa handles barcodes
 
-In Nafaa you scan a packaged item's barcode into its product, or generate a code for items without one. Each pack unit (piece, dozen, carton) can carry its own barcode while sharing one stock. The label designer prints on a thermal label roll or on A4 sticker sheets; you choose what shows on the sticker, the barcode type (Code 128, EAN-13 or QR), the price, text size and extra lines, and the design is saved for the whole shop. At the counter, a scan adds the item to the bill, and a weighing scale on a serial or USB-serial cable can send the weight straight to the bill for loose goods.`),
+In Nafaa you scan a packaged item's barcode into its product, or generate a code for items without one. To try codes before you set up, use the free [barcode generator](/tools/barcode-generator). Each pack unit (piece, dozen, carton) can carry its own barcode while sharing one stock. The label designer prints on a thermal label roll or on A4 sticker sheets; you choose what shows on the sticker, the barcode type (Code 128, EAN-13 or QR), the price, text size and extra lines, and the design is saved for the whole shop. At the counter, a scan adds the item to the bill, and a weighing scale on a serial or USB-serial cable can send the weight straight to the bill for loose goods.`),
+    shot({
+      heading: 'A scan lands on the bill',
+      body: 'At the counter, each scan adds the item at its saved price. Items without a barcode are still one search or tap away on the product grid.',
+      id: SHOT.pos,
+      url: 'app.nafaa.pk/pos',
+      layout: 'full',
+      caption: 'Nafaa POS checkout in a demo grocery store, with five items on the bill.',
+    }),
   ],
   outline: ['Barcode types', 'Scanners', 'Labels', 'Rollout', 'Loose goods', 'Problems', 'How Nafaa handles barcodes'],
   dropped: [],

@@ -1,0 +1,230 @@
+/** Urdu: data migration service page (/ur/services/data-migration). Translation of content/main-pages/services.ts (data-migration). */
+import type { SeedEntry, SeedFaq } from '../../../lib/types';
+import { SHOT } from '../../main-pages/_build';
+
+export const faqs: SeedFaq[] = [
+  {
+    key: 'ur-svc-data-migration-what',
+    locale: 'ur',
+    topic: 'services',
+    question: 'ڈیٹا مائیگریشن میں پرانے سسٹم سے Nafaa میں کیا کیا منتقل ہو سکتا ہے؟',
+    answer:
+      'پروڈکٹس اپنی قیمت، کاسٹ، بارکوڈ اور اسٹاک کے ساتھ، گاہک اپنے پرانے ادھار کے ساتھ، اور سپلائر اس رقم کے ساتھ جو آپ نے انہیں دینی ہے۔ ہم Excel یا CSV فائل، پرانے سافٹ ویئر کا ایکسپورٹ یا رجسٹر کی تصویریں لیتے ہیں۔ پروڈکٹس ایپ کے اپنے امپورٹ سے ڈرائی رن کے ساتھ جاتی ہیں، بیلنس اوپننگ کھاتے اور سپلائر بیلنس کے طور پر جاتے ہیں، اور شروع کرنے سے پہلے ہم آپ کے ساتھ ٹوٹل ملاتے ہیں۔',
+    sourceNote: 'Product bulk import (dry run); customer opening balance (Purana khata); supplier opening balance.',
+    origin: 'translation of faq mp-migration-what',
+    evidence: [
+      'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx',
+      'apps/web/src/modules/customers',
+      'apps/web/src/modules/purchasing/suppliers',
+    ],
+  },
+  {
+    key: 'ur-svc-data-migration-excel',
+    locale: 'ur',
+    topic: 'product',
+    question: 'کیا اپنی پروڈکٹ لسٹ Excel سے سیدھی Nafaa میں لا سکتا ہوں؟',
+    answer:
+      'جی ہاں۔ امپورٹ کا ٹیمپلیٹ ڈاؤن لوڈ کریں، اس میں نام، قیمت، کاسٹ، اسٹاک اور بارکوڈ بھریں، اور اپ لوڈ کر دیں۔ Nafaa پہلے فائل چیک کرتا ہے اور ہر وہ لائن دکھاتا ہے جو نئی بنے گی یا بدلے گی، تاکہ کچھ محفوظ ہونے سے پہلے آپ غلطیاں ٹھیک کر سکیں۔ پروڈکٹس کسی بھی وقت واپس Excel میں ایکسپورٹ بھی ہو سکتی ہیں۔',
+    sourceNote: 'ProductBulkImportPage and import/columns.ts; reports/exports.',
+    origin: 'translation of faq mp-inventory-import',
+    evidence: [
+      'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx',
+      'apps/web/src/modules/inventory/products/import/columns.ts',
+      'apps/web/src/modules/reports/exports',
+    ],
+  },
+  {
+    key: 'ur-svc-data-migration-oldpos',
+    locale: 'ur',
+    topic: 'services',
+    question: 'آپ کس پرانے POS یا سافٹ ویئر سے ڈیٹا Nafaa میں منتقل کر سکتے ہیں؟',
+    answer:
+      'ہر اس سسٹم سے جو Excel یا CSV میں ایکسپورٹ دے سکے، اور زیادہ تر POS اور اکاؤنٹنگ سافٹ ویئر یہ دیتے ہیں۔ اگر آپ کا سافٹ ویئر ایکسپورٹ نہیں دیتا تو ہم پرنٹ شدہ رپورٹس یا رجسٹر کی تصویروں سے کام کرتے ہیں۔ پہلے ایک نمونہ بھیج دیں، ہم بتا دیں گے کہ کیا کیا منتقل ہو سکتا ہے۔',
+    sourceNote: 'Product import takes Excel/CSV; balances entered as opening balances.',
+    origin: 'translation of faq svc-migration-old-pos',
+    evidence: ['apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx'],
+  },
+  {
+    key: 'ur-svc-data-migration-selling',
+    locale: 'ur',
+    topic: 'services',
+    question: 'کیا ڈیٹا مائیگریشن کے دوران مجھے دکان پر سیل روکنی پڑے گی؟',
+    answer:
+      'نہیں۔ جب تک ہم ڈیٹا تیار کرتے ہیں، آپ اپنا پرانا سسٹم چلاتے رہیں۔ Nafaa پر شروع کرنے کا دن آپ خود چنتے ہیں، اور Nafaa کا پہلا بل پرانے سسٹم کے آخری بل کے بعد سے شروع ہوتا ہے۔ بیچ کے دنوں میں جو مال بکا، وہ شروع کرنے کے بعد اسٹاک کی گنتی سے ٹھیک ہو جاتا ہے۔',
+    sourceNote: 'Stock adjustments / counts after go-live.',
+    origin: 'translation of faq svc-migration-keep-selling',
+    evidence: ['apps/web/src/modules/inventory/stock-adjustments/pages/StockAdjustmentsPage.tsx'],
+  },
+  {
+    key: 'ur-svc-data-migration-price',
+    locale: 'ur',
+    topic: 'services',
+    question: 'ڈیٹا مائیگریشن کے کام کی قیمت کیسے طے ہوتی ہے؟',
+    answer:
+      'ایک مختصر کال کے بعد ہم لکھ دیتے ہیں کہ کیا کیا کام ہوگا، اور اسی کام کے لیے ایک طے شدہ کوٹیشن بھیجتے ہیں، PKR یا USD میں۔ کام جیسے جیسے آگے بڑھتا ہے، آپ اسے مرحلوں میں دیکھتے ہیں۔ بعد میں کام بڑھانا یا بدلنا ہو تو ہم پہلے اس تبدیلی کی قیمت بتاتے ہیں اور آپ کی ہاں کے بعد ہی شروع کرتے ہیں۔',
+    sourceNote: 'Service process (owner decision: worldwide services via "Quote lein" form; quote form takes PKR or USD).',
+    origin: 'translation of faq mp-services-price',
+    evidence: ['apps/site/src/components/islands/LeadForm.tsx'],
+  },
+];
+
+export const entry: SeedEntry = {
+  type: 'SERVICE',
+  locale: 'ur',
+  slug: 'data-migration',
+  title: 'Nafaa میں ڈیٹا منتقلی',
+  summary:
+    'ہماری ٹیم آپ کا کاروبار Excel، کاغذی رجسٹر یا کسی دوسرے POS سے Nafaa میں منتقل کرتی ہے: پروڈکٹس اپنی قیمت، کاسٹ، بارکوڈ اور اسٹاک کے ساتھ، گاہک اپنے پرانے ادھار کے ساتھ اوپننگ کھاتے میں، اور سپلائر اس رقم کے ساتھ جو آپ نے دینی ہے۔ سب صاف کر کے، شروع سے پہلے آپ کے ساتھ چیک ہوتا ہے۔',
+  data: {
+    icon: 'database',
+    shortName: 'ڈیٹا منتقلی',
+    areaServed: 'PK',
+    pricingModel: 'قیمت آپ کے ڈیٹا کی مقدار اور ذریعے کے حساب سے کوٹیشن پر',
+    timeline: 'پلان میں طے ہوتا ہے، اس پر منحصر کہ ڈیٹا کتنا ہے',
+  },
+  blocks: [
+    {
+      type: 'hero',
+      eyebrow: 'ڈیٹا منتقلی',
+      heading: 'ایک بھی پروڈکٹ ٹائپ کیے بغیر Nafaa پر آئیں',
+      sub: 'اپنی Excel فائلیں، پرانے POS کا ایکسپورٹ یا رجسٹر کی تصویریں ہی بھیج دیں۔ ہم ڈیٹا صاف کرتے ہیں، Nafaa میں ڈالتے ہیں، اور پہلے بل سے پہلے آپ کے ساتھ چیک کرتے ہیں۔',
+      primaryCta: { label: 'کوٹیشن لیں', href: '#quote', variant: 'primary', trackAs: 'hero_quote' },
+      secondaryCta: { label: 'واٹس ایپ پر بات کریں', href: 'whatsapp', variant: 'secondary', trackAs: 'whatsapp' },
+      badges: ['Excel یا پرانا POS', 'کھاتے کے بیلنس', 'شروع سے پہلے چیک'],
+      media: { kind: 'screenshot', mediaId: SHOT.inventory, frame: 'browser', url: 'app.nafaa.pk/products' },
+      layout: 'centered',
+      id: 'bdee3845662b',
+    },
+    {
+      type: 'steps',
+      heading: 'ڈیٹا کی منتقلی کیسے ہوتی ہے',
+      items: [
+        { title: 'اپنا ڈیٹا بھیجیں', body: 'Excel، CSV، پرانے POS کا ایکسپورٹ یا رجسٹر کی تصویریں، واٹس ایپ یا ای میل پر۔' },
+        { title: 'ہم اسے صاف کرتے ہیں', body: 'ایک چیز دو بار لکھی ہو، قیمت غائب ہو، یونٹ ملے جلے ہوں یا نام کی اسپیلنگ غلط ہو، تو ہم ٹھیک کرتے ہیں یا آپ کو نشان لگا کر بتاتے ہیں۔' },
+        { title: 'ڈرائی رن', body: 'Nafaa کا پروڈکٹ امپورٹ کچھ بھی محفوظ کرنے سے پہلے ہر وہ لائن دکھاتا ہے جو نئی بنے گی یا بدلے گی۔' },
+        { title: 'بیلنس ڈالنا', body: 'ہر گاہک کا پرانا ادھار اور ہر سپلائر کا پرانا بیلنس اوپننگ بیلنس کے طور پر ڈالا جاتا ہے۔' },
+        { title: 'چیک کریں اور شروع کریں', body: 'ہم آپ کے ساتھ ٹوٹل ملاتے ہیں، پھر آپ بل بنانا شروع کر دیتے ہیں۔' },
+      ],
+      id: 'b693d26bbba9',
+    },
+    {
+      type: 'diagram',
+      heading: 'آپ کا ڈیٹا اندر کیسے آتا ہے',
+      caption: 'آپ کا پرانا سسٹم یا Excel شیٹس صاف کی جاتی ہیں، ملائی جاتی ہیں اور امپورٹ ہوتی ہیں، پھر شروع کرنے سے پہلے بیلنس آپ کے ساتھ چیک ہوتے ہیں۔',
+      diagram: {
+        kind: 'flow',
+        nodes: [
+          { id: 'old', label: 'پرانا سسٹم یا Excel', icon: 'file-spreadsheet' },
+          { id: 'clean', label: 'صفائی اور ملان', icon: 'list-checks' },
+          { id: 'import', label: 'امپورٹ', icon: 'upload' },
+          { id: 'check', label: 'بیلنس کی جانچ', icon: 'clipboard-check', note: 'اسٹاک اور کھاتہ' },
+          { id: 'live', label: 'کام شروع', icon: 'rocket' },
+        ],
+        edges: [
+          { from: 'old', to: 'clean' },
+          { from: 'clean', to: 'import' },
+          { from: 'import', to: 'check' },
+          { from: 'check', to: 'live' },
+        ],
+        animate: true,
+      },
+      id: 'b98269bac2ba',
+    },
+    {
+      type: 'comparisonTable',
+      heading: 'ہم کیا منتقل کرتے ہیں، اور وہ کیسے اندر جاتا ہے',
+      caption: 'ہر قسم کا ریکارڈ انہی اسکرینوں اور ٹولز سے اندر جاتا ہے جو ایپ خود استعمال کرتی ہے، اس لیے بعد میں جو آپ دیکھتے ہیں وہی Nafaa میں واقعی محفوظ ہوتا ہے۔',
+      columns: [
+        { key: 'from', label: 'کہاں سے' },
+        { key: 'how', label: 'کیسے اندر جاتا ہے', highlight: true },
+      ],
+      rows: [
+        { label: 'پروڈکٹس، قیمت اور کاسٹ', cells: { from: { value: 'Excel، CSV یا پرانے POS کا ایکسپورٹ' }, how: { value: 'ڈرائی رن کے ساتھ پروڈکٹ امپورٹ' } } },
+        { label: 'بارکوڈ اور یونٹ', cells: { from: { value: 'اسی فائل سے، یا شیلف سے اسکین کر کے' }, how: { value: 'پروڈکٹ امپورٹ؛ کارٹن اور پیس کے یونٹ ہر پروڈکٹ پر الگ' } } },
+        { label: 'اوپننگ اسٹاک', cells: { from: { value: 'آخری اسٹاک گنتی یا پرانا سسٹم' }, how: { value: 'پروڈکٹ امپورٹ، یا شروع کرنے کے بعد اسٹاک کی گنتی' } } },
+        { label: 'گاہک اور ادھار', cells: { from: { value: 'رجسٹر، Excel یا پرانا سسٹم' }, how: { value: 'گاہک کا ریکارڈ، اوپننگ کھاتہ بیلنس کے ساتھ' } } },
+        { label: 'سپلائر اور ان کی رقم', cells: { from: { value: 'رجسٹر یا Excel' }, how: { value: 'سپلائر کا ریکارڈ، پہلے سے واجب رقم کے ساتھ' } } },
+      ],
+      id: 'be69d55b318b',
+    },
+    {
+      type: 'featuresGrid',
+      heading: 'ہم کن باتوں کا خیال رکھتے ہیں',
+      columns: 2,
+      items: [
+        { icon: 'tags', title: 'کیٹیگری اور برانڈ', body: 'تاکہ پہلے دن سے کاؤنٹر اور رپورٹس ترتیب سے ہوں۔' },
+        { icon: 'layers', title: 'یونٹ اور پیک', body: 'کارٹن، درجن اور پیس، ہر ایک اپنی قیمت کے ساتھ۔' },
+        { icon: 'building-2', title: 'برانچیں', body: 'کئی برانچوں والے کاروبار کے لیے اسٹاک ہر برانچ میں الگ۔' },
+        { icon: 'list-checks', title: 'آپ کے ساتھ جانچ', body: 'شروع کرنے سے پہلے ٹوٹل اور کچھ نمونے مل کر دیکھے جاتے ہیں۔' },
+      ],
+      id: 'b125a1aecf8d',
+    },
+    {
+      type: 'screenshot',
+      heading: 'پرانا ادھار، ساتھ چلا آتا ہے',
+      body: 'پرانے رجسٹر سے ہر گاہک کا بیلنس اس کے اوپننگ کھاتے میں جاتا ہے، اس لیے یاد دہانیاں اور پرانے ادھار کی عمر کا حساب پہلے دن سے کام کرتے ہیں۔',
+      mediaId: SHOT.khata,
+      frame: 'browser',
+      url: 'app.nafaa.pk/khata',
+      layout: 'split-left',
+      id: 'bdc88c21e4c6',
+    },
+    {
+      type: 'richText',
+      markdown:
+        '## اپنا ڈیٹا تیار کرنا\n\nبھیجنے سے پہلے کچھ بھی صاف کرنے کی ضرورت نہیں۔ ہاں، اگر یہ چیزیں بھیج سکیں تو کام آسان ہو جاتا ہے:\n\n- **پروڈکٹس کی تازہ لسٹ** اپنے پرانے سافٹ ویئر یا Excel سے، اگر ہو تو سیل قیمت اور کاسٹ کے ساتھ۔\n- **حال ہی کی اسٹاک گنتی**، چاہے اندازے والی ہو۔ اسٹاک شروع کرنے کے بعد گنتی سے ٹھیک ہو سکتا ہے۔\n- **ادھار کا رجسٹر** یا اس کی تصویریں، ہر گاہک کے نام، فون اور بیلنس کے ساتھ۔\n- **ہر سپلائر کی واجب رقم**، اپنے خریداری رجسٹر سے یا سپلائر کے اپنے حساب سے۔\n\nجب تک ہم کام کر رہے ہیں، اپنا پرانا سسٹم چلاتے رہیں۔ شروع کرنے کا دن آپ چنتے ہیں، عام طور پر کاروباری دن کی شروعات، تاکہ Nafaa کا پہلا بل پرانے سسٹم کے آخری بل کے فوراً بعد آئے۔ اگر یہ کام خود کرنا چاہیں تو [اسٹاک](/ur/product/inventory) کا امپورٹ اور [کھاتے](/ur/product/khata) کا اوپننگ بیلنس ہر اکاؤنٹ میں موجود ہیں؛ یہ سروس اس وقت کے لیے ہے جب آپ چاہیں کہ یہ کام ہم کر دیں۔',
+      id: 'b9a54eac57c5',
+    },
+    {
+      type: 'leadForm',
+      anchor: 'quote',
+      heading: 'کوٹیشن لیں',
+      intro: 'بتائیں کہ آپ کا ڈیٹا آج کہاں ہے، اور اندازاً کتنی پروڈکٹس، گاہک اور برانچیں ہیں۔ ہم ایک پلان اور قیمت کے ساتھ جواب دیتے ہیں۔',
+      form: 'quote',
+      formType: 'SALES',
+      subjectPrefix: 'Data migration',
+      successMessage: 'شکریہ! آپ کی درخواست مل گئی ہے۔ ہم ایک کام کے دن کے اندر ای میل یا واٹس ایپ پر جواب دیں گے۔',
+      currencies: ['PKR', 'USD'],
+      whatsapp: true,
+      id: 'b864921bb4e4',
+    },
+    { type: 'faq', heading: 'عام سوالات', id: 'be3aa7ae4d41' },
+    {
+      type: 'cta',
+      heading: 'ڈیٹا منتقلی کا پلان اور قیمت لیں',
+      primaryCta: { label: 'کوٹیشن لیں', href: '#quote', variant: 'primary', trackAs: 'hero_quote' },
+      secondaryCta: { label: 'واٹس ایپ پر بات کریں', href: 'whatsapp', variant: 'ghost', trackAs: 'whatsapp' },
+      id: 'b0e57c3bc413',
+    },
+  ],
+  faqKeys: [
+    'ur-svc-data-migration-what',
+    'ur-svc-data-migration-excel',
+    'ur-svc-data-migration-oldpos',
+    'ur-svc-data-migration-selling',
+    'ur-svc-data-migration-price',
+  ],
+  relations: [
+    { ref: 'PRODUCT:inventory@ur', kind: 'TAG' },
+    { ref: 'PRODUCT:khata@ur', kind: 'TAG' },
+    { ref: 'PRODUCT:purchasing@ur', kind: 'TAG' },
+    { ref: 'SOLUTION:enterprise@ur', kind: 'TAG' },
+    { ref: 'SOLUTION:retail-chains@ur', kind: 'TAG' },
+    { ref: 'SERVICE:training@ur', kind: 'RELATED' },
+  ],
+  seoTitle: 'Nafaa POS میں ڈیٹا منتقلی، پاکستان میں',
+  seoDescription:
+    'پروڈکٹس، اسٹاک، گاہک، کھاتے کے بیلنس اور سپلائر Excel یا پرانے سافٹ ویئر سے Nafaa میں، شروع کرنے سے پہلے آپ کے ساتھ چیک۔ کوٹیشن لیں۔',
+  focusKeyword: 'POS ڈیٹا منتقلی',
+  sortOrder: 5,
+  origin: 'translation of content/main-pages/services.ts (26 Oct 2026)',
+  evidence: [
+    'apps/web/src/modules/inventory/products/pages/ProductBulkImportPage.tsx',
+    'apps/web/src/modules/customers/directory/CustomerProfilePage.tsx',
+    'apps/web/src/modules/purchasing/suppliers/pages/SupplierFormPage.tsx',
+    'apps/web/src/modules/inventory/stock-adjustments/pages/StockAdjustmentsPage.tsx',
+  ],
+  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  dropped: [],
+  needsOwner: [],
+};

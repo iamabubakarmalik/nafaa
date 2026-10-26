@@ -110,6 +110,7 @@ Keep the paper register for a week if it makes you comfortable. Once the khata b
 /** Internal links (D2): the products kiryana stores use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'POS and khata software for kiryana and grocery stores: barcode billing, sale by piece or carton, udhaar with WhatsApp reminders, and billing without internet.',
   relations: [
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },

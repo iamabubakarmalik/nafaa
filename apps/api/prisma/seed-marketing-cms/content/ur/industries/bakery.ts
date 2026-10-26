@@ -45,7 +45,7 @@ export const faqs: SeedFaq[] = [
     topic: 'pricing',
     question: 'Nafaa کی قیمت کتنی ہے؟',
     answer:
-      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
+      'پیڈ پلان {{price:min.monthly}} ماہانہ سے شروع ہوتے ہیں۔ [قیمتوں کے صفحے](/ur/pricing) پر ہر پلان اپنی قیمت اور حد کے ساتھ لکھا ہے، اور یہ سیدھا ہماری پلان سیٹنگز سے آتا ہے، اس لیے ہمیشہ تازہ رہتا ہے۔ آپ پہلے فری ٹرائل سے شروع کر سکتے ہیں، اور سائن اپ کے لیے کریڈٹ کارڈ کی ضرورت نہیں۔',
     sourceNote: 'Plan table (GET /api/plans): free-trial description "koi credit card nahi chahiye". Prices come from tokens.',
     origin: 'translation of faq pricing',
     evidence: ['apps/api/src/modules/billing/plans/plans.service.ts'],
@@ -58,7 +58,7 @@ export const entry: SeedEntry = {
   slug: 'bakery',
   title: 'بیکری اور مٹھائی',
   seoTitle: 'بیکری اور مٹھائی کی دکان کے لیے POS اور اسٹاک سافٹ ویئر',
-  seoDescription: 'بیکری اور مٹھائی کی دکان کے لیے Nafaa: روز کا تیار مال، ایڈوانس آرڈر، اسٹاک اور پرافٹ کا حساب ایک جگہ۔',
+  seoDescription: 'بیکری اور مٹھائی کی دکان کے لیے Nafaa: روز کا تیار مال، ایڈوانس کے ساتھ کیک آرڈر، ریسیپی کی کاسٹ، ضائع مال، اسٹاک اور پرافٹ کا حساب ایک جگہ۔',
   focusKeyword: 'بیکری سافٹ ویئر',
   summary:
     'Nafaa بیکری اور مٹھائی کی دکان چلاتا ہے: ایڈوانس کے ساتھ کسٹم کیک آرڈر لیں، دن کی بیکنگ کا پلان بنائیں، خام مال اس کی کاسٹ کے ساتھ رکھیں، ہر ریسیپی کی تازہ کاسٹ دیکھیں، تازگی اور ضائع مال کا حساب رکھیں، اور شادی اور ایونٹ کے بلک آرڈر سنبھالیں، عام کاؤنٹر، اسٹاک اور کھاتے کے ساتھ۔',
@@ -221,5 +221,5 @@ export const entry: SeedEntry = {
   factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
   needsOwner: ['Online orders (Foodpanda): apps/api/src/integrations/online-orders has Foodpanda code; confirm it is live before marketing it (carried over from the English entry).'],
-  relations: [{ ref: 'INDUSTRY:restaurant@ur', kind: 'RELATED' }],
+  relations: [{ ref: 'INDUSTRY:restaurant@ur', kind: 'RELATED' }, { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' }, { ref: 'SOLUTION:manufacturing@ur', kind: 'RELATED' }, { ref: 'PRODUCT:pos@ur', kind: 'RELATED' }],
 };

@@ -50,7 +50,7 @@ const entry = industry({
     heading: "Jobs, technicians and payments for your service business",
     sub: "Take the call, send the right technician, quote on WhatsApp, add the parts used on site, and close the job with its bill, while commission, AMC visits and warranty claims keep themselves in order.",
     badges: ["Dispatch board", "Quotes on WhatsApp", "AMC and warranty"],
-    media: { mediaId: SHOT.dashboard, url: "app.nafaa.pk/dashboard" },
+    media: { mediaId: SHOT.servicesJobs, url: "app.nafaa.pk/services-biz/jobs" },
   },
   deepBlocks: [
     steps("A job from the phone call to the bill", [
@@ -60,16 +60,17 @@ const entry = industry({
       ["Bill", "Take what is left in cash, card or wallet, set the work warranty and close the job. Advances come off first; anything unpaid goes on the khata."],
     ]),
     shot({
-      heading: "Open jobs and the field team on one dashboard",
-      body: "The services dashboard shows open jobs and today's visits, urgent and late jobs, money still to collect, technicians, quotes and AMC renewals, beside the day's sale, profit and cash.",
-      id: SHOT.dashboard,
-      url: "app.nafaa.pk/dashboard",
+      heading: "Quotes that turn into jobs",
+      body: "Price a large job before starting it: labour, parts and the site visit on separate lines, with a validity date and terms. Send it on WhatsApp, mark it accepted or refused, and turn an accepted quote into a job in one click.",
+      id: SHOT.servicesQuotes,
+      url: "app.nafaa.pk/services-biz/quotes",
       layout: "full",
-      caption: "The shared dashboard, shown with demo data; service widgets sit on the same page.",
       callouts: [
-        { x: 28, y: 27, label: "Today's sale and bills" },
-        { x: 91, y: 52, label: "Money still to collect" },
-        { x: 40, y: 72, label: "What needs you today" },
+        { x: 20, y: 19.5, label: "Quotes waiting for a reply" },
+        { x: 27.8, y: 54.6, label: "Job and customer" },
+        { x: 68.8, y: 54.6, label: "Quoted amount" },
+        { x: 86, y: 55.2, label: "Mark accepted" },
+        { x: 92.8, y: 55.2, label: "Turn it into a job" },
       ],
     }),
     shot({
@@ -114,6 +115,7 @@ Nafaa covers each of these on a phone or computer, with the khata, reports and c
 /** Internal links: the products service businesses use, the matching solution and related trades. */
 export default {
   ...entry,
+  seoDescription: 'Software for plumbers, electricians, AC technicians and other field services: jobs, technician dispatch, quotes, AMC contracts, warranties and payments.',
   relations: [
     { ref: 'PRODUCT:staff', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },

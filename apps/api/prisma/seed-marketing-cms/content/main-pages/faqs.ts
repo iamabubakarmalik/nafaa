@@ -632,4 +632,45 @@ export const mainPageFaqs: SeedFaq[] = [
     origin: 'new (hubs pass, 26 Oct 2026)',
     evidence: ['apps/api/src/marketplace/publishing', 'apps/web/src/marketplace/shop-profile/ShopProfilePage.tsx'],
   },
+  // ─── /pos-software and /guides hubs ───
+  {
+    key: 'hub-cities-same-app',
+    topic: 'getting-started',
+    question: 'Is Nafaa different in each city?',
+    answer:
+      'No. Every business in every city uses the same Nafaa app and the same plans. The city pages describe the local trades, markets and power and internet conditions, and show which Nafaa screens fit them, so you can see quickly whether it suits a business like yours.',
+    sourceNote: 'One app for every tenant; city pages are marketing content only (no city-specific features).',
+    origin: 'new (SEO pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/app/shell/navigation/nav-config.ts'],
+  },
+  {
+    key: 'hub-cities-setup',
+    topic: 'getting-started',
+    question: 'Do you set up Nafaa in my city?',
+    answer:
+      'Setup, data import from Excel or old software, and training are done remotely over WhatsApp and video calls, in Urdu or English, so the city does not matter. Most shops add their products and start billing the same day on the phone or computer they already have.',
+    sourceNote: 'City hubs record support as remote (support.onsite false); data import from Excel in the products module.',
+    origin: 'new (SEO pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/modules/inventory/products'],
+  },
+  {
+    key: 'hub-cities-tax',
+    topic: 'getting-started',
+    question: 'Which tax authority applies to a business in my city?',
+    answer:
+      'Sales tax on goods is federal and handled by FBR everywhere. Sales tax on services, such as restaurant bills, is collected by the province: PRA in Punjab, SRB in Sindh, KPRA in Khyber Pakhtunkhwa and BRA in Balochistan, while in Islamabad it is handled federally. Only some businesses must connect their POS. Each city page names its authority, and the [compliance pages](/compliance) explain who must integrate. Check your own case with your tax adviser.',
+    sourceNote: 'Authority per province as on the city pages and compliance pages (official sources cited there).',
+    origin: 'new (SEO pass, 26 Oct 2026)',
+    evidence: ['apps/web/src/integrations/fbr'],
+  },
+  {
+    key: 'hub-guides-vs-blog',
+    topic: 'getting-started',
+    question: 'How are the guides different from the blog?',
+    answer:
+      'A guide covers one big job from start to finish, such as running a retail shop or managing udhaar, and links to the blog posts, tools and templates that go deeper on each step. Blog posts answer one narrower question each. Both are written for businesses in Pakistan and checked against the app before they go live.',
+    sourceNote: 'GuidesHubTemplate lists GUIDE entries with the BLOG_POST entries tagged to each.',
+    origin: 'new (SEO pass, 26 Oct 2026)',
+    evidence: ['apps/site/src/templates/article/HubTemplates.tsx'],
+  },
 ];

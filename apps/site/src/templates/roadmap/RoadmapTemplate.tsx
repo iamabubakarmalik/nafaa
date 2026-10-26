@@ -15,17 +15,19 @@
  * plus an ItemList of every roadmap item and the FAQPage of the visible FAQs.
  */
 import { FEATURE_STATUS_BADGES, ENTRY_TYPE_META, type Block, type EntryCard, type FeatureStatus, type PublicEntry } from '@/lib/cms/contract/cms-contract';
+import { uiStrings } from '@/lib/i18n/ui';
 import { markdownToPlain } from '@/lib/seo/text';
 import { itemListNode } from '@/lib/seo/graph';
 import { loadCards } from '../core/data';
 import { PageFrame, faqPageNode, webPageNode } from '../core/frame';
+import { RelatedPages } from '../core/parts';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { EntryTile } from '../core/ui';
 
 type GridBlock = Extract<Block, { type: 'entryGrid' }>;
 const COLUMNS: Exclude<FeatureStatus, 'live'>[] = ['beta', 'coming'];
 
-function Board({ block, cards }: { block: GridBlock; cards: EntryCard[] }) {
+function Board({ block, cards, empty }: { block: GridBlock; cards: EntryCard[]; empty: string }) {
   const id = `roadmap-${block.id}`;
   const title = block.heading?.trim() || ENTRY_TYPE_META[block.entryType].labelPlural;
   // Only the columns that have items; an empty column adds nothing.
@@ -62,7 +64,7 @@ function Board({ block, cards }: { block: GridBlock; cards: EntryCard[] }) {
                     ))}
                   </ul>
                 ) : (
-                  <p className="rounded-lg border border-dashed border-line-strong px-4 py-6 text-center text-small text-fg-subtle">Nothing here right now.</p>
+                  <p className="rounded-lg border border-dashed border-line-strong px-4 py-6 text-center text-small text-fg-subtle">{empty}</p>
                 )}
               </div>
             );
@@ -74,6 +76,8 @@ function Board({ block, cards }: { block: GridBlock; cards: EntryCard[] }) {
 }
 
 export async function RoadmapTemplate({ entry }: { entry: PublicEntry }) {
+  const ui = uiStrings(entry.locale);
+  const t = ui.pages.roadmap;
   const grids = entry.blocks.filter((b): b is GridBlock => b.type === 'entryGrid');
   const lists = await Promise.all(
     grids.map((g) =>
@@ -94,7 +98,7 @@ export async function RoadmapTemplate({ entry }: { entry: PublicEntry }) {
   const render = (block: Block) => {
     if (block.type !== 'entryGrid') return undefined;
     const cards = byBlock.get(block.id) ?? [];
-    return cards.length ? <Board block={block} cards={cards} /> : null;
+    return cards.length ? <Board block={block} cards={cards} empty={t.empty} /> : null;
   };
 
   const list = itemListNode(
@@ -112,7 +116,7 @@ export async function RoadmapTemplate({ entry }: { entry: PublicEntry }) {
 
   return (
     <PageFrame entry={entry} nodes={nodes}>
-      <ShowcaseBody entry={entry} showUpdated={false} pill="Roadmap" render={render} kickers={{ featuresGrid: 'Planned', steps: 'How it works' }} />
+      <ShowcaseBody entry={entry} showUpdated={false} pill={t.pill} render={render} beforeEnd={<RelatedPages entry={entry} />} kickers={{ featuresGrid: t.planned, steps: ui.howItWorks }} />
     </PageFrame>
   );
 }

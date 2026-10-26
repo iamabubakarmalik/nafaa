@@ -1,6 +1,6 @@
 /* eslint-disable */
 // GENERATED FILE. Do not edit.
-// Source: packages/cms-contract/src/cms-contract.ts (sha256 7f495dcedd5bbcf8).
+// Source: packages/cms-contract/src/cms-contract.ts (sha256 22552edaa2b1eb4d).
 // Edit the source, then run `node scripts/sync-cms-contract.mjs`.
 /**
  * Marketing CMS contract: the shared shapes of the nafaa.pk content system.
@@ -192,6 +192,8 @@ export const PLATFORM_STAT_METRICS: readonly StatMetric[] = ['platform.bills30d'
 export const TOOL_KEYS = [
   'gst-calculator', 'profit-margin-calculator', 'pos-cost-calculator',
   'invoice-generator', 'gold-rate-calculator', 'fbr-tier-1-checker',
+  'break-even-calculator', 'discount-calculator', 'reorder-level-calculator', 'khata-ageing-calculator',
+  'food-cost-calculator', 'barcode-generator', 'zakat-calculator', 'receipt-maker',
 ] as const;
 export const toolKeySchema = z.enum(TOOL_KEYS);
 export type ToolKey = z.infer<typeof toolKeySchema>;

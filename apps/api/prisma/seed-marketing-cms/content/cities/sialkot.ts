@@ -13,6 +13,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichSialkot = cityHub({
   slug: 'sialkot',
+  seoDescription: 'POS, stock and khata software for Sialkot sports goods shops, factory outlets, export suppliers and grocers, with purchases and supplier credit in one place.',
   name: 'Sialkot',
   checkedOn: CHECKED,
   summary:

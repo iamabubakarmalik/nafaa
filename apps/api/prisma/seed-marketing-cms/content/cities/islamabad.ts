@@ -11,6 +11,7 @@ const CHECKED = '2026-10-26';
 
 export const enrichIslamabad = cityHub({
   slug: 'islamabad',
+  seoDescription: 'POS, stock and khata software for Islamabad cafes, supermarkets, pharmacies and salons, with billing through outages and every markaz branch in one account.',
   name: 'Islamabad',
   checkedOn: CHECKED,
   summary:

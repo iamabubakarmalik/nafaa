@@ -9,7 +9,7 @@ import { compareTable, src, type CompareSpec } from '../_compare';
 
 const MS_COAUTHOR = src(
   'Collaborate on Excel workbooks at the same time with co-authoring',
-  'https://support.microsoft.com/en-us/office/collaborate-on-excel-workbooks-at-the-same-time-with-co-authoring-7152aa8b-b791-414c-a3bb-3024e46fb104',
+  'https://support.microsoft.com/en-us/excel/get-started/collaborate-on-excel-workbooks-at-the-same-time-with-co-authoring',
   'Microsoft Support',
 );
 const MS_WEB = src('Free Microsoft 365 for the web (Word, Excel, PowerPoint)', 'https://www.microsoft.com/en-us/microsoft-365/free-office-online-for-the-web', 'Microsoft');
@@ -20,6 +20,7 @@ const SUMMARY =
 
 const spec: CompareSpec = {
   slug: 'nafaa-vs-excel',
+  seoDescription: 'Running a shop in Excel or in Nafaa: counter billing, stock that updates on each sale, udhaar, staff and backups, when a spreadsheet is enough and how to move.',
   title: 'Nafaa vs Excel',
   competitorName: 'Microsoft Excel',
   competitorUrl: 'https://www.microsoft.com/en-us/microsoft-365/excel',
@@ -126,6 +127,9 @@ If the honest answers are "one", "all of them" and "this week", Excel may be ser
     { ref: 'SERVICE:data-migration', kind: 'RELATED' },
     { ref: 'COMPARE:nafaa-vs-paper-register', kind: 'RELATED' },
     { ref: 'BLOG_POST:stock-taking-guide', kind: 'RELATED' },
+    { ref: 'GUIDE:inventory-management-small-business', kind: 'RELATED' },
+    { ref: 'BEST_OF:inventory-software-pakistan', kind: 'RELATED' },
+    { ref: 'ALTERNATIVE:excel-alternative', kind: 'RELATED' },
   ],
   sources: SOURCES,
   evidence: [
