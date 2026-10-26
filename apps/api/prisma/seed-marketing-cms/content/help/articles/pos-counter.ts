@@ -92,7 +92,7 @@ const articles: HelpArticle[] = [
       {
         type: 'richText',
         markdown: [
-          '### Search and bill',
+          '## Search and bill',
           '',
           '| Key | What it does |',
           '| --- | --- |',
@@ -105,7 +105,7 @@ const articles: HelpArticle[] = [
           '| Esc | Clear the search or close a dialog |',
           '| Alt + 1 to 9 | Add one of the items sold most on this counter |',
           '',
-          '### Counter',
+          '## Counter',
           '',
           '| Key | What it does |',
           '| --- | --- |',
@@ -125,7 +125,7 @@ const articles: HelpArticle[] = [
           '| Alt + L | Who took the goods (**Lene wala**) |',
           '| Alt + D | Delivery |',
           '',
-          '### In the bill lines (after F3)',
+          '## In the bill lines (after F3)',
           '',
           '| Key | What it does |',
           '| --- | --- |',
@@ -137,7 +137,7 @@ const articles: HelpArticle[] = [
           '| Delete | Remove the line |',
           '| Esc | Back to search |',
           '',
-          '### In checkout',
+          '## In checkout',
           '',
           '| Key | What it does |',
           '| --- | --- |',
@@ -288,7 +288,7 @@ const articles: HelpArticle[] = [
       {
         type: 'richText',
         markdown: [
-          '### Set the cashier’s limit',
+          '## Set the cashier’s limit',
           '',
           'Go to **Settings → Counter & POS → Counter rules**. In the **Discount** card:',
           '',
@@ -386,7 +386,7 @@ const articles: HelpArticle[] = [
       {
         type: 'richText',
         markdown: [
-          '### Turn the refund PIN on or off',
+          '## Turn the refund PIN on or off',
           '',
           'Go to **Settings → Counter & POS → Counter rules**, card **Malik ka PIN kab maangein**:',
           '',
