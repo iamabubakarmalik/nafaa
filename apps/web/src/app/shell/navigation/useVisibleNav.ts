@@ -17,6 +17,7 @@ import { useIsAllShops } from '@core/stores/auth.store';
 import { channelMeta, channelPath, useSalesChannels } from '@integrations/online-orders/hooks/useSalesChannels';
 import { BrandLogo, brandForChannel, type BrandName } from '@/assets/brands/BrandLogo';
 import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
+import { useDistributionEnabled } from '@modules/distribution/hooks/useDistribution';
 import { cn } from '@core/lib/cn';
 import { allShopsNavGroups, canSeeSettingsItem, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
 
@@ -29,6 +30,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const isAllShops = useIsAllShops();
   const { data: channels } = useSalesChannels();
   const manufacturing = useManufacturingEnabled();
+  const distribution = useDistributionEnabled();
 
   const groups = useMemo<NavGroup[]>(() => {
     const pos = posNavGroups.map((g) => (g.id === 'online' ? { ...g, items: [...g.items, ...channelItems(channels)] } : g));
@@ -45,6 +47,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
         items: g.items.filter((it) => {
           if (isAllShops && !isMarketplace && it.needsShop) return false;
           if (it.feature === 'manufacturing' && !manufacturing) return false;
+          if (it.feature === 'distribution' && !distribution) return false;
           if (!owner && isOwnerOnlyPath(it.to)) return false;
           // Setup screens live in Settings, not in the everyday menu.
           if (!isMarketplace && isSettingsPath(it.to)) return false;
@@ -56,7 +59,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
         }),
       }))
       .filter((g) => g.items.length > 0);
-  }, [industry, isMarketplace, isAllShops, role, permissions, channels, manufacturing]);
+  }, [industry, isMarketplace, isAllShops, role, permissions, channels, manufacturing, distribution]);
 
   const settingsItems = useMemo(() => SETTINGS_ITEMS.filter((i) => canSeeSettingsItem(i, role, permissions)), [role, permissions]);
 

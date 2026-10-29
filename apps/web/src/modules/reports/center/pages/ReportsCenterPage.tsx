@@ -42,8 +42,13 @@ import { ReturnsSection } from '../components/ReturnsSection';
 import { IndustrySection } from '../components/IndustrySection';
 import { downloadCsv, sectionDoc } from '../print';
 import { useReportCompare, useReportRange } from '../../prefs';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { useDistributionEnabled } from '@modules/distribution/hooks/useDistribution';
+import { DistributionReportTab } from '@modules/distribution/reports/DistributionReportTab';
 
 const COMPARE_KEY = 'nafaa-reports-compare';
+type Tab = SectionId | 'distribution';
 const BASE_TABS: Array<{ id: Exclude<SectionId, 'industry'>; label: string; icon: LucideIcon }> = [
   { id: 'sales', label: 'Sale', icon: TrendingUp },
   { id: 'items', label: 'Maal', icon: Package },
@@ -78,10 +83,16 @@ export default function ReportsCenterPage() {
   const [range, setRange] = useReportRange('month');
   // `?tab=items` opens that tab first (links from Nafaa AI and elsewhere).
   const [params] = useSearchParams();
-  const [tab, setTab] = useState<SectionId>(() => {
+  // Distribution adds its own tab for businesses that run order bookers and vans.
+  const distOn = useDistributionEnabled();
+  const distAllowed = usePermission(PERMISSIONS.DISTRIBUTION_ORDERS_VIEW);
+  const distribution = distOn && distAllowed;
+  const [tab, setTab] = useState<Tab>(() => {
     const want = params.get('tab');
+    if (want === 'distribution') return 'distribution';
     return want && (BASE_TABS.some((t) => t.id === want) || (want === 'industry' && !!config.industry)) ? (want as SectionId) : 'sales';
   });
+  const section: SectionId = tab === 'distribution' ? 'sales' : tab;
   const [compare, toggleCompare] = useReportCompare(COMPARE_KEY);
 
   const period: Period = useMemo(() => {
@@ -92,15 +103,16 @@ export default function ReportsCenterPage() {
   const shopLabel = `${tenantName}${!isAll && shopName ? ` · ${shopName}` : isAll ? ' · Sab branches' : ''}`;
 
   const tabs = useMemo(() => {
-    const list: Array<ViewTab<SectionId>> = BASE_TABS.map((t) => ({ id: t.id, label: config.labels?.[t.id] ?? t.label, icon: t.icon }));
+    const list: Array<ViewTab<Tab>> = BASE_TABS.map((t) => ({ id: t.id, label: config.labels?.[t.id] ?? t.label, icon: t.icon }));
     if (config.industry) list.push({ id: 'industry', label: config.industry.label, icon: config.industry.icon });
+    if (distribution) list.push({ id: 'distribution', label: 'Distribution', icon: Truck });
     return list;
-  }, [config]);
+  }, [config, distribution]);
 
   const sales = useSection('sales', period, shopParam, true);
   const profit = useSection('profit', period, shopParam, true);
-  const active = useSection(tab, period, shopParam, tab !== 'sales' && tab !== 'profit', config.industry?.kind);
-  const current = tab === 'sales' ? sales : tab === 'profit' ? profit : active;
+  const active = useSection(section, period, shopParam, section !== 'sales' && section !== 'profit', config.industry?.kind);
+  const current = section === 'sales' ? sales : section === 'profit' ? profit : active;
   const tabLabel = tabs.find((t) => t.id === tab)?.label as string;
 
   useEffect(() => {
@@ -115,12 +127,12 @@ export default function ReportsCenterPage() {
   }, [tabs]);
 
   const doc = () => {
-    if (!current.data) throw new Error('Report abhi aa rahi hai');
-    return sectionDoc(tab, current.data as SectionData[typeof tab], { f, title: `Report — ${tabLabel}`, period: label, shop: shopLabel });
+    if (!current.data || tab === 'distribution') throw new Error('Report abhi aa rahi hai');
+    return sectionDoc(section, current.data as SectionData[typeof section], { f, title: `Report — ${tabLabel}`, period: label, shop: shopLabel });
   };
   const exportCsv = () => {
     if (!current.data) { toast.error('Report abhi aa rahi hai'); return; }
-    downloadCsv(doc(), `report-${tab}-${period.from}-${period.to}.csv`);
+    downloadCsv(doc(), `report-${section}-${period.from}-${period.to}.csv`);
     toast.success('CSV ban gayi');
   };
   const refresh = () => qc.invalidateQueries({ queryKey: [REPORTS_KEY] });
@@ -143,8 +155,8 @@ export default function ReportsCenterPage() {
         loading={sales.isLoading}
         actions={<>
           <PrivacyToggle compact />
-          <button type="button" onClick={exportCsv} disabled={!current.data} className={heroButton}><Download className="h-4 w-4" />CSV</button>
-          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={doc} disabled={!current.data} /></span>
+          <button type="button" onClick={exportCsv} disabled={!current.data || tab === 'distribution'} className={heroButton}><Download className="h-4 w-4" />CSV</button>
+          <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={doc} disabled={!current.data || tab === 'distribution'} /></span>
           <button type="button" onClick={() => void refresh()} title="Taaza karein" aria-label="Taaza karein" className={heroIconButton}><RefreshCw className={cn('h-4 w-4', current.isFetching && 'animate-spin')} /></button>
           <button type="button" onClick={guide.open} title="Guide (G)" aria-label="Guide" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
@@ -182,7 +194,9 @@ export default function ReportsCenterPage() {
 
       <ViewTabs value={tab} onChange={setTab} tabs={tabs} hint={<><Kbd>1</Kbd>–<Kbd>{String(tabs.length)}</Kbd> tab · <Kbd>C</Kbd> muqabla</>} />
 
-      {current.isLoading || !current.data ? (
+      {tab === 'distribution' ? (
+        <DistributionReportTab period={period} f={f} />
+      ) : current.isLoading || !current.data ? (
         current.error ? (
           <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
             <p className="font-semibold text-slate-900">Report nahi aa saki</p>
@@ -193,7 +207,7 @@ export default function ReportsCenterPage() {
           <div className="grid gap-4 lg:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className={cn('h-72 rounded-2xl', i === 0 && 'lg:col-span-2')} />)}</div>
         )
       ) : (
-        <Section tab={tab} data={current.data} f={f} compare={compare} config={config} label={tabLabel} />
+        <Section tab={section} data={current.data} f={f} compare={compare} config={config} label={tabLabel} />
       )}
 
       {guide.isOpen && (

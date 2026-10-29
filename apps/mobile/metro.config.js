@@ -17,4 +17,13 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, 'node_modules'),
 ];
 
+// expo-sqlite on web (booker area): load its wasm build and allow the
+// SharedArrayBuffer it needs in the dev server.
+config.resolver.assetExts.push('wasm');
+config.server.enhanceMiddleware = (middleware) => (req, res, next) => {
+  res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  middleware(req, res, next);
+};
+
 module.exports = withNativeWind(config, { input: './global.css' });

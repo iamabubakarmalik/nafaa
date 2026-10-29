@@ -175,6 +175,31 @@ export const PERMISSIONS = {
   ADS_VIEW: 'ads.view',
   /** Ads spend: add, edit, delete and import. Writing it to expenses also needs expenses.create. */
   ADS_MANAGE: 'ads.manage',
+
+  // Distribution (wholesale): orders booked in the field, routes, load sheets, recoveries
+  /** Sales orders, load sheets, visits and the distribution reports: read them. */
+  DISTRIBUTION_ORDERS_VIEW: 'distribution.orders.view',
+  /** Book orders, record visits and use the booker app (bootstrap, sync, own orders). */
+  DISTRIBUTION_ORDERS_BOOK: 'distribution.orders.book',
+  /** Edit any booked order, approve and invoice orders, cancel orders not yet invoiced. */
+  DISTRIBUTION_ORDERS_MANAGE: 'distribution.orders.manage',
+  /** Book an order at a price other than the customer's price list. */
+  DISTRIBUTION_PRICE_OVERRIDE: 'distribution.price_override',
+  /** Make, change, dispatch and cancel load sheets. */
+  DISTRIBUTION_LOADSHEETS_MANAGE: 'distribution.loadsheets.manage',
+  /** Settle a load sheet: delivered, partly delivered or returned invoices (returns go back through the bill), cash handed in. */
+  DISTRIBUTION_SETTLE: 'distribution.settle',
+  /** Make and change routes and put customers on them. */
+  DISTRIBUTION_ROUTES_MANAGE: 'distribution.routes.manage',
+  DISTRIBUTION_PRICELISTS_VIEW: 'distribution.pricelists.view',
+  DISTRIBUTION_PRICELISTS_MANAGE: 'distribution.pricelists.manage',
+  DISTRIBUTION_SCHEMES_MANAGE: 'distribution.schemes.manage',
+  /** Record money collected in the field (stays pending until verified). */
+  DISTRIBUTION_COLLECTIONS_COLLECT: 'distribution.collections.collect',
+  /** Verify or reject field collections; a verified one is posted to the customer's khata. */
+  DISTRIBUTION_COLLECTIONS_VERIFY: 'distribution.collections.verify',
+  /** Delivery app: see own dispatched load sheets and report each invoice (delivered, returns, cash). The office still settles. */
+  DISTRIBUTION_DELIVERY_REPORT: 'distribution.delivery.report',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -208,6 +233,12 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
     PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
     PERMISSIONS.ADS_VIEW, PERMISSIONS.ADS_MANAGE,
+    // Distribution: everything except booking at another price.
+    PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.DISTRIBUTION_ORDERS_BOOK, PERMISSIONS.DISTRIBUTION_ORDERS_MANAGE,
+    PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE, PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE,
+    PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE, PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE,
+    PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY,
+    PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
     PERMISSIONS.POS_USE,
     PERMISSIONS.POS_PRICE_TIER,
     PERMISSIONS.SALES_VIEW,
@@ -348,3 +379,66 @@ export const POS_REQUIRED_PERMISSIONS: PermissionKey[] = [
 ];
 
 export const userHasPermission = hasPermission;
+
+/**
+ * Permissions the booker app needs to work. Like POS_REQUIRED_PERMISSIONS this
+ * only drives a warning on the Team page; nothing is granted or blocked by it.
+ * Bootstrap pages customers only with customers.view and products only with
+ * products.view, so without them the app has nothing to book against.
+ */
+export const BOOKER_REQUIRED_PERMISSIONS: PermissionKey[] = [
+  PERMISSIONS.DISTRIBUTION_ORDERS_BOOK,
+  PERMISSIONS.CUSTOMERS_VIEW,
+  PERMISSIONS.PRODUCTS_VIEW,
+];
+
+export interface PermissionPreset {
+  key: 'ORDER_BOOKER' | 'DELIVERY' | 'DISTRIBUTION_MANAGER';
+  label: string;
+  /** Role the user is created with; the permissions below replace that role's defaults. */
+  role: 'STAFF' | 'MANAGER';
+  description: string;
+  permissions: PermissionKey[];
+}
+
+/**
+ * Ready-made permission sets for distribution staff. The Team page offers them
+ * as a starting point; every box stays visible and the owner can change it.
+ */
+export const DISTRIBUTION_PRESETS: PermissionPreset[] = [
+  {
+    key: 'ORDER_BOOKER', label: 'Order Booker', role: 'STAFF',
+    description: 'Route par jaa kar Order book karta hai, visit aur recovery likhta hai',
+    permissions: [
+      PERMISSIONS.DISTRIBUTION_ORDERS_BOOK,
+      PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT,
+      PERMISSIONS.CUSTOMERS_VIEW,
+      PERMISSIONS.PRODUCTS_VIEW,
+      PERMISSIONS.KHATA_VIEW,
+    ],
+  },
+  {
+    key: 'DELIVERY', label: 'Delivery', role: 'STAFF',
+    description: 'Phone par load sheet ka maal deliver karta hai, har Invoice ki report aur cash laata hai',
+    permissions: [
+      PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
+      PERMISSIONS.DISTRIBUTION_ORDERS_VIEW,
+      PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT,
+      PERMISSIONS.CUSTOMERS_VIEW,
+      PERMISSIONS.PRODUCTS_VIEW,
+    ],
+  },
+  {
+    key: 'DISTRIBUTION_MANAGER', label: 'Distribution Manager', role: 'MANAGER',
+    description: 'Orders approve, Invoice, load sheet, settlement aur recovery verify karta hai',
+    permissions: [
+      PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.DISTRIBUTION_ORDERS_BOOK, PERMISSIONS.DISTRIBUTION_ORDERS_MANAGE,
+      PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE, PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE,
+      PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE, PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE,
+      PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY, PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
+      PERMISSIONS.CUSTOMERS_VIEW, PERMISSIONS.CUSTOMERS_EDIT, PERMISSIONS.KHATA_VIEW, PERMISSIONS.KHATA_MANAGE,
+      PERMISSIONS.PRODUCTS_VIEW, PERMISSIONS.SALES_VIEW, PERMISSIONS.RETURNS_VIEW, PERMISSIONS.REPORTS_VIEW,
+      PERMISSIONS.SHOPS_VIEW, PERMISSIONS.STAFF_VIEW, PERMISSIONS.TEAM_VIEW,
+    ],
+  },
+];

@@ -12,9 +12,16 @@
  * tier's prices instead (the tier price, or retail where the tier has none;
  * pack prices of the same tier; bulk, quotation and combo prices as above).
  * The tier price itself is never a cut, and a price typed below it is.
+ *
+ * With distribution on, the customer's price list and the running trade
+ * schemes are owner-set prices too: a list price (any pack, per base unit),
+ * that price after a scheme's rupees off, and free goods the bill's paid lines
+ * have earned (a price-0 line noted "Scheme: …", up to the free quantity
+ * earned) are not cuts. With distribution off nothing changes.
  */
 import { Prisma } from '@prisma/client';
 import type { PriceTier } from '../../../common/helpers/price-tier.helper';
+import { ownerSetPrices, type GuardLine } from '../../distribution/helpers/pricing-loader';
 
 type Db = Prisma.TransactionClient;
 
@@ -50,11 +57,21 @@ function tierBase(l: PriceCutLine): number {
 }
 
 const COMBO_NOTE = 'Combo: ';
+/** Note on a free line given under a trade scheme. */
+export const SCHEME_NOTE = 'Scheme: ';
 const QUOTATION_NOTE = /^Quotation (\S+)/;
 const EPS = 0.005;
 
+/** Bill context for distribution prices; without it only the shop's own prices count. */
+export interface PriceCutContext {
+  customerId?: string | null;
+  /** Every product line of the bill (base units, price per base unit), for schemes and free goods. */
+  billLines?: GuardLine[];
+  at?: Date;
+}
+
 /** Total rupees taken off the shop's own prices across the given lines. */
-export async function priceCutTotal(db: Db, tenantId: string, lines: PriceCutLine[]): Promise<number> {
+export async function priceCutTotal(db: Db, tenantId: string, lines: PriceCutLine[], ctx?: PriceCutContext): Promise<number> {
   // Only lines priced below the plain catalog price need a closer look.
   const below = lines.filter((l) => l.price + EPS < (isTierLine(l) ? tierBase(l) : (l.variantPrice ?? l.productPrice)));
   if (!below.length) return 0;
@@ -86,9 +103,22 @@ export async function priceCutTotal(db: Db, tenantId: string, lines: PriceCutLin
       : Promise.resolve([]),
   ]);
 
+  const dist = ctx
+    ? await ownerSetPrices(db, tenantId, {
+        customerId: ctx.customerId, at: ctx.at, billLines: ctx.billLines,
+        lines: below.map((l) => ({ productId: l.productId, variantId: l.variantId ?? null, quantity: l.quantity, price: l.price })),
+      })
+    : null;
+  const freeLeft = new Map(dist?.freeAllowance ?? []);
+
   let cut = 0;
   for (const l of below) {
     const note = l.note ?? '';
+    // A free line under a scheme, within what the bill's paid lines earned.
+    if (dist && l.price < EPS && note.startsWith(SCHEME_NOTE)) {
+      const left = freeLeft.get(l.productId) ?? 0;
+      if (left + EPS >= l.quantity) { freeLeft.set(l.productId, left - l.quantity); continue; }
+    }
     if (note.startsWith(COMBO_NOTE)) {
       const name = note.slice(COMBO_NOTE.length).trim();
       const combo = combos.find((c) => c.name === name);
@@ -125,7 +155,10 @@ export async function priceCutTotal(db: Db, tenantId: string, lines: PriceCutLin
       }
     }
 
-    const floor = Math.min(...prices);
+    if (dist) prices.push(...dist.listFloors({ productId: l.productId, variantId: l.variantId ?? null, quantity: l.quantity, price: l.price }));
+
+    let floor = Math.min(...prices);
+    if (dist) floor = dist.schemeFloor({ productId: l.productId, variantId: l.variantId ?? null, quantity: l.quantity, price: l.price }, floor);
     if (l.price + EPS < floor) cut += (floor - l.price) * l.quantity;
   }
   return Math.round(cut * 100) / 100;

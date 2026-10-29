@@ -24,6 +24,8 @@ export interface DocKind {
   title: string;
   /** Written with the first saved choice, for dialogs that need these keys. */
   seed?: Record<string, unknown>;
+  /** Papers this document can print on; all when not set. */
+  papers?: ReceiptPaper[];
 }
 
 export const DOC_KINDS: DocKind[] = [
@@ -34,6 +36,9 @@ export const DOC_KINDS: DocKind[] = [
   { id: 'voucher', label: 'Expenses ka voucher', where: 'Expenses', store: 'nafaa-expense-voucher-print', paper: '80', copies: 1, title: 'EXPENSE VOUCHER' },
   { id: 'payslip', label: 'Salary slip', where: 'Staff → Tankhwah', store: 'nafaa-payslip-print', paper: 'A4', copies: 1, title: 'PAYSLIP' },
   { id: 'commission', label: 'Commission ki parchi', where: 'Staff → Commission', store: 'nafaa-commission-slip-print', paper: '80', copies: 1, title: 'COMMISSION' },
+  { id: 'invoice-a4', label: 'Distribution Invoice', where: 'Distribution → Orders', store: 'nafaa-dist-invoice-print', paper: 'A4', copies: 1, title: 'INVOICE', papers: ['A4'] },
+  { id: 'load-sheet', label: 'Load sheet', where: 'Distribution → Load sheets', store: 'nafaa-dist-load-sheet-print', paper: 'A4', copies: 1, title: 'LOAD SHEET', papers: ['A4'] },
+  { id: 'recovery-sheet', label: 'Recovery sheet', where: 'Distribution → Recoveries', store: 'nafaa-dist-recovery-sheet-print', paper: 'A4', copies: 1, title: 'RECOVERY SHEET', papers: ['A4'] },
 ];
 
 export interface DocPref { paper: ReceiptPaper; copies: number }
@@ -49,7 +54,8 @@ function readRaw(store: string): Record<string, unknown> | null {
 
 export function readDocPref(k: DocKind, shopPaper: ReceiptPaper): DocPref {
   const s = readRaw(k.store);
-  const paper = PAPERS.includes(s?.paper as ReceiptPaper) ? (s!.paper as ReceiptPaper) : k.paper ?? shopPaper;
+  const allowed = k.papers ?? PAPERS;
+  const paper = allowed.includes(s?.paper as ReceiptPaper) ? (s!.paper as ReceiptPaper) : k.paper ?? (allowed.includes(shopPaper) ? shopPaper : allowed[0]);
   const copies = Number(s?.copies);
   return { paper, copies: copies >= 1 && copies <= 3 ? copies : k.copies };
 }

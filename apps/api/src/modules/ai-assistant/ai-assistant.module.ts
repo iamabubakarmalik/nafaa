@@ -23,6 +23,7 @@ import { ExpensesService } from '../finance/expenses/expenses.service';
 import { PurchasesService } from '../purchasing/purchases/purchases.service';
 import { ManufacturingModule } from '../manufacturing/manufacturing.module';
 import { IncomeModule } from '../finance/income/income.module';
+import { DistributionModule } from '../distribution/distribution.module';
 import { AiActionsService } from './ai-actions.service';
 import { OrderToolsService } from '../../integrations/online-orders/order-tools.service';
 import { AiAssistantController } from './ai-assistant.controller';
@@ -32,7 +33,7 @@ import { AiToolsService } from './ai-tools.service';
 import { MorningSummaryService } from './morning-summary.service';
 
 @Module({
-  imports: [LowStockModule, LoyaltyModule, SalesModule, StockAdjustmentsModule, SupplierLedgerModule, ManufacturingModule, IncomeModule],
+  imports: [LowStockModule, LoyaltyModule, SalesModule, StockAdjustmentsModule, SupplierLedgerModule, ManufacturingModule, IncomeModule, DistributionModule],
   controllers: [AiAssistantController],
   providers: [
     TenantTimezoneService,

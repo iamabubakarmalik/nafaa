@@ -22,6 +22,7 @@ const PACK_TO_BUSINESS_TYPE: ReadonlyArray<[packId: string, businessType: string
   ['garments', 'CLOTHING'],
   ['bakery', 'BAKERY'],
   ['hardware', 'HARDWARE'],
+  ['distribution', 'DISTRIBUTOR'],
   ['salon', 'SALON'],
   ['electronics', 'ELECTRONICS'],
   ['appliances', 'APPLIANCES'],

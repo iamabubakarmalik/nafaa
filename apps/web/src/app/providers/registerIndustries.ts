@@ -44,6 +44,7 @@ import { PetshopPack } from '@industries/petshop';
 import { ShoePack } from '@industries/shoe';
 import { SportsPack } from '@industries/sports';
 import { ToystorePack } from '@industries/toystore';
+import { DistributionPack } from '@industries/distribution';
 
 let registered = false;
 
@@ -54,6 +55,7 @@ export function registerIndustries(): void {
   IndustryRegistry.register([
     // Highest priority first (resolution picks highest when multiple match)
     CarpetPack,          // 90 — length × width sqft
+    DistributionPack,    // 85 — booker, routes, load sheets
     JewelryPack,         // 88 — weight × purity live rates
     OpticalPack,         // 82 — prescription lens
     MobilePack,          // 80 — IMEI tracking

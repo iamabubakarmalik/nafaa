@@ -14,7 +14,7 @@ const FEATURE_KEYS: Array<keyof UpsertPlanPayload> = [
   'featureProfitReport', 'featureLoyalty', 'featureDiscounts', 'featureKhata',
   'featureExports', 'featureBackup', 'featureNotifications', 'featureCashRegister',
   'featureStockTransfer', 'featureReturns', 'featureSupport24x7',
-  'featureWhatsappReceipt', 'featureCustomBranding',
+  'featureWhatsappReceipt', 'featureCustomBranding', 'featureDistribution',
 ];
 
 const FEATURE_LABELS: Record<string, string> = {
@@ -35,6 +35,7 @@ const FEATURE_LABELS: Record<string, string> = {
   featureSupport24x7: '24/7 Support',
   featureWhatsappReceipt: 'WhatsApp Receipt',
   featureCustomBranding: 'Custom Branding',
+  featureDistribution: 'Distribution (booker, routes, load sheets)',
 };
 
 const emptyPlan: UpsertPlanPayload = {
@@ -69,6 +70,7 @@ const emptyPlan: UpsertPlanPayload = {
   featureSupport24x7: false,
   featureWhatsappReceipt: false,
   featureCustomBranding: false,
+  featureDistribution: false,
 };
 
 export default function PlansPage() {
@@ -231,6 +233,7 @@ function PlanFormModal({
           featureSupport24x7: plan.featureSupport24x7,
           featureWhatsappReceipt: plan.featureWhatsappReceipt,
           featureCustomBranding: plan.featureCustomBranding,
+          featureDistribution: plan.featureDistribution ?? false,
         }
       : emptyPlan,
   );

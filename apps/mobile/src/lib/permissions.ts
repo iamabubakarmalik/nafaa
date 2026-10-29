@@ -48,6 +48,12 @@ export const PERMISSIONS = {
   PLANS_VIEW: 'plans.view',
   PLAN_USAGE_VIEW: 'plan_usage.view',
   REFERRALS_VIEW: 'referrals.view',
+
+  DISTRIBUTION_ORDERS_VIEW: 'distribution.orders.view',
+  DISTRIBUTION_ORDERS_BOOK: 'distribution.orders.book',
+  DISTRIBUTION_PRICE_OVERRIDE: 'distribution.price_override',
+  DISTRIBUTION_COLLECTIONS_COLLECT: 'distribution.collections.collect',
+  DISTRIBUTION_DELIVERY_REPORT: 'distribution.delivery.report',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -183,6 +189,11 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'plans.view': 'Plans',
   'plan_usage.view': 'Plan Usage',
   'referrals.view': 'Referrals',
+  'distribution.orders.view': 'Distribution Orders',
+  'distribution.orders.book': 'Order Booking',
+  'distribution.price_override': 'Change Order Prices',
+  'distribution.collections.collect': 'Field Recovery',
+  'distribution.delivery.report': 'Delivery Report',
 };
 
 export const PERMISSION_GROUPS: Array<{
@@ -232,6 +243,15 @@ export const PERMISSION_GROUPS: Array<{
       PERMISSIONS.BILLING_VIEW, PERMISSIONS.BILLING_MANAGE,
       PERMISSIONS.PLANS_VIEW, PERMISSIONS.PLAN_USAGE_VIEW,
       PERMISSIONS.REFERRALS_VIEW,
+    ],
+  },
+  {
+    title: 'Distribution',
+    color: '#115e59',
+    permissions: [
+      PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.DISTRIBUTION_ORDERS_BOOK,
+      PERMISSIONS.DISTRIBUTION_PRICE_OVERRIDE, PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT,
+      PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
     ],
   },
 ];

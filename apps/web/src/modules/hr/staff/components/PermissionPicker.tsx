@@ -2,7 +2,9 @@
  * Permission checkboxes in plain groups. Every box does exactly what it
  * says; nothing is granted behind the scenes. A role preset fills the boxes
  * once, and the strip on top shows how the choice differs from that role.
- * A warning appears when the POS is on but the reads it needs are off.
+ * A warning appears when the POS is on but the reads it needs are off, and
+ * likewise for the booker app. With distribution on, its presets (Order
+ * Booker, Delivery, Distribution Manager) fill the boxes the same way.
  */
 
 import { useMemo, useState } from 'react';
@@ -17,6 +19,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { teamApi } from '@modules/organization/team/api/team.api';
 import { ASSIGNABLE, ROLES, permText, type AssignableRole } from './meta';
+import { BookerGapWarning, DistributionPresetButtons } from '@modules/distribution/team/DistributionPresets';
 
 /** Role presets: the server's list for the owner, else the synced copy in core. */
 export function useRoleDefaults(): Record<string, string[]> {
@@ -67,6 +70,7 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
               <span className="h-2 w-2 rounded-full" style={{ background: ROLES[r].color }} />{ROLES[r].label} wali ({(defaults[r] ?? []).length})
             </button>
           ))}
+          <DistributionPresetButtons active={value} onPick={(p) => onChange?.([...p.permissions])} />
           <button type="button" onClick={() => onChange?.([])} className="h-8 rounded-lg px-2.5 text-[0.75rem] font-semibold text-rose-700 hover:bg-rose-50">Sab hatayein</button>
         </div>
       )}
@@ -95,6 +99,8 @@ export function PermissionPicker({ value, onChange, role, readOnly }: {
           )}
         </div>
       )}
+
+      <BookerGapWarning value={value} readOnly={readOnly} label={(p) => permText(p)[0]} onFix={(gap) => onChange?.([...new Set([...value, ...gap])])} />
 
       <Input size="sm" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Permission search — maslan: khata, void, expense"
         aria-label="Permission search" leftIcon={<Search className="h-4 w-4" />} />

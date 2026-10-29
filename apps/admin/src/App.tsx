@@ -25,6 +25,7 @@ import HealthPage from '@/features/health/pages/HealthPage';
 import BulkActionsPage from '@/features/bulk-actions/pages/BulkActionsPage';
 import AdminExportsPage from '@/features/admin-exports/pages/AdminExportsPage';
 import NotificationsPage from '@/features/notifications/pages/NotificationsPage';
+import DistributionUsagePage from '@/features/distribution/pages/DistributionUsagePage';
 import { ProtectedRoute, PublicOnlyRoute } from '@/routes/ProtectedRoute';
 import AdminShell from '@/components/layout/AdminShell';
 
@@ -89,6 +90,7 @@ export default function App() {
               <Route path="/invoices" element={<InvoicesPage />} />
               <Route path="/referrals" element={<ReferralsPage />} />
               <Route path="/platform-discounts" element={<PlatformDiscountsPage />} />
+              <Route path="/distribution" element={<DistributionUsagePage />} />
 
               <Route path="/broadcast" element={<BroadcastPage />} />
               <Route path="/email-templates" element={<EmailTemplatesPage />} />

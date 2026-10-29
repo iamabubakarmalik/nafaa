@@ -454,6 +454,11 @@ export class SalesService {
         // Product lines always carry a tier; used phones have none.
         priceTier: product ? (lineTier ?? 'RETAIL') : null,
         retailPrice: null as number | null,
+        // Pack and scheme are stored only when the caller sent them.
+        unitName: item.unitName?.trim() || null,
+        unitQty: item.unitQty ?? null,
+        conversionRate: item.conversionRate ?? null,
+        schemeId: item.schemeId || null,
       };
     });
     subtotal = r2(subtotal);
@@ -554,7 +559,11 @@ export class SalesService {
               variantPrice: variant?.price ?? null, variantWholesale: variant?.wholesalePrice ?? null, variantCredit: variant?.creditPrice ?? null,
               tier: (normalizedItems[idx].priceTier as PriceTier | null) ?? null,
             }];
-          }))
+          }), {
+            // The customer's price list and the running trade schemes are owner-set prices too.
+            customerId: dto.customerId ?? null,
+            billLines: normalizedItems.flatMap((l) => (l.productId ? [{ productId: l.productId, variantId: l.variantId ?? null, quantity: l.quantity, price: l.price }] : [])),
+          })
         : 0;
       if (opts.counter) await this.checkPriceTiers(user, tierSetup, dto, normalizedItems, creditAmount);
       await this.enforceCounterRules(user, settings, dto, {
@@ -630,6 +639,8 @@ export class SalesService {
               internalNote: item.internalNote,
               priceTier: item.priceTier,
               retailPrice: item.retailPrice,
+              ...(item.unitName && { unitName: item.unitName, unitQty: item.unitQty, conversionRate: item.conversionRate }),
+              ...(item.schemeId && { schemeId: item.schemeId }),
               ...(item.variantId && {
                 variantLink: { create: { variantId: item.variantId } },
               }),

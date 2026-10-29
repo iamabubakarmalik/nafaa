@@ -205,6 +205,18 @@ const MfgReportPage = lazy(() => import('@modules/manufacturing/pages/ReportPage
 // ─── Growth tools for online sellers ───
 const PriceCalculatorPage = lazy(() => import('@modules/growth/price-calculator/PriceCalculatorPage'));
 const AdsPage = lazy(() => import('@modules/growth/ads/AdsPage'));
+// ─── Distribution setup (price lists, routes, schemes) ───
+const DistPriceListsPage = lazy(() => import('@modules/distribution/setup/price-lists/PriceListsPage'));
+const DistRoutesPage = lazy(() => import('@modules/distribution/setup/routes/RoutesPage'));
+const DistSchemesPage = lazy(() => import('@modules/distribution/setup/schemes/SchemesPage'));
+// ─── Distribution daily work (orders, load sheets, recoveries) ───
+const DistDashboardPage = lazy(() => import('@modules/distribution/pages/DashboardPage'));
+const DistOrdersPage = lazy(() => import('@modules/distribution/pages/OrdersPage'));
+const DistLoadSheetsPage = lazy(() => import('@modules/distribution/pages/LoadSheetsPage'));
+const DistLoadSheetPage = lazy(() => import('@modules/distribution/pages/LoadSheetDetailPage'));
+const DistSettlePage = lazy(() => import('@modules/distribution/pages/SettlePage'));
+const DistRecoveriesPage = lazy(() => import('@modules/distribution/pages/RecoveriesPage'));
+const DistReportsRedirect = lazy(() => import('@modules/distribution/pages/ReportsRedirect'));
 
 // ─── Industry Pack System ──────────────────────────────────────
 import '@app/providers/registerIndustries';
@@ -362,6 +374,19 @@ export default function App() {
                   <Route path="/manufacturing/history" element={secure(PERMISSIONS.MANUFACTURING_VIEW, <MfgHistoryPage />)} />
                   <Route path="/manufacturing/report" element={secure(PERMISSIONS.MANUFACTURING_VIEW, <MfgReportPage />)} />
 
+                  {/* ── Distribution setup ── */}
+                  <Route path="/distribution/price-lists" element={secure(PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, <Suspense fallback={null}><DistPriceListsPage /></Suspense>)} />
+                  <Route path="/distribution/routes" element={secure(PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE, <Suspense fallback={null}><DistRoutesPage /></Suspense>)} />
+                  <Route path="/distribution/schemes" element={secure(PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE, <Suspense fallback={null}><DistSchemesPage /></Suspense>)} />
+                  {/* ── Distribution daily work ── */}
+                  <Route path="/distribution" element={secure(PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, <DistDashboardPage />)} />
+                  <Route path="/distribution/orders" element={secure(PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, <DistOrdersPage />)} />
+                  <Route path="/distribution/load-sheets" element={secure(PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, <DistLoadSheetsPage />)} />
+                  <Route path="/distribution/load-sheets/:id" element={secure(PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, <DistLoadSheetPage />)} />
+                  <Route path="/distribution/load-sheets/:id/settle" element={secure(PERMISSIONS.DISTRIBUTION_SETTLE, <DistSettlePage />)} />
+                  <Route path="/distribution/recoveries" element={secure(PERMISSIONS.KHATA_VIEW, <DistRecoveriesPage />)} />
+                  <Route path="/distribution/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <DistReportsRedirect />)} />
+
                   {/* ── Reports ────────────────────────────────── */}
                   <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsCenterPage />)} />
                   <Route path="/day-report" element={secure(PERMISSIONS.DASHBOARD_VIEW, <DayBookPage />)} />
@@ -386,6 +411,7 @@ export default function App() {
                   <Route path="/settings/notifications" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="notifications" />)} />
                   <Route path="/settings/whatsapp" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="whatsapp" />)} />
                   <Route path="/settings/security" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="security" />)} />
+                  <Route path="/settings/distribution" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="distribution" />)} />
                   <Route path="/settings/data-export" element={secure(PERMISSIONS.SETTINGS_VIEW, secure(PERMISSIONS.BACKUP_MANAGE, <SettingsSectionPage section="data-export" />))} />
                   <Route path="/settings/danger" element={secure(PERMISSIONS.SETTINGS_VIEW, secure(PERMISSIONS.SETTINGS_MANAGE, <SettingsSectionPage section="danger" />))} />
                   <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />

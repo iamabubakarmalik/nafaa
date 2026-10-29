@@ -286,7 +286,8 @@ function DocRow({ kind, shopPaper, onPreview, onTest }: {
         <span className="mt-0.5 block text-xs text-slate-500">{kind.where}</span>
       </button>
       <div className="flex flex-wrap items-center gap-2">
-        <Segmented label={`${kind.label} kaghaz`} value={pref.paper} onChange={(v) => change({ paper: v })} items={PAPER_ITEMS} />
+        <Segmented label={`${kind.label} kaghaz`} value={pref.paper} onChange={(v) => change({ paper: v })}
+          items={kind.papers ? PAPER_ITEMS.filter((p) => kind.papers!.includes(p.value as ReceiptPaper)) : PAPER_ITEMS} />
         <span className="inline-flex items-center gap-1 text-xs text-slate-500"><Copy className="h-3.5 w-3.5" />
           <Segmented label={`${kind.label} copies`} value={String(pref.copies)} onChange={(v) => change({ copies: Number(v) })} items={COPY_ITEMS} />
         </span>

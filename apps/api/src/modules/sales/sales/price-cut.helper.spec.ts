@@ -53,3 +53,58 @@ describe('price cut with price tiers', () => {
     expect(await priceCutTotal(fakeDb(), 't1', [line({ price: 80 })])).toBe(20);
   });
 });
+
+/** A stub with distribution on: one customer on list "L1", the given list rows and schemes. */
+function distDb(opts: { enabled?: boolean; rows?: Array<{ productId: string; unitId?: string | null; price: number }>; schemes?: unknown[]; units?: Array<{ id: string; productId: string; conversionRate: number; price: number; unitName: string }> }) {
+  const units = (opts.units ?? []).map((u) => ({ variantId: null, wholesalePrice: null, creditPrice: null, costPrice: 0, ...u }));
+  return {
+    productUnit: { findMany: async () => units },
+    hardwareBulkPricing: { findMany: async () => [] },
+    productCombo: { findMany: async () => [] },
+    hardwareQuotation: { findMany: async () => [] },
+    distributionSettings: { findUnique: async () => ({ enabled: opts.enabled ?? true, defaultPriceListId: null }) },
+    customer: { findFirst: async () => ({ priceListId: 'L1', priceTier: null }) },
+    priceList: { findFirst: async () => ({ id: 'L1', name: 'Retailers', basedOn: 'WHOLESALE', adjustPct: 0 }) },
+    priceListItem: { findMany: async () => (opts.rows ?? []).map((r) => ({ variantId: null, unitId: null, minQty: null, ...r })) },
+    tradeScheme: { findMany: async () => (opts.schemes ?? []).map((s) => ({ isActive: true, productIds: [], brandIds: [], categoryIds: [], priceListIds: [], slabs: null, ...(s as object) })) },
+    product: { findMany: async () => [{ id: 'p1', name: 'Soap', price: 100, wholesalePrice: 90, creditPrice: 110, costPrice: 70, brandId: null, categoryId: null, unit: 'pcs', taxRate: 0 }] },
+    productVariant: { findMany: async () => [] },
+  } as never;
+}
+
+describe('price cut with distribution prices', () => {
+  const ctx = { customerId: 'c1' };
+
+  it('the customer\'s price list price is not a discount', async () => {
+    const db = distDb({ rows: [{ productId: 'p1', price: 85 }] });
+    expect(await priceCutTotal(db, 't1', [line({ price: 85 })], ctx)).toBe(0);
+    // Below the list price it still counts, measured from the list price.
+    expect(await priceCutTotal(db, 't1', [line({ price: 80 })], ctx)).toBe(10);
+  });
+
+  it('a carton price on the list counts per piece', async () => {
+    const db = distDb({ rows: [{ productId: 'p1', unitId: 'ctn', price: 960 }], units: [{ id: 'ctn', productId: 'p1', conversionRate: 12, price: 1150, unitName: 'Carton' }] });
+    expect(await priceCutTotal(db, 't1', [line({ price: 80, quantity: 12 })], ctx)).toBe(0);
+  });
+
+  it('a running percent scheme lowers the floor', async () => {
+    const db = distDb({ schemes: [{ id: 's', name: '10% off', type: 'PERCENT_OFF', value: 10 }] });
+    // Wholesale 90 less 10% = 81.
+    expect(await priceCutTotal(db, 't1', [line({ price: 81 })], ctx)).toBe(0);
+    expect(await priceCutTotal(db, 't1', [line({ price: 80 })], ctx)).toBe(2);
+  });
+
+  it('free goods earned by the bill are not a discount; extra free goods are', async () => {
+    const db = distDb({ schemes: [{ id: 's', name: '10+1', type: 'FREE_QTY', buyQty: 10, freeQty: 1 }] });
+    const free = line({ price: 0, quantity: 2, note: 'Scheme: 10+1: 2 pcs free' });
+    const bill = [{ productId: 'p1', quantity: 20, price: 100 }, { productId: 'p1', quantity: 2, price: 0 }];
+    expect(await priceCutTotal(db, 't1', [free], { ...ctx, billLines: bill })).toBe(0);
+    const tooMany = line({ price: 0, quantity: 3, note: 'Scheme: 10+1' });
+    expect(await priceCutTotal(db, 't1', [tooMany], { ...ctx, billLines: [{ productId: 'p1', quantity: 20, price: 100 }, { productId: 'p1', quantity: 3, price: 0 }] })).toBe(270);
+  });
+
+  it('with distribution off nothing changes', async () => {
+    const db = distDb({ enabled: false, rows: [{ productId: 'p1', price: 85 }] });
+    expect(await priceCutTotal(db, 't1', [line({ price: 85 })], ctx)).toBe(10);
+  });
+});

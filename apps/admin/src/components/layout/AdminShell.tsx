@@ -5,7 +5,7 @@ import {
   Menu, X, ChevronRight, Sparkles, CreditCard, Gift, Activity,
   TrendingUp, Package, ShoppingCart, Receipt, Megaphone, Tag,
   Mail, Settings as SettingsIcon, Heart, Layers, Download, Bell, Palette,
-  Rocket,
+  Rocket, Truck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/store/auth.store';
@@ -55,6 +55,7 @@ const navGroups = [
       { to: '/invoices', label: 'Invoices', icon: Receipt },
       { to: '/referrals', label: 'Referrals', icon: Gift },
       { to: '/platform-discounts', label: 'Promo Codes', icon: Tag },
+      { to: '/distribution', label: 'Distribution usage', icon: Truck },
     ],
   },
   {

@@ -33,6 +33,8 @@ export interface AdminPlan {
   featureSupport24x7: boolean;
   featureWhatsappReceipt: boolean;
   featureCustomBranding: boolean;
+  /** Wholesale & distribution (booker app, routes, load sheets); priced per booker login. */
+  featureDistribution?: boolean;
   _count?: { subscriptions: number };
 }
 

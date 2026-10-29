@@ -34,7 +34,7 @@ export type NavItem = {
   /** Extra words that should find this item in search */
   keywords?: string;
   /** Shown only while this business feature is switched on in Settings. */
-  feature?: 'manufacturing';
+  feature?: 'manufacturing' | 'distribution';
   /** Jora hua sales channel — apni ginti (naye orders) ke saath */
   count?: number;
   /** Channel ki halat: band ho to halka dikhe */
@@ -103,6 +103,18 @@ export const posNavGroups: NavGroup[] = [
       { to: '/online-orders/reports', label: 'Online reports', icon: TrendingUp, permission: P.SALES_VIEW, keywords: 'online report rto city channel courier csv export excel block' },
       // Jore hue channels (WooCommerce, Shopify, apni website, Daraz…) yahan
       // useVisibleNav khud daalta hai — Shopify ke "Sales channels" jaisa.
+    ],
+  },
+  {
+    id: 'distribution', label: 'Distribution', icon: Truck, color: '#ea580c', defaultOpen: true, order: 6.5,
+    items: [
+      { to: '/distribution', label: 'Distribution', icon: Gauge, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'wholesale distributor dashboard booker supply' },
+      { to: '/distribution/orders', label: 'Orders', icon: ClipboardCheck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'sales order booking approve invoice booker wholesale' },
+      { to: '/distribution/load-sheets', label: 'Load sheets', icon: Truck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'load sheet gaari van dispatch delivery settle settlement' },
+      { to: '/distribution/recoveries', label: 'Recoveries', icon: HandCoins, permission: P.KHATA_VIEW, feature: 'distribution', keywords: 'recovery wasooli udhaar collection verify ageing' },
+      { to: '/distribution/price-lists', label: 'Price lists', icon: Tag, permission: P.DISTRIBUTION_PRICELISTS_VIEW, feature: 'distribution', keywords: 'price list rate wholesale retailer key account excel import' },
+      { to: '/distribution/routes', label: 'Routes', icon: MapPin, permission: P.DISTRIBUTION_ROUTES_MANAGE, feature: 'distribution', keywords: 'route beat area booker delivery visit day sequence' },
+      { to: '/distribution/schemes', label: 'Schemes', icon: BadgePercent, permission: P.DISTRIBUTION_SCHEMES_MANAGE, feature: 'distribution', keywords: 'scheme trade offer 10+1 free slab percent principal company' },
     ],
   },
   {
@@ -375,6 +387,12 @@ export const SETTINGS_SECTIONS: SettingsGroup[] = [
       { to: '/settings/accounting', label: 'Accounting', icon: Wallet2, permission: VIEW, desc: 'Zoho Books, QuickBooks, Xero, Tally — roz ka hisaab', keywords: 'accounting zoho books quickbooks xero tally tallyprime journal accountant' },
       { to: '/settings/developer', label: 'API & webhooks', icon: Code2, permission: VIEW, desc: 'Zapier, Make, Google Sheets, apna software', keywords: 'api key webhook zapier make n8n google sheets developer erp integration' },
       { to: '/marketplace/settings', label: 'Marketplace publishing', icon: Send, permission: VIEW, desc: 'Nafaa marketplace par kya dikhe', keywords: 'marketplace publish online' },
+    ],
+  },
+  {
+    id: 'distribution', title: 'Distribution', icon: Truck, desc: 'Wholesale: booker, routes, price lists, schemes, recovery', flat: true,
+    items: [
+      { to: '/settings/distribution', label: 'Distribution', icon: Truck, permission: VIEW, desc: 'On/off, udhaar ka usool, visit, recovery, default list', keywords: 'distribution wholesale distributor booker order route price list scheme recovery load sheet' },
     ],
   },
   {

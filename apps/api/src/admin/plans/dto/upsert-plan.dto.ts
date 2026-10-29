@@ -101,4 +101,6 @@ export class UpsertPlanDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() featureSupport24x7?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() featureWhatsappReceipt?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() featureCustomBranding?: boolean;
+  /** Wholesale and distribution module; priced per booker login. */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() featureDistribution?: boolean;
 }

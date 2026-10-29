@@ -120,12 +120,12 @@ export function ChoiceGroup({ value, onChange, options, columns = 2 }: {
 }
 
 /* ─── Section card: DS Card with an icon tile in the header ─── */
-type Tone = 'emerald' | 'blue' | 'amber' | 'violet' | 'rose' | 'pink' | 'cyan' | 'sky' | 'slate' | 'orange' | 'indigo';
+type Tone = 'emerald' | 'blue' | 'amber' | 'violet' | 'rose' | 'pink' | 'cyan' | 'teal' | 'sky' | 'slate' | 'orange' | 'indigo';
 const TONES: Record<Tone, string> = {
   emerald: 'bg-brand-50 text-brand-700', blue: 'bg-blue-50 text-blue-700', sky: 'bg-sky-50 text-sky-700',
   amber: 'bg-amber-50 text-amber-700', orange: 'bg-orange-50 text-orange-700', violet: 'bg-violet-50 text-violet-700',
   indigo: 'bg-indigo-50 text-indigo-700', rose: 'bg-rose-50 text-rose-700', pink: 'bg-pink-50 text-pink-700',
-  cyan: 'bg-cyan-50 text-cyan-700', slate: 'bg-slate-100 text-slate-700',
+  cyan: 'bg-cyan-50 text-cyan-700', teal: 'bg-teal-50 text-teal-700', slate: 'bg-slate-100 text-slate-700',
 };
 
 export function SectionCard({ title, desc, icon: I, color = 'emerald', action, badge, children, id }: {

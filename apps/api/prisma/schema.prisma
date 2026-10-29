@@ -49,6 +49,8 @@ enum SaleSource {
   FOODPANDA
   SHOPIFY
   MARKETPLACE
+  /// Invoiced from a distribution sales order (booker order approved in the office).
+  DISTRIBUTION
 }
 
 enum SaleStatus {
@@ -384,6 +386,8 @@ model Plan {
   featureSupport24x7     Boolean @default(false)
   featureWhatsappReceipt Boolean @default(false)
   featureCustomBranding  Boolean @default(false)
+  /// Wholesale and distribution (routes, bookers, load sheets). Priced per booker login.
+  featureDistribution    Boolean @default(false)
 
   stripePriceMonthlyId   String?
   stripePriceQuarterlyId String?
@@ -511,6 +515,17 @@ model Tenant {
   productionRecipes ProductionRecipe[]
   productionRuns    ProductionRun[]
   adSpends          AdSpend[]
+
+  // ── Distribution ──
+  distributionSettings DistributionSettings?
+  priceLists           PriceList[]
+  distRoutes           DistRoute[]
+  tradeSchemes         TradeScheme[]
+  salesOrders          SalesOrder[]
+  loadSheets           LoadSheet[]
+  distCollections      DistCollection[]
+  distVisits           DistVisit[]
+  distDeliveryReports  DistDeliveryReport[]
 }
 
 model Referral {
@@ -682,14 +697,14 @@ model Shop {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant           Tenant                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   cashRegisters    CashRegister[]
   sales            Sale[]
-  transfersFrom    StockTransfer[]   @relation("TransfersFrom")
-  transfersTo      StockTransfer[]   @relation("TransfersTo")
+  transfersFrom    StockTransfer[]              @relation("TransfersFrom")
+  transfersTo      StockTransfer[]              @relation("TransfersTo")
   staff            Staff[]
   shopStocks       ShopStock[]
-  users            User[]            @relation("ShopUsers")
+  users            User[]                       @relation("ShopUsers")
   carpetRolls      CarpetRoll[]
   carpetCutPieces  CarpetCutPiece[]
   usedPhones       UsedPhone[]
@@ -1279,6 +1294,23 @@ model Customer {
   isVip         Boolean         @default(false)
   /// Default price tier at the counter for this customer (RETAIL, WHOLESALE, CREDIT). Null means the shop default.
   priceTier     String?
+  // ── Distribution (all optional; empty for shops that do not distribute) ──
+  /// Price list used for this customer at the counter and on sales orders.
+  priceListId   String?
+  /// Route (beat) the customer is visited on, and the visit order on it.
+  routeId       String?
+  routeSeq      Int?
+  /// Days a credit bill may stay unpaid before the customer counts as overdue. Null or 0: no limit.
+  creditDays    Int?
+  /// Shop or trading name, when the customer record holds the owner's name.
+  businessName  String?
+  /// Sales tax registration number (STRN).
+  strn          String?
+  /// Drug or trade licence number and its expiry.
+  licenseNo     String?
+  licenseExpiry DateTime?
+  latitude      Float?
+  longitude     Float?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -1300,22 +1332,23 @@ model Customer {
   @@index([tenantId, isVip])
   @@index([shopId])
   @@index([tenantId, shopId])
+  @@index([tenantId, routeId])
 }
 
 model CustomerLedger {
-  id           String             @id @default(uuid())
-  tenantId     String
-  customerId   String
-  shopId       String?
-  createdById  String?
-  type         CustomerLedgerType
-  amount       Float
-  balanceAfter Float
-  reference    String?
-  note         String?
+  id            String             @id @default(uuid())
+  tenantId      String
+  customerId    String
+  shopId        String?
+  createdById   String?
+  type          CustomerLedgerType
+  amount        Float
+  balanceAfter  Float
+  reference     String?
+  note          String?
   /// How a collection was paid. Null on older rows, which count as cash.
   paymentMethod PaymentMethod?
-  createdAt    DateTime           @default(now())
+  createdAt     DateTime           @default(now())
 
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customer  Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -1438,19 +1471,19 @@ model Sale {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tenant          Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  shop            Shop?         @relation(fields: [shopId], references: [id], onDelete: SetNull)
-  cashRegister    CashRegister? @relation(fields: [cashRegisterId], references: [id], onDelete: SetNull)
-  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  createdBy       User?         @relation("UserSales", fields: [createdById], references: [id], onDelete: SetNull)
-  soldBy          User?         @relation("UserSoldSales", fields: [soldById], references: [id], onDelete: SetNull)
-  discountCodeRef DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop            Shop?            @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  cashRegister    CashRegister?    @relation(fields: [cashRegisterId], references: [id], onDelete: SetNull)
+  customer        Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdBy       User?            @relation("UserSales", fields: [createdById], references: [id], onDelete: SetNull)
+  soldBy          User?            @relation("UserSoldSales", fields: [soldById], references: [id], onDelete: SetNull)
+  discountCodeRef DiscountCode?    @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
   items           SaleItem[]
   /// One row per method used to pay the bill (split tender, trade-in).
   payments        SalePayment[]
   returns         SaleReturn[]
-  booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
-  repairTicket    RepairTicket? @relation("RepairTicketSale")
+  booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: SetNull)
+  repairTicket    RepairTicket?    @relation("RepairTicketSale")
   /// Money that settled the bill, for profit on khata bills (see sale-settlement.helper).
   settlements     SaleSettlement[]
 
@@ -1492,23 +1525,29 @@ model SalePayment {
 }
 
 model SaleItem {
-  id           String           @id @default(uuid())
-  saleId       String
-  productId    String?
-  usedPhoneId  String?          @unique
-  quantity     Float
-  returnedQty  Float            @default(0)
-  price        Float
-  costPrice    Float            @default(0)
+  id             String           @id @default(uuid())
+  saleId         String
+  productId      String?
+  usedPhoneId    String?          @unique
+  quantity       Float
+  returnedQty    Float            @default(0)
+  price          Float
+  costPrice      Float            @default(0)
   /// Price tier the line was sold at: RETAIL, WHOLESALE or CREDIT. Null on older rows means retail.
-  priceTier    String?
+  priceTier      String?
   /// Retail price per base unit when the line was sold at another tier, to show the difference. Null on retail lines.
-  retailPrice  Float?
-  total        Float
-  note         String?          @db.Text // Customer-visible note (prints on receipt)
-  internalNote String?          @db.Text // Team-only note (never on receipt/WhatsApp)
-  variantLink  SaleItemVariant?
-  createdAt    DateTime         @default(now())
+  retailPrice    Float?
+  /// Pack the line was sold in (carton, dozen) and how many packs; `quantity` stays in base units. Null on base-unit lines.
+  unitName       String?
+  unitQty        Float?
+  conversionRate Float?
+  /// Trade scheme that priced this line or gave it free (TradeScheme id).
+  schemeId       String?
+  total          Float
+  note           String?          @db.Text // Customer-visible note (prints on receipt)
+  internalNote   String?          @db.Text // Team-only note (never on receipt/WhatsApp)
+  variantLink    SaleItemVariant?
+  createdAt      DateTime         @default(now())
 
   sale            Sale                 @relation(fields: [saleId], references: [id], onDelete: Cascade)
   product         Product?             @relation(fields: [productId], references: [id], onDelete: Restrict)
@@ -1653,47 +1692,47 @@ model SupplierLedger {
 }
 
 model Purchase {
-  id             String         @id @default(uuid())
-  tenantId       String
-  supplierId     String
-  shopId         String?
-  createdById    String?
-  purchaseNumber String
-  subtotal       Float
-  discount       Float          @default(0)
-  total          Float
-  paidAmount     Float          @default(0)
-  paymentMethod  PaymentMethod  @default(CASH)
-  status         PurchaseStatus @default(RECEIVED)
-  notes          String?
+  id                String         @id @default(uuid())
+  tenantId          String
+  supplierId        String
+  shopId            String?
+  createdById       String?
+  purchaseNumber    String
+  subtotal          Float
+  discount          Float          @default(0)
+  total             Float
+  paidAmount        Float          @default(0)
+  paymentMethod     PaymentMethod  @default(CASH)
+  status            PurchaseStatus @default(RECEIVED)
+  notes             String?
   /// The supplier's own bill number.
   supplierInvoiceNo String?
   /// Freight, loading and similar costs added to the bill.
-  otherCharges   Float          @default(0)
+  otherCharges      Float          @default(0)
   /// Landed cost paid to others (freight, customs, clearing, transport), Rs.
   /// Part of the stock cost of the lines, never of the supplier's bill.
-  landedCost       Float   @default(0)
+  landedCost        Float          @default(0)
   /// How landed cost is spread over the lines: VALUE, QTY or WEIGHT.
-  landedCostMethod String?
-  taxAmount      Float          @default(0)
+  landedCostMethod  String?
+  taxAmount         Float          @default(0)
   /// Value of what has been received (orders can arrive in parts).
-  receivedValue  Float          @default(0)
-  returnedAmount Float          @default(0)
-  dueDate        DateTime?
-  expectedAt     DateTime?
-  receivedAt     DateTime?
-  cancelledAt    DateTime?
-  cancelReason   String?
-  purchasedAt    DateTime       @default(now())
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  receivedValue     Float          @default(0)
+  returnedAmount    Float          @default(0)
+  dueDate           DateTime?
+  expectedAt        DateTime?
+  receivedAt        DateTime?
+  cancelledAt       DateTime?
+  cancelReason      String?
+  purchasedAt       DateTime       @default(now())
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
-  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  supplier  Supplier       @relation(fields: [supplierId], references: [id], onDelete: Restrict)
-  shop      Shop?          @relation(fields: [shopId], references: [id], onDelete: SetNull)
-  createdBy User?          @relation("UserPurchases", fields: [createdById], references: [id], onDelete: SetNull)
-  items     PurchaseItem[]
-  returns   PurchaseReturn[]
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplier    Supplier             @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  shop        Shop?                @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  createdBy   User?                @relation("UserPurchases", fields: [createdById], references: [id], onDelete: SetNull)
+  items       PurchaseItem[]
+  returns     PurchaseReturn[]
   landedCosts PurchaseLandedCost[]
 
   @@unique([tenantId, purchaseNumber])
@@ -1732,9 +1771,9 @@ model PurchaseItem {
   weightKg       Float?
   createdAt      DateTime  @default(now())
 
-  purchase   Purchase          @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-  product    Product?          @relation(fields: [productId], references: [id], onDelete: Restrict)
-  ingredient BakeryIngredient? @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+  purchase   Purchase             @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product    Product?             @relation(fields: [productId], references: [id], onDelete: Restrict)
+  ingredient BakeryIngredient?    @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
   returns    PurchaseReturnItem[]
 
   @@index([purchaseId])
@@ -1834,7 +1873,7 @@ model StockMovement {
 }
 
 model StockAdjustment {
-  id           String            @id @default(uuid())
+  id           String             @id @default(uuid())
   tenantId     String
   productId    String
   shopId       String?
@@ -1846,8 +1885,8 @@ model StockAdjustment {
   quantity     Float
   reason       String
   /// Cost of one base unit and the value moved (for loss / write-off totals).
-  unitCost     Float             @default(0)
-  value        Float             @default(0)
+  unitCost     Float              @default(0)
+  value        Float              @default(0)
   /// Lines saved together (a stock count or a multi-line adjustment) share it.
   groupRef     String?
   /// Stock count: what the system said and what was counted.
@@ -1858,7 +1897,7 @@ model StockAdjustment {
   reasonCode   String?
   /// How the line counts in profit. Null on older rows, which are classified by type (business-math.helper).
   profitEffect StockProfitEffect?
-  createdAt    DateTime          @default(now())
+  createdAt    DateTime           @default(now())
 
   tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -12839,9 +12878,9 @@ model GymMemberMembership {
 
   // Payment
   totalPrice    Float
-  paidAmount    Float  @default(0)
-  balanceDue    Float  @default(0)
-  paymentStatus String @default("UNPAID")
+  paidAmount    Float   @default(0)
+  balanceDue    Float   @default(0)
+  paymentStatus String  @default("UNPAID")
   saleId        String?
 
   // Usage
@@ -13096,7 +13135,7 @@ model GymPersonalTrainingPackage {
 
   packageNumber String
   sessionsTotal Int
-  sessionsUsed  Int    @default(0)
+  sessionsUsed  Int     @default(0)
   price         Float
   saleId        String?
 
@@ -23155,20 +23194,20 @@ model CmsEntry {
   status         CmsStatus    @default(DRAFT)
 
   // ─── Draft content ───
-  title      String
+  title     String
   /// Direct answer / card text, 40-60 words. Used by AnswerBox, cards,
   /// meta description fallback and llms.txt.
-  summary    String?  @db.Text
+  summary   String?  @db.Text
   /// Typed blocks, validated by the shared CMS contract (zod).
-  blocks     Json     @default("[]")
+  blocks    Json     @default("[]")
   /// Type-specific fields (industry icon and group, glossary definition, ...).
-  data       Json     @default("{}")
+  data      Json     @default("{}")
   /// Draft tags and related links: [{ entryId, kind, sortOrder }].
-  relations  Json     @default("[]")
+  relations Json     @default("[]")
   /// Draft FAQ list, in display order.
-  faqIds     String[] @default([])
+  faqIds    String[] @default([])
   /// Card and hero image.
-  imageId    String?
+  imageId   String?
 
   // ─── Draft SEO ───
   seoTitle       String?
@@ -23640,4 +23679,388 @@ model AdSpend {
   @@unique([tenantId, importKey])
   @@index([tenantId, day])
   @@index([tenantId, platform, day])
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Distribution (wholesale): price lists, routes, trade schemes, sales
+// orders booked in the field, load sheets, cash settlement, recoveries
+// and visits. Every invoiced order is a normal Sale (source DISTRIBUTION).
+// Money is Float like Sale. Customer, user, shop and product ids are plain
+// columns (no foreign keys) so deleting or switching off those rows never
+// touches distribution history.
+// ═══════════════════════════════════════════════════════════════════
+
+/// One row per business. `enabled` is the switch; the plan must also carry featureDistribution.
+model DistributionSettings {
+  id                  String   @id @default(uuid())
+  tenantId            String   @unique
+  enabled             Boolean  @default(false)
+  /// WARN_THEN_PIN: warn at booking, manager PIN at invoicing. BLOCK: refuse at invoicing. OFF: no check.
+  creditMode          String   @default("WARN_THEN_PIN")
+  /// Visits must be checked in within `checkInRadiusM` of the customer's location (flagged, never refused offline).
+  requireCheckIn      Boolean  @default(false)
+  checkInRadiusM      Int      @default(150)
+  orderPrefix         String   @default("SO-")
+  loadSheetPrefix     String   @default("LS-")
+  orderSeq            Int      @default(0)
+  loadSheetSeq        Int      @default(0)
+  /// Recoveries stay PENDING until the office verifies them. Off: posted to the khata when recorded.
+  recoveryNeedsVerify Boolean  @default(true)
+  /// Price list for customers without one. Null: the customer's price tier, else wholesale.
+  defaultPriceListId  String?
+  /// Godown that serves routes with no godown of their own.
+  defaultShopId       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @default(now()) @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+/// A customer class's prices: fixed prices per product and pack, or a base price ± percent.
+model PriceList {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  code      String?
+  /// Price used for items not listed: PRICE (retail), WHOLESALE or COST, then adjustPct applied.
+  basedOn   String   @default("WHOLESALE")
+  adjustPct Float    @default(0)
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  tenant Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items  PriceListItem[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+}
+
+/// Price of one product (variant, pack) on a list. Unique per list, product, variant and pack (expression index in SQL).
+model PriceListItem {
+  id          String   @id @default(uuid())
+  tenantId    String
+  priceListId String
+  productId   String
+  variantId   String?
+  /// ProductUnit id; null is the base unit.
+  unitId      String?
+  /// Price per pack (per base unit when unitId is null).
+  price       Float
+  /// Only from this quantity (in the same pack) upward.
+  minQty      Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  priceList PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+
+  @@index([priceListId])
+  @@index([tenantId, productId])
+}
+
+/// A route (beat): the customers a booker visits on given weekdays, served from one godown.
+model DistRoute {
+  id             String   @id @default(uuid())
+  tenantId       String
+  /// Godown (or shop) whose stock the route's invoices take.
+  shopId         String?
+  name           String
+  code           String?
+  area           String?
+  /// Weekdays the route is visited, 0 = Sunday … 6 = Saturday (business time zone).
+  visitDays      Int[]    @default([])
+  bookerId       String?
+  deliveryUserId String?
+  isActive       Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+  @@index([tenantId, bookerId])
+}
+
+/// Trade scheme (promotion) from the business or a principal: free goods, percent off, rupees per unit or slabs.
+model TradeScheme {
+  id            String    @id @default(uuid())
+  tenantId      String
+  name          String
+  /// FREE_QTY | PERCENT_OFF | AMOUNT_PER_UNIT | SLAB
+  type          String
+  /// Principal (supplier) who funds the scheme.
+  supplierId    String?
+  /// Filters; an empty list places no limit. Products, brands and categories match any-of.
+  productIds    String[]  @default([])
+  brandIds      String[]  @default([])
+  categoryIds   String[]  @default([])
+  priceListIds  String[]  @default([])
+  /// Quantity to buy, in `buyUnitName` packs (base units when empty).
+  buyQty        Float     @default(0)
+  buyUnitName   String?
+  /// FREE_QTY: packs given free per `buyQty` bought (base units of freeProductId when that is another product).
+  freeQty       Float     @default(0)
+  freeProductId String?
+  /// PERCENT_OFF: percent. AMOUNT_PER_UNIT: rupees per buy pack.
+  value         Float     @default(0)
+  /// SLAB: [{ minQty, percent?, amountPerUnit?, freeQty? }] in buy packs.
+  slabs         Json?
+  minOrderValue Float?
+  startsAt      DateTime?
+  endsAt        DateTime?
+  /// Can be claimed back from the principal.
+  isClaimable   Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  note          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, isActive])
+}
+
+/// An order booked for a retailer. Becomes a Sale (saleId) when approved.
+model SalesOrder {
+  id             String    @id @default(uuid())
+  tenantId       String
+  orderNumber    String
+  /// Id made on the booker's phone; the same order synced twice is saved once.
+  clientRef      String?
+  customerId     String
+  routeId        String?
+  /// Godown the invoice takes stock from.
+  shopId         String?
+  bookedById     String
+  priceListId    String?
+  /// BOOKED | APPROVED | INVOICED | LOADED | DELIVERED | PARTIAL | RETURNED | CANCELLED
+  status         String    @default("BOOKED")
+  subtotal       Float     @default(0)
+  schemeDiscount Float     @default(0)
+  discount       Float     @default(0)
+  taxAmount      Float     @default(0)
+  total          Float     @default(0)
+  bookedAt       DateTime  @default(now())
+  latitude       Float?
+  longitude      Float?
+  gpsAccuracy    Float?
+  deliveryDate   DateTime?
+  note           String?
+  /// Credit warning shown at booking (over limit, overdue), kept for the office.
+  creditWarning  String?
+  approvedById   String?
+  approvedAt     DateTime?
+  /// Last reason the invoice could not be made (stock short, PIN needed); cleared on success.
+  invoiceError   String?
+  cancelReason   String?
+  cancelledAt    DateTime?
+  saleId         String?   @unique
+  invoicedAt     DateTime?
+  loadSheetId    String?
+  /// DELIVERED | PARTIAL | RETURNED, set at settlement.
+  deliveryStatus String?
+  deliveredAt    DateTime?
+  cashCollected  Float     @default(0)
+  returnsValue   Float     @default(0)
+  returnId       String?
+  returnReason   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items  SalesOrderItem[]
+
+  @@unique([tenantId, orderNumber])
+  @@unique([tenantId, clientRef])
+  @@index([tenantId, status])
+  @@index([tenantId, bookedAt])
+  @@index([tenantId, customerId])
+  @@index([tenantId, bookedById, bookedAt])
+  @@index([tenantId, routeId])
+  @@index([loadSheetId])
+}
+
+model SalesOrderItem {
+  id               String  @id @default(uuid())
+  salesOrderId     String
+  productId        String
+  variantId        String?
+  /// ProductUnit id; null is the base unit.
+  unitId           String?
+  unitName         String?
+  conversionRate   Float   @default(1)
+  /// Quantity in the pack, and the same in base units.
+  qty              Float
+  baseQty          Float
+  /// Price per pack.
+  price            Float
+  /// Rupees off by the scheme, and by hand.
+  schemeDiscount   Float   @default(0)
+  discount         Float   @default(0)
+  total            Float
+  schemeId         String?
+  schemeNote       String?
+  /// Free goods in base units of freeProductId (this product when empty).
+  freeBaseQty      Float   @default(0)
+  freeProductId    String?
+  /// Sale lines made from this line at invoicing.
+  saleItemId       String?
+  freeSaleItemId   String?
+  /// Delivered at settlement, in base units (paid and free).
+  deliveredBaseQty Float?
+  deliveredFreeQty Float?
+  sortOrder        Int     @default(0)
+
+  salesOrder SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+
+  @@index([salesOrderId])
+  @@index([productId])
+}
+
+/// One vehicle trip: invoices loaded together, then settled when the van comes back.
+model LoadSheet {
+  id             String    @id @default(uuid())
+  tenantId       String
+  number         String
+  date           DateTime
+  shopId         String?
+  routeId        String?
+  deliveryUserId String?
+  driverName     String?
+  vehicleNo      String?
+  /// OPEN | DISPATCHED | SETTLED | CANCELLED
+  status         String    @default("OPEN")
+  invoiceCount   Int       @default(0)
+  totalValue     Float     @default(0)
+  /// Cash expected from invoices (as delivered) and recoveries, what was handed in, and the gap (short > 0, excess < 0).
+  expectedCash   Float     @default(0)
+  collectedCash  Float     @default(0)
+  recoveryCash   Float     @default(0)
+  handedIn       Float?
+  returnsValue   Float     @default(0)
+  shortAmount    Float     @default(0)
+  note           String?
+  dispatchedAt   DateTime?
+  settledById    String?
+  settledAt      DateTime?
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, number])
+  @@index([tenantId, status])
+  @@index([tenantId, date])
+}
+
+/// Money collected in the field: invoice cash at delivery or an old-balance recovery. Posts to the khata when verified.
+model DistCollection {
+  id            String    @id @default(uuid())
+  tenantId      String
+  customerId    String
+  loadSheetId   String?
+  saleId        String?
+  salesOrderId  String?
+  /// INVOICE_CASH | RECOVERY
+  kind          String    @default("RECOVERY")
+  amount        Float
+  method        String    @default("CASH")
+  reference     String?
+  note          String?
+  /// PENDING | VERIFIED | REJECTED
+  status        String    @default("PENDING")
+  /// CustomerLedger row written when verified.
+  ledgerId      String?
+  shopId        String?
+  collectedById String
+  collectedAt   DateTime  @default(now())
+  verifiedById  String?
+  verifiedAt    DateTime?
+  rejectReason  String?
+  clientRef     String?
+  latitude      Float?
+  longitude     Float?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, clientRef])
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, collectedById, collectedAt])
+  @@index([loadSheetId])
+}
+
+/// The delivery man's report of one invoice on his trip, sent from the phone.
+/// Nothing here moves stock or money: the office checks it on the settlement
+/// screen, where the cash is counted once and the returns are made.
+model DistDeliveryReport {
+  id            String    @id @default(uuid())
+  tenantId      String
+  loadSheetId   String
+  salesOrderId  String
+  reportedById  String
+  /// DELIVERED | PARTIAL | RETURNED
+  outcome       String
+  /// PARTIAL: [{ orderItemId, returnBaseQty, returnFreeQty, damaged }]
+  lines         Json?
+  cashCollected Float     @default(0)
+  method        String    @default("CASH")
+  returnReason  String?
+  note          String?
+  /// Phone time of the latest report; an older report arriving late is ignored.
+  reportedAt    DateTime
+  latitude      Float?
+  longitude     Float?
+  accuracyM     Float?
+  clientRef     String?
+  /// PENDING until the office settles the invoice; then USED (as reported) or CHANGED (the office changed it).
+  status        String    @default("PENDING")
+  settledAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, salesOrderId])
+  @@unique([tenantId, clientRef])
+  @@index([tenantId, loadSheetId])
+}
+
+/// A booker's visit to a customer: GPS check-in and what came of it.
+model DistVisit {
+  id            String    @id @default(uuid())
+  tenantId      String
+  customerId    String
+  routeId       String?
+  userId        String
+  checkInAt     DateTime
+  checkOutAt    DateTime?
+  latitude      Float?
+  longitude     Float?
+  accuracyM     Float?
+  /// Metres from the customer's saved location; null when either is missing.
+  distanceM     Float?
+  withinRadius  Boolean?
+  /// ORDER | NO_ORDER | CLOSED | RECOVERY_ONLY
+  outcome       String
+  noOrderReason String?
+  note          String?
+  salesOrderId  String?
+  photoUrl      String?
+  clientRef     String?
+  createdAt     DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, clientRef])
+  @@index([tenantId, userId, checkInAt])
+  @@index([tenantId, customerId])
+  @@index([tenantId, routeId, checkInAt])
 }

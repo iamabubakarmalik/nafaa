@@ -37,6 +37,9 @@ import { LowStockService } from '../inventory/low-stock/low-stock.service';
 import { OrderToolsService } from '../../integrations/online-orders/order-tools.service';
 import { ManufacturingService } from '../manufacturing/manufacturing.service';
 import { stripCostFigures } from '../manufacturing/mask-costs';
+import { DistributionReportsService } from '../distribution/services/reports.service';
+import { CollectionsService } from '../distribution/services/collections.service';
+import { DistributionAccessService } from '../distribution/distribution-access';
 import type { AiActionProposal, AiChart, AiLink, AiReorder, AiReorderGroup } from './ai.types';
 import { ACTION_TOOLS } from './ai-action-tools';
 import { hourRange } from './ai-render';
@@ -330,6 +333,27 @@ export const TOOL_SPECS: ToolSpec[] = [
     needs: [P.MANUFACTURING_VIEW],
     status: 'Production dekh raha hoon…',
   },
+  {
+    name: 'distribution_dsr',
+    description: 'Distribution daily sales report (DSR) for one business day: per order booker the routes due, customers planned, visited and productive, strike rate, orders and their value, lines per call, drop size, scheme discount, no-order reasons, out-of-range check-ins and money collected; with totals. Use for booker, route-day or order-booking questions.',
+    properties: {
+      period: { type: 'string', enum: ['today', 'yesterday', 'custom'], description: 'Day to report. Default today.' },
+      from: { type: 'string', description: 'YYYY-MM-DD, only with period=custom.' },
+      booker: { type: 'string', description: 'Part of a booker\'s name to show only that booker.' },
+    },
+    needs: [P.DISTRIBUTION_ORDERS_VIEW, P.REPORTS_VIEW],
+    status: 'Bookers ki report dekh raha hoon…',
+  },
+  {
+    name: 'route_recovery',
+    description: 'Distribution recoveries: money customers owe per route, with ageing buckets (0-7, 8-15, 16-30, 31-60, 60+ days of the oldest unpaid credit), overdue customers against their credit days, money collected in the field but not yet verified, and the customers to chase first. Use for "kis route par kitna udhaar", overdue or recovery questions.',
+    properties: {
+      route: { type: 'string', description: 'Part of a route name to show only that route.' },
+      overdueOnly: { type: 'boolean', description: 'Only customers past their credit days.' },
+    },
+    needs: [P.KHATA_VIEW],
+    status: 'Route ki recovery dekh raha hoon…',
+  },
 ];
 
 /** Tool definitions for the Messages API, in the fixed order above. */
@@ -352,6 +376,7 @@ const PERMISSION_WORDS: Partial<Record<PermissionKey, string>> = {
   [P.EXPENSES_VIEW]: 'Expenses', [P.PURCHASES_VIEW]: 'Purchases', [P.CUSTOMERS_VIEW]: 'Customers',
   [P.LOYALTY_VIEW]: 'Loyalty', [P.STAFF_VIEW]: 'Staff', [P.CASH_REGISTER_VIEW]: 'Cash register',
   [P.RETURNS_VIEW]: 'Returns', [P.ONLINE_ORDERS_VIEW]: 'Online orders', [P.MANUFACTURING_VIEW]: 'Manufacturing',
+  [P.DISTRIBUTION_ORDERS_VIEW]: 'Distribution orders',
 };
 
 /* ───────────────────────── service ───────────────────────── */
@@ -371,6 +396,9 @@ export class AiToolsService {
     private readonly lowStock: LowStockService,
     private readonly orders: OrderToolsService,
     private readonly manufacturing?: ManufacturingService,
+    private readonly distribution?: DistributionReportsService,
+    private readonly distCollections?: CollectionsService,
+    private readonly distAccess?: DistributionAccessService,
   ) {}
 
   /** Builds the per-request context: clock, names and what the user may see. */
@@ -499,6 +527,8 @@ export class AiToolsService {
       case 'marketplace_summary': return this.marketplace(ctx, a);
       case 'compare_periods': return this.comparePeriods(ctx, a);
       case 'production_summary': return this.productionSummary(ctx, a);
+      case 'distribution_dsr': return this.distributionDsr(ctx, a);
+      case 'route_recovery': return this.routeRecovery(ctx, a);
       default: return Promise.resolve({ data: { error: 'UNKNOWN_TOOL' }, refused: true });
     }
   }
@@ -1022,6 +1052,60 @@ export class AiToolsService {
         data: metrics.map((k) => ({ label: k === 'netSale' ? 'Sale' : k === 'grossProfit' ? 'Gross profit' : k === 'netProfit' ? 'Net profit' : 'Expense', a: (A as any)[k], b: (B as any)[k] })),
       },
       link: { label: 'Reports', to: '/reports?tab=sales' },
+    };
+  }
+
+  /* ───────────── distribution ───────────── */
+
+  /** Null when distribution can be used; otherwise the refusal to return. */
+  private async distributionClosed(ctx: AiToolContext): Promise<AiToolResult | null> {
+    if (!this.distribution || !this.distCollections || !this.distAccess) return { refused: true, data: { error: 'DATA_ERROR', note: 'Distribution is not available.' } };
+    const a = await this.distAccess.read(ctx.user.tenantId);
+    if (a.enabled && a.planAllows) return null;
+    return { refused: true, data: { error: 'NOT_ENABLED', note: 'Distribution is switched off for this business (Settings, or the plan does not include it). Say so; do not guess numbers.' } };
+  }
+
+  async distributionDsr(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    const closed = await this.distributionClosed(ctx);
+    if (closed) return closed;
+    const day = a.period === 'yesterday' ? shiftKey(ctx.today, -1) : a.period === 'custom' && KEY.test(String(a.from ?? '')) && String(a.from) <= ctx.today ? String(a.from) : ctx.today;
+    const r = await this.distribution!.dsr(ctx.user, { date: day });
+    const needle = typeof a.booker === 'string' ? a.booker.trim().toLowerCase() : '';
+    const bookers = needle ? r.bookers.filter((b) => (b.bookerName ?? '').toLowerCase().includes(needle)) : r.bookers;
+    return {
+      data: {
+        day: r.date, weekday: WEEKDAYS[r.weekday], totals: r.totals,
+        bookers: bookers.slice(0, 15).map((b) => ({
+          booker: b.bookerName, routes: b.routes, planned: b.planned, visited: b.visited, productive: b.productive, strikeRatePercent: b.strikeRate,
+          orders: b.orders, orderValue: b.value, linesPerCall: b.linesPerCall, dropSize: b.dropSize, schemeDiscount: b.schemeDiscount,
+          outOfRangeCheckIns: b.outOfRangeCheckIns || undefined, collected: b.collected, collectedNotVerified: b.collectedPending || undefined,
+          noOrderReasons: b.noOrder.map((x) => `${x.label}: ${x.count}`),
+        })),
+      },
+      chart: bookers.length > 1 ? { type: 'bar', title: 'Booker Order value', unit: 'money', series: [{ key: 'v', label: 'Order value' }], data: bookers.slice(0, 12).map((b) => ({ label: b.bookerName ?? '-', v: b.value })) } : undefined,
+      link: { label: 'DSR', to: `/distribution/reports?tab=dsr&date=${r.date}` },
+    };
+  }
+
+  async routeRecovery(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    const closed = await this.distributionClosed(ctx);
+    if (closed) return closed;
+    const needle = typeof a.route === 'string' ? a.route.trim().toLowerCase() : '';
+    let routes = await this.distribution!.routeReceivables(ctx.user);
+    if (needle) routes = routes.filter((x) => x.routeName.toLowerCase().includes(needle));
+    const routeId = needle && routes.length === 1 ? routes[0].routeId : undefined;
+    const rec = await this.distCollections!.recoveries(ctx.user, { routeId, overdueOnly: a.overdueOnly === true, limit: 10 });
+    return {
+      data: {
+        routes: routes.slice(0, 15).map((x) => ({ route: x.routeName, customersOwing: x.customers, owed: x.balance })),
+        totals: { customers: rec.totals.customers, owed: rec.totals.balance, overdueCustomers: rec.totals.overdueCustomers, overdueOwed: rec.totals.overdueBalance, collectedNotVerified: rec.totals.pending, ageing: rec.totals.ageing },
+        chaseFirst: rec.customers.map((c) => ({
+          customer: c.customer.businessName || c.customer.name, route: c.routeName, owed: c.balance, daysOldestUnpaid: c.dueDays,
+          creditDays: c.creditDays, overdue: c.overdue, lastPayment: c.lastPaymentAt, lastPaymentAmount: c.lastPaymentAmount,
+        })),
+      },
+      chart: routes.length > 1 ? { type: 'bar', title: 'Route udhaar', unit: 'money', series: [{ key: 'v', label: 'Udhaar' }], data: routes.slice(0, 12).map((x) => ({ label: x.routeName, v: x.balance })) } : undefined,
+      link: { label: 'Recovery', to: `/distribution/recoveries${routeId ? `?routeId=${routeId}` : ''}` },
     };
   }
 }

@@ -26,6 +26,7 @@ import { WhatsappSection } from '../sections/WhatsappSection';
 import { SecuritySection } from '../sections/SecuritySection';
 import { BackupSection } from '../sections/BackupSection';
 import { DangerZoneSection } from '../sections/DangerZoneSection';
+import { DistributionSettingsSection } from '@modules/distribution/setup/settings/DistributionSettingsSection';
 
 const SECTIONS = {
   store: (s: TenantSettings) => <BusinessProfileSection settings={s} />,
@@ -42,6 +43,7 @@ const SECTIONS = {
   security: () => <SecuritySection />,
   'data-export': () => <BackupSection />,
   danger: () => <DangerZoneSection />,
+  distribution: () => <DistributionSettingsSection />,
 } satisfies Record<string, (s: TenantSettings) => ReactNode>;
 
 type SettingsSectionId = keyof typeof SECTIONS;

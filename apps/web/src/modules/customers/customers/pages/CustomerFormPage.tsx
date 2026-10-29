@@ -15,7 +15,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   AlertTriangle, BookOpen, Building2, Cake, CalendarDays, CopyX, Crown, Eye, GraduationCap, IdCard, Info,
-  Mail, MapPin, Phone, Plus, Save, Sparkles, Tag, UserRound, Wallet,
+  Mail, MapPin, Phone, Plus, Save, Sparkles, Tag, Truck, UserRound, Wallet,
 } from 'lucide-react';
 import { Button, Card, Input, Kbd, PageHero, PageShell, Select, Skeleton, Switch, Textarea, confirmDialog, heroIconButton } from '@/design-system/components';
 import { AvatarUpload } from '@core/components/uploads';
@@ -28,6 +28,8 @@ import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { customersApi, type CustomerGender, type UpsertCustomerPayload } from '@modules/customers/customers/api/customers.api';
 import { PRICE_TIERS, PRICE_TIER_LABEL, isPriceTier, type PriceTier } from '@core/lib/priceTiers';
 import { usePriceTierSettings } from '@modules/pos/lib/usePriceTierSettings';
+import { useDistributionEnabled } from '@modules/distribution/hooks/useDistribution';
+import { CustomerDistributionCard, EMPTY_DIST, distFormFrom, distPayload, distProblem, type DistForm } from '@modules/distribution/customers/CustomerDistribution';
 
 interface Form {
   name: string; phone: string; email: string; cnic: string; ntn: string; address: string; city: string; area: string;
@@ -36,11 +38,13 @@ interface Form {
   creditLimit: string; isVip: boolean; isActive: boolean;
   /** Default counter price; empty = shop default. */
   priceTier: '' | PriceTier;
+  /** Wholesale fields; sent only while distribution is on. */
+  dist: DistForm;
 }
 
 const EMPTY: Form = {
   name: '', phone: '', email: '', cnic: '', ntn: '', address: '', city: '', area: '', gender: '', dateOfBirth: '', avatarUrl: '', notes: '',
-  creditLimit: '', isVip: false, isActive: true, priceTier: '',
+  creditLimit: '', isVip: false, isActive: true, priceTier: '', dist: EMPTY_DIST,
 };
 
 const NOTE_CHIPS = ['Regular customer', 'Udhaar time par deta hai', 'Udhaar der se deta hai', 'Bulk buyer', 'Ghar par delivery', 'Sirf cash'];
@@ -92,7 +96,7 @@ function guessGender(name: string): CustomerGender | null {
 }
 
 /** Form fields → API payload. On edit an empty string clears a field; on create it is left out. */
-function toPayload(f: Form, editing: boolean): UpsertCustomerPayload {
+function toPayload(f: Form, editing: boolean, withDist = false): UpsertCustomerPayload {
   const opt = (v: string) => (v.trim() ? v.trim() : editing ? '' : undefined);
   const limit = f.creditLimit.trim();
   return {
@@ -103,6 +107,7 @@ function toPayload(f: Form, editing: boolean): UpsertCustomerPayload {
     creditLimit: limit ? Math.max(Number(limit) || 0, 0) : editing ? 0 : undefined,
     isVip: f.isVip, isActive: f.isActive,
     priceTier: f.priceTier || (editing ? null : undefined),
+    ...(withDist ? distPayload(f.dist, editing) : {}),
   };
 }
 
@@ -128,6 +133,7 @@ export default function CustomerFormPage() {
   const settingsQ = useQuery({ queryKey: ['settings'], queryFn: () => settingsApi.get(), staleTime: 5 * 60_000, retry: false, enabled: !editing });
   const shopLimit = settingsQ.data?.settings?.defaultCreditLimit;
   const tierSettings = usePriceTierSettings();
+  const distOn = useDistributionEnabled();
 
   useEffect(() => {
     if (!customer) return;
@@ -137,6 +143,7 @@ export default function CustomerFormPage() {
       dateOfBirth: customer.dateOfBirth ? customer.dateOfBirth.slice(0, 10) : '', avatarUrl: customer.avatarUrl ?? '', notes: customer.notes ?? '',
       creditLimit: customer.creditLimit ? String(customer.creditLimit) : '', isVip: customer.isVip, isActive: customer.isActive,
       priceTier: isPriceTier(customer.priceTier) ? customer.priceTier : '',
+      dist: distFormFrom(customer),
     };
     setF(next);
     setBaseline(JSON.stringify(next));
@@ -205,8 +212,10 @@ export default function CustomerFormPage() {
     if (typed('cnic') && f.cnic.replace(/\D/g, '').length !== 13) e.cnic = 'CNIC 13 hindsay ka hota hai';
     if (f.creditLimit.trim() && !(Number(f.creditLimit) >= 0)) e.creditLimit = 'Limit sirf number me likhein';
     if (f.dateOfBirth && f.dateOfBirth > new Date().toISOString().slice(0, 10)) e.dateOfBirth = 'Aane wali date nahi ho sakti';
+    const distErr = distOn ? distProblem(f.dist) : null;
+    if (distErr) e.dist = distErr;
     return e;
-  }, [f, baseline]);
+  }, [f, baseline, distOn]);
   const err = (k: keyof Form) => ((tried || blurred[k]) ? errors[k] : undefined);
   const problems = [
     ...Object.values(errors),
@@ -227,7 +236,7 @@ export default function CustomerFormPage() {
 
   const save = useMutation({
     mutationFn: async (_andNew: boolean) => {
-      const body = toPayload(f, editing);
+      const body = toPayload(f, editing, distOn);
       return editing ? customersApi.update(id!, body) : customersApi.create(body);
     },
     onSuccess: (saved, andNew) => {
@@ -423,6 +432,8 @@ export default function CustomerFormPage() {
               </button>
             </div>
           </Card>
+
+          {distOn && <CustomerDistributionCard title={<T icon={Truck}>Distribution</T>} value={f.dist} onChange={(p) => set('dist', { ...f.dist, ...p })} />}
 
           {tierSettings.on && (
             <Card className="rounded-2xl" title={<T icon={Tag}>Default price</T>}>

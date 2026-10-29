@@ -38,6 +38,8 @@ import { directoryApi } from './api';
 import { useDirectory } from './useDirectory';
 import { loadTemplates, reminderText, thanksText, toneFor, waLink } from './messages';
 import { KhataActionModal, type KhataAction } from './components/KhataActionModal';
+import { useDistributionEnabled } from '@modules/distribution/hooks/useDistribution';
+import { CustomerDistributionPanel } from '@modules/distribution/customers/CustomerDistribution';
 
 const WEEKDAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
 const LEDGER: Record<string, { label: string; tone: string }> = {
@@ -71,6 +73,7 @@ export function CustomerProfilePage() {
   const { sales: money, cost } = useMasked();
   const shopName = useAuthStore((s) => s.tenant?.name) ?? 'Hamari dukaan';
   const { refresh } = useDirectory({ status: 'all', type: 'all', activity: 'all', sort: 'recent' }, 'nafaa-customer-profile');
+  const distOn = useDistributionEnabled();
   const can = {
     edit: usePermission(PERMISSIONS.CUSTOMERS_EDIT),
     khata: usePermission(PERMISSIONS.KHATA_MANAGE),
@@ -408,6 +411,7 @@ export function CustomerProfilePage() {
           </dl>
         </Card>
       )}
+      {tab === 'details' && distOn && <CustomerDistributionPanel customer={c} canEdit={can.edit} />}
     </PageShell>
   );
 }

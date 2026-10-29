@@ -491,6 +491,9 @@ export function PosCartRow(props: {
     l.serialNumber && { t: `S/N ${l.serialNumber}`, c: 'bg-slate-100 font-mono text-slate-600' },
     l.imei && { t: `IMEI ${l.imei}`, c: 'bg-slate-100 font-mono text-slate-600' },
     l.type === 'combo' && { t: 'Combo', c: 'bg-violet-50 text-violet-700' },
+    l.dist?.free && { t: 'Scheme free', c: 'bg-success-50 text-success-700' },
+    l.dist && !l.dist.free && l.dist.schemeNote && { t: l.dist.schemeNote, c: 'bg-violet-50 text-violet-700' },
+    l.dist && !l.dist.free && !l.dist.schemeNote && { t: 'List rate', c: 'bg-orange-50 text-orange-700' },
     customPriced && { t: 'Rate badla', c: 'bg-amber-50 text-amber-700' },
     l.warrantyMonths && { t: `${l.warrantyMonths}m warranty`, c: 'bg-sky-50 text-sky-700' },
   ].filter(Boolean) as Array<{ t: string; c: string }>;

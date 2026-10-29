@@ -58,7 +58,9 @@
         "BLUETOOTH_CONNECT",
         "BLUETOOTH_SCAN",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
       ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
@@ -132,7 +134,14 @@
           }
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-sqlite",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Nafaa uses your location to check in at customer shops during order booking."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

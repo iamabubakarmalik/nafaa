@@ -14,7 +14,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Armchair, Beef, BookOpen, Briefcase, CakeSlice, Dumbbell, Flower2, Footprints, Gamepad2, Gem,
   Glasses, Hammer, Hotel, Layers, Milk, PawPrint, Pill, Plug, Refrigerator, Scissors, Shirt,
-  ShoppingBag, Smartphone, Sparkles, Stethoscope, Store, ToyBrick, Trophy, UtensilsCrossed, Wheat, Wrench,
+  ShoppingBag, Smartphone, Sparkles, Stethoscope, Store, ToyBrick, Trophy, Truck, UtensilsCrossed, Wheat, Wrench,
 } from 'lucide-react';
 
 export interface IndustryIdentity {
@@ -58,6 +58,7 @@ const IDENTITIES: readonly IndustryIdentity[] = [
   { id: 'sports', label: 'Sports', color: '#15803d', icon: Trophy },
   { id: 'autoparts', label: 'Auto parts', color: '#475569', icon: Wrench },
   { id: 'hardware', label: 'Hardware', color: '#57534e', icon: Hammer },
+  { id: 'distribution', label: 'Distributor', color: '#115e59', icon: Truck },
 ];
 
 const BY_ID = new Map(IDENTITIES.map((i) => [i.id, i]));

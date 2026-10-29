@@ -19,6 +19,7 @@ const DASHBOARDS: Record<string, LazyExoticComponent<ComponentType>> = {
   clinic: lazy(() => import('@industries/clinic/dashboard/ClinicDashboard')),
   cosmetics: lazy(() => import('@industries/cosmetics/dashboard/CosmeticsDashboard')),
   dairy: lazy(() => import('@industries/dairy/dashboard/DairyDashboard')),
+  distribution: lazy(() => import('@industries/distribution/DistributorHome')),
   electronics: lazy(() => import('@industries/electronics/dashboard/ElectronicsDashboard')),
   florist: lazy(() => import('@industries/florist/dashboard/FloristDashboard')),
   furniture: lazy(() => import('@industries/furniture/dashboard/FurnitureDashboard')),

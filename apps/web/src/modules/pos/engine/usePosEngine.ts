@@ -53,6 +53,7 @@ import { PRICE_TIER_LABEL, isPriceTier, tierPrice, type PriceTier, type TierPric
 import { addTierToReceipt } from '@modules/sales/receipt/fromSale';
 import { getCounterTier, setCounterTier, useCounterTier } from '../lib/priceTierStore';
 import { useMadeOnSaleIds } from '@modules/manufacturing/hooks';
+import { useDistributionPricing } from './useDistributionPricing';
 
 /** Customers refresh after a sale (balances change). */
 const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
@@ -114,7 +115,7 @@ export function tierSrcFor(item: PosItem, unit: PosUnitOption, variant?: AddOpti
 
 /** A line at the bill's tier; fixed, hand-priced and line-picked lines keep their rate. */
 function retier(l: PosCartLine, tier: PriceTier): PosCartLine {
-  if (l.type !== 'product' || !l.tierSrc || l.fixedPrice || l.priceEdited || l.tierLocked || l.priceTier === tier) return l;
+  if (l.type !== 'product' || !l.tierSrc || l.fixedPrice || l.priceEdited || l.tierLocked || l.dist || l.priceTier === tier) return l;
   const price = tierPrice(l.tierSrc, tier);
   return { ...l, priceTier: tier, unitPrice: price, basePrice: price, lineTotal: l.quantity * price };
 }
@@ -338,6 +339,13 @@ export function usePosEngine(config: PosIndustryConfig) {
     }
   }, [customerId, customerTier, tiersOn]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Customer price list and trade schemes (distribution); idle unless the customer has a list.
+  const distPricing = useDistributionPricing({
+    customer: selectedCustomer, cart, setCart,
+    counterPrice: (l) => (l.tierSrc ? tierPrice(l.tierSrc, activeTierRef.current) : l.unitPrice),
+    productInfo: (id) => { const it = itemsById.get(id); return it ? { name: it.name, unit: it.unit, image: it.image } : undefined; },
+  });
+
   const subtotal = useMemo(() => cart.reduce((s, l) => s + l.lineTotal, 0), [cart]);
   const discountAmount = discountMode === 'pct' ? (subtotal * discountPct) / 100 : Math.min(discountRs || 0, subtotal);
   const deliveryFee = deliveryAmount(delivery);
@@ -429,7 +437,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     setCart((prev) => {
       if (opts.imei && prev.some((l) => l.imeiId === opts.imei!.id)) { toast.info('Ye phone pehle se bill mein hai'); return prev; }
       const existing = !single && prev.find((l) =>
-        l.productId === item.id && l.unitName === unit.unitName && l.unitPrice === price && (l.priceTier ?? 'RETAIL') === tier && (l.variantId ?? '') === (opts.variant?.id ?? '') && !l.serialId && !l.imeiId);
+        l.productId === item.id && l.unitName === unit.unitName && !l.dist?.free && (l.dist ? !l.priceEdited : l.unitPrice === price && (l.priceTier ?? 'RETAIL') === tier) && (l.variantId ?? '') === (opts.variant?.id ?? '') && !l.serialId && !l.imeiId);
       if (existing) {
         const nq = Number((existing.quantity + qty).toFixed(3));
         const nb = nq * unit.conversionRate;
@@ -935,6 +943,8 @@ export function usePosEngine(config: PosIndustryConfig) {
             ...(l.serialId ? { serialId: l.serialId } : {}),
             ...(l.imeiId ? { imeiId: l.imeiId } : {}),
             ...(l.batchId ? { batchId: l.batchId } : {}),
+            ...(l.dist && !l.dist.free ? { unitName: l.unitName, unitQty: l.quantity, conversionRate: l.conversionRate } : {}),
+            ...(l.dist?.schemeId && (l.dist.free || !l.priceEdited) ? { schemeId: l.dist.schemeId } : {}),
           });
         } else if (l.usedPhoneId) {
           items.push({ usedPhoneId: l.usedPhoneId, quantity: 1, priceOverride: l.unitPrice, note: l.note });
@@ -1061,6 +1071,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     items, loading, filtered, visible, setVisible, categories, filterCounts, bundles, filteredBundles, quickKeys, groupedQuickKeys,
     search, setSearch, submitSearch, isCode, recentItems, categoryId, setCategoryId, filterId, setFilterId, view, setView, inCartBy,
     // bill
+    distPricing,
     cart, customers, customerId, setCustomerId, selectedCustomer, receiver, setReceiver, soldById, setSoldById,
     delivery, setDelivery, deliveryFee, discountMode, discountPct, discountRs, discountAmount, subtotal, total, totalSavings, totalQty,
     setDiscount: (m: PosDiscountMode, p: number, r: number) => {

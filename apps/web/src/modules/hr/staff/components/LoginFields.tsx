@@ -11,6 +11,7 @@ import { cn } from '@core/lib/cn';
 import type { Shop } from '@modules/organization/shops/api/shops.api';
 import { PermissionPicker, useRoleDefaults } from './PermissionPicker';
 import { ASSIGNABLE, ROLES, makePassword, type AssignableRole } from './meta';
+import { DistributionPresetButtons, useDistributionPresets } from '@modules/distribution/team/DistributionPresets';
 
 export interface LoginDraft {
   email: string;
@@ -39,6 +40,7 @@ export function LoginFields({ value, onChange, shops }: { value: LoginDraft; onC
   const [perms, setPerms] = useState(false);
   const set = <K extends keyof LoginDraft>(k: K, v: LoginDraft[K]) => onChange({ ...value, [k]: v });
   const needsShop = value.role === 'MANAGER' || value.role === 'CASHIER';
+  const distPresets = useDistributionPresets();
 
   return (
     <div className="space-y-4">
@@ -72,6 +74,13 @@ export function LoginFields({ value, onChange, shops }: { value: LoginDraft; onC
           })}
         </div>
         <p className="mt-1.5 text-xs text-slate-500">Role chunne se neeche ki permission us role ki ho jati hain. Phir jo chahein badal lein.</p>
+        {distPresets.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-xl bg-orange-50/50 px-3 py-2 ring-1 ring-orange-100">
+            <span className="mr-1 text-[0.75rem] font-semibold text-slate-700">Distribution ke liye:</span>
+            <DistributionPresetButtons size="md" active={value.permissions}
+              onPick={(p) => onChange({ ...value, role: p.role as AssignableRole, permissions: [...p.permissions] })} />
+          </div>
+        )}
       </div>
 
       {shops.length > 0 && (

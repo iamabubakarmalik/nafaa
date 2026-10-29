@@ -101,6 +101,34 @@ class CreateSaleItemDto {
   @IsOptional()
   @IsString()
   internalNote?: string;
+
+  /**
+   * Pack the line was sold in, for the bill and history only. `quantity` and
+   * `priceOverride` stay per base unit; these say it was e.g. 2 cartons of 24.
+   */
+  @ApiPropertyOptional({ description: 'Pack name, e.g. "Carton". quantity stays in base units.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  unitName?: string;
+
+  @ApiPropertyOptional({ description: 'Packs sold (quantity / conversionRate).' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  unitQty?: number;
+
+  @ApiPropertyOptional({ description: 'Base units in one pack.' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.0001)
+  conversionRate?: number;
+
+  @ApiPropertyOptional({ description: 'Trade scheme that priced this line or made it free.' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(64)
+  schemeId?: string;
 }
 
 /** One part of a split payment: what the customer handed over by this method. */

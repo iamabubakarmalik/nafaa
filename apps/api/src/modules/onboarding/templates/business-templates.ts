@@ -458,6 +458,17 @@ export const BUSINESS_TEMPLATES: Record<string, BusinessTemplate> = {
     color: '#059669', popular: false, minStock: 5, receiptSize: 'A4_BASIC', currency: 'PKR',
   },
 
+  DISTRIBUTOR: {
+    type: 'DISTRIBUTOR', label: 'Distributor / Wholesale', labelUrdu: 'ڈسٹری بیوٹر / ہول سیل', emoji: '🚚',
+    description: 'FMCG distributors, kiryana wholesalers, order bookers and delivery vans',
+    category: 'Wholesale', defaultUnit: 'pcs',
+    quickUnits: ['pcs', 'carton', 'dozen', 'pack', 'box', 'kg'],
+    features: { ...DEFAULT_FEATURES, multiUnit: true, bulkPricing: true, expiry: true, batches: true, routes: true, delivery: true, bulkOrders: true },
+    suggestedCategories: ['Beverages', 'Biscuits', 'Snacks', 'Personal Care', 'Cleaning', 'Oil/Ghee', 'Tea', 'Dairy'],
+    highlights: ['🧾 Order booker app', '🗺️ Routes aur beats', '📦 Carton + piece', '🎁 Trade schemes', '💵 Recovery aur ageing'],
+    color: '#ea580c', popular: false, minStock: 24, receiptSize: 'A4_BASIC', currency: 'PKR',
+  },
+
   GENERAL: {
     type: 'GENERAL', label: 'General Retail', labelUrdu: 'جنرل سٹور', emoji: '🏬',
     description: 'Mixed retail, other businesses',

@@ -242,6 +242,15 @@ export const SAMPLE_PRODUCTS: Record<string, SampleProduct[]> = {
     { name: 'Cricket Ball Leather', price: 850, costPrice: 550, stock: 40, unit: 'pcs', category: 'Cricket' },
   ],
 
+  DISTRIBUTOR: [
+    { name: 'Coca Cola 345ml Can', price: 100, costPrice: 82, stock: 480, unit: 'pcs', category: 'Beverages' },
+    { name: 'LU Prince Biscuit Half Roll', price: 50, costPrice: 41, stock: 720, unit: 'pcs', category: 'Biscuits' },
+    { name: 'Lays Masala 50g', price: 60, costPrice: 49, stock: 600, unit: 'pcs', category: 'Snacks' },
+    { name: 'Surf Excel 500g', price: 480, costPrice: 410, stock: 120, unit: 'pcs', category: 'Cleaning' },
+    { name: 'Tapal Danedar 190g', price: 390, costPrice: 345, stock: 144, unit: 'pcs', category: 'Tea' },
+    { name: 'Lifebuoy Soap 98g', price: 120, costPrice: 99, stock: 288, unit: 'pcs', category: 'Personal Care' },
+  ],
+
   GENERAL: [
     { name: 'Sample Product 1', price: 100, costPrice: 70, stock: 10, unit: 'pcs', category: 'General' },
     { name: 'Sample Product 2', price: 250, costPrice: 180, stock: 20, unit: 'pcs', category: 'General' },

@@ -87,6 +87,7 @@ export class FeatureGatingService {
         support24x7: plan.featureSupport24x7,
         whatsappReceipt: plan.featureWhatsappReceipt,
         customBranding: plan.featureCustomBranding,
+        distribution: plan.featureDistribution,
       },
     };
   }
@@ -106,6 +107,7 @@ export class FeatureGatingService {
       stockTransfer: plan.featureStockTransfer,
       whatsappReceipt: plan.featureWhatsappReceipt,
       customBranding: plan.featureCustomBranding,
+      distribution: plan.featureDistribution,
     };
 
     if (map[feature] === false) {

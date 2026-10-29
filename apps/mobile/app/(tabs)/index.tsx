@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, RefreshControl, Pressable, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import * as Haptics from 'expo-haptics';
 import {
@@ -13,6 +13,7 @@ import {
   Building2, ShoppingCart, Activity, Layers, Boxes, Target, BookmarkPlus, Scissors, RefreshCw as RefreshCw2, Wrench, CreditCard, Hourglass,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/auth.store';
+import { hasPermission, PERMISSIONS, type PermissionKey } from '@/lib/permissions';
 import { useThemeStore } from '@/store/theme.store';
 import { dashboardApi } from '@/api/dashboard.api';
 import { bookingsApi } from '@/api/bookings.api';
@@ -40,7 +41,21 @@ const formatPercent = (n: number) => {
   return `${sign}${n.toFixed(1)}%`;
 };
 
+/**
+ * Field staff without the counter land on their own screen instead of the
+ * shop dashboard, which they have no access to: order bookers on their
+ * route, delivery men on today's load sheet.
+ */
 export default function HomeScreen() {
+  const user = useAuthStore((s) => s.user);
+  const can = (p: PermissionKey) => hasPermission(user?.role, user?.permissions, p);
+  const noShop = !can(PERMISSIONS.POS_USE) && !can(PERMISSIONS.SALES_VIEW);
+  if (noShop && can(PERMISSIONS.DISTRIBUTION_ORDERS_BOOK)) return <Redirect href="/booker" />;
+  if (noShop && can(PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT)) return <Redirect href="/delivery" />;
+  return <ShopHome />;
+}
+
+function ShopHome() {
   const { t } = useTranslation();
   const router = useRouter();
   const { isDark } = useThemeStore();

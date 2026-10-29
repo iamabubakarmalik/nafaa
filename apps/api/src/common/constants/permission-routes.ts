@@ -69,6 +69,35 @@ export const ROUTE_RULES: RouteRule[] = [
   /* Nafaa AI. Every answer is also checked against the permission of the data it reads. */
   { match: /^ai(\/|$)/, GET: P.AI_USE, write: P.AI_USE },
 
+  /* Distribution (wholesale). Placed first so `distribution/routes/:id/customers` and the
+     like are not taken by the general customers or products rules. Several reads serve
+     more than one role (a booker's phone, the office desk, the POS price lookup), so they
+     list each permission that may read them. Services narrow further where noted. */
+  { match: /^distribution\/settings(\/|$)/, GET: [P.SETTINGS_VIEW, P.DISTRIBUTION_ORDERS_VIEW, P.DISTRIBUTION_ORDERS_BOOK], write: P.SETTINGS_EDIT },
+  { match: /^distribution\/presets(\/|$)/, GET: [P.TEAM_VIEW, P.STAFF_VIEW] },
+  { match: /^distribution\/booker(\/|$)/, GET: P.DISTRIBUTION_ORDERS_BOOK, write: P.DISTRIBUTION_ORDERS_BOOK },
+  { match: /^distribution\/price-lists\/resolve$/, GET: [P.POS_USE, P.DISTRIBUTION_PRICELISTS_VIEW, P.DISTRIBUTION_ORDERS_BOOK] },
+  { match: /^distribution\/price-lists(\/|$)/, GET: P.DISTRIBUTION_PRICELISTS_VIEW, write: P.DISTRIBUTION_PRICELISTS_MANAGE },
+  { match: /^distribution\/routes(\/|$)/, GET: [P.DISTRIBUTION_ROUTES_MANAGE, P.DISTRIBUTION_ORDERS_VIEW, P.DISTRIBUTION_ORDERS_BOOK], write: P.DISTRIBUTION_ROUTES_MANAGE },
+  { match: /^distribution\/schemes\/preview$/, POST: [P.POS_USE, P.DISTRIBUTION_ORDERS_BOOK, P.DISTRIBUTION_ORDERS_MANAGE] },
+  { match: /^distribution\/schemes(\/|$)/, GET: [P.DISTRIBUTION_SCHEMES_MANAGE, P.DISTRIBUTION_PRICELISTS_VIEW, P.DISTRIBUTION_ORDERS_VIEW, P.DISTRIBUTION_ORDERS_BOOK], write: P.DISTRIBUTION_SCHEMES_MANAGE },
+  { match: /^distribution\/orders\/preview$/, POST: [P.DISTRIBUTION_ORDERS_BOOK, P.DISTRIBUTION_ORDERS_MANAGE] },
+  { match: /^distribution\/orders\/(approve|invoice|cancel)$/, POST: P.DISTRIBUTION_ORDERS_MANAGE },
+  // Editing: a booker edits only their own booked orders (checked in the service).
+  { match: /^distribution\/orders(\/|$)/, GET: P.DISTRIBUTION_ORDERS_VIEW, POST: P.DISTRIBUTION_ORDERS_BOOK, PATCH: [P.DISTRIBUTION_ORDERS_BOOK, P.DISTRIBUTION_ORDERS_MANAGE], write: P.DISTRIBUTION_ORDERS_MANAGE },
+  { match: /^distribution\/load-sheets\/[^/]+\/(settle|settlement)$/, GET: [P.DISTRIBUTION_SETTLE, P.DISTRIBUTION_LOADSHEETS_MANAGE], POST: P.DISTRIBUTION_SETTLE },
+  { match: /^distribution\/load-sheets(\/|$)/, GET: [P.DISTRIBUTION_LOADSHEETS_MANAGE, P.DISTRIBUTION_ORDERS_VIEW], write: P.DISTRIBUTION_LOADSHEETS_MANAGE },
+  { match: /^distribution\/collections\/(verify|reject)$/, POST: P.DISTRIBUTION_COLLECTIONS_VERIFY },
+  // Balances and ageing are khata figures.
+  { match: /^distribution\/collections\/(recoveries|recovery-sheet)$/, GET: P.KHATA_VIEW },
+  // A collector without verify sees only their own collections (checked in the service).
+  { match: /^distribution\/collections(\/|$)/, GET: [P.DISTRIBUTION_COLLECTIONS_VERIFY, P.DISTRIBUTION_COLLECTIONS_COLLECT], write: P.DISTRIBUTION_COLLECTIONS_COLLECT },
+  { match: /^distribution\/delivery\/staff$/, GET: [P.DISTRIBUTION_LOADSHEETS_MANAGE, P.DISTRIBUTION_ROUTES_MANAGE] },
+  { match: /^distribution\/delivery(\/|$)/, GET: P.DISTRIBUTION_DELIVERY_REPORT, write: P.DISTRIBUTION_DELIVERY_REPORT },
+  { match: /^distribution\/visits(\/|$)/, GET: P.DISTRIBUTION_ORDERS_VIEW, write: P.DISTRIBUTION_ORDERS_BOOK },
+  { match: /^distribution\/reports(\/|$)/, GET: P.DISTRIBUTION_ORDERS_VIEW },
+  { match: /^distribution(\/|$)/, GET: P.DISTRIBUTION_ORDERS_VIEW, write: P.DISTRIBUTION_ORDERS_MANAGE },
+
   /* Data files. Each file also needs the view right of what it holds (checked in ExportsService). */
   { match: /^exports(\/|$)/, GET: P.EXPORTS_VIEW },
 

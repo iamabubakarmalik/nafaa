@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { startOfMonth, subMonths } from 'date-fns';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -46,8 +46,32 @@ export class CustomersService {
         isVip: dto.isVip ?? false,
         isActive: dto.isActive ?? true,
         priceTier: isPriceTier(dto.priceTier) ? dto.priceTier : null,
+        ...(await this.distributionFields(user.tenantId, dto)),
       },
     });
+  }
+
+  /**
+   * Distribution fields of a create or update: the price list and route must
+   * belong to this business; empty strings clear. Fields not sent are left out.
+   */
+  private async distributionFields(tenantId: string, dto: Partial<CreateCustomerDto>) {
+    const out: Record<string, unknown> = {};
+    if (dto.priceListId) {
+      const ok = await this.prisma.priceList.findFirst({ where: { id: dto.priceListId, tenantId }, select: { id: true } });
+      if (!ok) throw new BadRequestException('Price list nahi mili');
+    }
+    if (dto.routeId) {
+      const ok = await this.prisma.distRoute.findFirst({ where: { id: dto.routeId, tenantId }, select: { id: true } });
+      if (!ok) throw new BadRequestException('Route nahi mila');
+    }
+    for (const k of ['priceListId', 'routeId', 'routeSeq', 'creditDays', 'businessName', 'strn', 'licenseNo', 'latitude', 'longitude'] as const) {
+      const v = dto[k];
+      if (v === undefined) continue;
+      out[k] = v === '' || v === null ? null : typeof v === 'string' ? v.trim() || null : v;
+    }
+    if (dto.licenseExpiry !== undefined) out.licenseExpiry = dto.licenseExpiry ? new Date(dto.licenseExpiry) : null;
+    return out;
   }
 
   /**
@@ -253,6 +277,7 @@ export class CustomersService {
       data[k] = v === '' ? null : v;
     }
     if ('dateOfBirth' in data) data.dateOfBirth = data.dateOfBirth ? new Date(String(data.dateOfBirth)) : null;
+    Object.assign(data, await this.distributionFields(user.tenantId, dto));
     return this.prisma.customer.update({ where: { id }, data });
   }
 

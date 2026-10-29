@@ -95,6 +95,23 @@ export interface PosCartLine {
   priceEdited?: boolean;
   /** Rate fixed by the industry (bulk rate, a phone's own price); never re-priced. */
   fixedPrice?: boolean;
+  /**
+   * Distribution: the line is priced from the customer's price list (and a
+   * trade scheme), or is free goods a scheme gave. Absent on ordinary bills.
+   */
+  dist?: {
+    /** List rate of the pack, before any scheme. */
+    listPrice: number;
+    schemeId?: string | null;
+    schemeNote?: string | null;
+    /** Rupees the scheme took off the whole line (already inside the rate). */
+    schemeOff?: number;
+    /** The note the line had before a scheme note was added. */
+    baseNote?: string;
+    /** Free goods line, and the paid line that earned it. */
+    free?: boolean;
+    forLineId?: string;
+  };
 }
 
 export interface PosHeldCart {

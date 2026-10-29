@@ -59,6 +59,7 @@ import { PurchasesModule } from './modules/purchasing/purchases/purchases.module
 import { ExpensesModule } from './modules/finance/expenses/expenses.module';
 import { IncomeModule } from './modules/finance/income/income.module';
 import { GrowthModule } from './modules/growth/growth.module';
+import { DistributionModule } from './modules/distribution/distribution.module';
 import { ExpenseCategoriesModule } from './modules/finance/expense-categories/expense-categories.module';
 import { CashRegisterModule } from './modules/finance/cash-register/cash-register.module';
 import { MoneyModule } from './modules/finance/money/money.module';
@@ -213,6 +214,7 @@ import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
     ExpensesModule,
     IncomeModule,
     GrowthModule,
+    DistributionModule,
     ExpenseCategoriesModule,
     SettingsModule,
     ReportsModule,

@@ -17,7 +17,7 @@ import {
   PackagePlus, Tag, ShieldCheck, Database, Download, TrendingUp, Gauge,
   Crown, Search, X, Store, UserCog, Layers, Upload, RefreshCw, Wrench,
   BookmarkPlus, Star, StarOff, LayoutDashboard, Eye, LifeBuoy, ScrollText,
-  UserCircle, CheckCircle2, Wallet2, Zap,
+  UserCircle, CheckCircle2, Wallet2, Zap, PackageCheck,
 } from 'lucide-react-native';
 import { useAuthStore } from '@/store/auth.store';
 import { useBusinessFeatures } from '@/hooks/useBusinessFeatures';
@@ -48,7 +48,7 @@ type NavGroup = {
   icon: any;
   items: NavItem[];
   defaultOpen?: boolean;
-  industryOnly?: 'carpet' | 'mobile';
+  industryOnly?: 'carpet' | 'mobile' | 'distribution';
 };
 
 // ─── localStorage helpers ────────────────────────────
@@ -167,6 +167,16 @@ export default function MoreScreen() {
         { to: '/(tabs)/index', label: 'Dashboard', description: 'Home & KPIs', icon: LayoutDashboard, color: '#16a34a', bg: '#dcfce7' },
         { to: '/reports', label: 'All Reports', description: 'Sales, profit, analytics', icon: BarChart3, color: '#2563eb', bg: '#dbeafe', permission: PERMISSIONS.REPORTS_VIEW },
         { to: '/profit-report', label: 'Profit by Product', description: 'Best performers', icon: TrendingUp, color: '#16a34a', bg: '#dcfce7', permission: PERMISSIONS.PROFIT_REPORT_VIEW },
+      ],
+    },
+    {
+      label: 'Distribution',
+      icon: Truck,
+      defaultOpen: true,
+      industryOnly: 'distribution',
+      items: [
+        { to: '/booker', label: 'Order Booking', description: 'Route, orders, recovery', icon: Truck, color: '#115e59', bg: '#ccfbf1', permission: PERMISSIONS.DISTRIBUTION_ORDERS_BOOK },
+        { to: '/delivery', label: 'Delivery', description: 'Aaj ki load sheet, report, cash', icon: PackageCheck, color: '#115e59', bg: '#ccfbf1', permission: PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT },
       ],
     },
     {
@@ -305,11 +315,13 @@ export default function MoreScreen() {
     const type = (businessType ?? '').toUpperCase();
     const isCarpet = type.includes('CARPET') || type.includes('FLOORING') || businessFeatures?.lengthWidthCalc === true;
     const isMobile = type.includes('MOBILE') || type.includes('PHONE') || type.includes('ELECTRONICS') || businessFeatures?.imei === true;
+    const isDistribution = type === 'DISTRIBUTOR' || !!user?.permissions?.includes(PERMISSIONS.DISTRIBUTION_ORDERS_BOOK) || !!user?.permissions?.includes(PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT);
 
     return navGroups
       .filter((g) => {
         if (g.industryOnly === 'carpet' && !isCarpet) return false;
         if (g.industryOnly === 'mobile' && !isMobile) return false;
+        if (g.industryOnly === 'distribution' && !isDistribution) return false;
         return true;
       })
       .map((g) => ({

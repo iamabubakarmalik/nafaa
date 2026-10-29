@@ -154,6 +154,7 @@ export class OnboardingService {
       create: { tenantId: user.tenantId, ...settingsData },
       update: settingsData,
     });
+    await this.switchOnDistribution(user.tenantId, dto.businessType);
 
     return this.updateAndAdvance(user.tenantId, 1, {
       businessType: dto.businessType,
@@ -546,7 +547,22 @@ export class OnboardingService {
         currency: template.currency,
       },
     });
+    await this.switchOnDistribution(user.tenantId, newType);
     return this.getBusinessConfig(user);
+  }
+
+  /**
+   * A distributor gets the Distribution switch turned on with its business
+   * type. Other types are left alone: any business can still turn it on in
+   * Settings, and switching type never turns it off.
+   */
+  private async switchOnDistribution(tenantId: string, businessType: string) {
+    if (businessType !== 'DISTRIBUTOR') return;
+    await this.prisma.distributionSettings.upsert({
+      where: { tenantId },
+      create: { tenantId, enabled: true },
+      update: { enabled: true },
+    });
   }
 
   /** Analytics — total time spent */

@@ -351,15 +351,10 @@ function a4Status(doc: ReceiptDoc): { text: string; tone: string } {
   return { text: 'UNPAID', tone: '#b91c1c' };
 }
 
-function a4Body(ctx: Ctx) {
-  const { doc, setup } = ctx;
+/** A4 page header in the shop's chosen layout: logo or mark, name, contact lines, and the document title block. */
+function a4Head(setup: ReceiptSetup, o: { address?: string | null; phone?: string | null; title: string; number: string; status?: string }) {
   const { shop, design: d } = setup;
-  const address = doc.branchAddress || shop.address;
-  const phone = doc.branchPhone || shop.phone;
-  const due = dueOf(doc);
-  const status = a4Status(doc);
-  const dueDate = d.dueDays > 0 && due > 0 ? dateOnly(new Date(doc.date.getTime() + d.dueDays * 86_400_000)) : '';
-  const lineDisc = doc.lines.some((l) => l.discount);
+  const { address, phone } = o;
   const contact = [
     d.showAddress && address ? esc(address) : '',
     d.showPhone && phone ? `Ph ${esc(phone)}` : '', d.showPhone && shop.whatsapp && shop.whatsapp !== phone ? `WA ${esc(shop.whatsapp)}` : '',
@@ -377,14 +372,38 @@ function a4Body(ctx: Ctx) {
     </div>`;
   const title = `
     <div class="title">
-      <div class="doc">${esc(d.a4Title || 'INVOICE')}</div>
-      <div class="num"># ${esc(doc.saleNumber)}</div>
-      ${d.showStatus ? `<div class="status" style="color:${status.tone};border-color:${status.tone}">${status.text}</div>` : ''}
+      <div class="doc">${esc(o.title)}</div>
+      <div class="num"># ${esc(o.number)}</div>
+      ${o.status ?? ''}
     </div>`;
 
-  const head = d.a4Layout === 'minimal'
+  return d.a4Layout === 'minimal'
     ? `<header class="h-min">${brand.replace('class="brand"', 'class="brand center"')}<div class="contact center">${contact.join(' · ')}</div>${title.replace('class="title"', 'class="title center"')}</header>`
     : `<header class="${d.a4Layout === 'band' ? 'h-band' : 'h-split'}"><div class="h-left">${brand}<div class="contact">${contact.join('<br>')}</div></div>${title}</header>`;
+}
+
+/** A4 footer: the shop, and the Nafaa line every print carries. */
+function a4Foot(setup: ReceiptSetup, phone?: string | null) {
+  return `
+    <footer class="a4foot">
+      <span><b>${esc(setup.shop.name)}</b>${phone ? ` · ${esc(phone)}` : ''}</span>
+      <span class="nf"><b>${esc(NAFAA.name)}</b> · ${esc(NAFAA.pitch)} · ${esc(NAFAA.phone)} · ${esc(NAFAA.web)}</span>
+    </footer>`;
+}
+
+function a4Body(ctx: Ctx) {
+  const { doc, setup } = ctx;
+  const { shop, design: d } = setup;
+  const address = doc.branchAddress || shop.address;
+  const phone = doc.branchPhone || shop.phone;
+  const due = dueOf(doc);
+  const status = a4Status(doc);
+  const dueDate = d.dueDays > 0 && due > 0 ? dateOnly(new Date(doc.date.getTime() + d.dueDays * 86_400_000)) : '';
+  const lineDisc = doc.lines.some((l) => l.discount);
+  const head = a4Head(setup, {
+    address, phone, title: d.a4Title || 'INVOICE', number: doc.saleNumber,
+    status: d.showStatus ? `<div class="status" style="color:${status.tone};border-color:${status.tone}">${status.text}</div>` : '',
+  });
 
   const billTo = `
     <div class="card">
@@ -459,11 +478,7 @@ function a4Body(ctx: Ctx) {
       ${d.thanks || d.social ? `<div class="thanks">${esc(d.thanks)}${d.social ? `<span class="sm"> · ${esc(d.social)}</span>` : ''}</div>` : ''}
     </div>`;
 
-  const foot = `
-    <footer class="a4foot">
-      <span><b>${esc(shop.name)}</b>${phone ? ` · ${esc(phone)}` : ''}</span>
-      <span class="nf"><b>${esc(NAFAA.name)}</b> · ${esc(NAFAA.pitch)} · ${esc(NAFAA.phone)} · ${esc(NAFAA.web)}</span>
-    </footer>`;
+  const foot = a4Foot(setup, phone);
 
   const page = `
   <div class="page">
@@ -567,4 +582,27 @@ export function renderReceipt(doc: ReceiptDoc, setup: ReceiptSetup, opts: { pape
   const copies = Math.max(1, Math.min(3, opts.copies ?? 1));
   const pages = Array.from({ length: copies }, (_, i) => (i ? `<div style="page-break-before:always"></div>${body}` : body)).join('');
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(doc.saleNumber)}</title><style>${a4 ? a4Css(ctx) : thermalCss(ctx)}</style></head><body>${pages}</body></html>`;
+}
+
+/**
+ * Several A4 pages in one print job: pages drawn by the caller (a load
+ * sheet, a recovery sheet) followed by bills. Caller pages use the bill
+ * classes (.page, .cards, .card, table.items, .signs…) and get the same
+ * header and footer through `page.head` / `page.foot`, so every print looks
+ * like the shop's invoices and keeps the Nafaa line.
+ */
+export function renderA4Pack(o: {
+  title: string;
+  setup: ReceiptSetup;
+  pages?: Array<(page: { head: (title: string, number: string, status?: string) => string; foot: string }) => string>;
+  docs?: ReceiptDoc[];
+  css?: string;
+}): string {
+  const { setup } = o;
+  const phone = setup.shop.phone;
+  const helpers = { head: (title: string, number: string, status?: string) => a4Head(setup, { address: setup.shop.address, phone, title, number, status }), foot: a4Foot(setup, phone) };
+  const own = (o.pages ?? []).map((draw) => draw(helpers)).join('');
+  const bills = (o.docs ?? []).map((doc) => a4Body({ doc, setup, paper: 'A4' })).join('');
+  const css = a4Css({ setup } as Ctx);
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(o.title)}</title><style>${css}${o.css ?? ''}</style></head><body>${own}${bills}</body></html>`;
 }

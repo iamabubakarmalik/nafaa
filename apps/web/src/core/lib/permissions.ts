@@ -118,6 +118,20 @@ export const PERMISSIONS = {
   ADS_VIEW: 'ads.view',
   /** Ads spend: add, edit, delete, import. Writing it to expenses also needs expenses.create. */
   ADS_MANAGE: 'ads.manage',
+  // Distribution (wholesale) — mirror of the API keys
+  DISTRIBUTION_ORDERS_VIEW: 'distribution.orders.view',
+  DISTRIBUTION_ORDERS_BOOK: 'distribution.orders.book',
+  DISTRIBUTION_ORDERS_MANAGE: 'distribution.orders.manage',
+  DISTRIBUTION_PRICE_OVERRIDE: 'distribution.price_override',
+  DISTRIBUTION_LOADSHEETS_MANAGE: 'distribution.loadsheets.manage',
+  DISTRIBUTION_SETTLE: 'distribution.settle',
+  DISTRIBUTION_ROUTES_MANAGE: 'distribution.routes.manage',
+  DISTRIBUTION_PRICELISTS_VIEW: 'distribution.pricelists.view',
+  DISTRIBUTION_PRICELISTS_MANAGE: 'distribution.pricelists.manage',
+  DISTRIBUTION_SCHEMES_MANAGE: 'distribution.schemes.manage',
+  DISTRIBUTION_COLLECTIONS_COLLECT: 'distribution.collections.collect',
+  DISTRIBUTION_COLLECTIONS_VERIFY: 'distribution.collections.verify',
+  DISTRIBUTION_DELIVERY_REPORT: 'distribution.delivery.report',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -148,6 +162,13 @@ export const POS_REQUIRED_PERMISSIONS: PermissionKey[] = [
   PERMISSIONS.SETTINGS_VIEW,
 ];
 
+/** Booker app needs these (mirror of the API's BOOKER_REQUIRED_PERMISSIONS); a warning only. */
+export const BOOKER_REQUIRED_PERMISSIONS: PermissionKey[] = [
+  PERMISSIONS.DISTRIBUTION_ORDERS_BOOK,
+  PERMISSIONS.CUSTOMERS_VIEW,
+  PERMISSIONS.PRODUCTS_VIEW,
+];
+
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
   OWNER: ALL_PERMISSIONS,
   SUPER_ADMIN: ALL_PERMISSIONS,
@@ -176,6 +197,12 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
     PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
     PERMISSIONS.ADS_VIEW, PERMISSIONS.ADS_MANAGE,
+    // Distribution: everything except booking at another price.
+    PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.DISTRIBUTION_ORDERS_BOOK, PERMISSIONS.DISTRIBUTION_ORDERS_MANAGE,
+    PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE, PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE,
+    PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE, PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE,
+    PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY,
+    PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
     PERMISSIONS.POS_USE,
     PERMISSIONS.POS_PRICE_TIER,
     PERMISSIONS.SALES_VIEW,
@@ -392,6 +419,13 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'online_products.view': 'Online products dekhein (link, price, stock)', 'online_products.manage': 'Online products jorein, Price aur Stock bhejein',
   'catalog.view': 'Online catalog dekhein', 'catalog.manage': 'Online catalog badlein',
   'ads.view': 'Ads ka kharcha aur ROAS dekhein', 'ads.manage': 'Ads ka kharcha likhein / import karein',
+  'distribution.orders.view': 'Orders, load sheet aur visit dekhein', 'distribution.orders.book': 'Order book karein (booker app)',
+  'distribution.orders.manage': 'Orders approve karein, Invoice banayein, cancel karein', 'distribution.price_override': 'Price list se hat kar price lagayein',
+  'distribution.loadsheets.manage': 'Load sheet banayein / dispatch karein', 'distribution.settle': 'Load sheet settle karein (delivery, return, cash)',
+  'distribution.routes.manage': 'Routes banayein, customers lagayein', 'distribution.pricelists.view': 'Price lists dekhein',
+  'distribution.pricelists.manage': 'Price lists banayein / badlein', 'distribution.schemes.manage': 'Schemes banayein / badlein',
+  'distribution.collections.collect': 'Recovery / cash collect karein', 'distribution.collections.verify': 'Recovery verify karein (khata me jaye)',
+  'distribution.delivery.report': 'Delivery app: maal deliver karke har Invoice ki report bhejein',
 };
 
 export function getPermissionLabel(key: string): string {
@@ -590,6 +624,16 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
       PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
       PERMISSIONS.ADS_VIEW, PERMISSIONS.ADS_MANAGE,
+    ],
+  },
+  {
+    title: 'Distribution', label: 'Distribution', emoji: '🚚', color: '#115e59',
+    permissions: [
+      PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.DISTRIBUTION_ORDERS_BOOK, PERMISSIONS.DISTRIBUTION_ORDERS_MANAGE,
+      PERMISSIONS.DISTRIBUTION_PRICE_OVERRIDE, PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE,
+      PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE, PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE,
+      PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE, PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY,
+      PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
     ],
   },
   {

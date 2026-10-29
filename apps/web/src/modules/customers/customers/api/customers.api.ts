@@ -35,6 +35,17 @@ export interface Customer {
   totalBalance?: number;
   /** Default counter price for this customer; null = shop default. */
   priceTier?: PriceTier | null;
+  /** Distribution (wholesale) fields; empty unless the business uses distribution. */
+  businessName?: string | null;
+  strn?: string | null;
+  licenseNo?: string | null;
+  licenseExpiry?: string | null;
+  creditDays?: number | null;
+  priceListId?: string | null;
+  routeId?: string | null;
+  routeSeq?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface CustomerSale {
@@ -104,6 +115,17 @@ export interface UpsertCustomerPayload {
   isActive?: boolean;
   /** null clears it back to the shop default. */
   priceTier?: PriceTier | null;
+  /** Distribution fields; an empty string or null clears one. */
+  businessName?: string;
+  strn?: string;
+  licenseNo?: string;
+  licenseExpiry?: string | null;
+  creditDays?: number | null;
+  priceListId?: string | null;
+  routeId?: string | null;
+  routeSeq?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 export interface CustomersListParams {
