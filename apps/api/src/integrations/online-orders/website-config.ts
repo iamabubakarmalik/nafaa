@@ -36,6 +36,22 @@ export interface WebsiteConfig {
   shopifySecret: string | null;
   platform: 'custom' | 'woocommerce' | 'shopify' | 'wordpress' | 'daraz' | 'foodpanda' | null;
   siteUrl: string | null;
+  /**
+   * Who bills the Shopify connection. 'shopify' = the store installed Nafaa
+   * from the App Store listing, so the connection is paid through Shopify App
+   * Pricing (App Store rule 1.2.1). 'direct' = onboarded by Nafaa, billed in PKR.
+   */
+  shopifyBilling: 'direct' | 'shopify';
+  /** Last read of the store's Shopify App Pricing subscription (App Store installs only) */
+  shopifyPlan: ShopifyPlanState | null;
+}
+
+export interface ShopifyPlanState {
+  active: boolean;
+  name: string | null;
+  status: string | null;
+  test: boolean;
+  checkedAt: string;
 }
 
 export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
@@ -54,6 +70,8 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   shopifySecret: null,
   platform: null,
   siteUrl: null,
+  shopifyBilling: 'direct',
+  shopifyPlan: null,
 };
 
 export function readWebsiteConfig(raw: unknown): WebsiteConfig {
@@ -68,6 +86,8 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     stockBuffer: Math.min(10_000, Math.max(0, Math.floor(Number(c.stockBuffer) || 0))),
     pushStock: c.pushStock !== false,
     autoLink: c.autoLink === true,
+    shopifyBilling: c.shopifyBilling === 'shopify' ? 'shopify' : 'direct',
+    shopifyPlan: c.shopifyPlan && typeof c.shopifyPlan === 'object' ? c.shopifyPlan : null,
   };
 }
 

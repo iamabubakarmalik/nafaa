@@ -161,6 +161,10 @@ export class WebsiteApiController {
       await this.shopify.onUninstalled(integration);
       return { success: true };
     }
+    // App Store install with no Shopify plan yet: acknowledge so Shopify stops retrying, but take nothing in
+    if (this.shopify.planBlocked(integration)) {
+      return { success: true, skipped: 'shopify-plan' };
+    }
     if (/deleted|delete/.test(topic)) {
       this.checkSignature(integration, req);
       const externalId = String(body?.id ?? '');

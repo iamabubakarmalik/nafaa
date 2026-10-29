@@ -324,6 +324,9 @@ export class WebsiteSetupService {
                 // Masked hints only; secrets never leave the server
                 clientId: creds.shopifyMode === 'client' && creds.shopifyClientId ? `${String(creds.shopifyClientId).slice(0, 6)}…` : null,
                 hasApiSecret: !!creds.shopifyApiSecret || !!creds.shopifyClientSecret || !!readWebsiteConfig(integration.config).shopifySecret,
+                // App Store installs pay for the connection through Shopify App Pricing
+                billing: own ? 'direct' : readWebsiteConfig(integration.config).shopifyBilling,
+                planActive: !!readWebsiteConfig(integration.config).shopifyPlan?.active,
               };
             })()
           : null,

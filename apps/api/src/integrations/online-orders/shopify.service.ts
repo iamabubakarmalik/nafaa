@@ -7,7 +7,7 @@ import { decrypt, encrypt } from '../../core/lib/crypto';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { WebsiteCatalogService } from './website-catalog.service';
 import { WebsiteSetupService } from './website-setup.service';
-import { readWebsiteConfig } from './website-config';
+import { readWebsiteConfig, ShopifyPlanState } from './website-config';
 import { SHOPIFY_SCOPES, ShopifyClient, ShopifyError, numericId, orderGid } from './shopify.client';
 import { mappingKey } from './mapping-key';
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
@@ -27,6 +27,17 @@ import { lookupShopFromDomain, normalizeShopifySiteUrl, parseShopAddress, shopAd
 
 /** State prefix for installs that start in Shopify (no Nafaa channel yet) */
 const SHOP_STATE = 'shop_';
+
+/**
+ * SystemSetting key that marks a store which installed Nafaa from the App
+ * Store listing. Those stores pay for the Shopify connection through Shopify
+ * App Pricing; stores Nafaa onboards through its own install link are billed
+ * directly (Shopify Support, ticket 71422316).
+ */
+const appStoreKey = (shop: string) => `shopify.appstore-install:${shop}`;
+
+/** How long a plan read stays fresh before the cron asks Shopify again */
+const PLAN_TTL_MS = 60 * 60_000;
 
 const WEBHOOK_TOPICS = ['ORDERS_CREATE', 'ORDERS_UPDATED', 'ORDERS_CANCELLED', 'ORDERS_PAID', 'APP_UNINSTALLED'] as const;
 
@@ -180,7 +191,93 @@ export class ShopifyService {
     if (!query.code) throw new BadRequestException(query.error_description || 'Install cancel hua');
 
     await this.exchangeCode(shop, query.code);
+    await this.markAppStoreInstall(shop);
     return this.appHome(web, shop);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // BILLING — App Store installs pay through Shopify App Pricing
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Shop-initiated installs come from the App Store listing (or from the app
+   * in the Shopify admin before the store is linked). Kept once; a store that
+   * came from the App Store stays Shopify-billed.
+   */
+  private async markAppStoreInstall(shop: string) {
+    await this.prisma.systemSetting.upsert({
+      where: { key: appStoreKey(shop) },
+      create: {
+        key: appStoreKey(shop),
+        value: new Date().toISOString(),
+        category: 'shopify',
+        description: 'Store installed Nafaa from the Shopify App Store; the Shopify connection is billed through Shopify',
+      },
+      update: {},
+    }).catch((e) => this.logger.warn(`Shopify App Store mark ${shop}: ${e?.message}`));
+  }
+
+  private async billingFor(shop: string): Promise<'direct' | 'shopify'> {
+    const row = await this.prisma.systemSetting.findUnique({ where: { key: appStoreKey(shop) } }).catch(() => null);
+    return row ? 'shopify' : 'direct';
+  }
+
+  /** Merchant's own app (token / client credentials) never goes through Nafaa's App Store billing */
+  private ownApp(integration: Integration) {
+    const mode = (integration.credentials as any)?.shopifyMode;
+    return mode === 'token' || mode === 'client';
+  }
+
+  /** App Store install without an active Shopify plan: nothing is synced until the merchant picks one */
+  planBlocked(integration: Integration) {
+    if (integration.type !== 'SHOPIFY' || this.ownApp(integration)) return false;
+    const cfg = readWebsiteConfig(integration.config);
+    return cfg.shopifyBilling === 'shopify' && !cfg.shopifyPlan?.active;
+  }
+
+  /** Shopify's plan page for this store (managed App Pricing) */
+  pricingUrl(shop: string) {
+    const store = shop.replace(/\.myshopify\.com$/, '');
+    const app = (process.env.SHOPIFY_APP_HANDLE || 'nafaa').trim();
+    return `https://admin.shopify.com/store/${store}/charges/${app}/pricing_plans`;
+  }
+
+  /** Read the store's App Pricing subscription from Shopify and keep it on the channel */
+  async refreshPlan(integration: Integration): Promise<ShopifyPlanState | null> {
+    if (this.ownApp(integration) || readWebsiteConfig(integration.config).shopifyBilling !== 'shopify') return null;
+    const client = await this.client(integration);
+    if (!client) return null;
+    const data = await client.graphql<any>(`{
+      currentAppInstallation { activeSubscriptions { name status test } }
+    }`);
+    const subs: any[] = data?.currentAppInstallation?.activeSubscriptions ?? [];
+    const live = subs.find((x) => x.status === 'ACTIVE');
+    const plan: ShopifyPlanState = {
+      active: !!live,
+      name: live?.name ?? null,
+      status: live?.status ?? subs[0]?.status ?? null,
+      test: !!live?.test,
+      checkedAt: new Date().toISOString(),
+    };
+    const fresh = await this.prisma.integration.findUniqueOrThrow({ where: { id: integration.id } });
+    await this.prisma.integration.update({
+      where: { id: integration.id },
+      data: { config: { ...readWebsiteConfig(fresh.config), shopifyPlan: plan } as any },
+    });
+    await this.log(integration, 'SHOPIFY_PLAN', plan.active, plan.active ? undefined : 'Shopify plan chuna nahi gaya', { name: plan.name, status: plan.status });
+    return plan;
+  }
+
+  /** Channel page: plan state and Shopify's plan page link */
+  async planInfo(user: AuthenticatedUser, channelId: string) {
+    const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    const plan = await this.refreshPlan(integration).catch(() => null);
+    const shop = (integration.credentials as any)?.shopifyShop ?? '';
+    return {
+      billing: this.ownApp(integration) ? 'direct' : readWebsiteConfig(integration.config).shopifyBilling,
+      plan,
+      pricingUrl: shop ? this.pricingUrl(shop) : null,
+    };
   }
 
   private appHome(web: string, shop: string) {
@@ -208,6 +305,7 @@ export class ShopifyService {
 
   private async saveToken(integration: Integration, shop: string, tok: any) {
     const cfg = readWebsiteConfig(integration.config);
+    const shopifyBilling = await this.billingFor(shop);
     await this.prisma.integration.update({
       where: { id: integration.id },
       data: {
@@ -217,7 +315,7 @@ export class ShopifyService {
           shopifyShop: shop,
           shopifyConnectedAt: new Date().toISOString(),
         },
-        config: { ...cfg, platform: 'shopify', siteUrl: `https://${shop}`, shopifySecret: null } as any,
+        config: { ...cfg, platform: 'shopify', siteUrl: `https://${shop}`, shopifySecret: null, shopifyBilling } as any,
         status: IntegrationStatus.CONNECTED,
         isActive: true,
       },
@@ -238,6 +336,8 @@ export class ShopifyService {
       ? `${check.error} · status ${check.status} · token ${tokenLooksEncrypted ? 'encrypted' : 'plain'} · api ${process.env.SHOPIFY_API_VERSION || 'default'}`
       : undefined, { status: check.status, scopes: check.scopes });
     if (check.status !== 200) return;
+
+    await this.refreshPlan(integration).catch((e) => this.logger.warn(`Shopify plan check: ${e?.message}`));
 
     // Store ka naam + stock wali location
     try {
@@ -266,7 +366,7 @@ export class ShopifyService {
       await this.log(integration, 'SHOPIFY_CONNECT', res.ok, res.error, { installed: res.installed });
     }
     const fresh = await this.prisma.integration.findUniqueOrThrow({ where: { id } });
-    this.syncStock(fresh).catch(() => null);
+    if (!this.planBlocked(fresh)) this.syncStock(fresh).catch(() => null);
   }
 
   async installWebhooks(integration: Integration) {
@@ -365,6 +465,7 @@ export class ShopifyService {
   }
 
   async pushStatus(integration: Integration, order: any, event: string) {
+    if (this.planBlocked(integration)) return;
     const client = await this.client(integration);
     if (!client || !/^\d+$/.test(String(order.externalOrderId))) return;
     const id = orderGid(order.externalOrderId);
@@ -460,8 +561,15 @@ export class ShopifyService {
     this.running = true;
     try {
       const list = await this.prisma.integration.findMany({ where: { type: 'SHOPIFY', isActive: true, status: IntegrationStatus.CONNECTED } });
-      for (const i of list) {
+      for (let i of list) {
         if (!this.isConnected(i)) continue;
+        const cfg = readWebsiteConfig(i.config);
+        const stale = !cfg.shopifyPlan || Date.now() - new Date(cfg.shopifyPlan.checkedAt).getTime() > PLAN_TTL_MS;
+        if (cfg.shopifyBilling === 'shopify' && stale) {
+          await this.refreshPlan(i).catch((e) => this.logger.warn(`Shopify plan check ${i.displayName}: ${e?.message}`));
+          i = await this.prisma.integration.findUniqueOrThrow({ where: { id: i.id } });
+        }
+        if (this.planBlocked(i)) continue;
         await this.syncAllStock(i).catch((e) => this.logger.warn(`Shopify stock sync ${i.displayName}: ${e?.message}`));
       }
     } finally {
@@ -471,6 +579,7 @@ export class ShopifyService {
 
   /** Nafaa → Shopify qeemat (jore hue variants). Product ke hisaab se ek mutation */
   async pushPrices(integration: Integration, items: { externalProductId: string; externalVariantId: string | null; price: number }[]) {
+    if (this.planBlocked(integration)) return 0;
     const client = await this.mustClient(integration);
     const byProduct = new Map<string, { id: string; price: string }[]>();
     for (const i of items) {
@@ -503,12 +612,14 @@ export class ShopifyService {
   async syncStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] } = {}) {
     // Stock push switched off for this channel: nothing goes out, from any path.
     if (!readWebsiteConfig(integration.config).pushStock) return { updated: 0, checked: 0, missing: 0, off: true };
+    if (this.planBlocked(integration)) return { updated: 0, checked: 0, missing: 0, off: true };
     return trackLinks(this.prisma, integration.id, linkScope(opts), () => this.pushStock(integration, opts));
   }
 
   /** Full sync: every link page by page (no listing cap), then the listing pass for SKU-only matches. */
   async syncAllStock(integration: Integration) {
     if (!readWebsiteConfig(integration.config).pushStock) return { updated: 0, checked: 0, missing: 0, off: true };
+    if (this.planBlocked(integration)) return { updated: 0, checked: 0, missing: 0, off: true };
     let updated = 0;
     let checked = 0;
     await forEachLinkPage(this.prisma, integration.id, 100, async (onlyLinks) => {
@@ -602,6 +713,7 @@ export class ShopifyService {
   async importFromShopify(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean; updateStock?: boolean }) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    if (this.planBlocked(integration)) throw new BadRequestException('Pehle Shopify me Nafaa ka plan chunein — channel page par "Shopify plan chunein" dabayein');
     const client = await this.mustClient(integration);
     const products = await client.paginate<any>(`query($after: String) {
       products(first: 50, after: $after, query: "status:active") {
@@ -647,6 +759,7 @@ export class ShopifyService {
   async exportToShopify(user: AuthenticatedUser, channelId: string, opts: { updatePrice?: boolean; productIds?: string[] }) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    if (this.planBlocked(integration)) throw new BadRequestException('Pehle Shopify me Nafaa ka plan chunein — channel page par "Shopify plan chunein" dabayein');
     const client = await this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config) as any;
     const locationId: string | null = cfg.shopifyLocationId;

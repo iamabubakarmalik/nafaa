@@ -67,12 +67,57 @@ export class SubscriptionGuard implements CanActivate {
   // Grace period (days) after PAST_DUE before hard block
   private readonly GRACE_PERIOD_DAYS = 3;
 
+  /**
+   * Online store routes that stay open for a store that installed Nafaa from
+   * the Shopify App Store and pays for the connection through Shopify. The
+   * Shopify app must work without a Nafaa plan (App Store rule 1.2.1); the
+   * in-store POS and accounting stay behind the Nafaa subscription.
+   */
+  private readonly SHOPIFY_BILLED_PATHS = [
+    '/api/online-orders',
+    '/api/online-store',
+    '/api/online-products',
+    '/api/products',
+  ];
+
   constructor(
     private readonly reflector: Reflector,
     private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    try {
+      return await this.decide(context);
+    } catch (e) {
+      if (e instanceof HttpException && e.getStatus() === HttpStatus.PAYMENT_REQUIRED && (await this.shopifyBilledAccess(context))) {
+        return true;
+      }
+      throw e;
+    }
+  }
+
+  /** Expired Nafaa plan, but an active Shopify App Pricing plan: online store routes only */
+  private async shopifyBilledAccess(context: ExecutionContext): Promise<boolean> {
+    const req = context.switchToHttp().getRequest();
+    const clean = String(req.path || req.url || '').split('?')[0].replace(/\/+$/, '');
+    const onlinePath = this.SHOPIFY_BILLED_PATHS.some((p) => clean === p || clean.startsWith(`${p}/`));
+    if (!onlinePath || !req.user?.tenantId) return false;
+    const channel = await this.prisma.integration.findFirst({
+      where: {
+        tenantId: req.user.tenantId,
+        type: 'SHOPIFY',
+        isActive: true,
+        AND: [
+          { config: { path: ['shopifyBilling'], equals: 'shopify' } },
+          { config: { path: ['shopifyPlan', 'active'], equals: true } },
+        ],
+      },
+      select: { id: true },
+    });
+    return !!channel;
+  }
+
+  private async decide(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
 
     // 1. Bypass check by path prefix

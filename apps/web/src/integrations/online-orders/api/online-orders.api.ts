@@ -427,6 +427,8 @@ export interface WebsiteOverview {
       connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null;
       /** 'app' = Nafaa app install; 'token' / 'client' = merchant's own app (manual). */
       mode?: ShopifyMode | null; scopes?: string[]; clientId?: string | null; hasApiSecret?: boolean;
+      /** 'shopify' = installed from the App Store, the connection is paid through Shopify App Pricing. */
+      billing?: 'direct' | 'shopify'; planActive?: boolean;
     };
     daraz?: null | {
       connected: boolean; configured: boolean; account: string | null; sellerId: string | null; shortCode: string | null;
@@ -685,6 +687,13 @@ export const onlineOrdersApi = {
 
   shopifyCustomWebhooks: (id: string) =>
     apiClient.post(`/online-store/channels/${id}/shopify/custom/webhooks`).then((r) => unwrap<{ ok: boolean; installed: number }>(r)),
+
+  shopifyPlan: (id: string) =>
+    apiClient.post(`/online-store/channels/${id}/shopify/plan`).then((r) => unwrap<{
+      billing: 'direct' | 'shopify';
+      plan: null | { active: boolean; name: string | null; status: string | null; test: boolean; checkedAt: string };
+      pricingUrl: string | null;
+    }>(r)),
 
   shopifyCheck: (id: string) =>
     apiClient.post(`/online-store/channels/${id}/shopify/check`).then((r) => unwrap<ShopifyCheckResult>(r)),

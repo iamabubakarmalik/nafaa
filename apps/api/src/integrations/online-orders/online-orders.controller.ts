@@ -508,6 +508,12 @@ export class ChannelsController {
     return this.shopify.customWebhooks(user, id);
   }
 
+  @Post(':id/shopify/plan')
+  @ApiOperation({ summary: 'App Store installs: Shopify plan state and the plan page link' })
+  shopifyPlan(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.shopify.planInfo(user, id);
+  }
+
   @Post(':id/shopify/check')
   @ApiOperation({ summary: 'Shopify connection check, step by step' })
   shopifyCheck(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {

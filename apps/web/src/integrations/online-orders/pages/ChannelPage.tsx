@@ -28,6 +28,7 @@ import { timeAgo, whenText } from '../lib/labels';
 import { HttpsNotice } from '../components/website/ManualKeysForm';
 import { ChannelOverview, panel } from '../components/channel/ChannelOverview';
 import { ChannelProducts } from '../components/channel/ChannelProducts';
+import { ShopifyPlanAlert } from '../components/channel/ShopifyPlanAlert';
 import { ChannelSettings, useChannelLifecycle } from '../components/channel/ChannelSettings';
 import { ChannelSetup } from '../components/channel/ChannelSetup';
 import { bareUrl, channelFacts, type ChannelTab } from '../components/channel/meta';
@@ -111,6 +112,8 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
   const facts = facts0;
   // Own-app Shopify connections are managed by the shop's own app: never ask for a reinstall.
   const needsReinstall = !!i.shopify?.needsReinstall && !facts0.ownApp;
+  // App Store install: the connection waits for a Shopify plan
+  const planNeeded = !facts0.ownApp && !!i.shopify?.connected && i.shopify.billing === 'shopify' && !i.shopify.planActive;
   const paused = !i.isActive;
   const receiving = !!stats.lastOrderAt || i.webhookVerified || facts.automatic;
   const errors = data.logs.filter((l) => !l.ok).length;
@@ -122,6 +125,7 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
 
   const status = paused ? { variant: 'default' as const, text: 'Band' }
     : needsReinstall ? { variant: 'danger' as const, text: 'Dobara install chahiye' }
+      : planNeeded ? { variant: 'warning' as const, text: 'Shopify plan chahiye' }
       : facts.kind === 'daraz' && i.daraz?.error ? { variant: 'danger' as const, text: 'Rabta toota' }
         : facts.kind === 'indolj' && facts.automatic && !stats.lastOrderAt ? { variant: 'info' as const, text: 'Pehle order ka intezar' }
           : receiving ? { variant: 'success' as const, text: 'Live' }
@@ -171,6 +175,7 @@ function Channel({ id, data, onChange, tab, setTab, busy }: {
           {facts.name} par order ho to bhi Nafaa me nahi aayega.
         </Alert>
       )}
+      {planNeeded && !paused && !needsReinstall && <ShopifyPlanAlert id={id} onChange={onChange} />}
       {needsReinstall && !paused && tab !== 'setup' && (
         <Alert tone="danger" title="Shopify ko ek dafa dobara install karein"
           action={<Button size="xs" onClick={() => setTab('setup')}>Setup kholein</Button>}>
