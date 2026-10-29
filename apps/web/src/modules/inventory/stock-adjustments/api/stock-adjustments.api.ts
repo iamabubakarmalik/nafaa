@@ -8,6 +8,10 @@ import { apiClient } from '@core/api/client';
 import type { ShopStamp } from '@core/lib/shopScope';
 
 export type AdjustmentType = 'ADJUSTMENT_IN' | 'ADJUSTMENT_OUT' | 'DAMAGE' | 'LOSS' | 'OPENING_BALANCE';
+/** Fixed reasons; each sets the stock direction and the profit effect. */
+export type ReasonCode = 'DAMAGE' | 'EXPIRY' | 'THEFT' | 'SHOP_USE' | 'AUDIT_FOUND' | 'FREE_BONUS' | 'CORRECTION';
+/** How a line counts in profit: Stock nuksan, Stock faida, or none (data correction / opening). */
+export type ProfitEffect = 'LOSS' | 'GAIN' | 'NONE';
 export type RollAction = 'ADJUST_LENGTH' | 'MARK_DAMAGED' | 'MARK_LOST' | 'RESTORE';
 
 export interface StockAdjustment {
@@ -15,6 +19,9 @@ export interface StockAdjustment {
   type: AdjustmentType;
   quantity: number;
   reason: string;
+  reasonCode?: ReasonCode | null;
+  /** Null on older rows; classify by type then (effectOf in meta). */
+  profitEffect?: ProfitEffect | null;
   note?: string | null;
   createdAt: string;
   unitCost: number;
@@ -53,14 +60,18 @@ export interface AdjustmentList {
   page: number;
   pages: number;
   /** `net` leaves out opening stock; `openingValue` is shown on its own. */
-  totals: { count: number; inValue: number; outValue: number; damageValue: number; lossValue: number; openingValue?: number; net: number };
+  totals: {
+    count: number; inValue: number; outValue: number; damageValue: number; lossValue: number; openingValue?: number; net: number;
+    /** As they count in profit: Stock nuksan, Stock faida, corrections apart, and faida − nuksan. */
+    stockLoss?: number; stockGain?: number; correctionValue?: number; profitNet?: number;
+  };
 }
 
 /** One bucket of a breakdown; value and qty are signed (in +, out −). */
 interface AdjustmentBucket { key: string; count: number; value: number; qty: number }
 
 interface AdjustmentAnalytics {
-  totals: { count: number; gained: number; lost: number; opening?: number };
+  totals: { count: number; gained: number; lost: number; opening?: number; corrected?: number };
   byType: AdjustmentBucket[];
   byReason: AdjustmentBucket[];
   byPerson: AdjustmentBucket[];
@@ -79,6 +90,7 @@ export interface CreateAdjustmentPayload extends AdjustmentBatchFields {
   type: AdjustmentType;
   quantity: number;
   reason: string;
+  reasonCode?: ReasonCode;
   note?: string;
   lengthFt?: number;
   lengthInch?: number;
@@ -100,6 +112,7 @@ export interface AdjustmentBatchFields {
 interface BatchAdjustmentPayload {
   shopId?: string;
   reason: string;
+  reasonCode?: ReasonCode;
   note?: string;
   items: Array<AdjustmentBatchFields & {
     productId: string;
@@ -110,12 +123,15 @@ interface BatchAdjustmentPayload {
     /** Base units in one of `unitName` (carton = 24). */
     conversionRate?: number;
     reason?: string;
+    reasonCode?: ReasonCode;
   }>;
 }
 
 interface StockCountPayload {
   shopId?: string;
   note?: string;
+  /** Data correction: stock is set to the count, profit is not touched (needs stock_adjustments.correct). */
+  correction?: boolean;
   items: Array<{ productId: string; variantId?: string; counted: number }>;
 }
 
@@ -126,6 +142,7 @@ export interface StockCountResult {
   gained: number;
   lost: number;
   net: number;
+  correction?: boolean;
 }
 
 interface CarpetRollOption {

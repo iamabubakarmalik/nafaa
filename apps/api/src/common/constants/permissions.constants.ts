@@ -38,7 +38,15 @@ export const PERMISSIONS = {
   BARCODE_LABELS_VIEW: 'barcode_labels.view',
   STOCK_MOVEMENTS_VIEW: 'stock_movements.view',
   STOCK_ADJUSTMENTS_MANAGE: 'stock_adjustments.manage',
+  /** Change stock as a data correction, with no profit effect ("Galti theek karna"). */
+  STOCK_ADJUSTMENTS_CORRECT: 'stock_adjustments.correct',
   STOCK_TRANSFERS_MANAGE: 'stock_transfers.manage',
+  /** Manufacturing: see recipes, production and its report. */
+  MANUFACTURING_VIEW: 'manufacturing.view',
+  /** Manufacturing: create and change recipes. */
+  MANUFACTURING_MANAGE: 'manufacturing.manage',
+  /** Manufacturing: make goods (raw materials out, finished goods in) and reverse a production. */
+  MANUFACTURING_PRODUCE: 'manufacturing.produce',
   SUPPLIERS_VIEW: 'suppliers.view',
   SUPPLIERS_EDIT: 'suppliers.edit',
   PURCHASES_VIEW: 'purchases.view',
@@ -71,6 +79,10 @@ export const PERMISSIONS = {
   // Finance
   EXPENSES_VIEW: 'expenses.view',
   EXPENSES_CREATE: 'expenses.create',
+  /** Other income (company incentives, scheme claims, commission, rent): see the record. */
+  INCOME_VIEW: 'income.view',
+  /** Other income: add, edit and delete. */
+  INCOME_MANAGE: 'income.manage',
   EXPORTS_VIEW: 'exports.view',
   BACKUP_MANAGE: 'backup.manage',
 
@@ -212,7 +224,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.BARCODE_LABELS_VIEW,
     PERMISSIONS.STOCK_MOVEMENTS_VIEW,
     PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE,
+    PERMISSIONS.STOCK_ADJUSTMENTS_CORRECT,
     PERMISSIONS.STOCK_TRANSFERS_MANAGE,
+    PERMISSIONS.MANUFACTURING_VIEW,
+    PERMISSIONS.MANUFACTURING_MANAGE,
+    PERMISSIONS.MANUFACTURING_PRODUCE,
     PERMISSIONS.SUPPLIERS_VIEW,
     PERMISSIONS.PURCHASES_VIEW,
     PERMISSIONS.PURCHASES_CREATE,
@@ -223,6 +239,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.STAFF_VIEW,
     PERMISSIONS.EXPENSES_VIEW,
     PERMISSIONS.EXPENSES_CREATE,
+    PERMISSIONS.INCOME_VIEW,
+    PERMISSIONS.INCOME_MANAGE,
     PERMISSIONS.EXPORTS_VIEW,
     PERMISSIONS.TEAM_VIEW,
     PERMISSIONS.SHOPS_VIEW,

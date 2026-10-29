@@ -37,6 +37,9 @@ export interface CashBreakdown {
   /** Khata payments collected (counted as cash). */
   khataReceived: number;
   khataCount: number;
+  /** Other income (incentives, claims, rent) received in the drawer; older servers leave it out. */
+  otherIncome?: number;
+  otherIncomeCount?: number;
   cashIn: number;
   cashInCount: number;
   cashOut: number;

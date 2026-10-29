@@ -36,7 +36,7 @@ function setup() {
       ]),
     },
     expense: { findMany: jest.fn().mockResolvedValue([{ id: 'e1', title: 'Milk', amount: 2300, paymentMethod: 'CASH', category: null }]) },
-    saleReturn: { groupBy: jest.fn().mockResolvedValue([]) },
+    saleReturn: { groupBy: jest.fn().mockResolvedValue([]), findMany: jest.fn().mockResolvedValue([]) },
     cashRegister: {
       findMany: jest.fn().mockResolvedValue([{ status: 'OPEN', openingBalance: 30000, closingBalance: 0, difference: 0, totalCashIn: 0, totalCashOut: 0 }]),
     },
@@ -44,7 +44,11 @@ function setup() {
     supplierLedger: { aggregate: jest.fn().mockResolvedValue(agg({ amount: 0 })) },
     user: { findMany: jest.fn().mockResolvedValue([{ id: 'u1', fullName: 'Ali' }]) },
     // Day-close cost: the day's bills, then goods returned in the day.
-    $queryRaw: jest.fn().mockResolvedValueOnce([{ cost: 8000 }]).mockResolvedValueOnce([{ cost: 0 }]),
+    // Then the shared profit block: khata profit, write-offs and other income rows (none here).
+    $queryRaw: jest.fn().mockResolvedValueOnce([{ cost: 8000 }]).mockResolvedValueOnce([{ cost: 0 }]).mockResolvedValue([]),
+    otherIncome: { aggregate: jest.fn().mockResolvedValue(agg({ amount: 0 })) },
+    customerLedger: { aggregate: jest.fn().mockResolvedValue(agg({ amount: 0 })) },
+    tenantSettings: { findUnique: jest.fn().mockResolvedValue(null) },
   };
   const tz = { clock: jest.fn().mockResolvedValue({ tz: 'Asia/Karachi', dayStartHour: 0 }) };
   return new DayReportService(prisma as never, tz as never);

@@ -95,7 +95,7 @@ export class SettingsCoreService {
         requirePinForVoid: true, requirePinForDiscount: true, requirePinForRefund: true, managerPin: true,
         enableLoyalty: true, loyaltyPointsPerRupee: true, loyaltyRedemptionRate: true,
         loyaltyMinRedeem: true, loyaltyMaxRedeemPercent: true,
-        serviceChargePct: true, exchangeDays: true, receiptConfig: true,
+        serviceChargePct: true, exchangeDays: true, receiptConfig: true, manufacturingEnabled: true,
       },
     });
     if (!s) return null;
@@ -315,6 +315,7 @@ export class SettingsCoreService {
       defaultPeriod: c.defaultPeriod,
       compareDefault: c.compareDefault,
       roundOff: c.roundOff,
+      creditProfit: c.creditProfit,
       hidden: hiddenFiguresFor(user.role, c),
     };
   }

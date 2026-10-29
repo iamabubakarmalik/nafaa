@@ -90,6 +90,8 @@ export class UpdateSettingsDto {
 
   // ═══ 6. INVENTORY ═══
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) defaultLowStockAlert?: number;
+  /** Manufacturing (recipes and production) for this business. */
+  @ApiPropertyOptional() @IsOptional() @IsBoolean() manufacturingEnabled?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() trackExpiry?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) @Max(365) expiryWarningDays?: number;
   @ApiPropertyOptional({ enum: STOCK_METHODS }) @IsOptional() @IsIn(STOCK_METHODS as any) stockMethod?: string;

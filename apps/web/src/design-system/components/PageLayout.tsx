@@ -52,9 +52,10 @@ export function FilterBar({ search, children, chips, onClear }: {
 }) {
   return (
     <div className="relative z-10 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
-      <div className="flex flex-col gap-2 xl:flex-row">
-        {search}
-        {children && <div className="flex flex-wrap gap-2">{children}</div>}
+      {/* The search keeps a usable width; when the filters do not fit beside it they move to their own line. */}
+      <div className="flex flex-wrap items-center gap-2">
+        {search && <div className="flex min-w-0 flex-[1_1_20rem]">{search}</div>}
+        {children && <div className="flex max-w-full flex-wrap items-center gap-2">{children}</div>}
       </div>
       {chips && (
         <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
@@ -62,7 +63,7 @@ export function FilterBar({ search, children, chips, onClear }: {
           {chips}
           {onClear && (
             <button type="button" onClick={onClear} className="ml-auto inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[0.75rem] font-semibold text-rose-700 hover:bg-rose-50">
-              <X className="h-3.5 w-3.5" />Sab hatayein
+              <X className="h-3.5 w-3.5" />Saaf karein
             </button>
           )}
         </div>

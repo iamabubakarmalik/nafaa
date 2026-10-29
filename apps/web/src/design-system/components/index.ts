@@ -26,6 +26,7 @@ export { PageHero, HeroBackdrop, heroButton, heroIconButton, heroPrimaryButton, 
 export { StatCard } from './StatCard';
 export { Table, THead, TBody, Tr, Th, Td } from './Table';
 export { FilterMenu, type FilterOption } from './FilterMenu';
+export { MoreFilters, type FilterGroup } from './MoreFilters';
 export { DateRangeMenu, resolveRange, type DateRangeValue } from './DateRangeMenu';
 export { PageShell, PAGE_WIDTH_CLASS, KpiRow, KpiCard, FilterBar, FilterChip, SearchField, ViewTabs, type ViewTab } from './PageLayout';
 export { confirmDialog, ConfirmHost, type ConfirmOptions } from './ConfirmDialog';

@@ -37,6 +37,7 @@ import { ProductImagesModule } from './modules/inventory/product-images/product-
 import { ProductBatchesModule } from './modules/inventory/product-batches/product-batches.module';
 import { StockMovementsModule } from './modules/inventory/stock-movements/stock-movements.module';
 import { StockAdjustmentsModule } from './modules/inventory/stock-adjustments/stock-adjustments.module';
+import { ManufacturingModule } from './modules/manufacturing/manufacturing.module';
 import { TransfersModule } from './modules/inventory/transfers/transfers.module';
 import { LowStockModule } from './modules/inventory/low-stock/low-stock.module';
 import { BarcodeLabelsModule } from './modules/inventory/barcode-labels/barcode-labels.module';
@@ -56,6 +57,7 @@ import { SupplierLedgerModule } from './modules/purchasing/supplier-ledger/suppl
 import { PurchasesModule } from './modules/purchasing/purchases/purchases.module';
 
 import { ExpensesModule } from './modules/finance/expenses/expenses.module';
+import { IncomeModule } from './modules/finance/income/income.module';
 import { ExpenseCategoriesModule } from './modules/finance/expense-categories/expense-categories.module';
 import { CashRegisterModule } from './modules/finance/cash-register/cash-register.module';
 import { MoneyModule } from './modules/finance/money/money.module';
@@ -203,10 +205,12 @@ import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
     PurchasesModule,
     StockMovementsModule,
     StockAdjustmentsModule,
+    ManufacturingModule,
     TransfersModule,
     LowStockModule,
     BarcodeLabelsModule,
     ExpensesModule,
+    IncomeModule,
     ExpenseCategoriesModule,
     SettingsModule,
     ReportsModule,

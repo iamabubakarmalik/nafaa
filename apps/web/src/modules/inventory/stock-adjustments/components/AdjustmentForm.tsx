@@ -1,6 +1,9 @@
 /**
  * New adjustment: one or many products, each with its own type (in, out,
- * damaged, lost) and quantity in any of the product's units. Variant
+ * damaged, lost) and quantity in any of the product's units. The type comes
+ * from a fixed reason (Damage, Expiry, Chori, Audit mein zyada nikla…), which
+ * also says how the line counts in profit: Stock nuksan, Stock faida, or no
+ * effect for opening stock and data corrections. Variant
  * products need a variant, carpet products a roll and roll action, IMEI
  * products a device; electronics may tie a damaged or returned piece to its
  * serial. Expiry-tracked goods pick the batch going out, or name the batch
@@ -16,6 +19,8 @@ import { Button, Kbd, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useBusinessFeatures } from '@core/hooks/useBusinessFeatures';
 import { useIsAllShops, useShopParam } from '@core/stores/auth.store';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import { useIndustryStockPresets } from '@industries/_shared/presets';
@@ -25,11 +30,14 @@ import { serialTrackingApi } from '@industries/electronics/api/serial-tracking.a
 import { usePurchaseSources, type Source, type UnitChoice } from '@modules/purchasing/purchases/editor/sources';
 import { productBatchesApi } from '@modules/inventory/products/api/product-batches.api';
 import {
-  stockAdjustmentsApi, type AdjustmentBatchFields, type AdjustmentOptions, type AdjustmentType, type CreateAdjustmentPayload, type RollAction,
+  stockAdjustmentsApi, type AdjustmentBatchFields, type AdjustmentOptions, type AdjustmentType, type CreateAdjustmentPayload, type ProfitEffect,
+  type ReasonCode, type RollAction,
 } from '../api/stock-adjustments.api';
 import { BranchPicker } from './BranchPicker';
 import { ProductSearch } from './ProductSearch';
-import { ADJ_KEY, QUICK_REASONS, STOCK_KEYS, TYPES, TYPE_ORDER, qtyText } from './meta';
+import {
+  ADJ_KEY, CORRECTION_WARNING, EFFECTS, GAIN_REASONS, LOSS_REASONS, REASONS, STOCK_KEYS, TYPES, qtyText,
+} from './meta';
 
 type Mode = 'loading' | 'plain' | 'variant' | 'roll' | 'imei';
 
@@ -38,6 +46,8 @@ interface Line {
   source: Source;
   unit: UnitChoice;
   type: AdjustmentType;
+  /** Reason picked; null with type OPENING_BALANCE (first stock); undefined until picked. */
+  code?: ReasonCode | null;
   qty: string;
   variantId: string;
   rollId: string;
@@ -85,6 +95,24 @@ function batchOf(l: Line): AdjustmentBatchFields {
 const dayText = (iso: string) => new Date(iso).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' });
 const expired = (iso?: string | null) => !!iso && new Date(iso).getTime() < Date.now();
 
+/** Type a reason sets; a correction keeps the direction asked. */
+const typeOfReason = (code: ReasonCode | null, current: AdjustmentType, dir?: 'in' | 'out'): AdjustmentType => {
+  if (code === null) return 'OPENING_BALANCE';
+  const t = REASONS[code].type;
+  if (t) return t;
+  const goingIn = dir ? dir === 'in' : TYPES[current].sign > 0;
+  return goingIn ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT';
+};
+
+/** Profit effect of a line as it will be saved. */
+const lineEffect = (l: Line, type: AdjustmentType): ProfitEffect =>
+  l.code === undefined || l.code === null
+    ? (type === 'ADJUSTMENT_IN' ? 'GAIN' : type === 'OPENING_BALANCE' ? 'NONE' : 'LOSS')
+    : REASONS[l.code].effect;
+
+/** Saved reason text: the reason's name (the note carries any detail). */
+const reasonText = (l: Line) => (l.code === null ? 'Opening stock' : l.code ? REASONS[l.code].label : TYPES[l.type].label);
+
 /** Type actually saved: a whole-roll action fixes it. */
 const lineType = (l: Line, mode: Mode): AdjustmentType =>
   (mode === 'roll' && ROLL_ACTIONS.find((a) => a.value === l.rollAction)?.type) || l.type;
@@ -111,12 +139,11 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
   const { cost: money } = useMasked();
   const { sources, byCode, loading } = usePurchaseSources(false);
   const [lines, setLines] = useState<Line[]>([]);
-  const [reason, setReason] = useState('');
   const [note, setNote] = useState('');
+  const canCorrect = usePermission(PERMISSIONS.STOCK_ADJUSTMENTS_CORRECT);
 
   const settingsQ = useQuery({ queryKey: ['settings'], queryFn: () => settingsApi.get(), staleTime: 5 * 60_000 });
   const allowNegative = !!settingsQ.data?.settings?.allowNegativeStock;
-  const reasonsQ = useQuery({ queryKey: [ADJ_KEY, 'reasons'], queryFn: stockAdjustmentsApi.reasons, staleTime: 5 * 60_000 });
   const optionsQs = useQueries({
     queries: lines.map((l) => ({ queryKey: optionsKey(shopId, l.source.id), queryFn: () => stockAdjustmentsApi.getOptions(l.source.id), staleTime: 30_000 })),
   });
@@ -131,9 +158,11 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
       if (same >= 0) {
         return prev.map((l, i) => (i === same ? { ...l, qty: String((Number(l.qty) || 0) + 1) } : l));
       }
-      const type = prev[prev.length - 1]?.type ?? 'ADJUSTMENT_OUT';
+      // A new line takes the reason of the line before it; the first one must be picked.
+      const last = prev[prev.length - 1];
+      const type = last?.type ?? 'ADJUSTMENT_OUT';
       return [...prev, {
-        key: `${s.id}-${Date.now()}`, source: s, unit, type, qty: '1', variantId: '', rollId: '', rollAction: 'ADJUST_LENGTH',
+        key: `${s.id}-${Date.now()}`, source: s, unit, type, code: last ? last.code : undefined, qty: '1', variantId: '', rollId: '', rollAction: 'ADJUST_LENGTH',
         ft: '', inch: '', imeiId: '', serialId: '', batchId: '', batchNo: '', expiry: '', mfg: '', ...extra,
       }];
     });
@@ -146,22 +175,25 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
       if (industry?.id === 'mobile') {
         const hit = (await imeiApi.listAll({ search: code, limit: 1 })).items[0];
         const s = hit && sources.find((x) => x.id === hit.productId);
-        if (s) { add(s, s.units[0], { imeiId: hit.id, type: 'DAMAGE' }); toast.success(`${s.name} · IMEI ${hit.imei1}`); return; }
+        if (s) { add(s, s.units[0], { imeiId: hit.id, type: 'DAMAGE', code: 'DAMAGE' }); toast.success(`${s.name} · IMEI ${hit.imei1}`); return; }
       }
       if (industry?.id === 'electronics') {
         const hit = await serialTrackingApi.lookup(code);
         const s = hit && sources.find((x) => x.id === hit.productId);
-        if (hit && s) { add(s, s.units[0], { serialId: hit.id, type: 'DAMAGE', qty: '1' }); toast.success(`${s.name} · serial ${hit.serialNumber}`); return; }
+        if (hit && s) { add(s, s.units[0], { serialId: hit.id, type: 'DAMAGE', code: 'DAMAGE', qty: '1' }); toast.success(`${s.name} · serial ${hit.serialNumber}`); return; }
       }
     } catch { /* fall through to the message below */ }
     toast.error(`"${code}" kisi product ya device se nahi mila`);
   };
 
-  const mainType = lines.length ? lineType(lines[0], modeOf(optionsOf(0))) : 'ADJUSTMENT_OUT';
+  // Industry wording for the note (e.g. "Doodh phat gaya"), as quick picks.
   const chips = useMemo(() => {
-    const own = presets.damageReasons.filter((r) => r.category === mainType).map((r) => r.reason);
-    return [...new Set([...QUICK_REASONS[mainType], ...own, ...(reasonsQ.data ?? []), ...presets.adjustmentReasons])].filter((r) => r && r !== 'Stock ginti').slice(0, 14);
-  }, [mainType, presets, reasonsQ.data]);
+    // One chip per wording, whatever its letter case ("Opening Balance" / "Opening balance").
+    const seen = new Set<string>();
+    return [...presets.damageReasons.map((r) => r.reason), ...presets.adjustmentReasons]
+      .filter((r) => r && !seen.has(r.trim().toLowerCase()) && !!seen.add(r.trim().toLowerCase()))
+      .slice(0, 10);
+  }, [presets]);
 
   const problems: string[] = [];
   if (!lines.length) problems.push('Kam se kam ek product jorein');
@@ -170,6 +202,9 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
     const mode = modeOf(o);
     const n = l.source.name;
     if (mode === 'loading') problems.push(`${n}: load ho raha hai`);
+    const wholeRoll = mode === 'roll' && l.rollAction !== 'ADJUST_LENGTH';
+    if (l.code === undefined && !wholeRoll) problems.push(`${n}: reason chunein (Damage, Expiry, Audit…)`);
+    if (l.code === 'CORRECTION' && !canCorrect) problems.push(`${n}: "Galti theek karna" ki permission nahi`);
     if (mode === 'variant' && !l.variantId) problems.push(`${n}: type (variant) chunein`);
     if (mode === 'roll' && !l.rollId) problems.push(`${n}: roll chunein`);
     if (mode === 'roll' && l.rollAction === 'ADJUST_LENGTH' && !(Number(l.ft) > 0 || Number(l.inch) > 0)) problems.push(`${n}: lambai likhein`);
@@ -180,19 +215,20 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
     if (TYPES[l.type].sign > 0 && (l.expiry || l.mfg) && !l.batchNo.trim()) problems.push(`${n}: expiry ke saath batch number bhi likhein`);
     if (l.expiry && l.mfg && l.mfg > l.expiry) problems.push(`${n}: banne ki date expiry ke baad nahi ho sakti`);
   });
-  if (!reason.trim()) problems.push('Wajah likhein');
+  // Effect on profit: Stock nuksan minus, Stock faida plus, corrections and opening stock nothing.
   const totalValue = lines.reduce((s, l, i) => {
     const o = optionsOf(i);
     const mode = modeOf(o);
-    if (mode === 'imei') return s + (o!.imeis.find((d) => d.id === l.imeiId)?.costPrice ?? 0) * TYPES[l.type].sign;
-    return mode === 'plain' || mode === 'variant' ? s + (preview(l, o)?.value ?? 0) * TYPES[l.type].sign : s;
+    const sign = { LOSS: -1, GAIN: 1, NONE: 0 }[lineEffect(l, lineType(l, mode))];
+    if (mode === 'imei') return s + (o!.imeis.find((d) => d.id === l.imeiId)?.costPrice ?? 0) * sign;
+    return mode === 'plain' || mode === 'variant' ? s + (preview(l, o)?.value ?? 0) * sign : s;
   }, 0);
 
   const save = useMutation({
     mutationFn: async () => {
       if (problems.length) throw new Error(problems[0]);
-      const r = reason.trim();
       const n = note.trim() || undefined;
+      const codeOf = (l: Line) => l.code ?? undefined;
       const modes = lines.map((_, i) => modeOf(optionsOf(i)));
       const plain = lines.filter((_, i) => modes[i] === 'plain' || modes[i] === 'variant');
       const special = lines.filter((_, i) => modes[i] === 'roll' || modes[i] === 'imei');
@@ -200,24 +236,34 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
       try {
         if (plain.length > 1 || plain.some((l) => l.unit.rate !== 1)) {
           await stockAdjustmentsApi.batch({
-            shopId, reason: r, note: n,
+            shopId, reason: reasonText(plain[0]), note: n,
             items: plain.map((l) => ({
               productId: l.source.id, variantId: l.variantId || undefined, type: l.type, quantity: Number(l.qty),
+              reason: reasonText(l), reasonCode: codeOf(l),
               ...(l.unit.rate !== 1 && { unitName: l.unit.name, conversionRate: l.unit.rate }),
               ...batchOf(l),
             })),
           });
         } else if (plain.length === 1) {
           const l = plain[0];
-          await stockAdjustmentsApi.create({ productId: l.source.id, shopId, variantId: l.variantId || undefined, type: l.type, quantity: Number(l.qty), reason: r, note: n, ...batchOf(l) });
+          await stockAdjustmentsApi.create({
+            productId: l.source.id, shopId, variantId: l.variantId || undefined, type: l.type, quantity: Number(l.qty),
+            reason: reasonText(l), reasonCode: codeOf(l), note: n, ...batchOf(l),
+          });
         }
         done.push(...plain.map((l) => l.key));
         for (const l of plain.filter((x) => x.serialId)) {
-          await (l.type === 'DAMAGE' ? serialTrackingApi.markDefective(l.serialId, r) : serialTrackingApi.returnSerial(l.serialId, r));
+          await (l.type === 'DAMAGE' ? serialTrackingApi.markDefective(l.serialId, reasonText(l)) : serialTrackingApi.returnSerial(l.serialId, reasonText(l)));
         }
         for (const l of special) {
           const mode = modes[lines.indexOf(l)];
-          const payload: CreateAdjustmentPayload = { productId: l.source.id, shopId, type: lineType(l, mode), quantity: 1, reason: r, note: n };
+          // A whole-roll action fixes the type; its profit effect then follows the type.
+          const wholeRoll = mode === 'roll' && l.rollAction !== 'ADJUST_LENGTH';
+          const payload: CreateAdjustmentPayload = {
+            productId: l.source.id, shopId, type: lineType(l, mode), quantity: 1,
+            reason: wholeRoll ? ROLL_ACTIONS.find((a) => a.value === l.rollAction)!.label : reasonText(l),
+            reasonCode: wholeRoll ? undefined : codeOf(l), note: n,
+          };
           if (mode === 'imei') payload.imeiId = l.imeiId;
           else {
             const roll = optionsOf(lines.indexOf(l))?.carpetRolls.find((x) => x.id === l.rollId);
@@ -262,7 +308,7 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
 
   return (
     <Modal open onClose={onClose} size="xl" title="Naya adjustment" closeOnBackdrop={false}
-      description="Stock haath se theek karein — barhayein, kam karein, kharab ya gum likhein"
+      description="Stock haath se theek karein — reason chunein: nuksan, faida ya data ki galti"
       footer={allShops ? <Button variant="secondary" onClick={onClose}>Band karein</Button> : <>
         <span className="mr-auto hidden items-center gap-1.5 text-[0.75rem] text-slate-500 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> save</span>
         <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
@@ -283,45 +329,39 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
             <div className="rounded-2xl border border-dashed border-slate-300 p-8 text-center">
               <PackageSearch className="mx-auto h-9 w-9 text-slate-300" />
               <p className="mt-2 text-sm font-semibold text-slate-800">Upar se product search</p>
-              <p className="mt-0.5 text-[0.8125rem] text-slate-500">Har product ke liye chunein: barhayein, kam karein, kharab ya gum</p>
+              <p className="mt-0.5 text-[0.8125rem] text-slate-500">Har product ke liye reason chunein — Profit par asar wahin dikhega</p>
             </div>
           ) : (
             <ul className="space-y-2.5">
               {lines.map((l, i) => (
-                <LineCard key={l.key} line={l} options={optionsOf(i)} failed={!!optionsQs[i]?.isError} shopId={shopId} money={money} allowNegative={allowNegative}
+                <LineCard key={l.key} line={l} options={optionsOf(i)} failed={!!optionsQs[i]?.isError} shopId={shopId} money={money} allowNegative={allowNegative} canCorrect={canCorrect}
                   tracksBatches={tracksBatches} electronics={industry?.id === 'electronics'} onChange={(p) => patch(l.key, p)} onRemove={() => setLines((prev) => prev.filter((x) => x.key !== l.key))} />
               ))}
             </ul>
           )}
 
-          <div className="grid gap-3 lg:grid-cols-2">
-            <div>
-              <label htmlFor="adj-reason" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Wajah <span className="text-rose-600">*</span></label>
-              <input id="adj-reason" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={120} placeholder="Maslan: Toot gaya, Ginti me kam nikla"
-                className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-              <p className="mt-1 text-[0.75rem] text-slate-500">Yahan likhein kyun stock badla — baad me report me isi se pata chalta hai maal kahan gaya.</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
+          <div>
+            <label htmlFor="adj-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Note</label>
+            <textarea id="adj-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={2} placeholder="Marzi hai — kya hua, kis ne dekha, kahan rakha tha…"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
+            {chips.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {chips.map((c) => (
-                  <button key={c} type="button" onClick={() => setReason(c)}
-                    className={cn('rounded-full px-2.5 py-1 text-[0.75rem] font-medium ring-1 transition', reason === c ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
+                  <button key={c} type="button" onClick={() => setNote(c)}
+                    className={cn('rounded-full px-2.5 py-1 text-[0.75rem] font-medium ring-1 transition', note === c ? 'bg-brand-600 text-white ring-brand-600' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
                     {c}
                   </button>
                 ))}
               </div>
-            </div>
-            <div>
-              <label htmlFor="adj-note" className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">Note</label>
-              <textarea id="adj-note" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} rows={3} placeholder="Zaroorat ho to details — kis ne dekha, kahan rakha tha…"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15" />
-              <p className="mt-1 text-[0.75rem] text-slate-500">Marzi hai. Har line ke sath save hota hai.</p>
-            </div>
+            )}
+            <p className="mt-1 text-[0.75rem] text-slate-500">Har line ke sath save hota hai.</p>
           </div>
 
           {lines.length > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
-              <span className="text-[0.8125rem] text-slate-600">{lines.length} line · kul asar</span>
-              <span className={cn('text-lg font-bold tabular-nums', totalValue >= 0 ? 'text-emerald-700' : 'text-rose-700')}>
-                {totalValue >= 0 ? '+' : '−'}{money(Math.abs(totalValue))}
+              <span className="text-[0.8125rem] text-slate-600">{lines.length} line · Profit par asar (cost par)</span>
+              <span className={cn('text-lg font-bold tabular-nums', totalValue > 0 ? 'text-emerald-700' : totalValue < 0 ? 'text-rose-700' : 'text-slate-600')}>
+                {totalValue > 0 ? '+' : totalValue < 0 ? '−' : ''}{money(Math.abs(totalValue))}
               </span>
             </div>
           )}
@@ -338,8 +378,10 @@ export function AdjustmentForm({ onClose }: { onClose: () => void }) {
 
 /* ───────────────────────── one line ───────────────────────── */
 
-function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, tracksBatches, electronics, onChange, onRemove }: {
+function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, canCorrect, tracksBatches, electronics, onChange, onRemove }: {
   line: Line;
+  /** May pick "Galti theek karna" (stock_adjustments.correct). */
+  canCorrect: boolean;
   options?: AdjustmentOptions;
   failed: boolean;
   shopId?: string;
@@ -414,11 +456,15 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, t
 
       {(mode !== 'roll' || l.rollAction === 'ADJUST_LENGTH') && (
         <div className="mt-3">
-          <TypePicker value={l.type} onChange={(t) => onChange({ type: t, imeiId: '', serialId: '', batchId: '' })}
-            types={mode === 'imei' || mode === 'roll' ? TYPE_ORDER.filter((t) => t !== 'OPENING_BALANCE') : TYPE_ORDER} />
-          <p className="mt-1 text-[0.6875rem] text-slate-500">
-            {mode === 'imei' && l.type === 'ADJUSTMENT_IN' ? 'Kharab ya gum device theek ho kar wapas aaya — dobara bikne ke liye stock me.' : TYPE_HINT[l.type]}
-          </p>
+          <ReasonPicker code={l.code} type={l.type} canCorrect={canCorrect} opening={mode === 'plain' || mode === 'variant'}
+            onChange={(code, dir) => {
+              const type = typeOfReason(code, l.type, dir);
+              // Changing direction clears what only made sense for the old one.
+              onChange(type === l.type ? { code } : { code, type, imeiId: '', serialId: '', batchId: '' });
+            }} />
+          {mode === 'imei' && l.type === 'ADJUSTMENT_IN' && (
+            <p className="mt-1 text-[0.6875rem] text-slate-500">Kharab ya gum device theek ho kar wapas aaya — dobara bikne ke liye stock me.</p>
+          )}
         </div>
       )}
 
@@ -462,9 +508,12 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, t
                 <ArrowRight className="mx-1 inline h-3.5 w-3.5 text-slate-400" />
                 baad me <b className={cn('tabular-nums', p.after < 0 ? 'text-rose-700' : 'text-slate-900')}>{qtyText(p.after)}</b> {l.source.baseUnit}
               </span>
-              <span className={cn('text-sm font-bold tabular-nums', TYPES[l.type].sign > 0 ? 'text-emerald-700' : 'text-rose-700')}>
-                {TYPES[l.type].sign > 0 ? '+' : '−'}{money(p.value)}
-              </span>
+              {l.code !== undefined && (
+                <span className={cn('text-sm font-bold tabular-nums', EFFECTS[lineEffect(l, l.type)].text)} title={EFFECTS[lineEffect(l, l.type)].label}>
+                  {{ LOSS: '−', GAIN: '+', NONE: '' }[lineEffect(l, l.type)]}{money(p.value)}
+                  <span className="ml-1 text-[0.6875rem] font-medium">{lineEffect(l, l.type) === 'NONE' ? '· profit par asar nahi' : `· ${EFFECTS[lineEffect(l, l.type)].label}`}</span>
+                </span>
+              )}
               {p.after < 0 && (
                 <span className="w-full text-[0.6875rem] text-rose-700">
                   {allowNegative ? 'Stock minus me chala jayega — settings me permission hai, is liye save ho jayega.' : 'Itna stock nahi hai. Minus stock ki permission settings me band hai.'}
@@ -607,27 +656,82 @@ function LineCard({ line: l, options: o, failed, shopId, money, allowNegative, t
   );
 }
 
-const TYPE_HINT: Record<AdjustmentType, string> = {
-  OPENING_BALANCE: 'Dukaan ka pehla stock ya dukaan me banaya maal — stock barhega, Profit me nahi gina jayega. Supplier se khareeda maal Purchase me darj karein.',
-  ADJUSTMENT_IN: 'Shelf par zyada maal nikla, ya kahin se wapas aaya — stock barhega aur Profit me jud jayega. Pehla stock ho to "Opening" chunein.',
-  ADJUSTMENT_OUT: 'Maal kam hai ya apne kaam me liya — stock kam hoga.',
-  DAMAGE: 'Toota, expiry ya kharab maal — stock kam hoga aur nuqsan me likha jayega.',
-  LOSS: 'Chori ya gum — stock kam hoga aur nuqsan me likha jayega.',
-};
-
-function TypePicker({ value, onChange, types = TYPE_ORDER }: { value: AdjustmentType; onChange: (t: AdjustmentType) => void; types?: AdjustmentType[] }) {
-  return (
-    <div role="radiogroup" aria-label="Kya hua" className={cn('grid grid-cols-2 gap-1.5', types.length > 4 ? 'sm:grid-cols-5' : 'sm:grid-cols-4')}>
-      {types.map((t) => {
-        const m = TYPES[t];
-        const on = value === t;
-        return (
-          <button key={t} type="button" role="radio" aria-checked={on} onClick={() => onChange(t)}
-            className={cn('inline-flex h-9 items-center justify-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold ring-1 transition', on ? m.tone : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50')}>
-            <m.icon className="h-4 w-4" />{t === 'ADJUSTMENT_IN' ? 'Stock barhayein' : m.short}
+/** Reason buttons grouped by profit effect; opening stock and data correction count in neither. */
+function ReasonPicker({ code, type, canCorrect, opening, onChange }: {
+  code?: ReasonCode | null;
+  type: AdjustmentType;
+  canCorrect: boolean;
+  /** Offer "Opening stock" (plain and variant lines). */
+  opening: boolean;
+  onChange: (code: ReasonCode | null, dir?: 'in' | 'out') => void;
+}) {
+  const btn = (on: boolean, tone: string) => cn(
+    'inline-flex min-h-9 items-center justify-center rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-semibold ring-1 transition',
+    on ? tone : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50',
+  );
+  const group = (effect: ProfitEffect, codes: ReasonCode[]) => (
+    <div>
+      <p className="mb-1 flex flex-wrap items-center gap-1.5 text-[0.75rem] font-medium text-slate-600">
+        <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold ring-1', EFFECTS[effect].tone)}>{EFFECTS[effect].label}</span>
+        {EFFECTS[effect].note}
+      </p>
+      <div role="radiogroup" aria-label={EFFECTS[effect].label} className="grid grid-cols-2 gap-1.5 sm:flex sm:flex-wrap">
+        {codes.map((c) => (
+          <button key={c} type="button" role="radio" aria-checked={code === c} title={REASONS[c].hint} onClick={() => onChange(c)}
+            className={btn(code === c, EFFECTS[effect].tone)}>
+            {REASONS[c].label}
           </button>
-        );
-      })}
+        ))}
+      </div>
+    </div>
+  );
+  const correcting = code === 'CORRECTION';
+  return (
+    <div className="space-y-2.5">
+      {group('LOSS', LOSS_REASONS)}
+      {group('GAIN', GAIN_REASONS)}
+      {(opening || canCorrect) && (
+        <div>
+          <p className="mb-1 flex flex-wrap items-center gap-1.5 text-[0.75rem] font-medium text-slate-600">
+            <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold ring-1', EFFECTS.NONE.tone)}>{EFFECTS.NONE.label}</span>
+            Sirf stock badlega
+          </p>
+          <div className="grid grid-cols-1 gap-1.5 sm:flex sm:flex-wrap">
+            {opening && (
+              <button type="button" role="radio" aria-checked={code === null} onClick={() => onChange(null)} title="Pehla stock ya dukaan me banaya maal"
+                className={btn(code === null, EFFECTS.NONE.tone)}>
+                Opening stock (pehla maal)
+              </button>
+            )}
+            {canCorrect && (
+              <button type="button" role="radio" aria-checked={correcting} onClick={() => onChange('CORRECTION')} title={REASONS.CORRECTION.hint}
+                className={btn(correcting, 'bg-amber-50 text-amber-800 ring-amber-300')}>
+                {REASONS.CORRECTION.label}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      {correcting && (
+        <div className="rounded-xl bg-amber-50 px-3 py-2 ring-1 ring-amber-200">
+          <div role="radiogroup" aria-label="Stock barhana ya kam karna" className="mb-1.5 grid grid-cols-2 gap-1.5 sm:max-w-xs">
+            {(['in', 'out'] as const).map((d) => {
+              const on = d === 'in' ? type === 'ADJUSTMENT_IN' : type !== 'ADJUSTMENT_IN';
+              return (
+                <button key={d} type="button" role="radio" aria-checked={on} onClick={() => onChange('CORRECTION', d)}
+                  className={btn(on, 'bg-slate-900 text-white ring-slate-900')}>
+                  {d === 'in' ? 'Stock barhayein' : 'Stock kam karein'}
+                </button>
+              );
+            })}
+          </div>
+          <p className="flex items-start gap-1.5 text-[0.75rem] text-amber-900"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{CORRECTION_WARNING}</p>
+        </div>
+      )}
+      {code === null && (
+        <p className="text-[0.6875rem] text-slate-500">Dukaan ka pehla stock ya dukaan me banaya maal — stock barhega, Profit me nahi gina jayega. Supplier se khareeda maal Purchase me darj karein.</p>
+      )}
+      {code && !correcting && <p className="text-[0.6875rem] text-slate-500">{REASONS[code].hint} — stock {REASONS[code].effect === 'GAIN' ? 'barhega' : 'kam hoga'}, {EFFECTS[REASONS[code].effect].note.toLowerCase()} (cost par).</p>}
     </div>
   );
 }

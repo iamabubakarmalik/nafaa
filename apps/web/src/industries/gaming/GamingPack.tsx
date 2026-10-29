@@ -42,10 +42,10 @@ export const GamingPack: IndustryPack = {
       order: 20,
       items: [
         { to: '/gaming/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/gaming/cafe', label: 'Cafe Live', icon: Timer, badge: 'LIVE' },
+        { to: '/gaming/cafe', label: 'Cafe live', icon: Timer, badge: 'LIVE' },
         { to: '/gaming/stations', label: 'Stations', icon: Monitor },
         { to: '/gaming/rentals', label: 'Rentals', icon: PackageOpen },
-        { to: '/gaming/topups', label: 'Digital Top-ups', icon: CreditCard },
+        { to: '/gaming/topups', label: 'Digital top-ups', icon: CreditCard },
         { to: '/gaming/tournaments', label: 'Tournaments', icon: Trophy },
       ],
     },

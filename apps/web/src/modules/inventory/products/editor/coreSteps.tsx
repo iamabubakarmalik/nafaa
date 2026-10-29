@@ -100,18 +100,24 @@ const optionalAmount = (text: string): number | null => {
 /** A wholesale or credit price set below cost sells at a loss. */
 const belowCost = (price: number | null | undefined, cost: number) => Number(price) > 0 && cost > 0 && Number(price) < cost;
 
-/** Field label with the margin this price earns over cost. */
-function PriceLabel({ text, price, cost }: { text: string; price: number | null | undefined; cost: number }) {
+/** Margin this price earns over cost, shown under the price box. */
+function MarginPill({ price, cost }: { price: number | null | undefined; cost: number }) {
   const m = marginPct(price, cost);
+  if (m === null) return null;
   return (
-    <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-      {text}
-      {m !== null && (
-        <span className={cn('rounded-full px-1.5 py-px text-[0.6875rem] font-semibold tabular-nums',
-          m < 0 ? 'bg-rose-50 text-rose-700' : m < 10 ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>
-          Margin {m.toFixed(1)}%
-        </span>
-      )}
+    <span className={cn('shrink-0 rounded-full px-1.5 py-px text-[0.6875rem] font-semibold tabular-nums',
+      m < 0 ? 'bg-rose-50 text-rose-700' : m < 10 ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>
+      Margin {m.toFixed(1)}%
+    </span>
+  );
+}
+
+/** Hint line under a price box: the margin pill, then a short note. */
+function PriceHint({ price, cost, children }: { price?: number | null; cost?: number; children: ReactNode }) {
+  return (
+    <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+      {cost !== undefined && <MarginPill price={price} cost={cost} />}
+      <span>{children}</span>
     </span>
   );
 }
@@ -222,13 +228,21 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
       return (
         <div className="space-y-4">
           <Section icon={Wallet} title={`Ek ${c.unit} ki qeemat`} hint="Cost likhein to profit khud nikal aata hai">
-            <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
-              <div className="space-y-4">
-                <div className="grid gap-3 sm:grid-cols-2">
+            {/* The profit card sits beside the prices only when the step is wide enough for both. */}
+            <div className="grid gap-4 min-[1800px]:grid-cols-[1fr_18rem]">
+              <div className="min-w-0 space-y-4">
+                {/* Cost, Retail, Wholesale and Credit as one 2 x 2 grid; labels stay on one line so the boxes line up. */}
+                <div className="grid items-start gap-x-3 gap-y-4 sm:grid-cols-2">
                   <NumberField label={COST_PRICE_LABEL} prefix="Rs" value={c.costPrice} onChange={(v) => ctx.setCore({ costPrice: v ?? 0 })} allowEmpty error={ctx.errors.costPrice}
-                    hint="Ek unit company se kitne ki aati hai — profit isi se banta hai" />
-                  <NumberField label={<PriceLabel text={PRICE_TIER_FIELD.RETAIL} price={c.price} cost={c.costPrice} />} prefix="Rs" required big value={c.price} onChange={(v) => ctx.setCore({ price: v ?? 0 })} onBlur={() => ctx.touch('price')} allowEmpty error={ctx.errors.price}
-                    hint="Aam grahak ko POS par isi rate se bikegi" />
+                    hint="Ek unit company se kitne ki aati hai" />
+                  <NumberField label={PRICE_TIER_FIELD.RETAIL} prefix="Rs" required value={c.price} onChange={(v) => ctx.setCore({ price: v ?? 0 })} onBlur={() => ctx.touch('price')} allowEmpty error={ctx.errors.price}
+                    hint={<PriceHint price={c.price} cost={c.costPrice}>Aam grahak ka rate</PriceHint>} />
+                  <NumberField label={PRICE_TIER_FIELD.WHOLESALE} prefix="Rs" value={c.wholesalePrice} allowEmpty
+                    onChange={(v) => ctx.setCore({ wholesalePrice: v && v > 0 ? v : null })} placeholder={c.price ? String(c.price) : 'Retail'}
+                    hint={<PriceHint price={c.wholesalePrice} cost={c.costPrice}>Dukandar ka rate · khaali ho to Retail</PriceHint>} />
+                  <NumberField label={PRICE_TIER_FIELD.CREDIT} prefix="Rs" value={c.creditPrice} allowEmpty
+                    onChange={(v) => ctx.setCore({ creditPrice: v && v > 0 ? v : null })} placeholder={c.price ? String(c.price) : 'Retail'}
+                    hint={<PriceHint price={c.creditPrice} cost={c.costPrice}>Udhaar ka rate · khaali ho to Retail</PriceHint>} />
                 </div>
                 {c.costPrice > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
@@ -239,14 +253,6 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
                     })}
                   </div>
                 )}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <NumberField label={<PriceLabel text={PRICE_TIER_FIELD.WHOLESALE} price={c.wholesalePrice} cost={c.costPrice} />} prefix="Rs" value={c.wholesalePrice} allowEmpty
-                    onChange={(v) => ctx.setCore({ wholesalePrice: v && v > 0 ? v : null })} placeholder={c.price ? String(c.price) : 'Retail'}
-                    hint="Dukandaron ko is rate par — khaali ho to Retail price lagegi" />
-                  <NumberField label={<PriceLabel text={PRICE_TIER_FIELD.CREDIT} price={c.creditPrice} cost={c.costPrice} />} prefix="Rs" value={c.creditPrice} allowEmpty
-                    onChange={(v) => ctx.setCore({ creditPrice: v && v > 0 ? v : null })} placeholder={c.price ? String(c.price) : 'Retail'}
-                    hint="Udhaar lene wale grahak ko is rate par — khaali ho to Retail price lagegi" />
-                </div>
                 {(belowCost(c.wholesalePrice, c.costPrice) || belowCost(c.creditPrice, c.costPrice)) && (
                   <Alert tone="warning">
                     {[belowCost(c.wholesalePrice, c.costPrice) && 'Wholesale price', belowCost(c.creditPrice, c.costPrice) && 'Credit price'].filter(Boolean).join(' aur ')} Cost ({formatPKR(c.costPrice)}) se kam hai — is rate par har sale par loss hoga.

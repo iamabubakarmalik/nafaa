@@ -35,6 +35,8 @@ import { StockAnalysisService } from '../reports/stock-report/stock-analysis.ser
 import { LoyaltyService } from '../customers/loyalty/loyalty.service';
 import { LowStockService } from '../inventory/low-stock/low-stock.service';
 import { OrderToolsService } from '../../integrations/online-orders/order-tools.service';
+import { ManufacturingService } from '../manufacturing/manufacturing.service';
+import { stripCostFigures } from '../manufacturing/mask-costs';
 import type { AiActionProposal, AiChart, AiLink, AiReorder, AiReorderGroup } from './ai.types';
 import { ACTION_TOOLS } from './ai-action-tools';
 import { hourRange } from './ai-render';
@@ -175,7 +177,7 @@ export const TOOL_SPECS: ToolSpec[] = [
   },
   {
     name: 'profit_summary',
-    description: 'Profit of a period: sale, cost of goods, gross profit and margin, paid expenses, stock written off (damage, loss), net profit, day-by-day rows and the previous period. Use for any profit or margin question.',
+    description: 'Profit of a period: sale, cost of goods, gross profit and margin, profit in hand vs still on khata (udhaar), paid expenses, stock loss and stock gain, other income (incentives, claims, rent), net profit, day-by-day rows and the previous period. Use for any profit or margin question.',
     properties: { ...periodProps },
     needs: [P.PROFIT_REPORT_VIEW, P.COST_VIEW],
     status: 'Profit ka hisaab laga raha hoon…',
@@ -321,6 +323,13 @@ export const TOOL_SPECS: ToolSpec[] = [
     needs: [P.REPORTS_VIEW],
     status: 'Do periods ka muqabla kar raha hoon…',
   },
+  {
+    name: 'production_summary',
+    description: 'Manufacturing (items the shop makes from raw materials): what was made in a period with cost per unit, raw materials used, wastage, how the made items sold, recipes with their cost and margin, how many can be made from current stock, and raw materials running short.',
+    properties: { ...periodProps },
+    needs: [P.MANUFACTURING_VIEW],
+    status: 'Production dekh raha hoon…',
+  },
 ];
 
 /** Tool definitions for the Messages API, in the fixed order above. */
@@ -342,7 +351,7 @@ const PERMISSION_WORDS: Partial<Record<PermissionKey, string>> = {
   [P.LOW_STOCK_VIEW]: 'Low stock', [P.STOCK_MOVEMENTS_VIEW]: 'Stock movements', [P.KHATA_VIEW]: 'Khata',
   [P.EXPENSES_VIEW]: 'Expenses', [P.PURCHASES_VIEW]: 'Purchases', [P.CUSTOMERS_VIEW]: 'Customers',
   [P.LOYALTY_VIEW]: 'Loyalty', [P.STAFF_VIEW]: 'Staff', [P.CASH_REGISTER_VIEW]: 'Cash register',
-  [P.RETURNS_VIEW]: 'Returns', [P.ONLINE_ORDERS_VIEW]: 'Online orders',
+  [P.RETURNS_VIEW]: 'Returns', [P.ONLINE_ORDERS_VIEW]: 'Online orders', [P.MANUFACTURING_VIEW]: 'Manufacturing',
 };
 
 /* ───────────────────────── service ───────────────────────── */
@@ -361,6 +370,7 @@ export class AiToolsService {
     private readonly loyalty: LoyaltyService,
     private readonly lowStock: LowStockService,
     private readonly orders: OrderToolsService,
+    private readonly manufacturing?: ManufacturingService,
   ) {}
 
   /** Builds the per-request context: clock, names and what the user may see. */
@@ -488,6 +498,7 @@ export class AiToolsService {
       case 'courier_cod': return this.courierCod(ctx, a);
       case 'marketplace_summary': return this.marketplace(ctx, a);
       case 'compare_periods': return this.comparePeriods(ctx, a);
+      case 'production_summary': return this.productionSummary(ctx, a);
       default: return Promise.resolve({ data: { error: 'UNKNOWN_TOOL' }, refused: true });
     }
   }
@@ -537,7 +548,12 @@ export class AiToolsService {
       period: p.label,
       totals: {
         sale: t.sales, costOfGoods: t.cost, grossProfit: t.grossProfit, marginPercent: t.margin,
-        expensesPaid: t.expenses, stockWrittenOff: t.damage, netProfit: t.netProfit, netMarginPercent: t.netMargin,
+        expensesPaid: t.expenses, stockLoss: t.stockLoss, stockGain: t.stockGain, stockWrittenOffNet: t.damage,
+        otherIncome: t.otherIncome, netProfit: t.netProfit, netMarginPercent: t.netMargin,
+        // Khata bills: profit counts when the money comes ("paid" basis) or on the bill day ("bill").
+        profitBasis: t.split.basis === 'PAID' ? 'when money is received' : 'on the bill day',
+        profitOnBills: t.billProfit, profitInHand: t.split.realised, profitInHandFromOlderBills: t.split.fromOlderBills,
+        profitStillOnKhata: t.split.pending, profitForgivenOnKhata: t.split.writtenOff,
       },
       previousPeriod: r.previous ? { sale: r.previous.sales, grossProfit: r.previous.grossProfit, netProfit: r.previous.netProfit } : null,
       changePercent: r.previous ? { grossProfit: pct(t.grossProfit, r.previous.grossProfit), netProfit: pct(t.netProfit, r.previous.netProfit) } : null,
@@ -944,6 +960,41 @@ export class AiToolsService {
 
   /* ───────────── comparison ───────────── */
 
+  /* ───────────── manufacturing ───────────── */
+
+  async productionSummary(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    if (!this.manufacturing) return { refused: true, data: { error: 'DATA_ERROR', note: 'Manufacturing is not available.' } };
+    const p = this.resolvePeriod(ctx, a, 'last_30_days');
+    const settings = await this.prisma.tenantSettings.findUnique({ where: { tenantId: ctx.user.tenantId }, select: { manufacturingEnabled: true } });
+    const [report, recipes] = await Promise.all([
+      this.manufacturing.report(ctx.user, ctx.scope, { from: p.from, to: p.to }),
+      this.manufacturing.listRecipes(ctx.user, ctx.scope),
+    ]);
+    const lowRaw = new Map<string, { name: string; unit: string; stock: number; perBatch: number }>();
+    for (const r of recipes.filter((x) => x.isActive)) {
+      for (const l of r.lines) if (l.stock < l.baseQty) lowRaw.set(l.productId, { name: l.name, unit: l.stockUnit, stock: l.stock, perBatch: l.baseQty });
+    }
+    const raw = {
+      period: p.label,
+      switchedOn: !!settings?.manufacturingEnabled,
+      totals: report.totals,
+      made: report.products.slice(0, 12).map((x) => ({ name: x.name, unit: x.unit, quantity: x.quantity, runs: x.runs, cost: x.totalCost, unitCostAvg: x.avgUnitCost, madeAtCounter: x.madeOnSale || undefined })),
+      rawMaterialsUsed: report.materials.slice(0, 12).map((x) => ({ name: x.name, unit: x.unit, quantity: x.quantity, cost: x.totalCost })),
+      madeItemsSold: report.sales.slice(0, 12).map((x) => ({ name: x.name, quantity: x.quantity, revenue: x.revenue, cost: x.cost, profit: x.profit, margin: x.margin })),
+      recipes: recipes.slice(0, 15).map((r) => ({
+        product: r.product.name, unit: r.product.unit, yield: r.yieldQty, unitCost: r.unitCost, price: r.product.price, margin: r.margins.retail,
+        canMakeNow: r.canMake.units, limitedBy: r.canMake.limitedBy, makeOnSale: r.makeOnSale || undefined, active: r.isActive,
+      })),
+      rawMaterialsShort: [...lowRaw.values()].slice(0, 12),
+    };
+    const data = ctx.canProfit ? raw : stripCostFigures(raw);
+    return {
+      data,
+      chart: report.days.length > 1 ? { type: 'bar', title: 'Production', unit: 'qty', series: [{ key: 'q', label: 'Banaya' }], data: report.days.map((d) => ({ label: d.day.slice(5), q: d.quantity })) } : undefined,
+      link: { label: 'Banayein', to: '/manufacturing' },
+    };
+  }
+
   async comparePeriods(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
     const pa = this.resolvePeriod(ctx, a.a, 'this_month');
     const pb = this.resolvePeriod(ctx, a.b, 'last_month');
@@ -958,7 +1009,7 @@ export class AiToolsService {
       netSale: f.sales.net, bills: f.sales.bills, averageBill: f.sales.bills ? r2(f.sales.net / f.sales.bills) : 0,
       cashReceived: f.sales.cashIn, udhaarGiven: f.sales.credit,
       ...(canExp && { expensesPaid: f.expenses }),
-      ...(ctx.canProfit && { grossProfit: f.sales.grossProfit, netProfit: f.netProfit }),
+      ...(ctx.canProfit && { grossProfit: f.grossProfit, profitInHand: f.credit.realised, profitOnKhata: f.credit.pending, otherIncome: f.otherIncome, netProfit: f.netProfit }),
     });
     const A = view(fa);
     const B = view(fb);

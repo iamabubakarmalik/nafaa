@@ -30,6 +30,7 @@ export const MOVE: Record<string, { label: string; tone: string }> = {
   RETURN_IN: { label: 'Return aaya', tone: 'text-sky-700' }, OPENING_BALANCE: { label: 'Shuru ka stock', tone: 'text-slate-700' },
   DAMAGE: { label: 'Kharab', tone: 'text-rose-700' }, LOSS: { label: 'Gum', tone: 'text-rose-700' },
   TRANSFER_IN: { label: 'Branch se aaya', tone: 'text-sky-700' }, TRANSFER_OUT: { label: 'Branch ko gaya', tone: 'text-amber-700' },
+  PRODUCTION_IN: { label: 'Banaya (Production)', tone: 'text-success-700' }, PRODUCTION_OUT: { label: 'Production me laga', tone: 'text-orange-700' },
 };
 const isInward = (type: string) => type.endsWith('_IN') || type === 'OPENING_BALANCE';
 

@@ -23,7 +23,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PaymentMethod, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { netProfit, paidExpenses, saleFigures, writeOffs } from '../../../common/helpers/business-math.helper';
+import { netProfit, paidExpenses, profitParts, saleFigures, writeOffs } from '../../../common/helpers/business-math.helper';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
@@ -555,7 +555,7 @@ export class MoneyService {
     const today: Range = { gte: todayStart, lt: new Date(now.getTime() + 60_000) };
     const math = { tenantId, shopId: shop.shopId };
 
-    const [drawers, stock, receivable, payable, todaySales, monthSales, monthPurchases, monthExpenses, monthOut, monthIn, monthLost] = await Promise.all([
+    const [drawers, stock, receivable, payable, todaySales, monthSales, monthPurchases, monthExpenses, monthOut, monthIn, monthLost, monthParts] = await Promise.all([
       this.drawers(tenantId, shop),
       this.prisma.shopStock.findMany({
         where: { tenantId, ...shop.where, stock: { gt: 0 }, product: { isActive: true } },
@@ -573,6 +573,7 @@ export class MoneyService {
       this.sourceTotals({ tenantId, shop, range: month }, 'SUPPLIER'),
       this.sourceTotals({ tenantId, shop, range: month }, 'KHATA'),
       writeOffs(this.prisma, math, month),
+      profitParts(this.prisma, math, month),
     ]);
 
     let stockCost = 0; let stockRetail = 0; let stockUnits = 0;
@@ -590,7 +591,7 @@ export class MoneyService {
     // Sales net of returns on the bill's own day; profit by business-math.helper.
     const mRevenue = monthSales.net;
     const mExpenses = monthExpenses.amount;
-    const mNet = netProfit(monthSales.grossProfit, mExpenses, monthLost.net);
+    const mNet = netProfit(monthParts.split.headline, mExpenses, monthLost.net, monthParts.otherIncome);
 
     return {
       cashInHand: r2(cashInHand),
@@ -625,7 +626,9 @@ export class MoneyService {
         paid: monthSales.cashIn,
         credit: monthSales.credit,
         cogs: monthSales.cost,
-        grossProfit: monthSales.grossProfit,
+        grossProfit: monthParts.split.headline,
+        split: monthParts.split,
+        otherIncome: monthParts.otherIncome,
         expenses: mExpenses,
         expenseCount: monthExpenses.count,
         netProfit: mNet,

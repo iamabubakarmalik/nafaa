@@ -6,6 +6,7 @@
 
 import { apiClient } from '@core/api/client';
 import type { MoneyAnalytics } from '@modules/finance/money/api/money.api';
+import type { ProfitSplit } from '@modules/reports/ProfitSplit';
 
 export interface PnlScope {
   /** Branch picked on the all-branches view. */
@@ -29,16 +30,24 @@ export interface PnlStatement {
     bills: number; returnCount: number; credit: number; avgBill: number;
   };
   cogs: { saved: number; estimated: number; returned: number; total: number; estimatedLines: number; unknownLines: number; unknownRevenue: number } | null;
+  /** Headline gross profit on the shop's khata basis. */
   grossProfit: number | null;
   grossMargin: number | null;
+  /** Bill profit, in hand and still on khata (null when cost is hidden). */
+  profitSplit?: ProfitSplit | null;
   expenses: {
     paid: number; count: number;
     categories: Array<ExpenseCategoryRef & { amount: number; count: number }>;
     salaries: number; salaryCount: number; commission: number; commissionCount: number;
     total: number;
   };
-  writeOffs: { damage: number; loss: number; countedShort: number; found: number; net: number; count: number } | null;
-  otherIncome: { bookingKept: number; bookingCount: number; total: number };
+  writeOffs: {
+    damage: number; loss: number; countedShort: number; found: number; net: number; count: number;
+    /** Stock nuksan and Stock faida (net = stockLoss − stockGain); corrections count in neither. */
+    stockLoss?: number; stockGain?: number; correction?: number; correctionCount?: number;
+  } | null;
+  /** income: OtherIncome records; bookingKept: advances kept on cancelled bookings. */
+  otherIncome: { income?: number; incomeCount?: number; bookingKept: number; bookingCount: number; total: number };
   operatingProfit: number | null;
   netProfit: number | null;
   netMargin: number | null;
@@ -83,7 +92,7 @@ export interface PnlBranches {
   total: PnlStatement;
 }
 
-export type PnlDetailKind = 'expense' | 'staff' | 'writeoff' | 'booking';
+export type PnlDetailKind = 'expense' | 'staff' | 'writeoff' | 'booking' | 'income' | 'credit';
 
 export interface PnlDetailRow {
   id: string; at: string; title: string; ref: string | null; note: string | null; kind?: string;

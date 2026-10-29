@@ -37,9 +37,10 @@ export function AdjustmentAnalytics({ filters, money }: { filters: Omit<Adjustme
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={ClipboardList} label="Adjustments" value={String(t.count)} sub={`${d.days} din me`} />
-        <Kpi icon={ArrowUpCircle} label="Stock barha" value={money(t.gained)} sub="Cost ke hisaab se" tone="emerald" />
-        <Kpi icon={ArrowDownCircle} label="Stock ghata" value={money(t.lost)} sub="Kam, kharab aur gum" tone="rose" />
-        <Kpi icon={Scale} label="Kul farq" value={`${net >= 0 ? '+' : '−'}${money(Math.abs(net))}`} sub={net < 0 ? 'Is period ka nuqsan' : 'Is period me faida'} tone={net < 0 ? 'rose' : 'emerald'} />
+        <Kpi icon={ArrowUpCircle} label="Stock faida" value={money(t.gained)} sub="Profit mein plus · cost par" tone="emerald" />
+        <Kpi icon={ArrowDownCircle} label="Stock nuksan" value={money(t.lost)} sub="Profit se minus · damage, expiry, chori" tone="rose" />
+        <Kpi icon={Scale} label="Profit par asar" value={`${net >= 0 ? '+' : '−'}${money(Math.abs(net))}`}
+          sub={t.corrected ? `Data correction ${money(t.corrected)} — profit me nahi` : 'Stock faida − Stock nuksan'} tone={net < 0 ? 'rose' : 'emerald'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">

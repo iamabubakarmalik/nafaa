@@ -25,11 +25,13 @@ export interface ReportPrefs {
   defaultPeriod: ReportPeriod;
   compareDefault: 'prev' | 'year' | 'off';
   roundOff: 'paisa' | 'rupee';
+  /** When khata (udhaar) profit is the headline: when the money comes ('paid') or on the bill day ('bill'). */
+  creditProfit: 'paid' | 'bill';
   /** Figures the shop hides from this user (always empty for the owner). */
   hidden: ReportFigure[];
 }
 
-const DEFAULTS: ReportPrefs = { fiscalYearStartMonth: 7, defaultPeriod: 'auto', compareDefault: 'prev', roundOff: 'paisa', hidden: [] };
+const DEFAULTS: ReportPrefs = { fiscalYearStartMonth: 7, defaultPeriod: 'auto', compareDefault: 'prev', roundOff: 'paisa', creditProfit: 'paid', hidden: [] };
 const NO_DATES = { from: '', to: '' };
 
 export const REPORT_PREFS_KEY = 'report-prefs';

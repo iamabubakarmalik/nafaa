@@ -9,10 +9,17 @@
  *   Expenses       paid expenses by category, plus salaries and commission
  *                  paid (can be switched off when they are also booked as
  *                  expenses)
- *   Write-offs     stock adjustments: damaged, lost and counted-short stock at
- *                  cost, less stock found in counts, plus returned goods not
- *                  fit to sell
- *   Other income   booking advances kept on cancelled or expired bookings
+ *   Gross profit   on the shop's khata basis: profit whose money came in
+ *                  ("Haath mein aaya profit", default) or the whole profit of
+ *                  the period's bills; both, with "Udhaar mein profit", are
+ *                  sent (business-math.helper, "Khata profit")
+ *   Write-offs     Stock nuksan (damaged, expired, lost, counted short, used in
+ *                  the shop, returned goods not fit to sell) less Stock faida
+ *                  (counted extra, free or bonus goods), at cost; data
+ *                  corrections count in neither
+ *   Other income   OtherIncome records (incentives, scheme claims, commission,
+ *                  rent, interest) and booking advances kept on cancelled or
+ *                  expired bookings
  *
  * Sales, cost, expense and write-off rules come from business-math.helper,
  * so these figures match the Reports centre and the Profit report. Every
@@ -30,11 +37,18 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { businessDayKey, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import {
-  LINE_COST, LINE_COST_JOINS, LINE_NET, LINE_REFUND, billMathCte, emptyWriteOffs, foldWriteOffs, liveSaleSql, paidExpenseSql,
-  writeOffRows, type WriteOffRow, type WriteOffs,
+  LINE_COST, LINE_COST_JOINS, LINE_NET, LINE_REFUND, billMathCte, emptyCreditProfit, emptyWriteOffs, foldCreditProfit, foldWriteOffs,
+  liveSaleSql, paidExpenseSql, creditProfitRows, otherIncomeRows, profitBasis, profitSplit,
+  writeOffRows, type CreditProfit, type CreditProfitRow, type ProfitBasis, type ProfitSplit, type WriteOffRow, type WriteOffs,
 } from '../../../common/helpers/business-math.helper';
 import { MoneyService } from '../../finance/money/money.service';
 import { PnlDetailDto, PnlMonthlyDto, PnlQueryDto, PnlScopeDto } from './dto/pnl-query.dto';
+
+/** Labels of the fixed other-income categories (as on the Income page). */
+const INCOME_LABELS: Record<string, string> = {
+  COMPANY_INCENTIVE: 'Company incentive', SCHEME_CLAIM: 'Scheme claim', COMMISSION: 'Commission',
+  RENT: 'Kiraya mila', INTEREST: 'Bank profit / interest', OTHER: 'Doosri',
+};
 
 /** Note prefix of commission payouts written by payroll; that money is counted in the salary. */
 const PAID_WITH_SALARY = 'Tankhwah PAY-';
@@ -50,6 +64,7 @@ interface Ctx {
   h: number;
   staff: boolean;
   costVisible: boolean;
+  basis: ProfitBasis;
 }
 
 const DAY = 86_400_000;
@@ -71,6 +86,9 @@ interface Figures {
   salaries: number; salaryCount: number; commission: number; commissionCount: number;
   writeOffs: WriteOffs;
   booking: number; bookingCount: number;
+  income: number; incomeCount: number;
+  /** Khata profit split of the bucket. */
+  khata: CreditProfit;
 }
 
 const blank = (): Figures => ({
@@ -81,6 +99,8 @@ const blank = (): Figures => ({
   salaries: 0, salaryCount: 0, commission: 0, commissionCount: 0,
   writeOffs: emptyWriteOffs(),
   booking: 0, bookingCount: 0,
+  income: 0, incomeCount: 0,
+  khata: emptyCreditProfit(),
 });
 
 export interface ExpenseCategoryRef { id: string; name: string; color: string }
@@ -93,8 +113,11 @@ export interface PnlStatement {
   };
   /** Null when the user may not see cost. */
   cogs: { saved: number; estimated: number; returned: number; total: number; estimatedLines: number; unknownLines: number; unknownRevenue: number } | null;
+  /** Headline gross profit on the shop's khata basis. */
   grossProfit: number | null;
   grossMargin: number | null;
+  /** Khata profit: bill profit, in hand, still on khata. Null when the user may not see cost. */
+  profitSplit: ProfitSplit | null;
   expenses: {
     paid: number; count: number;
     categories: Array<ExpenseCategoryRef & { amount: number; count: number }>;
@@ -102,8 +125,12 @@ export interface PnlStatement {
     /** Paid expenses plus staff pay when included. */
     total: number;
   };
-  writeOffs: { damage: number; loss: number; countedShort: number; found: number; net: number; count: number } | null;
-  otherIncome: { bookingKept: number; bookingCount: number; total: number };
+  writeOffs: {
+    damage: number; loss: number; countedShort: number; found: number; net: number; count: number;
+    /** Stock nuksan and Stock faida; net = stockLoss − stockGain. */
+    stockLoss: number; stockGain: number; correction: number; correctionCount: number;
+  } | null;
+  otherIncome: { income: number; incomeCount: number; bookingKept: number; bookingCount: number; total: number };
   operatingProfit: number | null;
   netProfit: number | null;
   netMargin: number | null;
@@ -139,6 +166,7 @@ export class PnlService {
       tenantId, shopId, branch, tz, h: dayStartHour,
       staff: q.staff !== 'false',
       costVisible: hasPermission(user.role, user.permissions, PERMISSIONS.COST_VIEW),
+      basis: await profitBasis(this.prisma, tenantId),
     };
   }
 
@@ -292,16 +320,28 @@ export class PnlService {
       GROUP BY 1`);
   }
 
+  /** Khata profit parts by the shared rule. */
+  private creditRows(c: Ctx, r: Range, b: Bucket): Promise<CreditProfitRow[]> {
+    return creditProfitRows(this.prisma, { tenantId: c.tenantId, shopId: c.shopId }, r, { key: (at, shop) => this.key(c, b, at, shop) });
+  }
+
+  /** Other income by the shared rule. */
+  private incomeRows(c: Ctx, r: Range, b: Bucket) {
+    return otherIncomeRows(this.prisma, { tenantId: c.tenantId, shopId: c.shopId }, r, { key: (at, shop) => this.key(c, b, at, shop) });
+  }
+
   /** Every figure of the period, grouped by the bucket. */
   private async collect(c: Ctx, r: Range, b: Bucket): Promise<Map<string, Figures>> {
     const none = Promise.resolve([] as Array<{ k: string; amount: number; n: number }>);
-    const [sales, expenses, salaries, commission, writeOffs, bookings] = await Promise.all([
+    const [sales, expenses, salaries, commission, writeOffs, bookings, credit, income] = await Promise.all([
       this.salesRows(c, r, b),
       b === 'channel' ? Promise.resolve([]) : this.expenseRows(c, r, b),
       c.staff && b !== 'channel' ? this.salaryRows(c, r, b) : none,
       c.staff && b !== 'channel' ? this.commissionRows(c, r, b) : none,
       b === 'channel' ? Promise.resolve([] as WriteOffRow[]) : this.writeOffRows(c, r, b),
       b === 'channel' ? none : this.bookingRows(c, r, b),
+      b === 'channel' ? Promise.resolve([] as CreditProfitRow[]) : this.creditRows(c, r, b),
+      b === 'channel' ? Promise.resolve([] as Array<{ k: string; amount: number; count: number }>) : this.incomeRows(c, r, b),
     ]);
     const out = new Map<string, Figures>();
     const get = (k: string) => {
@@ -323,6 +363,10 @@ export class PnlService {
     for (const x of writeOffs) lossBy.set(x.k, [...(lossBy.get(x.k) ?? []), x]);
     for (const [k, rows] of lossBy) get(k).writeOffs = foldWriteOffs(rows);
     for (const x of bookings) { const f = get(x.k); f.booking = n(x.amount); f.bookingCount = n(x.n); }
+    for (const x of income) { const f = get(x.k); f.income = n(x.amount); f.incomeCount = n(x.count); }
+    const creditBy = new Map<string, CreditProfitRow[]>();
+    for (const x of credit) creditBy.set(x.k, [...(creditBy.get(x.k) ?? []), x]);
+    for (const [k, rows] of creditBy) get(k).khata = foldCreditProfit(rows);
     return out;
   }
 
@@ -342,13 +386,16 @@ export class PnlService {
   private statement(c: Ctx, f: Figures, cats: Map<string, ExpenseCategoryRef>): PnlStatement {
     const net = f.sales - f.returns;
     const cogs = f.cost + f.est - f.returnCost;
-    const gross = net - cogs;
+    // The bill-basis profit of the period's bills; the khata split may hold a few
+    // paisa of rounding, so the bill figure always comes from the bills themselves.
+    const split = profitSplit({ ...f.khata, billProfit: r2(net - cogs) }, c.basis);
+    const gross = split.headline;
     const paid = [...f.expenses.values()].reduce((s, x) => s + x.amount, 0);
     const count = [...f.expenses.values()].reduce((s, x) => s + x.count, 0);
     const opex = paid + f.salaries + f.commission;
     const w = f.writeOffs;
     const writeOff = w.net;
-    const other = f.booking;
+    const other = f.booking + f.income;
     const netProfit = gross - opex - writeOff + other;
     const show = c.costVisible;
 
@@ -365,6 +412,7 @@ export class PnlService {
       } : null,
       grossProfit: show ? r2(gross) : null,
       grossMargin: show ? pct(gross, net) : null,
+      profitSplit: show ? split : null,
       expenses: {
         paid: r2(paid), count,
         categories: [...f.expenses.entries()]
@@ -375,8 +423,9 @@ export class PnlService {
       },
       writeOffs: show ? {
         damage: w.damage, loss: w.loss, countedShort: w.countedShort, found: w.found, net: w.net, count: w.count,
+        stockLoss: w.lossTotal, stockGain: w.gain, correction: w.correction, correctionCount: w.correctionCount,
       } : null,
-      otherIncome: { bookingKept: r2(other), bookingCount: f.bookingCount, total: r2(other) },
+      otherIncome: { income: r2(f.income), incomeCount: f.incomeCount, bookingKept: r2(f.booking), bookingCount: f.bookingCount, total: r2(other) },
       operatingProfit: show ? r2(gross - opex) : null,
       netProfit: show ? r2(netProfit) : null,
       netMargin: show ? pct(netProfit, net) : null,
@@ -581,9 +630,13 @@ export class PnlService {
         if (!c.costVisible) throw new ForbiddenException('Cost dekhne ki permission nahi');
         const [adjustments, returned] = await Promise.all([
           this.prisma.stockAdjustment.findMany({
-            where: { tenantId: c.tenantId, type: { in: ['DAMAGE', 'LOSS', 'ADJUSTMENT_OUT', 'ADJUSTMENT_IN'] }, createdAt: r, ...shop },
+            where: {
+              tenantId: c.tenantId, type: { in: ['DAMAGE', 'LOSS', 'ADJUSTMENT_OUT', 'ADJUSTMENT_IN'] }, createdAt: r, ...shop,
+              // Data corrections move stock only; they are not in the write-off line.
+              OR: [{ profitEffect: null }, { profitEffect: { not: 'NONE' } }],
+            },
             select: {
-              id: true, createdAt: true, type: true, quantity: true, value: true, reason: true, note: true, groupRef: true, productId: true,
+              id: true, createdAt: true, type: true, quantity: true, value: true, reason: true, note: true, groupRef: true, productId: true, profitEffect: true,
               product: { select: { name: true, unit: true } }, shop: { select: { name: true } }, createdBy: { select: { fullName: true } },
             },
             orderBy: { createdAt: 'desc' }, take: DETAIL_LIMIT + 1,
@@ -602,19 +655,58 @@ export class PnlService {
             ORDER BY m."createdAt" DESC
             LIMIT ${DETAIL_LIMIT + 1}`),
         ]);
-        const label: Record<string, string> = { DAMAGE: 'Kharab', LOSS: 'Gum / chori', ADJUSTMENT_OUT: 'Ginti me kam', ADJUSTMENT_IN: 'Ginti me zyada' };
+        const label: Record<string, string> = { DAMAGE: 'Kharab', LOSS: 'Gum / chori', ADJUSTMENT_OUT: 'Ginti me kam', ADJUSTMENT_IN: 'Stock faida' };
+        // A gain lowers the write-off: shown negative, like business-math.helper counts it.
+        const gain = (m: { type: string; profitEffect: string | null }) => (m.profitEffect ? m.profitEffect === 'GAIN' : m.type === 'ADJUSTMENT_IN');
         rows = [
           ...adjustments.map((m) => ({
             id: m.id, at: m.createdAt, title: `${m.product.name} × ${Math.abs(m.quantity)} ${m.product.unit}`, ref: m.groupRef,
             note: [m.reason, m.note].filter(Boolean).join(' — ') || null,
-            kind: label[m.type] ?? m.type, branch: m.shop?.name ?? null, by: m.createdBy?.fullName ?? null,
-            amount: r2(m.type === 'ADJUSTMENT_IN' ? -m.value : m.value), link: `/products/${m.productId}`,
+            kind: gain(m) ? 'Stock faida' : label[m.type] ?? m.type, branch: m.shop?.name ?? null, by: m.createdBy?.fullName ?? null,
+            amount: r2(gain(m) ? -m.value : m.value), link: `/products/${m.productId}`,
           })),
           ...returned.map((m) => ({
             id: m.id, at: m.at, title: `${m.product} × ${m.qty} ${m.unit}`, ref: m.ref, note: m.note,
             kind: 'Wapsi par kharab', branch: m.branch, by: null, amount: r2(n(m.value)), link: `/products/${m.productId}`,
           })),
         ].sort((a, b) => b.at.getTime() - a.at.getTime());
+        break;
+      }
+      case 'income': {
+        const list = await this.prisma.otherIncome.findMany({
+          where: { tenantId: c.tenantId, incomeDate: r, ...shop },
+          select: {
+            id: true, incomeDate: true, title: true, incomeNumber: true, note: true, amount: true, category: true,
+            customCategory: { select: { name: true } }, supplier: { select: { name: true } }, shop: { select: { name: true } }, createdBy: { select: { fullName: true } },
+          },
+          orderBy: { incomeDate: 'desc' }, take: DETAIL_LIMIT + 1,
+        });
+        rows = list.map((x) => ({
+          id: x.id, at: x.incomeDate, title: x.supplier ? `${x.title} — ${x.supplier.name}` : x.title, ref: x.incomeNumber, note: x.note,
+          kind: x.customCategory?.name ?? INCOME_LABELS[x.category] ?? x.category, branch: x.shop?.name ?? null, by: x.createdBy?.fullName ?? null,
+          amount: r2(x.amount), link: '/income',
+        }));
+        break;
+      }
+      case 'credit': {
+        // Khata bills of the period with what is still owed on them.
+        if (!c.costVisible) throw new ForbiddenException('Cost dekhne ki permission nahi');
+        const list = await this.prisma.$queryRaw<Array<{ id: string; at: Date; number: string; customer: string | null; branch: string | null; net: number; settled: number }>>(Prisma.sql`
+          SELECT s.id, s."soldAt" AS at, s."saleNumber" AS number, cu.name AS customer, sh.name AS branch,
+            (s.total - s."refundedAmount")::float8 AS net,
+            COALESCE((SELECT SUM(z.amount) FROM "SaleSettlement" z WHERE z."saleId" = s.id AND z."settledAt" < ${r.lt}), 0)::float8 AS settled
+          FROM "Sale" s
+          LEFT JOIN "Customer" cu ON cu.id = s."customerId"
+          LEFT JOIN "Shop" sh ON sh.id = s."shopId"
+          WHERE s."tenantId" = ${c.tenantId} AND s.status::text <> 'VOIDED' AND s."soldAt" >= ${r.gte} AND s."soldAt" < ${r.lt}
+            ${this.shopSql(c, col('s."shopId"'))}
+            AND EXISTS (SELECT 1 FROM "SaleSettlement" t WHERE t."saleId" = s.id)
+          ORDER BY s."soldAt" DESC
+          LIMIT ${DETAIL_LIMIT + 1}`);
+        rows = list.filter((b) => n(b.net) - n(b.settled) > 0.5).map((b) => ({
+          id: b.id, at: b.at, title: b.customer ?? 'Customer', ref: b.number, note: `Bill ${r2(n(b.net))} · baqi ${r2(n(b.net) - n(b.settled))}`,
+          kind: 'Udhaar baqi', branch: b.branch, by: null, amount: r2(n(b.net) - n(b.settled)), link: `/sales/${b.id}`,
+        }));
         break;
       }
       case 'booking': {

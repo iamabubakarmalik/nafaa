@@ -7,7 +7,7 @@ import {
 } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { computeLiveCash } from '../../common/helpers/live-cash.helper';
-import { LIVE_BILL, netProfit, saleFigures, writeOffs } from '../../common/helpers/business-math.helper';
+import { LIVE_BILL, netProfit, profitParts, saleFigures, writeOffs } from '../../common/helpers/business-math.helper';
 
 /* ═════════════════════════════════════════════════════════════
    BUSINESS PULSE — har dukaan ke wohi sawal
@@ -274,14 +274,19 @@ export class BusinessPulseService {
     const stockAtRetail = inventory.reduce((sum, p) => sum + p.price * p.stock, 0);
     const stockUnits = inventory.reduce((sum, p) => sum + p.stock, 0);
 
-    // Sales net of returns on the bill's own day; profit by business-math.helper.
+    // Sales net of returns on the bill's own day; profit by business-math.helper,
+    // headline gross profit on the shop's khata basis, plus other income.
     const expToday = expensesToday._sum.amount ?? 0;
+    const [partsToday, partsMonth] = await Promise.all([
+      profitParts(this.prisma, math, { gte: todayStart }),
+      profitParts(this.prisma, math, { gte: monthStart }),
+    ]);
 
     const revMonth = salesMonth.net;
     const cogsMonth = salesMonth.cost;
     const expMonth = expensesMonth._sum.amount ?? 0;
-    const grossMonth = salesMonth.grossProfit;
-    const netMonth = netProfit(grossMonth, expMonth, lostMonth.net);
+    const grossMonth = partsMonth.split.headline;
+    const netMonth = netProfit(grossMonth, expMonth, lostMonth.net, partsMonth.otherIncome);
 
     const dead = deadStock[0] ?? { value: 0, count: 0 };
 
@@ -290,8 +295,12 @@ export class BusinessPulseService {
       generatedAt: now.toISOString(),
 
       profit: {
-        todayGross: salesToday.grossProfit,
-        todayNet: netProfit(salesToday.grossProfit, expToday, lostToday.net),
+        todayGross: partsToday.split.headline,
+        todayNet: netProfit(partsToday.split.headline, expToday, lostToday.net, partsToday.otherIncome),
+        todaySplit: partsToday.split,
+        monthSplit: partsMonth.split,
+        todayOtherIncome: partsToday.otherIncome,
+        monthOtherIncome: partsMonth.otherIncome,
         monthGross: grossMonth,
         monthNet: netMonth,
         monthMarginPct: revMonth > 0 ? (netMonth / revMonth) * 100 : 0,

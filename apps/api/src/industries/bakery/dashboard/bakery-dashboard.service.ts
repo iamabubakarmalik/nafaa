@@ -10,7 +10,7 @@ import {
   startOfBusinessMonthTz,
   tzParts
 } from '../../../common/helpers/business-time.helper';
-import { saleFigures } from '../../../common/helpers/business-math.helper';
+import { profitParts, saleFigures } from '../../../common/helpers/business-math.helper';
 
 /** Counter par bikne wali sales — draft/cancel nahi. */
 const SOLD_STATUSES = ['COMPLETED', 'PARTIALLY_RETURNED'] as const;
@@ -217,6 +217,13 @@ export class BakeryDashboardService {
       _count: { _all: true },
     });
 
+    // Headline profit on the shop's khata basis, with the in-hand / udhaar split (business-math.helper).
+    const [partsToday, partsWeek, partsMonth] = await Promise.all([
+      profitParts(this.prisma, math, { gte: todayStart }),
+      profitParts(this.prisma, math, { gte: weekAgo }),
+      profitParts(this.prisma, math, { gte: monthStart }),
+    ]);
+
     const revToday = counterToday.net;
     const revYesterday = counterYesterday.net;
     const revMonth = counterMonth.net;
@@ -230,7 +237,8 @@ export class BakeryDashboardService {
       counter: {
         today: revToday,
         todayOrders: counterToday.bills,
-        todayProfit: counterToday.grossProfit,
+        todayProfit: partsToday.split.headline,
+        todaySplit: partsToday.split,
         yesterday: revYesterday,
         yesterdayOrders: counterYesterday.bills,
         growthPercent:
@@ -238,10 +246,12 @@ export class BakeryDashboardService {
             ? ((revToday - revYesterday) / revYesterday) * 100
             : revToday > 0 ? 100 : 0,
         week: counterWeek.net,
-        weekProfit: counterWeek.grossProfit,
+        weekProfit: partsWeek.split.headline,
         month: revMonth,
         monthOrders: counterMonth.bills,
-        monthProfit: counterMonth.grossProfit,
+        monthProfit: partsMonth.split.headline,
+        monthSplit: partsMonth.split,
+        monthOtherIncome: partsMonth.otherIncome,
         topProducts: topCounterProducts.map((t) => ({
           productId: t.productId,
           product: t.productId ? counterProductMap.get(t.productId) : undefined,

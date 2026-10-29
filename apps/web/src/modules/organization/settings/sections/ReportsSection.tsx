@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Bell, CalendarDays, Clock, Copy, Eye, Landmark, ListChecks, Lock, Mail, MessageCircle, Send, ShieldCheck, Smartphone, Sunrise, Users, Vault,
+  Bell, CalendarDays, Clock, Copy, Eye, HandCoins, Landmark, ListChecks, Lock, Mail, MessageCircle, Send, ShieldCheck, Smartphone, Sunrise, Users, Vault,
 } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -75,6 +75,10 @@ const PARTS: Array<{ id: SummaryPart; label: string }> = [
   { id: 'branches', label: 'Branch war sale' },
   { id: 'trend', label: 'Is hafte / is mahine' },
 ];
+const CREDIT_PROFIT = [
+  { value: 'paid', label: 'Paisa milne par (recommended)', desc: 'Udhaar bill ka profit tab ginein jab customer paisa de' },
+  { value: 'bill', label: 'Bill bante hi', desc: 'Udhaar bill ka poora profit bill ke din hi gin lein' },
+];
 const QUICK_TIMES = ['20:00', '21:00', '22:00', '23:00'];
 const ROLE_LABEL: Record<string, string> = { OWNER: 'Malik', MANAGER: 'Manager', CASHIER: 'Cashier', STAFF: 'Staff' };
 
@@ -128,10 +132,12 @@ function useReportSettings() {
       const msg = e?.response?.data?.message;
       toast.error(Array.isArray(msg) ? msg[0] : msg || 'Save nahi hua');
     },
-    onSuccess: (next) => {
+    onSuccess: (next, patch) => {
       qc.setQueryData(['reports-config'], next);
       qc.invalidateQueries({ queryKey: [REPORT_PREFS_KEY] });
       qc.invalidateQueries({ queryKey: ['daily-summary'] });
+      // The khata profit basis changes the headline profit on every screen.
+      if (patch.creditProfit) qc.invalidateQueries();
     },
   });
   return { config: query.data, loading: query.isLoading, save: (patch: ReportsConfigPatch) => save.mutate(patch), saving: save.isPending };
@@ -213,6 +219,21 @@ export function ReportsSection({ settings }: { settings: TenantSettings }) {
             <Field label="Amount kaise dikhe" hint="Sirf reports aur rozana report me dikhane ka tareeqa. Hisaab aur bill paise tak hi rehte hain.">
               <ChoiceGroup value={cfg.roundOff} onChange={(v) => rc.save({ roundOff: v })} columns={2} options={ROUNDS} />
             </Field>
+          </>
+        )}
+      </SectionCard>
+
+      <SectionCard id="credit-profit" title="Udhaar ka profit kab ginein" desc="Khate (udhaar) par bike maal ka profit headline me kab aaye" icon={HandCoins} color="emerald">
+        {!cfg ? <ConfigSkeleton /> : (
+          <>
+            <Field label="Headline profit" hint="Dashboard, din ka hisaab, reports, Profit-loss, rozana report aur Nafaa AI sab isi ko maante hain.">
+              <ChoiceGroup value={cfg.creditProfit ?? 'paid'} onChange={(v) => rc.save({ creditProfit: v as 'paid' | 'bill' })} columns={2} options={CREDIT_PROFIT} />
+            </Field>
+            <Alert className="mt-3" tone="info" icon={<HandCoins className="h-4 w-4" />}>
+              Dono figures hamesha saath dikhte hain: <b>Haath mein aaya profit</b> (jis ka paisa aa gaya) aur <b>Udhaar mein profit</b> (jo abhi aana hai).
+              Kuch chhupta nahi — bill ka profit = haath mein + udhaar mein. Cash ya online wala hissa bill ke din hi ginta hai; khate wala hissa
+              customer ke paisa dene par, purane khate se shuru ho kar tareekh ke hisaab se.
+            </Alert>
           </>
         )}
       </SectionCard>

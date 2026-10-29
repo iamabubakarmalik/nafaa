@@ -23,7 +23,7 @@ export interface FilterOption<T extends string> {
 }
 
 export function FilterMenu<T extends string>({
-  icon: Icon, label, value, options, onChange, active, align = 'left', footer, width = 'w-64',
+  icon: Icon, label, value, options, onChange, active, align = 'left', footer, width = 'w-64', valueLabel,
 }: {
   icon: LucideIcon;
   label: string;
@@ -36,6 +36,8 @@ export function FilterMenu<T extends string>({
   /** Extra content under the options, e.g. custom date inputs. */
   footer?: (close: () => void) => ReactNode;
   width?: string;
+  /** Text on the button instead of the chosen option's label, e.g. a count for a multi-pick menu. */
+  valueLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [side, setSide] = useState<'left' | 'right'>(align);
@@ -107,8 +109,9 @@ export function FilterMenu<T extends string>({
           active ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200' : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/70',
           open && 'ring-2 ring-brand-500')}>
         <Icon className={cn('h-4 w-4 shrink-0', active ? 'text-brand-600' : 'text-slate-500')} />
-        <span className="hidden text-slate-500 sm:inline">{label}</span>
-        <span className="max-w-[9rem] truncate font-semibold">{current?.label ?? '—'}</span>
+        {/* On phones an unset filter shows its name ("Brand"), a set one its value; wider screens show both. */}
+        <span className={cn('text-slate-500', active ? 'hidden sm:inline' : 'max-sm:font-semibold max-sm:text-inherit')}>{label}</span>
+        <span className={cn('max-w-[10rem] truncate font-semibold', !active && 'max-sm:hidden')}>{valueLabel ?? current?.label ?? '—'}</span>
         <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition', open && 'rotate-180')} />
       </button>
       {open && !sheet && (

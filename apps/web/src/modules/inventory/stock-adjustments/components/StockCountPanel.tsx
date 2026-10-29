@@ -2,22 +2,26 @@
  * Physical stock count: add products by search, scan or a whole category,
  * type what is on the shelf, and see the system figure, the difference and
  * its value live. A summary is confirmed before saving; the server books
- * each difference in or out and returns what was gained and lost.
+ * each difference in or out and returns what was gained and lost. Counted
+ * extra is Stock faida and counted short Stock nuksan, at cost; a count
+ * marked as a data correction moves stock without touching profit.
  */
 
 import { useMemo, useState } from 'react';
 import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CheckCircle2, ClipboardCheck, FolderOpen, Info, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardCheck, FolderOpen, Info, Trash2 } from 'lucide-react';
 import { Button, FilterMenu, Modal, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useIsAllShops, useShopParam } from '@core/stores/auth.store';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { usePurchaseSources, type Source } from '@modules/purchasing/purchases/editor/sources';
 import { stockAdjustmentsApi, type AdjustmentOptions, type StockCountResult } from '../api/stock-adjustments.api';
 import { BranchPicker } from './BranchPicker';
 import { ProductSearch } from './ProductSearch';
-import { ADJ_KEY, STOCK_KEYS, qtyText } from './meta';
+import { ADJ_KEY, CORRECTION_WARNING, EFFECTS, REASONS, STOCK_KEYS, qtyText } from './meta';
 
 /** One countable row: a product, or one variant of it. */
 interface Row { key: string; productId: string; variantId?: string; name: string; unit: string; system: number; cost: number }
@@ -46,6 +50,8 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
   const [picked, setPicked] = useState<Source[]>([]);
   const [counted, setCounted] = useState<Record<string, string>>({});
   const [note, setNote] = useState('');
+  const canCorrect = usePermission(PERMISSIONS.STOCK_ADJUSTMENTS_CORRECT);
+  const [correction, setCorrection] = useState(false);
   const [step, setStep] = useState<'count' | 'confirm'>('count');
   const [result, setResult] = useState<StockCountResult | null>(null);
 
@@ -81,7 +87,7 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
 
   const save = useMutation({
     mutationFn: () => stockAdjustmentsApi.count({
-      shopId, note: note.trim() || undefined,
+      shopId, note: note.trim() || undefined, ...(correction && canCorrect && { correction: true }),
       items: entered.map((r) => ({ productId: r.productId, variantId: r.variantId, counted: Number(counted[r.key]) })),
     }),
     onSuccess: (r) => {
@@ -110,19 +116,36 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
           <p className="mt-2 text-lg font-bold text-slate-900">Ginti save ho gayi</p>
           <p className="text-[0.8125rem] text-slate-500">Ref {result.groupRef} · {result.checked} cheezein gini · {result.changed} me farq tha</p>
           <div className="mx-auto mt-4 grid max-w-lg grid-cols-3 gap-2">
-            <Tile label="Zyada nikla" value={`+${money(result.gained)}`} tone="text-emerald-700" />
-            <Tile label="Kam nikla" value={`−${money(result.lost)}`} tone="text-rose-700" />
-            <Tile label="Kul farq" value={`${result.net >= 0 ? '+' : '−'}${money(Math.abs(result.net))}`} tone={result.net >= 0 ? 'text-emerald-700' : 'text-rose-700'} />
+            <Tile label={result.correction ? 'Zyada nikla' : 'Stock faida'} value={`+${money(result.gained)}`} tone="text-emerald-700" />
+            <Tile label={result.correction ? 'Kam nikla' : 'Stock nuksan'} value={`−${money(result.lost)}`} tone="text-rose-700" />
+            <Tile label={result.correction ? 'Kul farq' : 'Profit par asar'} value={`${result.net >= 0 ? '+' : '−'}${money(Math.abs(result.net))}`} tone={result.net >= 0 ? 'text-emerald-700' : 'text-rose-700'} />
           </div>
+          <p className="mt-3 text-[0.75rem] text-slate-500">
+            {result.correction ? 'Data correction — stock theek hua, Profit par asar nahi.' : 'Zyada nikla maal Stock faida (Profit mein plus), kam nikla Stock nuksan (Profit se minus) — cost par.'}
+          </p>
         </div>
       ) : step === 'confirm' ? (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <Tile label="Gini" value={String(entered.length)} />
             <Tile label="Farq wali" value={String(changed.length)} />
-            <Tile label="Zyada nikla" value={`+${money(gained)}`} tone="text-emerald-700" />
-            <Tile label="Kam nikla" value={`−${money(lost)}`} tone="text-rose-700" />
+            <Tile label={correction ? 'Zyada nikla' : EFFECTS.GAIN.label} value={`+${money(gained)}`} tone="text-emerald-700" />
+            <Tile label={correction ? 'Kam nikla' : EFFECTS.LOSS.label} value={`−${money(lost)}`} tone="text-rose-700" />
           </div>
+          <p className="-mt-2 text-[0.75rem] text-slate-500">
+            {correction
+              ? 'Data correction: stock ginti ke barabar ho jayega, Profit par asar nahi.'
+              : `Zyada nikla = ${EFFECTS.GAIN.label} (${EFFECTS.GAIN.note.toLowerCase()}), kam nikla = ${EFFECTS.LOSS.label} (${EFFECTS.LOSS.note.toLowerCase()}) — cost par. Profit par asar ${gained - lost >= 0 ? '+' : '−'}${money(Math.abs(gained - lost))}.`}
+          </p>
+          {canCorrect && changed.length > 0 && (
+            <label className={cn('flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2.5 ring-1', correction ? 'bg-amber-50 ring-amber-300' : 'bg-white ring-slate-200')}>
+              <input type="checkbox" checked={correction} onChange={(e) => setCorrection(e.target.checked)} className="mt-0.5 h-4 w-4 accent-amber-600" />
+              <span>
+                <span className="block text-[0.8125rem] font-semibold text-slate-900">{REASONS.CORRECTION.label}</span>
+                <span className="mt-0.5 flex items-start gap-1.5 text-[0.75rem] text-amber-900"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{CORRECTION_WARNING}</span>
+              </span>
+            </label>
+          )}
           {!changed.length ? (
             <p className="rounded-xl bg-emerald-50 px-3 py-2 text-[0.8125rem] text-emerald-800 ring-1 ring-emerald-200">Har cheez system ke barabar hai — save karne se sirf ginti ka record banega, stock nahi badlega.</p>
           ) : (
@@ -207,8 +230,8 @@ export function StockCountPanel({ onClose }: { onClose: () => void }) {
           {entered.length > 0 && (
             <div className="flex flex-wrap gap-x-6 gap-y-1 rounded-2xl bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200">
               <span className="text-slate-500">{entered.length} gini · {changed.length} me farq</span>
-              <span>Zyada <b className="tabular-nums text-emerald-700">+{money(gained)}</b></span>
-              <span>Kam <b className="tabular-nums text-rose-700">−{money(lost)}</b></span>
+              <span>{EFFECTS.GAIN.label} <b className="tabular-nums text-emerald-700">+{money(gained)}</b></span>
+              <span>{EFFECTS.LOSS.label} <b className="tabular-nums text-rose-700">−{money(lost)}</b></span>
             </div>
           )}
         </div>

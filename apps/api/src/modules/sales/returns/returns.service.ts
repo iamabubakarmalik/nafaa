@@ -14,6 +14,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { refreshSettlements } from '../../../common/helpers/sale-settlement.helper';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, applyStockDelta, assertShopAccess, isServiceProduct, returnSaleBatches } from '../../../common/shop-scope';
 import { CreateReturnDto } from './dto/create-return.dto';
@@ -611,6 +612,8 @@ export class ReturnsService {
 
     void this.fbr.submitCreditNote(tenantId, result.id).catch(() => undefined);
     for (const fn of this.returnListeners) void fn(tenantId, sale.id).catch(() => undefined);
+    // The bill's net changed: its khata settlement (and profit share) follows.
+    if (sale.creditAmount > 0) refreshSettlements(this.prisma, tenantId, sale.customerId);
     return result;
   }
 

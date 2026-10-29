@@ -72,7 +72,7 @@ export const MobilePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Mobile Extras',
+      label: 'Mobile extras',
       icon: Smartphone,
       emoji: '📱',
       color: '#2563eb',
@@ -81,7 +81,7 @@ export const MobilePack: IndustryPack = {
         { to: '/imei-inventory', label: 'IMEI stock', icon: Smartphone, permission: IMEI_VIEW },
         { to: '/used-phones', label: 'Used phones', icon: RefreshCw, permission: IMEI_VIEW },
         { to: '/repair-tickets', label: 'Repairs', icon: Wrench, permission: REPAIRS_VIEW },
-        { to: '/emi-plans', label: 'Qist plans', icon: CreditCard, permission: KHATA_VIEW },
+        { to: '/emi-plans', label: 'Instalment plans', icon: CreditCard, permission: KHATA_VIEW },
       ],
     },
   ],

@@ -50,6 +50,8 @@ export interface TenantSettings {
   printCopiesCount: number;
   defaultPaymentMethod: string;
   allowNegativeStock: boolean;
+  /** Manufacturing (recipes and production) switched on. */
+  manufacturingEnabled?: boolean;
   confirmBeforeCheckout: boolean;
   requireCustomerForSale: boolean;
   allowDiscount: boolean;
@@ -119,6 +121,8 @@ export type CounterRules = Pick<TenantSettings,
   | 'serviceChargePct' | 'exchangeDays'> & {
     /** POS counter layout and parts shown; older servers leave it out. */
     posCounter?: Partial<PosCounterConfig>;
+    /** Manufacturing switched on (Settings → Inventory). */
+    manufacturingEnabled?: boolean;
   };
 
 export const settingsApi = {

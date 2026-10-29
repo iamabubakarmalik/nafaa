@@ -73,7 +73,14 @@ export function MorningSummaryWidget() {
                 </span>
               }
             />
-            {f.grossProfit != null && <Tile label="Profit" value={cost(f.grossProfit)} hint={f.netProfit != null ? `Expenses ke baad ${cost(f.netProfit)}` : undefined} tone={f.grossProfit < 0 ? 'bad' : undefined} />}
+            {f.grossProfit != null && (
+              <Tile label="Profit" value={cost(f.grossProfit)} tone={f.grossProfit < 0 ? 'bad' : undefined}
+                hint={[
+                  f.netProfit != null ? `Expenses ke baad ${cost(f.netProfit)}` : null,
+                  (f.profitOnKhata ?? 0) > 0.5 ? `udhaar mein ${cost(f.profitOnKhata ?? 0)}` : null,
+                  (f.otherIncome ?? 0) > 0 ? `doosri aamdani ${cost(f.otherIncome ?? 0)}` : null,
+                ].filter(Boolean).join(' · ') || undefined} />
+            )}
             {f.khata && <Tile label="Udhaar diya / wapas" value={`${sales(f.khata.given)}`} hint={`Wapas ${sales(f.khata.collected)} · baqi ${sales(f.khata.outstanding)}`} />}
             <Tile label="Stock" value={`${f.lowStock.out} khatam`} hint={`${f.lowStock.low} kam`} tone={f.lowStock.out > 0 ? 'bad' : undefined} />
           </div>

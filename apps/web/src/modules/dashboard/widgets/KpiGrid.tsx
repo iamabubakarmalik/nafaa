@@ -78,7 +78,8 @@ export function KpiGrid() {
   return (
     <div className={cn(
       'grid grid-cols-2 gap-3 md:grid-cols-3',
-      kpis.length >= 6 ? 'xl:grid-cols-6' : kpis.length === 5 ? 'xl:grid-cols-5' : 'xl:grid-cols-4',
+      // Six or five cards share one row only on wide screens; on a 1280 laptop the amounts would be cut off.
+      kpis.length >= 6 ? '2xl:grid-cols-6' : kpis.length === 5 ? '2xl:grid-cols-5' : 'xl:grid-cols-4',
     )}>
       {kpis.map((k) => (k.sensitive && costHidden ? <LockedCard key={k.id} def={k} /> : <KpiCard key={k.id} def={k} />))}
     </div>

@@ -22,6 +22,7 @@ import {
   LINE_REVENUE,
   billMathCte,
   liveSaleSql,
+  profitParts,
   saleFigures,
   type MathScope,
 } from '../../../common/helpers/business-math.helper';
@@ -63,6 +64,7 @@ export class RetailDashboardService {
     const [
       today, yesterday, week, month, lastMonth,
       topProducts, categoryPerformance, stockAlerts, damagesToday,
+      partsToday, partsWeek, partsMonth,
     ] = await Promise.all([
       saleFigures(this.prisma, math, { gte: todayStart }),
       saleFigures(this.prisma, math, { gte: yesterdayStart, lt: todayStart }),
@@ -109,6 +111,10 @@ export class RetailDashboardService {
         _count: { _all: true },
       }),
 
+      // Headline profit on the shop's khata basis (business-math.helper, "Khata profit").
+      profitParts(this.prisma, math, { gte: todayStart }),
+      profitParts(this.prisma, math, { gte: weekAgo }),
+      profitParts(this.prisma, math, { gte: monthStart }),
     ]);
 
     const productIds = topProducts.map((p) => p.productId).filter((id): id is string => !!id);
@@ -130,7 +136,8 @@ export class RetailDashboardService {
       generatedAt: now.toISOString(),
       today: {
         revenue: today.net,
-        profit: today.grossProfit,
+        profit: partsToday.split.headline,
+        split: partsToday.split,
         orders: today.bills,
         paid: today.cashIn,
         credit: today.credit,
@@ -142,13 +149,14 @@ export class RetailDashboardService {
       },
       week: {
         revenue: week.net,
-        profit: week.grossProfit,
+        profit: partsWeek.split.headline,
         orders: week.bills,
       },
       month: {
         revenue: month.net,
         cogs: month.cost,
-        profit: month.grossProfit,
+        profit: partsMonth.split.headline,
+        split: partsMonth.split,
         orders: month.bills,
         lastMonthRevenue: lastMonth.net,
         growthPercent: growth(month.net, lastMonth.net),

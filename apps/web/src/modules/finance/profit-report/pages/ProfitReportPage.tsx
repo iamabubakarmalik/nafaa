@@ -154,7 +154,7 @@ export default function ProfitReportPage() {
         stats={o && t ? [
           { label: `Asal sale · ${t.bills} bill`, value: money(t.revenue), hint: `${growth(t.revenue, o.prev.revenue)} pichhli period se` },
           { label: 'Gross profit', value: cost(t.profit), hint: costHidden ? 'Cost lock' : `${pct(t.margin)} margin · ${growth(t.profit, o.prev.profit)}` },
-          { label: 'Net profit', value: cost(o.net.netProfit), hint: 'expenses aur kharab maal ke baad' },
+          { label: 'Net profit', value: cost(o.net.netProfit), hint: 'expenses, stock nuksan/faida aur doosri aamdani ke baad' },
           { label: 'Cheezein biki', value: String(t.products), hint: `pehle ${o.prev.products}` },
         ] : [{ label: 'Asal sale', value: '' }, { label: 'Gross profit', value: '' }, { label: 'Net profit', value: '' }, { label: 'Cheezein biki', value: '' }]}
       />

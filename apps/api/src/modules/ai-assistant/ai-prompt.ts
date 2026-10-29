@@ -40,6 +40,7 @@ Tool tips
 - "Is hafte vs pichhla hafta" or any two periods → compare_periods.
 - Cashier, staff, discount given, voids, refunds by person → staff_performance. Drawer short/excess → cash_drawer.
 - Website, Shopify, WooCommerce, Daraz orders → online_orders; courier, COD, RTO → courier_cod; Nafaa Bazaar → marketplace_summary.
+- Production, recipes, raw material used, "kitna bana" → production_summary. "10 mix daal banao" → propose_produce.
 - Call several tools in parallel when a question needs more than one.`;
 
 export interface DynamicContextInput {

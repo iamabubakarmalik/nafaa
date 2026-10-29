@@ -8,6 +8,9 @@
  *   staffFigures          money figures staff (not the owner) may see in reports;
  *                         a display rule on top of their permissions, never a grant
  *   summary               daily summary channels, recipients and included lines
+ *   creditProfit          when the profit of a khata (udhaar) bill counts in the
+ *                         headline: 'paid' when the money comes (default), 'bill'
+ *                         on the bill day. Both figures are always shown.
  *
  * A missing or partial value falls back to the defaults below, which match how
  * reports behaved before the setting existed.
@@ -19,6 +22,7 @@ export const REPORT_FIGURES = ['profit', 'drawer'] as const;
 export const REPORT_PERIODS = ['auto', 'today', 'yesterday', 'week', 'month', 'thisMonth', 'lastMonth', 'fiscalYear'] as const;
 export const COMPARE_DEFAULTS = ['prev', 'year', 'off'] as const;
 export const ROUND_OFF = ['paisa', 'rupee'] as const;
+export const CREDIT_PROFIT = ['paid', 'bill'] as const;
 export const SUMMARY_CHANNELS = ['app', 'email', 'whatsapp'] as const;
 export const SUMMARY_PARTS = [
   'returns', 'voids', 'discount', 'payments', 'drawer', 'profit', 'expenses', 'khata', 'lowStock', 'topItems', 'topStaff', 'branches', 'trend',
@@ -34,6 +38,7 @@ export interface ReportsConfig {
   compareDefault: (typeof COMPARE_DEFAULTS)[number];
   roundOff: (typeof ROUND_OFF)[number];
   staffFigures: ReportFigure[];
+  creditProfit: (typeof CREDIT_PROFIT)[number];
   summary: {
     channels: SummaryChannel[];
     /** null = the owner and everyone with `reports.view`. */
@@ -48,6 +53,7 @@ export const REPORTS_DEFAULTS: ReportsConfig = {
   compareDefault: 'prev',
   roundOff: 'paisa',
   staffFigures: [...REPORT_FIGURES],
+  creditProfit: 'paid',
   summary: { channels: ['app', 'email'], recipientIds: null, include: [...SUMMARY_PARTS] },
 };
 
@@ -67,6 +73,7 @@ export function normalizeReportsConfig(raw: unknown): ReportsConfig {
     compareDefault: pick(COMPARE_DEFAULTS, r.compareDefault, d.compareDefault),
     roundOff: pick(ROUND_OFF, r.roundOff, d.roundOff),
     staffFigures: subset(REPORT_FIGURES, r.staffFigures, d.staffFigures),
+    creditProfit: pick(CREDIT_PROFIT, r.creditProfit, d.creditProfit),
     summary: {
       // The in-app notification always goes out.
       channels: ['app', ...subset(SUMMARY_CHANNELS, s.channels, d.summary.channels).filter((c) => c !== 'app')],

@@ -16,7 +16,11 @@ import {
   Columns3, Square, SquareCheck, Table2, Tag, ToggleRight, Wallet, X, type LucideIcon,
   Wheat,
 } from 'lucide-react';
-import { Button, FilterMenu, Kbd, Modal, PageHero, Skeleton, heroButton, heroIconButton, heroPrimaryButton, type FilterOption } from '@/design-system/components';
+import {
+  Button, FilterBar, FilterChip, FilterMenu, Kbd, Modal, MoreFilters, PageHero, SearchField, Segmented, Skeleton, heroButton, heroIconButton, heroPrimaryButton,
+  type FilterGroup, type FilterOption,
+} from '@/design-system/components';
+import { usePriceTierSettings } from '@modules/pos/lib/usePriceTierSettings';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
 import { PrintButton } from '@core/print';
 import { PrivacyToggle } from '@core/security/HiddenValue';
@@ -57,15 +61,6 @@ const STATUS: Array<FilterOption<CatalogFilters['active']>> = [
 ];
 const KIND_DEFAULT: Record<string, string> = { made: 'Khud banaya', bought: 'Khareed kar' };
 
-
-function FilterChip({ children, onRemove }: { children: React.ReactNode; onRemove: () => void }) {
-  return (
-    <span className="inline-flex h-7 items-center gap-1 rounded-full bg-brand-50 pl-2.5 pr-1 text-[0.75rem] font-semibold text-brand-800 ring-1 ring-brand-100">
-      {children}
-      <button type="button" onClick={onRemove} aria-label="Hatayein" className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-brand-100"><X className="h-3 w-3" /></button>
-    </span>
-  );
-}
 
 export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   const [params] = useSearchParams();
@@ -175,7 +170,9 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
     return () => io.disconnect();
   }, [c, c.hasMore, c.loadingMore]);
 
-  const shownCols = { wholesale: c.cols.includes('wholesale'), credit: c.cols.includes('credit') };
+  // Tier price columns exist only once the owner turns price tiers on; until then they stay hidden.
+  const tierCols = usePriceTierSettings().on;
+  const shownCols = { wholesale: tierCols && c.cols.includes('wholesale'), credit: tierCols && c.cols.includes('credit') };
   const colOptions: Array<FilterOption<OptionalColumn | 'none'>> = ([['wholesale', 'Wholesale price'], ['credit', 'Credit price']] as const)
     .map(([value, label]) => ({ value, label, icon: c.cols.includes(value) ? SquareCheck : Square, hint: c.cols.includes(value) ? 'Dikh raha hai' : 'Chhupa hai' }));
   const cardProps = (i: CatalogItem) => ({
@@ -184,6 +181,35 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
     onStock: () => setStockItem(i), onDeleted: () => void c.refresh(), can: config.stockLocked?.(i) ? { ...can, stock: false } : can,
     cols: shownCols,
   });
+
+  // Less used filters, each with its own clear label so no two read the same.
+  const FACET_LABEL = { condition: 'Condition', etype: 'Product type', kind: 'Banaya ya khareeda' } as const;
+  const moreGroups: FilterGroup[] = [
+    { id: 'active', label: 'Halat', icon: ToggleRight, value: c.f.active, empty: 'active', options: STATUS, onChange: (v) => c.set('active', v as CatalogFilters['active']) },
+    ...(config.filters ?? []).flatMap((key): FilterGroup[] => {
+      if (key === 'tags') {
+        return d?.tags.length ? [{ id: key, label: 'Tag', icon: Tag, value: c.f.tagId ?? 'all', empty: 'all',
+          options: [{ value: 'all', label: 'Sab' }, ...d.tags.map((t) => ({ value: t.id, label: `#${t.name}`, hint: `${t.count}`, color: t.color })), { value: 'none', label: 'Baghair tag' }],
+          onChange: (v) => c.set('tagId', v === 'all' ? undefined : v) }] : [];
+      }
+      if (key === 'serial') {
+        return (d?.facets.serial.tracked ?? 0) > 0 ? [{ id: key, label: 'Serial', icon: ListChecks, value: c.f.serial ?? 'all', empty: 'all',
+          options: [{ value: 'all', label: 'Sab' }, { value: 'tracked', label: `Serial wale (${d!.facets.serial.tracked})` }, { value: 'mismatch', label: `Ginti ghalat (${d!.facets.serial.mismatch})`, hint: 'Stock aur serial barabar nahi' }],
+          onChange: (v) => c.set('serial', v === 'all' ? undefined : (v as 'tracked' | 'mismatch')) }] : [];
+      }
+      const facet = key === 'kind' ? d?.facets.kinds : key === 'condition' ? d?.facets.conditions : key === 'etype' ? d?.facets.etypes : null;
+      if (!facet?.length) return [];
+      return [{ id: key, label: FACET_LABEL[key as keyof typeof FACET_LABEL], icon: Filter, value: c.f[key as keyof typeof FACET_LABEL] ?? 'all', empty: 'all',
+        options: [{ value: 'all', label: 'Sab' }, ...facet.map((x) => ({ value: x.id, label: `${labelOf(key as keyof typeof FACET_LABEL, x.id)} (${x.count})` }))],
+        onChange: (v) => c.set(key as keyof typeof FACET_LABEL, v === 'all' ? undefined : v) }];
+    }),
+    { id: 'kindOf', label: 'Raw material', icon: Wheat, value: c.f.kindOf ?? 'all', empty: 'all',
+      options: [{ value: 'all', label: 'Sab' }, { value: 'sale', label: 'Sirf bechne wale' }, { value: 'raw', label: 'Sirf raw material' }],
+      onChange: (v) => c.set('kindOf', v === 'all' ? undefined : (v as 'raw' | 'sale')) },
+    { id: 'featured', label: 'Khaas', icon: Star, value: c.f.featured ? 'yes' : 'all', empty: 'all',
+      options: [{ value: 'all', label: 'Sab' }, { value: 'yes', label: 'Sirf khaas' }],
+      onChange: (v) => c.set('featured', v === 'yes' ? true : undefined) },
+  ];
 
   const filterChips: Array<[string, () => void]> = [];
   if (c.f.categoryId) filterChips.push([d?.categories.find((x) => x.id === c.f.categoryId)?.name ?? 'Category', () => c.set('categoryId', undefined)]);
@@ -276,80 +302,35 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
       )}
       {d && Banners && <Banners data={d} setFilter={(k, v) => c.set(k as never, v as never)} />}
 
-      {/* Toolbar */}
-      <div className="relative z-10 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
-        <div className="flex flex-col gap-2 xl:flex-row">
-          <label className="group relative min-w-0 flex-1">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
-            <input ref={searchRef} value={c.search} onChange={(e) => c.setSearch(e.target.value)} placeholder="Naam, SKU, barcode ya model…" aria-label="Maal search"
-              className="h-11 w-full rounded-2xl border-0 bg-slate-100/80 pl-12 pr-16 text-[0.9375rem] outline-none ring-1 ring-transparent transition focus:bg-white focus:ring-2 focus:ring-brand-500" />
-            {c.search
-              ? <button type="button" onClick={() => c.setSearch('')} aria-label="Saaf" className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
-              : <Kbd className="absolute right-3 top-1/2 hidden -translate-y-1/2 sm:inline-flex">/</Kbd>}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {(d?.categories.length ?? 0) > 0 && (
-              <FilterMenu icon={Layers} label="Category" value={c.f.categoryId ?? 'all'} active={!!c.f.categoryId} width="w-72"
-                options={[{ value: 'all', label: 'Sab category' }, ...d!.categories.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}`, color: x.color }))]}
-                onChange={(v) => c.set('categoryId', v === 'all' ? undefined : v)} />
-            )}
-            {(d?.brands.length ?? 0) > 0 && (
-              <FilterMenu icon={Sparkles} label="Brand" value={c.f.brandId ?? 'all'} active={!!c.f.brandId}
-                options={[{ value: 'all', label: 'Sab brand' }, ...d!.brands.map((x) => ({ value: x.id, label: x.name, hint: `${x.count}` }))]}
-                onChange={(v) => c.set('brandId', v === 'all' ? undefined : v)} />
-            )}
-            {config.filters?.map((key) => {
-              if (key === 'tags' && d?.tags.length) {
-                return <FilterMenu key={key} icon={Tag} label="Tag" value={c.f.tagId ?? 'all'} active={!!c.f.tagId}
-                  options={[{ value: 'all', label: 'Sab tags' }, ...d.tags.map((t) => ({ value: t.id, label: `#${t.name}`, hint: `${t.count}`, color: t.color })), { value: 'none', label: 'Baghair tag' }]}
-                  onChange={(v) => c.set('tagId', v === 'all' ? undefined : v)} />;
-              }
-              const facet = key === 'kind' ? d?.facets.kinds : key === 'condition' ? d?.facets.conditions : key === 'etype' ? d?.facets.etypes : null;
-              if (facet && facet.length > 0 && key !== 'tags' && key !== 'serial') {
-                const label = key === 'condition' ? 'Halat' : 'Type';
-                return <FilterMenu key={key} icon={Filter} label={label} value={c.f[key] ?? 'all'} active={!!c.f[key]} width="w-64"
-                  options={[{ value: 'all', label: `Sab` }, ...facet.map((x) => ({ value: x.id, label: labelOf(key, x.id), hint: `${x.count} ${noun}` }))]}
-                  onChange={(v) => c.set(key, v === 'all' ? undefined : v)} />;
-              }
-              if (key === 'serial' && (d?.facets.serial.tracked ?? 0) > 0) {
-                return <FilterMenu key={key} icon={ListChecks} label="Serial" value={c.f.serial ?? 'all'} active={!!c.f.serial}
-                  options={[{ value: 'all', label: 'Sab' }, { value: 'tracked', label: 'Serial wale', hint: `${d!.facets.serial.tracked}` }, { value: 'mismatch', label: 'Ginti ghalat', hint: `${d!.facets.serial.mismatch} — stock aur serial barabar nahi` }]}
-                  onChange={(v) => c.set('serial', v === 'all' ? undefined : (v as 'tracked' | 'mismatch'))} />;
-              }
-              return null;
-            })}
-            <FilterMenu icon={Wheat} label="Type" value={c.f.kindOf ?? 'all'} active={!!c.f.kindOf}
-              options={[{ value: 'all', label: 'Sab' }, { value: 'sale', label: 'Bechne wale' }, { value: 'raw', label: 'Raw material (kacha maal)' }]}
-              onChange={(v) => c.set('kindOf', v === 'all' ? undefined : (v as 'raw' | 'sale'))} />
-            <FilterMenu icon={ToggleRight} label="Halat" value={c.f.active} active={c.f.active !== 'active'} options={STATUS} onChange={(v) => c.set('active', v)} />
-            <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={c.sort} align="right" width="w-64"
-              options={[...SORTS, ...(costHidden ? [] : COST_SORTS), ...(config.sorts ?? [])]} onChange={c.setSort} />
-            <button type="button" onClick={() => c.set('featured', c.f.featured ? undefined : true)} title="Sirf khaas"
-              className={cn('flex h-11 w-11 items-center justify-center rounded-2xl transition', c.f.featured ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-200' : 'bg-slate-100/80 text-slate-500 hover:bg-slate-200/70')}>
-              <Star className={cn('h-4 w-4', c.f.featured && 'fill-current')} />
-            </button>
-            {c.view === 'table' && (
-              <FilterMenu<OptionalColumn | 'none'> icon={Columns3} label="Columns" value="none" align="right" active={c.cols.length > 0}
-                options={colOptions} onChange={(v) => { if (v !== 'none') c.toggleCol(v); }} />
-            )}
-            <div className="inline-flex rounded-2xl bg-slate-100/80 p-1" role="radiogroup" aria-label="Dikhane ka tareeqa">
-              {([['grid', LayoutGrid, 'Cards'], ['table', Table2, 'Table']] as const).map(([v, Icon, label]) => (
-                <button key={v} type="button" role="radio" aria-checked={c.view === v} onClick={() => c.setView(v)} title={`${label} (V)`}
-                  className={cn('flex h-9 w-9 items-center justify-center rounded-xl transition', c.view === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800')}>
-                  <Icon className="h-4 w-4" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-        {filterChips.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-3">
-            <span className="mr-1 text-[0.75rem] font-medium text-slate-500">Lage filter:</span>
-            {filterChips.map(([label, remove]) => <FilterChip key={label} onRemove={remove}>{label}</FilterChip>)}
-            <button type="button" onClick={c.clear} className="ml-auto inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[0.75rem] font-semibold text-rose-700 hover:bg-rose-50"><X className="h-3.5 w-3.5" />Sab hatayein</button>
-          </div>
+      {/* Toolbar: search and the most used filters in one row, the rest under "Aur filters". */}
+      <FilterBar
+        search={<SearchField ref={searchRef} value={c.search} onChange={c.setSearch} placeholder="Naam, SKU ya barcode…" label="Maal search" />}
+        chips={filterChips.length > 0 ? <>{filterChips.map(([label, remove]) => <FilterChip key={label} onRemove={remove}>{label}</FilterChip>)}</> : undefined}
+        onClear={c.clear}>
+        {(d?.categories.length ?? 0) > 0 && (
+          <FilterMenu icon={Layers} label="Category" value={c.f.categoryId ?? 'all'} active={!!c.f.categoryId} width="w-72"
+            options={[{ value: 'all', label: 'Sab' }, ...d!.categories.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}`, color: x.color }))]}
+            onChange={(v) => c.set('categoryId', v === 'all' ? undefined : v)} />
         )}
-      </div>
+        {(d?.brands.length ?? 0) > 0 && (
+          <FilterMenu icon={Sparkles} label="Brand" value={c.f.brandId ?? 'all'} active={!!c.f.brandId} width="w-72"
+            options={[{ value: 'all', label: 'Sab' }, ...d!.brands.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}` }))]}
+            onChange={(v) => c.set('brandId', v === 'all' ? undefined : v)} />
+        )}
+        <MoreFilters groups={moreGroups} />
+        <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={c.sort} align="right" width="w-64"
+          options={[...SORTS, ...(costHidden ? [] : COST_SORTS), ...(config.sorts ?? [])]} onChange={c.setSort} />
+        {c.view === 'table' && tierCols && (
+          <FilterMenu<OptionalColumn | 'none'> icon={Columns3} label="Columns" value="none" align="right" active={c.cols.length > 0}
+            valueLabel={c.cols.length ? `+${c.cols.length} price` : 'Basic'}
+            options={colOptions} onChange={(v) => { if (v !== 'none') c.toggleCol(v); }} />
+        )}
+        <Segmented<'grid' | 'table'> label="Dikhane ka tareeqa" value={c.view} onChange={c.setView} className="h-11 items-center rounded-2xl p-1 max-sm:hidden [&>button]:h-9 [&>button]:rounded-xl [&>button]:px-2.5"
+          items={[
+            { value: 'grid', label: <><LayoutGrid className="h-4 w-4" /><span className="sr-only">Cards (V)</span></> },
+            { value: 'table', label: <><Table2 className="h-4 w-4" /><span className="sr-only">Table (V)</span></> },
+          ]} />
+      </FilterBar>
       </>}
 
       {/* Tabs */}
@@ -413,13 +394,13 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
-          <table className="w-full min-w-[60rem]">
+          <table className={cn('w-full', shownCols.wholesale && shownCols.credit ? 'min-w-[72rem]' : shownCols.wholesale || shownCols.credit ? 'min-w-[66rem]' : 'min-w-[60rem]')}>
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
+              <tr className="whitespace-nowrap border-b border-slate-100 bg-slate-50/70 text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500">
                 <th className="w-10 py-2.5 pl-4">
                   <button type="button" onClick={selectVisible} aria-label="Sab chunein" className={cn('flex h-6 w-6 items-center justify-center rounded-md border-2', allVisibleSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-transparent')}><Check className="h-3.5 w-3.5" strokeWidth={3} /></button>
                 </th>
-                <th className="py-2.5 pr-3">Cheez</th>
+                <th className="min-w-[14rem] py-2.5 pr-3">Cheez</th>
                 <th className="px-3 py-2.5">Category</th>
                 {!costHidden && <th className="px-3 py-2.5 text-right">Cost</th>}
                 <th className="px-3 py-2.5 text-right">Rate</th>

@@ -45,18 +45,18 @@ export const SalonPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Salon Industry',
+      label: 'Salon',
       icon: Scissors,
       emoji: '💇',
       color: '#db2777',
       order: 20,
       items: [
-        { to: '/salon/dashboard', label: 'Salon Dashboard', icon: LayoutDashboard },
+        { to: '/salon/dashboard', label: 'Salon dashboard', icon: LayoutDashboard },
         { to: '/pos', label: 'Salon counter', icon: Receipt },
         { to: '/salon/appointments', label: 'Appointments', icon: Calendar },
         { to: '/salon/calendar', label: 'Calendar', icon: Timer },
         { to: '/salon/services', label: 'Services', icon: Scissors },
-        { to: '/salon/staff', label: 'Stylist aur commission', icon: UserCheck },
+        { to: '/salon/staff', label: 'Stylists & commission', icon: UserCheck },
         { to: '/salon/memberships', label: 'Memberships', icon: Award },
         { to: '/salon/packages', label: 'Packages', icon: BookmarkPlus },
         { to: '/salon/gift-vouchers', label: 'Gift vouchers', icon: Ticket },

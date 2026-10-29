@@ -25,14 +25,21 @@ export interface PnlLine {
   drill?: { kind: PnlDetailKind; categoryId?: string };
   /** Goes to the page that owns the records. */
   to?: string;
+  /** Shown only when some statement on screen has a value here. */
+  optional?: boolean;
 }
 
 const head = (id: string, label: string): PnlLine => ({ id, label, kind: 'head', value: () => null });
 
-/** Statement lines for these expense categories (the union of every column shown). */
-export function buildLines(cfg: PnlConfig, categories: ExpenseCategoryRef[], staff: boolean): PnlLine[] {
+/**
+ * Statement lines for these expense categories (the union of every column
+ * shown). `statements` are the columns on screen: optional lines (khata
+ * split, corrections, other income) appear only when one of them has a value.
+ */
+export function buildLines(cfg: PnlConfig, categories: ExpenseCategoryRef[], staff: boolean, statements: PnlStatement[] = []): PnlLine[] {
   const cat = (id: string) => (s: PnlStatement) => s.expenses.categories.find((c) => c.id === id)?.amount ?? 0;
-  return [
+  const split = (s: PnlStatement) => s.profitSplit ?? null;
+  const all: PnlLine[] = [
     head('h-rev', 'Sale (revenue)'),
     { id: 'gross', label: 'Total sale (list rate par)', hint: 'Har cheez ka poora rate × quantity, discount se pehle', kind: 'item', value: (s) => s.revenue.gross, upIsGood: true },
     { id: 'discount', label: 'Discount', hint: 'Item, bill, code aur loyalty points ka discount', kind: 'item', minus: true, value: (s) => s.revenue.discount, upIsGood: false },
@@ -49,7 +56,12 @@ export function buildLines(cfg: PnlConfig, categories: ExpenseCategoryRef[], sta
     { id: 'c-est', label: 'Andaza (cost nahi likhi thi)', hint: 'Jin lines par cost 0 thi, un ki product ki aaj ki cost', kind: 'item', cost: true, value: (s) => s.cogs?.estimated ?? null, upIsGood: false },
     { id: 'c-ret', label: 'Wapas aaye maal ki cost', hint: 'Return par maal ki cost cost se nikal jati hai', kind: 'item', cost: true, minus: true, value: (s) => s.cogs?.returned ?? null },
     { id: 'cogs', label: cfg.cogs, hint: cfg.cogsHint, kind: 'total', cost: true, minus: true, value: (s) => s.cogs?.total ?? null, upIsGood: false },
-    { id: 'gross-profit', label: 'Gross profit', hint: 'Net sale minus maal ki cost', kind: 'grand', cost: true, value: (s) => s.grossProfit, upIsGood: true },
+    { id: 'bill-profit', label: 'Bill ka profit', hint: 'Net sale minus maal ki cost — is period ke saare bill', kind: 'total', cost: true, value: (s) => split(s)?.billProfit ?? s.grossProfit, upIsGood: true },
+    { id: 'k-in-hand', label: 'Is me haath mein aaya', hint: 'Cash/online wala hissa aur khate ka jo paisa aa gaya', kind: 'sub', cost: true, optional: true, value: (s) => (split(s) ? split(s)!.realised - split(s)!.fromOlderBills : null) },
+    { id: 'k-pending', label: 'Udhaar mein profit — abhi aana hai', hint: 'Khate par baqi bills ka profit; paisa aane par haath mein aayega', kind: 'sub', cost: true, optional: true, value: (s) => split(s)?.pending ?? null, drill: { kind: 'credit' } },
+    { id: 'k-off', label: 'Udhaar maaf kiya', kind: 'sub', cost: true, optional: true, value: (s) => split(s)?.writtenOff ?? null },
+    { id: 'k-older', label: 'Pehle ke udhaar se aaya profit', hint: 'Purane bills ka profit jo is period me wasool hua', kind: 'sub', cost: true, optional: true, value: (s) => split(s)?.fromOlderBills ?? null },
+    { id: 'gross-profit', label: 'Gross profit', hint: 'Settings → Reports: "Paisa milne par" = haath mein aaya profit; "Bill bante hi" = bill ka profit', kind: 'grand', cost: true, value: (s) => s.grossProfit, upIsGood: true },
     { id: 'gross-margin', label: 'Gross margin', hint: 'Har 100 ki sale me maal ke baad kitna bacha', kind: 'ratio', cost: true, value: (s) => s.grossMargin, upIsGood: true },
 
     head('h-exp', 'Kharchay (operating)'),
@@ -61,19 +73,24 @@ export function buildLines(cfg: PnlConfig, categories: ExpenseCategoryRef[], sta
     { id: 'opex', label: 'Kul kharchay', kind: 'total', minus: true, value: (s) => s.expenses.total, upIsGood: false, to: '/expenses' },
     { id: 'operating', label: 'Kaarobari profit', hint: 'Gross profit minus kharchay', kind: 'total', cost: true, value: (s) => s.operatingProfit, upIsGood: true },
 
-    head('h-stock', 'Stock ka nuqsan'),
-    { id: 'w-damage', label: 'Kharab maal', hint: 'Damage likha gaya, return par kharab nikla maal bhi', kind: 'item', cost: true, value: (s) => s.writeOffs?.damage ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
-    { id: 'w-loss', label: 'Gum / chori', kind: 'item', cost: true, value: (s) => s.writeOffs?.loss ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
-    { id: 'w-short', label: 'Ginti me kam nikla', kind: 'item', cost: true, value: (s) => s.writeOffs?.countedShort ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
-    { id: 'w-found', label: 'Ginti me zyada nikla', hint: 'Ye nuqsan kam karta hai', kind: 'item', cost: true, minus: true, value: (s) => s.writeOffs?.found ?? null, drill: { kind: 'writeoff' } },
-    { id: 'writeoffs', label: 'Kul stock nuqsan', kind: 'total', cost: true, minus: true, value: (s) => s.writeOffs?.net ?? null, upIsGood: false, to: '/stock-adjustments' },
+    head('h-stock', 'Stock nuksan aur faida'),
+    { id: 'w-damage', label: 'Damage / expiry', hint: 'Damage likha gaya, expiry, return par kharab nikla maal bhi', kind: 'item', cost: true, value: (s) => s.writeOffs?.damage ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
+    { id: 'w-loss', label: 'Chori / shortage', kind: 'item', cost: true, value: (s) => s.writeOffs?.loss ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
+    { id: 'w-short', label: 'Ginti me kam / dukaan mein istemal', kind: 'item', cost: true, value: (s) => s.writeOffs?.countedShort ?? null, upIsGood: false, drill: { kind: 'writeoff' } },
+    { id: 'stock-loss', label: 'Stock nuksan', hint: 'Profit se minus', kind: 'total', cost: true, value: (s) => s.writeOffs ? s.writeOffs.stockLoss ?? s.writeOffs.damage + s.writeOffs.loss + s.writeOffs.countedShort : null, upIsGood: false },
+    { id: 'w-found', label: 'Stock faida', hint: 'Audit mein zyada nikla, free/bonus maal mila — profit mein plus', kind: 'item', cost: true, value: (s) => s.writeOffs?.stockGain ?? s.writeOffs?.found ?? null, upIsGood: true, drill: { kind: 'writeoff' } },
+    { id: 'w-correction', label: 'Galti theek ki (profit par asar nahi)', hint: 'Sirf stock ki ginti theek hui; profit me shamil nahi', kind: 'sub', cost: true, optional: true, value: (s) => s.writeOffs?.correction ?? null },
+    { id: 'writeoffs', label: 'Stock ka net nuksan', hint: 'Stock nuksan minus stock faida', kind: 'total', cost: true, minus: true, value: (s) => s.writeOffs?.net ?? null, upIsGood: false, to: '/stock-adjustments' },
 
     head('h-other', 'Doosri aamdani'),
+    { id: 'income', label: 'Company incentive, claim, kiraya waghera', hint: 'Doosri aamdani ke page par likhi gayi', kind: 'item', value: (s) => s.otherIncome.income ?? 0, upIsGood: true, drill: { kind: 'income' }, to: '/income' },
     { id: 'booking', label: 'Booking advance jo wapas nahi hua', hint: 'Cancel ya waqt guzri booking ka rakha gaya advance', kind: 'item', value: (s) => s.otherIncome.bookingKept, upIsGood: true, drill: { kind: 'booking' } },
+    { id: 'other-total', label: 'Kul doosri aamdani', kind: 'total', value: (s) => s.otherIncome.total, upIsGood: true },
 
     { id: 'net-profit', label: 'Net profit', hint: 'Sab kuch ghata kar jo bacha', kind: 'grand', cost: true, value: (s) => s.netProfit, upIsGood: true },
     { id: 'net-margin', label: 'Net margin', hint: 'Har 100 ki sale me aakhir me kitna bacha', kind: 'ratio', cost: true, value: (s) => s.netMargin, upIsGood: true },
   ];
+  return all.filter((l) => !l.optional || statements.some((s) => Math.abs(l.value(s) ?? 0) >= 0.005));
 }
 
 /** Expense categories across several statements, biggest first. */
@@ -152,12 +169,22 @@ export function sumStatements(list: PnlStatement[]): PnlStatement {
   const expenses = { ...totals, categories: [...cats.values()].sort((a, b) => b.amount - a.amount) };
   const gross = sum((s) => s.grossProfit);
   const net = sum((s) => s.netProfit);
+  const splits = list.map((s) => s.profitSplit ?? null);
+  const profitSplit = splits.length && splits.every((x) => x != null)
+    ? (() => {
+      const keys = ['billProfit', 'realised', 'fromOlderBills', 'pending', 'writtenOff', 'headline'] as const;
+      const out = { basis: splits[0]!.basis } as NonNullable<PnlStatement['profitSplit']>;
+      for (const k of keys) out[k] = splits.reduce((a, x) => a + x![k], 0);
+      return out;
+    })()
+    : null;
   const margin = (v: number | null) => (v == null ? null : Math.abs(revenue.net) < 0.005 ? 0 : (v / revenue.net) * 100);
   return {
     revenue,
     cogs: add(list.map((s) => s.cogs)),
     grossProfit: gross,
     grossMargin: margin(gross),
+    profitSplit,
     expenses,
     writeOffs: add(list.map((s) => s.writeOffs)),
     otherIncome: add(list.map((s) => s.otherIncome))!,

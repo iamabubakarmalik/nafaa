@@ -158,10 +158,11 @@ export class LowStockService {
         _sum: { quantity: true, returnedQty: true },
         _max: { createdAt: true },
       }).then((g) => ({ shopId: sh.id, g })))),
-      // Restaurant recipes take ingredients out without a sale line; count that use too.
+      // Restaurant recipes and manufacturing take raw materials out without a sale line; count that use too.
+      // A reversed production carries the opposite sign, so the sum stays right.
       this.prisma.stockMovement.groupBy({
         by: ['productId'],
-        where: { tenantId, type: 'ADJUSTMENT_OUT', reference: { startsWith: 'Recipe:' }, createdAt: { gte: since } },
+        where: { tenantId, OR: [{ type: 'ADJUSTMENT_OUT', reference: { startsWith: 'Recipe:' } }, { type: 'PRODUCTION_OUT' }], createdAt: { gte: since } },
         _sum: { quantity: true },
       }),
       this.prisma.productBatch.findMany({

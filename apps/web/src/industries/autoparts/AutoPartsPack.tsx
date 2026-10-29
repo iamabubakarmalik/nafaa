@@ -40,20 +40,20 @@ export const AutoPartsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Auto Parts / Workshop',
+      label: 'Auto parts / workshop',
       icon: Car,
       emoji: '🔧',
       color: '#475569',
       order: 20,
       items: [
-        { to: '/autoparts/jobs/new', label: 'Naya job', icon: Plus, permission: PERMISSIONS.SERVICE_JOBS_MANAGE },
+        { to: '/autoparts/jobs/new', label: 'New job', icon: Plus, permission: PERMISSIONS.SERVICE_JOBS_MANAGE },
         { to: '/autoparts/jobs', label: 'Workshop jobs', icon: Wrench, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
         { to: '/autoparts/parts', label: 'Parts', icon: Package, permission: PERMISSIONS.PRODUCTS_VIEW },
-        { to: '/autoparts/vehicles', label: 'Gaariyan', icon: Car, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/autoparts/vehicles', label: 'Vehicles', icon: Car, permission: PERMISSIONS.CUSTOMERS_VIEW },
         { to: '/autoparts/reminders', label: 'Service reminders', icon: Bell, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/autoparts/core-returns', label: 'Purane parts', icon: Recycle, permission: PERMISSIONS.RETURNS_VIEW },
-        { to: '/autoparts/mechanics', label: 'Mechanic', icon: UserCog, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
-        { to: '/autoparts/makes', label: 'Company / model', icon: Truck, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/autoparts/core-returns', label: 'Old parts', icon: Recycle, permission: PERMISSIONS.RETURNS_VIEW },
+        { to: '/autoparts/mechanics', label: 'Mechanics', icon: UserCog, permission: PERMISSIONS.SERVICE_JOBS_VIEW },
+        { to: '/autoparts/makes', label: 'Make / model', icon: Truck, permission: PERMISSIONS.PRODUCTS_VIEW },
       ],
     },
   ],

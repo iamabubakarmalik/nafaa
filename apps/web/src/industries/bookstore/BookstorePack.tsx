@@ -52,7 +52,7 @@ export const BookstorePack: IndustryPack = {
       order: 20,
       items: [
         { to: '/bookstore/dashboard', label: 'Bookstore dashboard', icon: LayoutDashboard },
-        { to: '/bookstore-products/new', label: 'Nayi kitab / item', icon: Plus, permission: PERMISSIONS.PRODUCTS_CREATE },
+        { to: '/bookstore-products/new', label: 'New book / item', icon: Plus, permission: PERMISSIONS.PRODUCTS_CREATE },
         { to: '/bookstore/books', label: 'Books', icon: BookOpen, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/bookstore/stationery', label: 'Stationery', icon: Pencil, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/bookstore/art-supplies', label: 'Art supplies', icon: Palette, permission: PERMISSIONS.PRODUCTS_VIEW },

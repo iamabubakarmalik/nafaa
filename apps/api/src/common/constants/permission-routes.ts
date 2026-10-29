@@ -147,6 +147,13 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /(^|\/)stock-adjustments(\/|$)/, GET: P.STOCK_ADJUSTMENTS_MANAGE, write: P.STOCK_ADJUSTMENTS_MANAGE },
   { match: /(^|\/)stock-movements(\/|$)/, GET: P.STOCK_MOVEMENTS_VIEW },
   { match: /(^|\/)transfers(\/|$)/, GET: P.STOCK_TRANSFERS_MANAGE, write: P.STOCK_TRANSFERS_MANAGE },
+  /* Manufacturing: reading, recipes, and making goods are separate rights.
+     The controller also carries decorators; this keeps the map complete. */
+  // The counter reads which items are made when sold.
+  { match: /^manufacturing\/make-on-sale$/, GET: [P.POS_USE, P.MANUFACTURING_VIEW] },
+  { match: /^manufacturing\/recipes(\/|$)/, GET: P.MANUFACTURING_VIEW, write: P.MANUFACTURING_MANAGE },
+  { match: /^manufacturing\/(runs|preview)(\/|$)/, GET: P.MANUFACTURING_VIEW, POST: P.MANUFACTURING_PRODUCE },
+  { match: /^manufacturing(\/|$)/, GET: P.MANUFACTURING_VIEW, write: P.MANUFACTURING_MANAGE },
 
   /* ── Kharidari ── */
   { match: /(^|\/)suppliers(\/|$)/, GET: P.SUPPLIERS_VIEW, write: P.SUPPLIERS_EDIT },
@@ -173,6 +180,7 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /(^|\/)reports(\/|$)/, GET: P.REPORTS_VIEW },
   { match: /(^|\/)accounting(\/|$)/, GET: P.REPORTS_VIEW, write: P.SETTINGS_EDIT },
   { match: /(^|\/)expenses(\/|$)/, GET: P.EXPENSES_VIEW, write: P.EXPENSES_CREATE },
+  { match: /^income(\/|$)/, GET: P.INCOME_VIEW, write: P.INCOME_MANAGE },
   { match: /(^|\/)money(\/|$)/, GET: P.REPORTS_VIEW, write: P.EXPENSES_CREATE },
 
   /* ── Bande ── */

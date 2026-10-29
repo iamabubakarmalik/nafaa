@@ -6,6 +6,7 @@
 
 import { apiClient } from '@core/api/client';
 import type { PriceTier } from '@core/lib/priceTiers';
+import type { ProfitSplit } from '@modules/reports/ProfitSplit';
 
 export interface Period { from: string; to: string }
 interface Meta { from: string; to: string; grouping: 'day' | 'month' }
@@ -85,13 +86,17 @@ export interface ProfitSummary {
   sales: number; gross: number; refunds: number; discount: number;
   /** Service charges inside `gross`. */
   service: number;
-  cost?: number; grossProfit?: number; margin?: number;
-  expenses: number; damage: number; netProfit?: number; netMargin: number;
+  /** grossProfit is the headline on the shop's khata basis; billProfit is the period's bills' profit. */
+  cost?: number; grossProfit?: number; billProfit?: number; margin?: number;
+  /** Khata split (missing when cost is hidden). */
+  split?: ProfitSplit;
+  /** damage = stock loss − stock gain (what comes off profit). */
+  expenses: number; damage: number; stockLoss?: number; stockGain?: number; otherIncome?: number; netProfit?: number; netMargin: number;
 }
 export interface ProfitReport extends Meta {
   totals: ProfitSummary & { damageCount: number };
   previous: ProfitSummary | null;
-  rows: Array<{ key: string; sales: number; cost?: number; grossProfit?: number; expenses: number; netProfit?: number }>;
+  rows: Array<{ key: string; sales: number; cost?: number; grossProfit?: number; billProfit?: number; realised?: number; expenses: number; damage?: number; otherIncome?: number; netProfit?: number }>;
   priceTiers?: PriceTierSplit | null;
 }
 

@@ -82,7 +82,7 @@ export interface AiActionLine {
 /** Something the assistant proposes to do; nothing is written until the user confirms. */
 export interface AiActionProposal {
   id: string;
-  kind: 'create_product' | 'update_price' | 'adjust_stock' | 'create_sale' | 'create_customer' | 'receive_khata_payment' | 'create_expense' | 'create_purchase_draft';
+  kind: 'create_product' | 'update_price' | 'adjust_stock' | 'create_sale' | 'create_customer' | 'receive_khata_payment' | 'create_expense' | 'create_income' | 'create_purchase_draft' | 'produce';
   title: string;
   summary: string;
   fields: AiActionField[];
@@ -184,6 +184,10 @@ export interface MorningSummary {
     change: number | null;
     grossProfit?: number;
     netProfit?: number;
+    /** Khata profit in hand and still to come; other income. */
+    profitInHand?: number;
+    profitOnKhata?: number;
+    otherIncome?: number;
     expenses?: number;
     khata?: { given: number; collected: number; outstanding: number };
     lowStock: { out: number; low: number };

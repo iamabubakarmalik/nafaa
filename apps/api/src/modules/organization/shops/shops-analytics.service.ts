@@ -23,7 +23,8 @@ import { businessDayKey, zonedToUtc } from '../../../common/helpers/business-tim
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { computeLiveCash } from '../../../common/helpers/live-cash.helper';
 import {
-  BILL_NET, emptySaleFigures, foldWriteOffs, liveSaleSql, paidExpenseWhere, saleFiguresBy, writeOffRows,
+  BILL_NET, creditProfitRows, emptySaleFigures, foldCreditProfit, foldWriteOffs, headlineGross, liveSaleSql, otherIncomeRows, paidExpenseWhere,
+  profitBasis, saleFiguresBy, writeOffRows, type CreditProfitRow,
   type MathRange, type MathScope, type SaleFigures, type WriteOffRow,
 } from '../../../common/helpers/business-math.helper';
 
@@ -44,7 +45,8 @@ interface Viewer {
 interface Clock { tz: string; h: number }
 
 /** One window's money for one branch. */
-interface WindowMoney { sales: SaleFigures; expenses: number; writeOff: number }
+/** `gross` is the headline gross profit on the shop's khata basis; `income` is other income. */
+interface WindowMoney { sales: SaleFigures; expenses: number; writeOff: number; gross: number; income: number }
 
 @Injectable()
 export class ShopsAnalyticsService {
@@ -92,10 +94,13 @@ export class ShopsAnalyticsService {
   /** Sales, paid expenses and write-offs of one window, keyed by branch. */
   private async windowMoney(tenantId: string, v: Viewer, r: MathRange): Promise<Map<string, WindowMoney>> {
     const scope: MathScope = { tenantId, shopId: v.shopId };
-    const [sales, expenses, writeOff] = await Promise.all([
+    const [sales, expenses, writeOff, credit, income, basis] = await Promise.all([
       saleFiguresBy(this.prisma, liveSaleSql(scope, r), Prisma.sql`s."shopId"`),
       this.prisma.expense.groupBy({ by: ['shopId'], where: paidExpenseWhere(scope, r), _sum: { amount: true } }),
       writeOffRows(this.prisma, scope, r, { key: (_at, shop) => shop }),
+      creditProfitRows(this.prisma, scope, r, { key: (_at, shop) => shop }),
+      otherIncomeRows(this.prisma, scope, r, { key: (_at, shop) => shop }),
+      profitBasis(this.prisma, tenantId),
     ]);
     const byShop = new Map<string, WriteOffRow[]>();
     for (const row of writeOff) {
@@ -104,12 +109,19 @@ export class ShopsAnalyticsService {
     }
     const out = new Map<string, WindowMoney>();
     const ensure = (id: string) => {
-      if (!out.has(id)) out.set(id, { sales: sales.get(id) ?? emptySaleFigures(), expenses: 0, writeOff: 0 });
+      if (!out.has(id)) {
+        const f = sales.get(id) ?? emptySaleFigures();
+        out.set(id, { sales: f, expenses: 0, writeOff: 0, gross: f.grossProfit, income: 0 });
+      }
       return out.get(id)!;
     };
     for (const id of sales.keys()) if (id) ensure(id);
     for (const e of expenses) if (e.shopId) ensure(e.shopId).expenses = r2(n(e._sum.amount));
     for (const [id, rows] of byShop) ensure(id).writeOff = foldWriteOffs(rows).net;
+    for (const x of income) if (x.k) ensure(x.k).income = r2(n(x.amount));
+    const creditBy = new Map<string, CreditProfitRow[]>();
+    for (const x of credit) if (x.k) creditBy.set(x.k, [...(creditBy.get(x.k) ?? []), x]);
+    for (const [id, rows] of creditBy) ensure(id).gross = headlineGross(foldCreditProfit(rows), basis);
     return out;
   }
 
@@ -202,7 +214,7 @@ export class ShopsAnalyticsService {
       }),
     ]);
     const creditBy = new Map(credit.map((x) => [x.shopId, Math.max(n(x._sum.amount), 0)]));
-    const money = (m: Map<string, WindowMoney>, id: string): WindowMoney => m.get(id) ?? { sales: emptySaleFigures(), expenses: 0, writeOff: 0 };
+    const money = (m: Map<string, WindowMoney>, id: string): WindowMoney => m.get(id) ?? { sales: emptySaleFigures(), expenses: 0, writeOff: 0, gross: 0, income: 0 };
     const cost = (x: number) => (v.costHidden ? 0 : r2(x));
 
     const rows = shops.map((shop) => {
@@ -213,17 +225,17 @@ export class ShopsAnalyticsService {
       const s = stock.get(shop.id) ?? { qty: 0, low: 0, cost: 0, retail: 0 };
       const d = people.drawers.get(shop.id);
       const duty = people.duty.get(shop.id) ?? [];
-      const net = (x: WindowMoney) => x.sales.grossProfit - x.expenses - x.writeOff;
+      const net = (x: WindowMoney) => x.gross - x.expenses - x.writeOff + x.income;
       return {
         ...shop,
         todaySales: t.sales.net,
-        todayProfit: cost(t.sales.grossProfit),
+        todayProfit: cost(t.gross),
         todayOrders: t.sales.bills,
         todayPaid: t.sales.cashIn,
         todayCredit: t.sales.credit,
         todayRefunds: t.sales.refunds,
         monthSales: m.sales.net,
-        monthProfit: cost(m.sales.grossProfit),
+        monthProfit: cost(m.gross),
         monthOrders: m.sales.bills,
         lowStockCount: s.low,
         totalStock: r2(s.qty),
@@ -237,7 +249,7 @@ export class ShopsAnalyticsService {
         yesterdaySales: y.sales.net,
         growthVsYesterday: r2(pct(t.sales.net, y.sales.net)),
         weekSales: w.sales.net,
-        weekProfit: cost(w.sales.grossProfit),
+        weekProfit: cost(w.gross),
         weekOrders: w.sales.bills,
         weekExpenses: w.expenses,
         weekNetProfit: cost(net(w)),
@@ -333,20 +345,20 @@ export class ShopsAnalyticsService {
     ]);
 
     const cost = (x: number) => (v.costHidden ? 0 : r2(x));
-    const empty: WindowMoney = { sales: emptySaleFigures(), expenses: 0, writeOff: 0 };
+    const empty: WindowMoney = { sales: emptySaleFigures(), expenses: 0, writeOff: 0, gross: 0, income: 0 };
     const rows = shops.map((shop) => {
       const a = now.get(shop.id) ?? empty;
       const b = before.get(shop.id) ?? empty;
-      const netProfit = a.sales.grossProfit - a.expenses - a.writeOff;
-      const prevNetProfit = b.sales.grossProfit - b.expenses - b.writeOff;
+      const netProfit = a.gross - a.expenses - a.writeOff + a.income;
+      const prevNetProfit = b.gross - b.expenses - b.writeOff + b.income;
       return {
         id: shop.id, name: shop.name, type: shop.type, isMain: shop.isMain,
         bills: a.sales.bills, gross: a.sales.gross, refunds: a.sales.refunds, net: a.sales.net,
         discount: r2(a.sales.discount + a.sales.codeDiscount + a.sales.loyaltyDiscount),
         cashIn: a.sales.cashIn, credit: a.sales.credit,
-        cost: cost(a.sales.cost), grossProfit: cost(a.sales.grossProfit),
-        expenses: a.expenses, writeOff: cost(a.writeOff), netProfit: cost(netProfit),
-        margin: v.costHidden || a.sales.net <= 0 ? 0 : r2((a.sales.grossProfit / a.sales.net) * 100),
+        cost: cost(a.sales.cost), grossProfit: cost(a.gross),
+        expenses: a.expenses, writeOff: cost(a.writeOff), otherIncome: a.income, netProfit: cost(netProfit),
+        margin: v.costHidden || a.sales.net <= 0 ? 0 : r2((a.gross / a.sales.net) * 100),
         avgBill: a.sales.bills ? r2(a.sales.net / a.sales.bills) : 0,
         share: 0,
         prev: { bills: b.sales.bills, net: b.sales.net, netProfit: cost(prevNetProfit) },

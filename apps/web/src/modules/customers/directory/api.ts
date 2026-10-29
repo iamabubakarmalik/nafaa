@@ -68,7 +68,11 @@ export interface CustomerInsights {
   };
   products: Array<{ productId: string; name: string; unit: string; qty: number; spent: number; times: number; lastAt: string | null }>;
   payments: Array<{ method: string; bills: number; total: number }>;
-  credit: { taken: number; paid: number; reduced: number; oldestDueAt: string | null; dueDays: number | null };
+  credit: {
+    taken: number; paid: number; reduced: number; oldestDueAt: string | null; dueDays: number | null;
+    /** Profit on this customer's khata bills: in hand and still to come (missing when cost is hidden). */
+    realised?: number; pendingProfit?: number; billProfit?: number;
+  };
 }
 
 const params = (f: DirectoryFilters, page: number, limit: number) => ({

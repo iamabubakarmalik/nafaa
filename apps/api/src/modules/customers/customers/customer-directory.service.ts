@@ -11,6 +11,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
+import { customerKhataProfit } from '../../../common/helpers/business-math.helper';
 import { businessDayKey, dateKeyTz, safeDayStart, tzParts, weekdayInTz, zonedToUtc } from '../../../common/helpers/business-time.helper';
 
 export type DirectoryType = 'all' | 'vip' | 'khata' | 'advance' | 'overLimit' | 'clear';
@@ -304,7 +305,7 @@ export class CustomerDirectoryService {
     const shift = start * 3600_000;
     const sale = { tenantId, customerId: id, ...(shopId && { shopId }) };
 
-    const [sales, items, ledger] = await Promise.all([
+    const [sales, items, ledger, khataProfit] = await Promise.all([
       this.prisma.sale.findMany({
         where: sale,
         select: { id: true, soldAt: true, total: true, creditAmount: true, paymentMethod: true, status: true },
@@ -323,6 +324,8 @@ export class CustomerDirectoryService {
         where: { tenantId, customerId: id, ...(shopId && { shopId }) },
         select: { amount: true, type: true, createdAt: true },
       }),
+      // Profit on this customer's khata bills: in hand and still to come (cost is masked for staff).
+      customerKhataProfit(this.prisma, tenantId, id, shopId),
     ]);
 
     const live = sales.filter((s) => (LIVE as readonly string[]).includes(s.status));
@@ -386,6 +389,10 @@ export class CustomerDirectoryService {
         reduced: ledger.filter((l) => n(l.amount) < 0 && l.type !== 'PAYMENT_RECEIVED').reduce((x, l) => x - n(l.amount), 0),
         oldestDueAt: oldest,
         dueDays: oldest ? Math.floor((Date.now() - oldest.getTime()) / DAY) : null,
+        /** Profit on khata bills: realised (money in) and pendingProfit (still on khata). */
+        realised: khataProfit.realised,
+        pendingProfit: khataProfit.pending,
+        billProfit: khataProfit.billProfit,
       },
     };
   }

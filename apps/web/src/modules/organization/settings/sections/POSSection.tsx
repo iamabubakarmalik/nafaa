@@ -134,6 +134,11 @@ export function POSSection({ settings }: { settings: TenantSettings }) {
           <PageLink to="/settings/printing" icon={Printer} title="Printing" desc="A4, thermal, colour" />
           <PageLink to="/settings/hardware" icon={Monitor} title="POS hardware" desc="Printer, drawer, tarazu" />
         </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Udhaar par bill ka profit kab gina jaye — paisa milne par ya bill bante hi?{' '}
+          <SettingLink to="/settings/reports" find="Udhaar ka profit kab ginein" className="font-semibold text-brand-700 underline underline-offset-2">Udhaar ka profit kab ginein</SettingLink>
+          {' '}(Settings → Reports). Galle ka cash is se nahi badalta: udhaar wala hissa kabhi galle me nahi ginta.
+        </p>
         <p className="mt-3 text-xs text-slate-500">Apna layout, auto-print aur printer har counter ke liye alag hain — POS khol kar ⚙️ se badlein. Shortcuts ke liye counter par ? dabayein.</p>
       </SectionCard>
     </div>

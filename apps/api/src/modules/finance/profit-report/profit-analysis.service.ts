@@ -4,8 +4,10 @@
  * cost from the price saved on each line at the time of sale (today's
  * product or variant cost only when the line has none), and gross profit
  * by product, variant, category, brand, last supplier, staff and day.
- * Net profit takes off paid expenses and stock written off (damage, loss
- * and count corrections). Every rule comes from business-math.helper.
+ * Net profit takes off paid expenses and stock loss, adds stock gain and
+ * other income, and (for the whole shop, no category or brand filter) uses
+ * the shop's khata basis for gross profit. Every rule comes from
+ * business-math.helper.
  * Every figure has the previous period of the same length beside it.
  *
  * Returns are counted against the sale they came from, so a period's
@@ -25,7 +27,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { businessDayKey, safeDayStart, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import {
-  LINE_COST_JOINS, LINE_NET, LINE_NO_COST, LINE_REFUND, LINE_UNIT_COST, billMathCte, liveSaleSql, netProfit, paidExpenseWhere, writeOffs,
+  LINE_COST_JOINS, LINE_NET, LINE_NO_COST, LINE_REFUND, LINE_UNIT_COST, billMathCte, liveSaleSql, netProfit, paidExpenseWhere, profitParts, writeOffs,
 } from '../../../common/helpers/business-math.helper';
 import type { ProfitItemsDto, ProfitRangeDto, ProfitUnitsDto } from './dto/profit-analysis.dto';
 import { BillChargeRow, billChargeRows, sumBillCharges } from './bill-charges';
@@ -506,7 +508,8 @@ export class ProfitAnalysisService {
     const productSql = categoryId || brandId
       ? Prisma.sql`TRUE ${categoryId ? Prisma.sql`AND wp."categoryId" = ${categoryId}` : Prisma.empty} ${brandId ? Prisma.sql`AND wp."brandId" = ${brandId}` : Prisma.empty}`
       : undefined;
-    const [expenses, w, topWriteOffs] = await Promise.all([
+    const whole = !categoryId && !brandId;
+    const [expenses, w, topWriteOffs, parts] = await Promise.all([
       this.prisma.expense.groupBy({ by: ['categoryId'], where: paidExpenseWhere(scope, range), _sum: { amount: true } }),
       writeOffs(this.prisma, scope, range, productSql),
       this.prisma.stockAdjustment.groupBy({
@@ -516,6 +519,8 @@ export class ProfitAnalysisService {
         orderBy: { _sum: { value: 'desc' } },
         take: 5,
       }),
+      // Khata split and other income belong to the whole shop, not to a category or brand.
+      whole ? profitParts(this.prisma, scope, range) : Promise.resolve(null),
     ]);
     const catIds = expenses.map((e) => e.categoryId).filter((x): x is string => !!x);
     const [cats, prods] = await Promise.all([
@@ -525,8 +530,14 @@ export class ProfitAnalysisService {
     const catBy = new Map(cats.map((c) => [c.id, c]));
     const prodBy = new Map(prods.map((p) => [p.id, p]));
     const expenseTotal = r2(expenses.reduce((s, e) => s + (e._sum.amount ?? 0), 0));
+    const headline = parts ? parts.split.headline : grossProfit;
+    const income = parts?.otherIncome ?? 0;
     return {
-      grossProfit: r2(grossProfit),
+      grossProfit: r2(headline),
+      billProfit: r2(grossProfit),
+      split: parts?.split ?? null,
+      otherIncome: income,
+      stockLoss: w.lossTotal, stockGain: w.gain,
       expenses: expenseTotal,
       expenseCategories: expenses
         .map((e) => ({ id: e.categoryId ?? 'none', name: (e.categoryId && catBy.get(e.categoryId)?.name) || 'Bina category', color: (e.categoryId && catBy.get(e.categoryId)?.color) || null, amount: r2(e._sum.amount ?? 0) }))
@@ -537,7 +548,7 @@ export class ProfitAnalysisService {
       adjustOutCost: w.countedShort, adjustInCost: w.found,
       writeOffCost: w.net,
       topWriteOffs: topWriteOffs.map((x) => ({ productId: x.productId, name: prodBy.get(x.productId)?.name ?? 'Product', unit: prodBy.get(x.productId)?.unit ?? 'pcs', qty: r2(x._sum.quantity ?? 0), writeOffCost: r2(x._sum.value ?? 0) })),
-      netProfit: netProfit(grossProfit, expenseTotal, w.net),
+      netProfit: netProfit(headline, expenseTotal, w.net, income),
     };
   }
 

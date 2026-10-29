@@ -98,9 +98,9 @@ export default function ProfitLossPage() {
   const r = reportQ.data;
   const s = r?.current;
   const p = r?.previous;
-  const lines = useMemo(() => (r ? buildLines(cfg, unionCategories([r.current, r.previous]), r.staffIncluded) : []), [r, cfg]);
-  const monthLines = useMemo(() => (monthlyQ.data ? buildLines(cfg, unionCategories(monthlyQ.data.months.map((m) => m.statement)), monthlyQ.data.staffIncluded) : []), [monthlyQ.data, cfg]);
-  const branchLines = useMemo(() => (branchesQ.data ? buildLines(cfg, unionCategories([branchesQ.data.total]), branchesQ.data.staffIncluded) : []), [branchesQ.data, cfg]);
+  const lines = useMemo(() => (r ? buildLines(cfg, unionCategories([r.current, r.previous]), r.staffIncluded, [r.current, r.previous]) : []), [r, cfg]);
+  const monthLines = useMemo(() => (monthlyQ.data ? buildLines(cfg, unionCategories(monthlyQ.data.months.map((m) => m.statement)), monthlyQ.data.staffIncluded, monthlyQ.data.months.map((m) => m.statement)) : []), [monthlyQ.data, cfg]);
+  const branchLines = useMemo(() => (branchesQ.data ? buildLines(cfg, unionCategories([branchesQ.data.total]), branchesQ.data.staffIncluded, [branchesQ.data.total, ...branchesQ.data.branches.map((b) => b.statement)]) : []), [branchesQ.data, cfg]);
 
   const label = rangeLabel(period.from, period.to);
   const prevShort = compare === 'year' ? 'Pichla saal' : 'Pichli period';

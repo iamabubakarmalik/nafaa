@@ -801,6 +801,8 @@ export class StockAnalysisService {
     const KIND: Record<string, string> = {
       PURCHASE_IN: 'buy', RETURN_IN: 'returnIn', TRANSFER_IN: 'transferIn', ADJUSTMENT_IN: 'adjustIn', OPENING_BALANCE: 'adjustIn',
       SALE_OUT: 'sale', TRANSFER_OUT: 'transferOut', DAMAGE: 'damage', LOSS: 'damage', ADJUSTMENT_OUT: 'adjustOut', PURCHASE_RETURN: 'supplier',
+      // Manufacturing: goods made, and raw materials used to make them.
+      PRODUCTION_IN: 'made', PRODUCTION_OUT: 'used',
     };
     const per = new Map<string, { after: number; kinds: Record<string, number> }>();
     for (const m of moves) {

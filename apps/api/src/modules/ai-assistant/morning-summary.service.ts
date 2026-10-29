@@ -172,7 +172,10 @@ export class MorningSummaryService {
     const change = prev > 0.005 ? Math.round(((sales.net - prev) / prev) * 100) : null;
     const figures: NonNullable<MorningSummary['figures']> = {
       sales: sales.net, bills: sales.bills, average, previousDay: prev, change,
-      ...(seesProfit && { grossProfit: sales.grossProfit, netProfit: f.netProfit }),
+      ...(seesProfit && {
+        grossProfit: f.grossProfit, netProfit: f.netProfit,
+        profitInHand: f.credit.realised, profitOnKhata: f.credit.pending, otherIncome: f.otherIncome,
+      }),
       ...(seesExpenses && { expenses: f.expenses }),
       ...(seesKhata && { khata: { given: sales.credit, collected: got, outstanding: owed } }),
       lowStock: stock,
@@ -187,7 +190,14 @@ export class MorningSummaryService {
       const trend = change == null ? '' : change === 0 ? ' — pichhle din jitni' : ` — pichhle din se ${Math.abs(change)}% ${change > 0 ? 'zyada' : 'kam'}`;
       lines.push(`• Sale: ${money(sales.net)} (${sales.bills} bill, average ${money(average)})${trend}`);
     }
-    if (seesProfit && sales.bills) lines.push(`• Profit: ${money(sales.grossProfit)} · expenses aur nuqsan ke baad ${money(f.netProfit)}`);
+    if (seesProfit && sales.bills) {
+      lines.push(`• Profit: ${money(f.grossProfit)} · expenses aur stock nuksan ke baad ${money(f.netProfit)}`);
+      // Khata bills: profit in hand and profit still to come, so nothing is hidden.
+      if (f.credit.pending > 0.5 || f.credit.fromOlderBills > 0.5) {
+        lines.push(`• Haath mein aaya profit ${money(f.credit.realised)} · udhaar mein profit ${money(f.credit.pending)}`);
+      }
+    }
+    if (seesProfit && f.otherIncome > 0) lines.push(`• Doosri aamdani: ${money(f.otherIncome)}`);
     else if (seesExpenses && f.expenses > 0) lines.push(`• Expenses: ${money(f.expenses)}`);
     if (seesKhata) lines.push(`• Udhaar: ${money(sales.credit)} diya, ${money(got)} wapas aaya — kul baqi ${money(owed)}`);
     if (stock.out || stock.low) lines.push(`• Stock: ${stock.out} cheezein khatam, ${stock.low} kam`);

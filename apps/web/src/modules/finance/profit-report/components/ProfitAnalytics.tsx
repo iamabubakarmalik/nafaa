@@ -17,6 +17,7 @@ import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { ProfitBrief, ProfitOverview } from '../api';
 import { Change } from './ProductRows';
 import { WEEKDAYS, change, chargeSplit, dayLabel, pct, qty } from './meta';
+import { ProfitSplitCard } from '@modules/reports/ProfitSplit';
 
 const PALETTE = ['#0f766e', '#2563eb', '#7c3aed', '#db2777', '#ea580c', '#ca8a04', '#16a34a', '#0891b2', '#64748b', '#9333ea'];
 
@@ -181,6 +182,8 @@ export function NetCard({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
   const pn = data.prevNet;
   const c = chargeSplit(t);
   const pc = chargeSplit(p);
+  // With "Paisa milne par" the khata lines take the bill profit to the headline.
+  const paid = !fmt.costHidden && n.split?.basis === 'PAID';
   const line = (label: string, now: number, before: number, kind: 'money' | 'cost', opts: { minus?: boolean; plus?: boolean; strong?: boolean; invert?: boolean } = {}) => {
     const f = kind === 'cost' ? fmt.cost : fmt.money;
     return (
@@ -204,11 +207,18 @@ export function NetCard({ data, fmt }: { data: ProfitOverview; fmt: Fmt }) {
         {line('Asal sale', t.revenue, p.revenue, 'money', { strong: true })}
         {line('Maal ki cost', c.lineCost, pc.lineCost, 'cost', { minus: true, invert: true })}
         {c.cost !== 0 && line('Bill par alag cost (rider waghera)', c.cost, pc.cost, 'cost', { minus: true, invert: true })}
-        {line('Gross profit', t.profit ?? 0, p.profit ?? 0, 'cost', { strong: true })}
+        {line('Bill ka profit', t.profit ?? 0, p.profit ?? 0, 'cost', { strong: true })}
+        {paid && line('Udhaar mein profit (abhi aana hai)', n.split?.pending ?? 0, pn.split?.pending ?? 0, 'cost', { minus: true })}
+        {paid && !!(n.split?.writtenOff) && line('Udhaar maaf kiya', n.split?.writtenOff ?? 0, pn.split?.writtenOff ?? 0, 'cost', { minus: true })}
+        {paid && !!(n.split?.fromOlderBills) && line('Pehle ke udhaar se aaya', n.split?.fromOlderBills ?? 0, pn.split?.fromOlderBills ?? 0, 'cost', { plus: true })}
+        {paid && line('Haath mein aaya profit', n.grossProfit ?? 0, pn.grossProfit ?? 0, 'cost', { strong: true })}
         {line('Expenses', n.expenses, pn.expenses, 'money', { minus: true, invert: true })}
-        {line('Kharab / gum maal', n.writeOffCost ?? 0, pn.writeOffCost ?? 0, 'cost', { minus: true, invert: true })}
+        {line('Stock nuksan', n.stockLoss ?? n.writeOffCost ?? 0, pn.stockLoss ?? pn.writeOffCost ?? 0, 'cost', { minus: true, invert: true })}
+        {!!(n.stockGain || pn.stockGain) && line('Stock faida', n.stockGain ?? 0, pn.stockGain ?? 0, 'cost', { plus: true })}
+        {!!(n.otherIncome || pn.otherIncome) && line('Doosri aamdani', n.otherIncome ?? 0, pn.otherIncome ?? 0, 'money', { plus: true })}
         {line('Net profit', n.netProfit ?? 0, pn.netProfit ?? 0, 'cost', { strong: true })}
       </ul>
+      {!fmt.costHidden && <ProfitSplitCard split={n.split} money={fmt.cost} className="mt-3" />}
       {data.filtered && (
         <p className="mt-2 flex gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-[0.75rem] text-amber-900"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />Filter laga hai — expenses poori dukaan ke hain, is liye net profit sirf andaza hai.</p>
       )}

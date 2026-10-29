@@ -8,6 +8,7 @@
  *                                   the card or wallet part of a split bill is not drawer cash
  *            + booking payments     cash advance and later payments, on the day received
  *            + khata collections    customer payments by cash (older rows with no method count as cash)
+ *            + other income         incentives, claims, rent and the like received in the drawer
  *            + cash in              manual entries on this register
  *            − cash out             manual entries on this register
  *            − cash refunds         returns paid back in cash (minus any part that only cleared udhaar)
@@ -40,6 +41,8 @@ export interface LiveCash {
   bookingReceivedCount: number;
   khataReceived: number;
   khataCount: number;
+  otherIncome: number;
+  otherIncomeCount: number;
   cashIn: number;
   cashInCount: number;
   cashOut: number;
@@ -93,7 +96,7 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
 
   const [
     sales, bookingIn, bookingOut, khataNeg, khataPos, manual,
-    returns, expenses, purchases, suppliers,
+    returns, expenses, purchases, suppliers, income,
   ] = await Promise.all([
     db.salePayment.aggregate({
       where: { tenantId, method: 'CASH', sale: { tenantId, ...shop, status: { not: 'VOIDED' }, bookingId: null, soldAt: window } },
@@ -134,6 +137,11 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
       _sum: { amount: true },
       _count: { _all: true },
     }),
+    db.otherIncome.aggregate({
+      where: { tenantId, ...shop, receivedVia: 'CASH_DRAWER', incomeDate: window },
+      _sum: { amount: true },
+      _count: { _all: true },
+    }),
   ]);
 
   // Part of a cash refund may only clear the customer's udhaar; only the rest leaves the drawer.
@@ -156,6 +164,8 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
     bookingReceivedCount: bookingIn._count._all,
     khataReceived: r2(-n(khataNeg._sum.amount) + n(khataPos._sum.amount)),
     khataCount: khataNeg._count._all + khataPos._count._all,
+    otherIncome: r2(n(income._sum.amount)),
+    otherIncomeCount: income._count._all,
     cashIn: r2(n(manualOf('CASH_IN')?._sum.amount)),
     cashInCount: manualOf('CASH_IN')?._count._all ?? 0,
     cashOut: r2(n(manualOf('CASH_OUT')?._sum.amount)),
@@ -172,7 +182,7 @@ export async function computeLiveCash(db: Db, tenantId: string, register: CashWi
     supplierPaidCount: suppliers._count._all,
   };
   const expected = r2(
-    out.openingBalance + out.cashSales + out.bookingReceived + out.khataReceived + out.cashIn
+    out.openingBalance + out.cashSales + out.bookingReceived + out.khataReceived + out.otherIncome + out.cashIn
     - out.cashOut - out.returns - out.bookingRefunds - out.expenses - out.purchases - out.supplierPaid,
   );
   return { ...out, expected };

@@ -31,6 +31,7 @@ function cashRows(dr: NonNullable<DayBook['drawer']>, m: Money): PrintRow[] {
   add('Cash sale', f.cashSales, '+');
   add('Booking advance', f.bookingReceived, '+');
   add('Khata wasooli', f.khataReceived, '+');
+  add('Doosri aamdani', f.otherIncome ?? 0, '+');
   add('Cash in', f.cashIn, '+');
   add('Cash out', f.cashOut, '-');
   add('Return', f.returns, '-');

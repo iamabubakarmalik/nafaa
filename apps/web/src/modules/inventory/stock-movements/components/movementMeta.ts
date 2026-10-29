@@ -5,7 +5,7 @@
  */
 
 import {
-  ArrowDownToLine, ArrowRightLeft, ArrowUpFromLine, CircleMinus, CirclePlus, CornerUpRight, Flag, RotateCcw,
+  ArrowDownToLine, ArrowRightLeft, ArrowUpFromLine, CircleMinus, CirclePlus, CornerUpRight, Factory, Flag, FlaskConical, RotateCcw,
   SearchX, ShoppingBag, TriangleAlert, Truck, type LucideIcon,
 } from 'lucide-react';
 import type { StockMovementType } from '../api/stock-movements.api';
@@ -33,11 +33,13 @@ export const MOVEMENT_META: Record<StockMovementType, MovementMeta> = {
   TRANSFER_IN: { label: 'Transfer aaya', hint: 'Doosri branch se aaya', color: '#0d9488', tone: 'bg-teal-50 text-teal-700 ring-teal-200', icon: ArrowDownToLine, dir: 'in' },
   TRANSFER_OUT: { label: 'Transfer gaya', hint: 'Doosri branch ko bheja', color: '#ca8a04', tone: 'bg-amber-50 text-amber-800 ring-amber-200', icon: ArrowUpFromLine, dir: 'out' },
   OPENING_BALANCE: { label: 'Opening', hint: 'Shuru ka stock', color: '#64748b', tone: 'bg-slate-100 text-slate-700 ring-slate-200', icon: Flag, dir: 'in' },
+  PRODUCTION_IN: { label: 'Banaya', hint: 'Production se bana hua maal aaya (minus = production wapas)', color: '#059669', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: Factory, dir: 'in' },
+  PRODUCTION_OUT: { label: 'Production me laga', hint: 'Raw maal banane me laga (plus = production wapas)', color: '#c2410c', tone: 'bg-orange-50 text-orange-700 ring-orange-200', icon: FlaskConical, dir: 'out' },
 };
 
 export const movementMeta = (t: string): MovementMeta => MOVEMENT_META[t as StockMovementType] ?? MOVEMENT_META.OPENING_BALANCE;
 
-export type MovementGroup = 'sale' | 'purchase' | 'return' | 'adjust' | 'damage' | 'transfer' | 'opening';
+export type MovementGroup = 'sale' | 'purchase' | 'return' | 'adjust' | 'damage' | 'transfer' | 'production' | 'opening';
 
 export const MOVEMENT_GROUPS: Array<{ id: MovementGroup; label: string; icon: LucideIcon; color: string; types: StockMovementType[] }> = [
   { id: 'sale', label: 'Sale', icon: ShoppingBag, color: '#2563eb', types: ['SALE_OUT'] },
@@ -46,6 +48,7 @@ export const MOVEMENT_GROUPS: Array<{ id: MovementGroup; label: string; icon: Lu
   { id: 'adjust', label: 'Adjustment', icon: CirclePlus, color: '#7c3aed', types: ['ADJUSTMENT_IN', 'ADJUSTMENT_OUT'] },
   { id: 'damage', label: 'Kharab / Gum', icon: TriangleAlert, color: '#e11d48', types: ['DAMAGE', 'LOSS'] },
   { id: 'transfer', label: 'Transfer', icon: ArrowRightLeft, color: '#0d9488', types: ['TRANSFER_IN', 'TRANSFER_OUT'] },
+  { id: 'production', label: 'Production', icon: Factory, color: '#059669', types: ['PRODUCTION_IN', 'PRODUCTION_OUT'] },
   { id: 'opening', label: 'Opening', icon: Flag, color: '#64748b', types: ['OPENING_BALANCE'] },
 ];
 

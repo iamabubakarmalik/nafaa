@@ -25,15 +25,34 @@
  *   Expenses        status PAID only, dated by expenseDate (paying a pending
  *                   bill moves expenseDate to the payment day). PENDING bills
  *                   are shown apart and never inside the total.
- *   Write-offs      StockAdjustment.value: DAMAGE + LOSS + ADJUSTMENT_OUT −
- *                   ADJUSTMENT_IN. Approving a damage report writes such a
+ *   Write-offs      StockAdjustment.value by its profit effect: stock loss
+ *                   (Stock nuksan: DAMAGE + LOSS + ADJUSTMENT_OUT) less stock
+ *                   gain (Stock faida: ADJUSTMENT_IN). Rows marked as a data
+ *                   correction (profitEffect NONE) move stock only and count
+ *                   in neither. Older rows have no profitEffect and go by
+ *                   their type. Approving a damage report writes such a
  *                   row, so DamageLog.netLoss is never added on top. Goods
  *                   taken back on a return as not fit to sell (StockMovement
  *                   DAMAGE carrying the return number) count with damage, at
  *                   the cost saved on the movement.
- *   Net profit      gross profit − expenses − write-offs. The P&L statement
- *                   also shows staff pay and kept booking advances as lines of
- *                   their own.
+ *   Khata profit    A bill paid in full at the counter earns its profit on the
+ *                   bill day. On a bill with a khata part, the counter part
+ *                   earns its share on the bill day and the khata part earns
+ *                   its share when the customer pays (SaleSettlement rows,
+ *                   built FIFO by sale-settlement.helper):
+ *                     share = bill profit × amount settled ÷ bill net.
+ *                   "Haath mein aaya profit" (realised) is the profit whose
+ *                   money came in during the period; "Udhaar mein profit"
+ *                   (pending) is the profit of the period's bills still owed
+ *                   at the period end. For the period's bills:
+ *                     bill profit = realised on them + pending + written off.
+ *                   The shop picks which one is the headline (Settings →
+ *                   Reports, creditProfit: 'paid' by default, or 'bill').
+ *   Other income    OtherIncome by incomeDate (company incentives, scheme
+ *                   claims, commission, rent, interest).
+ *   Net profit      headline gross profit − expenses − stock loss + stock gain
+ *                   + other income. The P&L statement also shows staff pay
+ *                   and kept booking advances as lines of their own.
  *   Cash in         the bill's SalePayment rows (cash net of change), so it
  *                   equals paidAmount − changeAmount less any trade-in, which
  *                   is goods, not money. Splits by method read the rows too.
@@ -52,6 +71,8 @@
  */
 
 import { Prisma } from '@prisma/client';
+import { readReportsConfig } from './reports-config.helper';
+import { syncTenantSettlements } from './sale-settlement.helper';
 
 type Db = Prisma.TransactionClient;
 
@@ -308,7 +329,7 @@ export async function paidExpenses(db: Db, scope: MathScope, r: MathRange): Prom
 
 /* ───────────────────────── write-offs ───────────────────────── */
 
-export type WriteOffKind = 'DAMAGE' | 'LOSS' | 'ADJUSTMENT_OUT' | 'ADJUSTMENT_IN' | 'RETURN_DAMAGE';
+export type WriteOffKind = 'DAMAGE' | 'LOSS' | 'ADJUSTMENT_OUT' | 'ADJUSTMENT_IN' | 'RETURN_DAMAGE' | 'CORRECTION';
 const ADJUSTMENT_KINDS = ['DAMAGE', 'LOSS', 'ADJUSTMENT_OUT', 'ADJUSTMENT_IN'] as const;
 
 export interface WriteOffRow { k: string; kind: WriteOffKind; value: number; count: number }
@@ -328,8 +349,16 @@ export interface WriteOffs {
   /** Counted extra or added by hand; reduces the write-off. */
   found: number;
   foundCount: number;
-  /** damage + loss + countedShort − found. */
+  /** Stock nuksan: damage + loss + countedShort. */
+  lossTotal: number;
+  /** Stock faida: found (same as `found`). */
+  gain: number;
+  /** Data corrections: stock moved, no profit effect. Shown for reference only. */
+  correction: number;
+  correctionCount: number;
+  /** lossTotal − gain: what comes off profit. */
   net: number;
+  /** Rows that count in profit (corrections left out). */
   count: number;
 }
 
@@ -342,6 +371,17 @@ export interface WriteOffOptions {
   product?: Prisma.Sql;
 }
 
+/**
+ * Kind of an adjustment row (alias `a`) for profit: a data correction
+ * (profitEffect NONE) is CORRECTION, a gain is ADJUSTMENT_IN, a loss keeps its
+ * stock-out type. Older rows without profitEffect keep their type.
+ */
+const ADJUSTMENT_KIND = Prisma.sql`(CASE
+  WHEN a."profitEffect"::text = 'NONE' THEN 'CORRECTION'
+  WHEN a."profitEffect"::text = 'GAIN' THEN 'ADJUSTMENT_IN'
+  WHEN a."profitEffect"::text = 'LOSS' AND a.type::text = 'ADJUSTMENT_IN' THEN 'ADJUSTMENT_OUT'
+  ELSE a.type::text END)`;
+
 /** Write-off rows by kind (and by `key` when given). */
 export function writeOffRows(db: Db, scope: MathScope, r: MathRange, o: WriteOffOptions = {}): Promise<WriteOffRow[]> {
   const keyA = o.key ? o.key(Prisma.sql`a."createdAt"`, Prisma.sql`a."shopId"`) : Prisma.sql`'all'::text`;
@@ -350,7 +390,7 @@ export function writeOffRows(db: Db, scope: MathScope, r: MathRange, o: WriteOff
   return db.$queryRaw<WriteOffRow[]>`
     SELECT w.k, w.kind, COALESCE(SUM(w.value), 0)::float8 AS value, COUNT(*)::int AS count
     FROM (
-      SELECT ${keyA} AS k, a.type::text AS kind, a.value AS value
+      SELECT ${keyA} AS k, ${ADJUSTMENT_KIND} AS kind, a.value AS value
       FROM "StockAdjustment" a JOIN "Product" wp ON wp.id = a."productId"
       WHERE a."tenantId" = ${scope.tenantId} AND a.type::text IN (${Prisma.join([...ADJUSTMENT_KINDS])})
         ${shopSql(Prisma.sql`a."shopId"`, scope)} ${rangeSql(Prisma.sql`a."createdAt"`, r)} ${product}
@@ -373,14 +413,17 @@ export function foldWriteOffs(rows: Array<Pick<WriteOffRow, 'kind' | 'value' | '
   const loss = v('LOSS');
   const short = v('ADJUSTMENT_OUT');
   const found = v('ADJUSTMENT_IN');
+  const counted = rows.filter((x) => x.kind !== 'CORRECTION').reduce((s, x) => s + n(x.count), 0);
   return {
     damage: r2(damage), damageCount: c('DAMAGE') + c('RETURN_DAMAGE'),
     returnDamage: r2(v('RETURN_DAMAGE')), returnDamageCount: c('RETURN_DAMAGE'),
     loss: r2(loss), lossCount: c('LOSS'),
     countedShort: r2(short), countedShortCount: c('ADJUSTMENT_OUT'),
     found: r2(found), foundCount: c('ADJUSTMENT_IN'),
+    lossTotal: r2(damage + loss + short), gain: r2(found),
+    correction: r2(v('CORRECTION')), correctionCount: c('CORRECTION'),
     net: r2(damage + loss + short - found),
-    count: rows.reduce((s, x) => s + n(x.count), 0),
+    count: counted,
   };
 }
 
@@ -388,20 +431,202 @@ export async function writeOffs(db: Db, scope: MathScope, r: MathRange, product?
   return foldWriteOffs(await writeOffRows(db, scope, r, { product }));
 }
 
+/* ───────────────────────── other income ───────────────────────── */
+
+export interface OtherIncomeRow { k: string; amount: number; count: number }
+
+/** Other income by `key` (time and branch columns), one row "all" when left out. */
+export function otherIncomeRows(db: Db, scope: MathScope, r: MathRange, o: { key?: (at: Prisma.Sql, shop: Prisma.Sql) => Prisma.Sql } = {}): Promise<OtherIncomeRow[]> {
+  const key = o.key ? o.key(Prisma.sql`oi."incomeDate"`, Prisma.sql`oi."shopId"`) : Prisma.sql`'all'::text`;
+  return db.$queryRaw<OtherIncomeRow[]>`
+    SELECT ${key} AS k, COALESCE(SUM(oi.amount), 0)::float8 AS amount, COUNT(*)::int AS count
+    FROM "OtherIncome" oi
+    WHERE oi."tenantId" = ${scope.tenantId} ${shopSql(Prisma.sql`oi."shopId"`, scope)} ${rangeSql(Prisma.sql`oi."incomeDate"`, r)}
+    GROUP BY 1`;
+}
+
+export async function otherIncome(db: Db, scope: MathScope, r: MathRange): Promise<{ amount: number; count: number }> {
+  const row = (await otherIncomeRows(db, scope, r))[0];
+  return { amount: r2(n(row?.amount)), count: n(row?.count) };
+}
+
+/* ───────────────────────── khata profit ───────────────────────── */
+
+/** Which gross profit is the headline: profit when the money comes ('PAID') or on the bill day ('BILL'). */
+export type ProfitBasis = 'PAID' | 'BILL';
+
+export async function profitBasis(db: Db, tenantId: string): Promise<ProfitBasis> {
+  const config = await readReportsConfig(db as never, tenantId);
+  return config.creditProfit === 'bill' ? 'BILL' : 'PAID';
+}
+
+export interface CreditProfit {
+  /** Gross profit of the period's bills (bill basis). */
+  billProfit: number;
+  /** "Haath mein aaya profit": profit whose money came in during the period. */
+  realised: number;
+  /** Of `realised`, from bills made before the period (khata paid now). */
+  fromOlderBills: number;
+  /** "Udhaar mein profit": of `billProfit`, still owed at the period end. */
+  pending: number;
+  /** Of `billProfit`, khata forgiven or reduced without money. */
+  writtenOff: number;
+}
+
+export const emptyCreditProfit = (): CreditProfit => ({ billProfit: 0, realised: 0, fromOlderBills: 0, pending: 0, writtenOff: 0 });
+
+export interface CreditProfitRow { k: string; part: 'bill' | 'plain' | 'same' | 'sameOff' | 'older'; value: number }
+
+/**
+ * Khata profit parts by `key` (time and branch columns of the bill or of the
+ * settlement). For each bucket:
+ *   bill     profit of the bucket's bills
+ *   plain    of those, bills with no khata part (all realised on the bill day)
+ *   same     realised on the bucket's khata bills within the bucket
+ *   sameOff  written off on them within the bucket
+ *   older    realised in the bucket on bills from before it
+ * Settlement rows are brought up to date first (sale-settlement.helper).
+ */
+export async function creditProfitRows(
+  db: Db, scope: MathScope, r: MathRange, o: { key?: (at: Prisma.Sql, shop: Prisma.Sql) => Prisma.Sql } = {},
+): Promise<CreditProfitRow[]> {
+  await syncTenantSettlements(db, scope.tenantId);
+  const key = o.key ?? (() => Prisma.sql`'all'::text`);
+  const end = r.lt ?? new Date();
+  const inPeriod = (col: Prisma.Sql) => Prisma.sql`(TRUE ${rangeSql(col, { gte: r.gte, lt: end })})`;
+  const where = Prisma.sql`s."tenantId" = ${scope.tenantId} AND s.status::text <> 'VOIDED' ${shopSql(Prisma.sql`s."shopId"`, scope)}
+    AND (${inPeriod(Prisma.sql`s."soldAt"`)} OR s.id IN (
+      SELECT z."saleId" FROM "SaleSettlement" z WHERE z."tenantId" = ${scope.tenantId} AND ${inPeriod(Prisma.sql`z."settledAt"`)}))`;
+  const kb = key(Prisma.sql`b."soldAt"`, Prisma.sql`b."shopId"`);
+  const kzSold = key(Prisma.sql`z."soldAt"`, Prisma.sql`z."shopId"`);
+  const kzPaid = key(Prisma.sql`z."settledAt"`, Prisma.sql`z."shopId"`);
+  return db.$queryRaw<CreditProfitRow[]>`
+    WITH ${billMathCte(where)},
+    b AS (
+      SELECT s.id, s."soldAt", s."shopId", (s.total - s."refundedAmount") AS net,
+        (s.total - s."refundedAmount" - bm.cost) AS profit,
+        ${inPeriod(Prisma.sql`s."soldAt"`)} AS inr,
+        EXISTS (SELECT 1 FROM "SaleSettlement" t WHERE t."saleId" = s.id) AS tracked
+      FROM "Sale" s JOIN bm ON bm.id = s.id),
+    z AS (
+      SELECT st.kind::text AS kind, st."settledAt", b."soldAt", b."shopId", b.inr,
+        CASE WHEN b.net > 0.005 THEN st.amount * b.profit / b.net ELSE 0 END AS p
+      FROM "SaleSettlement" st JOIN b ON b.id = st."saleId"
+      WHERE st."settledAt" < ${end})
+    SELECT k, part, COALESCE(SUM(v), 0)::float8 AS value FROM (
+      SELECT ${kb} AS k, 'bill' AS part, b.profit AS v FROM b WHERE b.inr
+      UNION ALL
+      SELECT ${kb}, 'plain', b.profit FROM b WHERE b.inr AND NOT b.tracked
+      UNION ALL
+      SELECT ${kzSold}, CASE WHEN z.kind = 'WRITE_OFF' THEN 'sameOff' ELSE 'same' END, z.p
+      FROM z WHERE z.inr AND ${kzPaid} = ${kzSold}
+      UNION ALL
+      SELECT ${kzPaid}, 'older', z.p
+      FROM z WHERE z.kind <> 'WRITE_OFF' AND ${inPeriod(Prisma.sql`z."settledAt"`)} AND NOT (z.inr AND ${kzPaid} = ${kzSold})
+    ) x
+    GROUP BY 1, 2`;
+}
+
+/** Adds the parts of one bucket into khata profit figures. */
+export function foldCreditProfit(rows: Array<Pick<CreditProfitRow, 'part' | 'value'>>): CreditProfit {
+  const v = (p: CreditProfitRow['part']) => rows.filter((x) => x.part === p).reduce((s, x) => s + n(x.value), 0);
+  const bill = v('bill');
+  const same = v('plain') + v('same');
+  const off = v('sameOff');
+  const older = v('older');
+  const pending = bill - same - off;
+  return {
+    billProfit: r2(bill),
+    realised: r2(same + older),
+    fromOlderBills: r2(older),
+    pending: r2(Math.abs(pending) < 0.005 ? 0 : pending),
+    writtenOff: r2(off),
+  };
+}
+
+export async function creditProfit(db: Db, scope: MathScope, r: MathRange): Promise<CreditProfit> {
+  return foldCreditProfit(await creditProfitRows(db, scope, r));
+}
+
+/**
+ * One customer's khata bills (bills with a khata part), all time: their
+ * profit, the part already in hand and the part still on khata.
+ */
+export async function customerKhataProfit(db: Db, tenantId: string, customerId: string, shopId?: string | null): Promise<{ bills: number; billProfit: number; realised: number; pending: number; writtenOff: number }> {
+  await syncTenantSettlements(db, tenantId);
+  const where = Prisma.sql`s."tenantId" = ${tenantId} AND s.status::text <> 'VOIDED' ${shopSql(Prisma.sql`s."shopId"`, { tenantId, shopId })}
+    AND s.id IN (SELECT z."saleId" FROM "SaleSettlement" z WHERE z."tenantId" = ${tenantId} AND z."customerId" = ${customerId})`;
+  const [row] = await db.$queryRaw<Array<{ bills: number; profit: number; realised: number; off: number }>>`
+    WITH ${billMathCte(where)},
+    b AS (SELECT s.id, (s.total - s."refundedAmount") AS net, (s.total - s."refundedAmount" - bm.cost) AS profit FROM "Sale" s JOIN bm ON bm.id = s.id)
+    SELECT COUNT(*)::int AS bills, COALESCE(SUM(b.profit), 0)::float8 AS profit,
+      COALESCE(SUM((SELECT SUM(z.amount) FROM "SaleSettlement" z WHERE z."saleId" = b.id AND z.kind::text <> 'WRITE_OFF') * CASE WHEN b.net > 0.005 THEN b.profit / b.net ELSE 0 END), 0)::float8 AS realised,
+      COALESCE(SUM((SELECT SUM(z.amount) FROM "SaleSettlement" z WHERE z."saleId" = b.id AND z.kind::text = 'WRITE_OFF') * CASE WHEN b.net > 0.005 THEN b.profit / b.net ELSE 0 END), 0)::float8 AS off
+    FROM b`;
+  const profit = n(row?.profit);
+  const realised = n(row?.realised);
+  const off = n(row?.off);
+  const pending = profit - realised - off;
+  return { bills: n(row?.bills), billProfit: r2(profit), realised: r2(realised), pending: r2(Math.abs(pending) < 0.005 ? 0 : pending), writtenOff: r2(off) };
+}
+
+/** The gross profit a basis puts in the headline. */
+export const headlineGross = (c: CreditProfit, basis: ProfitBasis) => (basis === 'BILL' ? c.billProfit : c.realised);
+
+/** Khata profit with the shop's basis and the headline it picks. Sent to the app as-is. */
+export interface ProfitSplit extends CreditProfit {
+  basis: ProfitBasis;
+  /** Gross profit in the headline: `realised` ('PAID') or `billProfit` ('BILL'). */
+  headline: number;
+}
+
+export const profitSplit = (c: CreditProfit, basis: ProfitBasis): ProfitSplit => ({ ...c, basis, headline: headlineGross(c, basis) });
+
+/** Khata profit split and other income for a window: what a screen adds to its own sale and expense figures. */
+export async function profitParts(db: Db, scope: MathScope, r: MathRange): Promise<{ split: ProfitSplit; otherIncome: number; otherIncomeCount: number }> {
+  const [credit, basis, income] = await Promise.all([creditProfit(db, scope, r), profitBasis(db, scope.tenantId), otherIncome(db, scope, r)]);
+  return { split: profitSplit(credit, basis), otherIncome: income.amount, otherIncomeCount: income.count };
+}
+
 /* ───────────────────────── profit ───────────────────────── */
 
-export const netProfit = (grossProfit: number, expenses: number, writeOff: number) => r2(grossProfit - expenses - writeOff);
+/**
+ * Net profit = gross profit − expenses − stock write-off (loss − gain) + other
+ * income. Pass the headline gross profit (headlineGross) for the shop's basis.
+ */
+export const netProfit = (grossProfit: number, expenses: number, writeOff: number, income = 0) => r2(grossProfit - expenses - writeOff + income);
 
 export interface ProfitFigures {
   sales: SaleFigures;
   expenses: number;
   expenseCount: number;
   writeOffs: WriteOffs;
+  otherIncome: number;
+  otherIncomeCount: number;
+  /** Khata profit split; `sales.grossProfit` equals `credit.billProfit`. */
+  credit: CreditProfit;
+  /** The same with the basis and headline, for the app. */
+  split: ProfitSplit;
+  basis: ProfitBasis;
+  /** Gross profit in the headline: realised ('PAID') or bill profit ('BILL'). */
+  grossProfit: number;
+  /** Net profit on the headline gross profit. */
   netProfit: number;
+  /** Net profit with every bill's whole profit on its bill day. */
+  billNetProfit: number;
 }
 
-/** Sales, expenses, write-offs and net profit for a tenant, branch and window. */
+/** Sales, expenses, write-offs, other income, khata profit and net profit for a tenant, branch and window. */
 export async function profitFigures(db: Db, scope: MathScope, r: MathRange): Promise<ProfitFigures> {
-  const [sales, expenses, w] = await Promise.all([saleFigures(db, scope, r), paidExpenses(db, scope, r), writeOffs(db, scope, r)]);
-  return { sales, expenses: expenses.amount, expenseCount: expenses.count, writeOffs: w, netProfit: netProfit(sales.grossProfit, expenses.amount, w.net) };
+  const [sales, expenses, w, income, credit, basis] = await Promise.all([
+    saleFigures(db, scope, r), paidExpenses(db, scope, r), writeOffs(db, scope, r), otherIncome(db, scope, r),
+    creditProfit(db, scope, r), profitBasis(db, scope.tenantId),
+  ]);
+  const gross = headlineGross(credit, basis);
+  return {
+    sales, expenses: expenses.amount, expenseCount: expenses.count, writeOffs: w,
+    otherIncome: income.amount, otherIncomeCount: income.count, credit, split: profitSplit(credit, basis), basis, grossProfit: gross,
+    netProfit: netProfit(gross, expenses.amount, w.net, income.amount),
+    billNetProfit: netProfit(sales.grossProfit, expenses.amount, w.net, income.amount),
+  };
 }

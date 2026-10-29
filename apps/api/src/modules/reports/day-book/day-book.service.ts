@@ -390,7 +390,7 @@ export class DayBookService {
         counted: closed ? r2(n(reg.closingBalance)) : null,
         difference: closed ? r2(n(reg.difference)) : null,
         flow: {
-          cashSales: live.cashSales, bookingReceived: live.bookingReceived, khataReceived: live.khataReceived,
+          cashSales: live.cashSales, bookingReceived: live.bookingReceived, khataReceived: live.khataReceived, otherIncome: live.otherIncome,
           cashIn: live.cashIn, cashOut: live.cashOut, returns: live.returns, bookingRefunds: live.bookingRefunds,
           expenses: live.expenses, purchases: live.purchases, supplierPaid: live.supplierPaid,
         },
@@ -515,7 +515,7 @@ export class DayBookService {
           ? { number: previousClose.registerNumber, amount: r2(previousClose.closingBalance), at: previousClose.closedAt, nextOpening: firstOpen.opening }
           : null,
         flow: {
-          cashSales: dayFlow.cashSales, bookingReceived: dayFlow.bookingReceived, khataReceived: dayFlow.khataReceived,
+          cashSales: dayFlow.cashSales, bookingReceived: dayFlow.bookingReceived, khataReceived: dayFlow.khataReceived, otherIncome: dayFlow.otherIncome,
           cashIn, cashOut, returns: dayFlow.returns, bookingRefunds: dayFlow.bookingRefunds,
           expenses: dayFlow.expenses, purchases: dayFlow.purchases, supplierPaid: dayFlow.supplierPaid,
           net: r2(dayFlow.expected + cashIn - cashOut),

@@ -44,17 +44,17 @@ export const AgriPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Agri / Feed Extras',
+      label: 'Agri / feed extras',
       icon: Wheat,
       emoji: '🌾',
       color: '#65a30d',
       order: 20,
       items: [
         { to: '/agri/farmers', label: 'Farmers', icon: Users },
-        { to: '/agri/bulk-orders', label: 'Bulk Orders', icon: Package },
-        { to: '/agri/advisory', label: 'Crop Advisory', icon: Leaf },
-        { to: '/agri/seasonal-plans', label: 'Seasonal Plans', icon: Calendar },
-        { to: '/agri/subsidy', label: 'Govt Subsidies', icon: Landmark },
+        { to: '/agri/bulk-orders', label: 'Bulk orders', icon: Package },
+        { to: '/agri/advisory', label: 'Crop advisory', icon: Leaf },
+        { to: '/agri/seasonal-plans', label: 'Seasonal plans', icon: Calendar },
+        { to: '/agri/subsidy', label: 'Govt subsidies', icon: Landmark },
       ],
     },
   ],

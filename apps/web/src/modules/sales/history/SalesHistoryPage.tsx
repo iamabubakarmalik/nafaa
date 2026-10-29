@@ -17,7 +17,7 @@ import {
   Tag, Trophy, UserRound, Wallet, type LucideIcon,
 } from 'lucide-react';
 import {
-  Badge, Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  Badge, Button, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, Modal, MoreFilters, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
   heroButton, heroIconButton, type FilterOption,
 } from '@/design-system/components';
 import BarcodeScanner from '@core/components/barcode/BarcodeScanner';
@@ -55,7 +55,7 @@ export interface SalesHistoryConfig {
 }
 
 const STATUSES: Array<FilterOption<HistoryStatus>> = [
-  { value: 'all', label: 'Sab bill', icon: ListChecks, color: '#475569' },
+  { value: 'all', label: 'Sab', icon: ListChecks, color: '#475569' },
   { value: 'active', label: 'Chalu bill', hint: 'Void ke bagair', icon: CheckCircle2, color: '#16a34a' },
   { value: 'credit', label: 'Udhaar wale', hint: 'Jin par paise baqi hain', icon: BookOpen, color: '#d97706' },
   { value: 'returned', label: 'Return wale', hint: 'Jin ka maal wapas aaya', icon: RotateCcw, color: '#ea580c' },
@@ -67,7 +67,7 @@ const SORTS: Array<FilterOption<HistorySort>> = [
 ];
 
 const TIER_FILTERS: Array<FilterOption<BillTier | 'all'>> = [
-  { value: 'all', label: 'Har price' },
+  { value: 'all', label: 'Sab' },
   { value: 'RETAIL', label: 'Retail', hint: 'Sab cheezein retail price par' },
   { value: 'WHOLESALE', label: 'Wholesale', hint: 'Sab cheezein wholesale price par' },
   { value: 'CREDIT', label: 'Credit', hint: 'Sab cheezein udhaar (credit) price par' },
@@ -271,18 +271,16 @@ export function SalesHistoryPage({ config }: { config: SalesHistoryConfig }) {
               </div>
             )} />
           <FilterMenu icon={Wallet} label="Payment" value={h.method ?? 'all'} active={!!h.method}
-            options={[{ value: 'all', label: 'Har payment' }, ...POS_PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label, icon: m.icon, color: PAYMENT_COLORS[m.id] }))]}
+            options={[{ value: 'all', label: 'Sab' }, ...POS_PAYMENT_METHODS.map((m) => ({ value: m.id, label: m.label, icon: m.icon, color: PAYMENT_COLORS[m.id] }))]}
             onChange={(v) => h.setMethod(v === 'all' ? undefined : (v as PaymentMethod))} />
           <FilterMenu icon={ListFilter} label="Bill" value={h.status} active={h.status !== 'all'} options={STATUSES} onChange={h.setStatus} />
-          {(tierSettings.on || !!h.tiers || !!h.tier) && (
-            <FilterMenu icon={Tag} label="Price" value={h.tier ?? 'all'} active={!!h.tier} options={TIER_FILTERS}
-              onChange={(v) => h.setTier(v === 'all' ? undefined : v)} />
-          )}
-          {team.length > 1 && (
-            <FilterMenu icon={UserRound} label="Staff" value={h.staffId ?? 'all'} active={!!h.staffId}
-              options={[{ value: 'all', label: 'Sab staff' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))]}
-              onChange={(v) => h.setStaffId(v === 'all' ? undefined : v)} />
-          )}
+          <MoreFilters groups={[
+            ...((tierSettings.on || !!h.tiers || !!h.tier) ? [{ id: 'tier', label: 'Price', icon: Tag, value: h.tier ?? 'all', empty: 'all', options: TIER_FILTERS,
+              onChange: (v: string) => h.setTier(v === 'all' ? undefined : (v as BillTier)) }] : []),
+            ...(team.length > 1 ? [{ id: 'staff', label: 'Staff', icon: UserRound, value: h.staffId ?? 'all', empty: 'all',
+              options: [{ value: 'all', label: 'Sab' }, ...team.map((m) => ({ value: m.id, label: m.fullName }))],
+              onChange: (v: string) => h.setStaffId(v === 'all' ? undefined : v) }] : []),
+          ]} />
           <FilterMenu icon={ArrowDownWideNarrow} label="Sort" value={h.sort} options={SORTS} onChange={h.setSort} align="right" width="w-56" />
       </FilterBar>
 

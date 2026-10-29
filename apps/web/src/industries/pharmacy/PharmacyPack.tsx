@@ -49,9 +49,9 @@ export const PharmacyPack: IndustryPack = {
       color: '#0891b2',
       order: 20,
       items: [
-        { to: '/pharmacy/prescriptions/new', label: 'Naya nuskha', icon: FilePlus, permission: PERMISSIONS.POS_USE },
-        { to: '/pharmacy/prescriptions', label: 'Nuskhe', icon: FileText, permission: PERMISSIONS.POS_USE },
-        { to: '/pharmacy/medicines', label: 'Dawaiyan', icon: Pill, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/pharmacy/prescriptions/new', label: 'New prescription', icon: FilePlus, permission: PERMISSIONS.POS_USE },
+        { to: '/pharmacy/prescriptions', label: 'Prescriptions', icon: FileText, permission: PERMISSIONS.POS_USE },
+        { to: '/pharmacy/medicines', label: 'Medicines', icon: Pill, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/pharmacy/expiring', label: 'Expiry', icon: CalendarX, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/pharmacy/salts', label: 'Salts / formula', icon: Beaker, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/pharmacy/doctors', label: 'Doctors', icon: Stethoscope },

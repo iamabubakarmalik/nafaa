@@ -48,21 +48,21 @@ export const JewelryPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Jewelry Industry',
+      label: 'Jewellery',
       icon: Gem,
       emoji: '💎',
       color: '#d97706',
       order: 20,
       items: [
         { to: '/pos', label: 'Counter', icon: ShoppingCart, permission: PERMISSIONS.POS_USE },
-        { to: '/jewelry/metal-rates', label: 'Aaj ka rate', icon: TrendingUp },
-        { to: '/jewelry-items/new', label: 'Naya zewar', icon: Sparkles, permission: PERMISSIONS.PRODUCTS_CREATE },
-        { to: '/jewelry/products', label: 'Zewar', icon: Gem, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/jewelry/metal-rates', label: 'Today\'s rates', icon: TrendingUp },
+        { to: '/jewelry-items/new', label: 'New jewellery', icon: Sparkles, permission: PERMISSIONS.PRODUCTS_CREATE },
+        { to: '/jewelry/products', label: 'Jewellery', icon: Gem, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/jewelry/sales', label: 'Sales', icon: ShoppingBag, permission: PERMISSIONS.SALES_VIEW },
         { to: '/jewelry/custom-orders', label: 'Custom orders', icon: Palette, permission: PERMISSIONS.POS_USE },
-        { to: '/jewelry/exchanges', label: 'Purana sona', icon: Repeat, permission: PERMISSIONS.PURCHASES_VIEW },
+        { to: '/jewelry/exchanges', label: 'Old gold', icon: Repeat, permission: PERMISSIONS.PURCHASES_VIEW },
         { to: '/jewelry/repairs', label: 'Repair', icon: Wrench, permission: PERMISSIONS.POS_USE },
-        { to: '/jewelry/karigars', label: 'Karigar', icon: Users, permission: PERMISSIONS.SUPPLIERS_VIEW },
+        { to: '/jewelry/karigars', label: 'Craftsmen', icon: Users, permission: PERMISSIONS.SUPPLIERS_VIEW },
         { to: '/jewelry/metal-stock', label: 'Metal stock', icon: Coins, permission: PERMISSIONS.STOCK_MOVEMENTS_VIEW },
         { to: '/jewelry/dashboard', label: 'Jewelry dashboard', icon: LayoutDashboard },
       ],

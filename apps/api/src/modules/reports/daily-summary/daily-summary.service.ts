@@ -31,7 +31,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { businessDayKey, safeDayStart, startOfBusinessDayTz, tzParts, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { computeLiveCash } from '../../../common/helpers/live-cash.helper';
 import {
-  KEPT_QTY, LINE_REVENUE, billMathCte, dayCloseCost, liveSaleSql, netProfit, writeOffs,
+  KEPT_QTY, LINE_REVENUE, billMathCte, dayCloseCost, liveSaleSql, netProfit, profitParts, writeOffs, type ProfitSplit,
 } from '../../../common/helpers/business-math.helper';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import {
@@ -104,8 +104,12 @@ export interface DailySummary {
     drawerNow: number | null; openDrawers: number; closedDrawers: number; shortExcess: number | null;
   };
   cogs: number;
+  /** Headline gross profit of the day on the shop's khata basis (as on the dashboard). */
   grossProfit: number;
-  /** Gross profit less the day's paid expenses and stock written off. */
+  /** Profit in hand and still on khata, other income. */
+  profitSplit: ProfitSplit;
+  otherIncome: number;
+  /** Headline gross profit less the day's paid expenses and stock loss, plus stock gain and other income. */
   netProfit: number;
   expenses: { total: number; count: number; top: Array<{ name: string; amount: number }> };
   lowStock: { out: number; low: number };
@@ -345,7 +349,7 @@ export class DailySummaryService {
     for (const s of sellerGroups) { const id = s.soldById ?? s.createdById; if (id) staffIds.add(id); }
     const branchIds = branchGroups.map((b) => b.shopId).filter((id): id is string => !!id);
 
-    const [categories, products, people, shops, lowRows, liveCash, lost] = await Promise.all([
+    const [categories, products, people, shops, lowRows, liveCash, lost, parts] = await Promise.all([
       categoryIds.length ? this.prisma.expenseCategory.findMany({ where: { id: { in: categoryIds } }, select: { id: true, name: true } }) : [],
       productIds.length ? this.prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, name: true } }) : [],
       staffIds.size ? this.prisma.user.findMany({ where: { id: { in: [...staffIds] } }, select: { id: true, fullName: true } }) : [],
@@ -355,6 +359,7 @@ export class DailySummaryService {
         id: r.id, shopId: r.shopId, openedAt: r.openedAt, openingBalance: n(r.openingBalance),
       }))),
       writeOffs(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
+      profitParts(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
     ]);
 
     const catName = new Map(categories.map((x) => [x.id, x.name]));
@@ -429,8 +434,11 @@ export class DailySummaryService {
         shortExcess: closedAgg._count._all ? r2(n(closedAgg._sum.difference)) : null,
       },
       cogs: r2(cogs - returnedCost),
-      grossProfit: r2(grossProfit),
-      netProfit: netProfit(grossProfit, expenseTotal, lost.net),
+      // The day-close profit (returns on the day made) stays in `cogs`; the headline follows the shared rules.
+      grossProfit: parts.split.headline,
+      profitSplit: parts.split,
+      otherIncome: parts.otherIncome,
+      netProfit: netProfit(parts.split.headline, expenseTotal, lost.net, parts.otherIncome),
       expenses: { total: r2(expenseTotal), count: expenseGroups.reduce((a, g) => a + g._count._all, 0), top: expenseTop },
       lowStock: { out: live.filter((r) => r.status === 'out').length, low: live.filter((r) => r.status === 'low').length },
       topItems,
@@ -470,6 +478,10 @@ export class DailySummaryService {
     }
     if (has('profit') && opts.withProfit) {
       lines.push(`Profit: ${money(s.grossProfit)}${s.netProfit !== s.grossProfit && has('expenses') ? ` | kharchon ke baad ${money(s.netProfit)}` : ''}`);
+      if (s.profitSplit && s.profitSplit.pending > 0.5) {
+        lines.push(`Haath mein aaya profit: ${money(s.profitSplit.realised)} | udhaar mein profit: ${money(s.profitSplit.pending)}`);
+      }
+      if (s.otherIncome > 0) lines.push(`Doosri aamdani: ${money(s.otherIncome)}`);
     }
     if (has('expenses') && s.expenses.total) lines.push(`Kharche: ${money(s.expenses.total)} (${s.expenses.count})`);
     if (has('khata') && (s.sales.credit || s.money.khataCollected)) {

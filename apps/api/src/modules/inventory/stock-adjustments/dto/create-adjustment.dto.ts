@@ -16,7 +16,9 @@ import {
   IsOptional,
   IsString,
   Min,
+  IsBoolean,
 } from 'class-validator';
+import { REASON_CODES, type ReasonCode } from '../reason-codes';
 
 /**
  * Only these change stock by hand; sales, purchases and transfers have their
@@ -83,6 +85,11 @@ export class CreateAdjustmentDto {
   @IsNotEmpty()
   reason!: string;
 
+  @ApiPropertyOptional({ enum: REASON_CODES, description: 'Reason from the fixed list; sets the type and the profit effect.' })
+  @IsOptional()
+  @IsIn(REASON_CODES)
+  reasonCode?: ReasonCode;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -144,6 +151,8 @@ export class AdjustmentLineDto {
   @IsOptional() @IsNumber() @IsPositive() conversionRate?: number;
   @IsOptional() @IsString() @MaxLength(30) unitName?: string;
   @IsOptional() @IsString() @MaxLength(120) reason?: string;
+  /** Reason from the fixed list for this line; the batch's reasonCode when left out. */
+  @IsOptional() @IsIn(REASON_CODES) reasonCode?: ReasonCode;
   @IsOptional() @IsString() batchId?: string;
   @IsOptional() @IsString() @MaxLength(80) batchNumber?: string;
   @IsOptional() @IsDateString() expiryDate?: string;
@@ -153,6 +162,7 @@ export class AdjustmentLineDto {
 export class BatchAdjustmentDto {
   @IsOptional() @IsString() shopId?: string;
   @IsString() @IsNotEmpty() @MaxLength(120) reason!: string;
+  @IsOptional() @IsIn(REASON_CODES) reasonCode?: ReasonCode;
   @IsOptional() @IsString() @MaxLength(500) note?: string;
   @IsArray() @ArrayMinSize(1) @ArrayMaxSize(500) @ValidateNested({ each: true }) @Type(() => AdjustmentLineDto) items!: AdjustmentLineDto[];
 }
@@ -169,6 +179,8 @@ export class StockCountDto {
   /** Reason on each line; "Stock ginti" when left out (bulk edit sends "Bulk edit"). */
   @IsOptional() @IsString() @MaxLength(120) reason?: string;
   @IsOptional() @IsString() @MaxLength(500) note?: string;
+  /** A data correction: stock is set to the count, profit is not touched. Needs stock_adjustments.correct. */
+  @IsOptional() @IsBoolean() correction?: boolean;
   @IsArray() @ArrayMinSize(1) @ArrayMaxSize(2000) @ValidateNested({ each: true }) @Type(() => CountLineDto) items!: CountLineDto[];
 }
 

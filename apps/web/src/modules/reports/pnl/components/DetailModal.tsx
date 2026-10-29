@@ -1,6 +1,7 @@
 /**
  * The records behind one statement line: expenses of a category, salaries
- * and commission, stock written off or bookings whose advance was kept.
+ * and commission, stock written off, bookings whose advance was kept, other
+ * income, or khata bills of the period still owed (amount = what is left).
  */
 
 import { Link } from 'react-router-dom';
@@ -17,6 +18,8 @@ const PAGE: Record<PnlDetailKind, { to: string; label: string }> = {
   staff: { to: '/staff', label: 'Staff page' },
   writeoff: { to: '/stock-adjustments', label: 'Stock adjustments' },
   booking: { to: '/bookings', label: 'Bookings' },
+  income: { to: '/income', label: 'Doosri aamdani' },
+  credit: { to: '/khata', label: 'Khata' },
 };
 
 export function DetailModal({ query, kind, categoryId, title, period, fmt, onClose }: {

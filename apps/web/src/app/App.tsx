@@ -112,6 +112,7 @@ import SupplierDetailPage from '@modules/purchasing/suppliers/pages/SupplierDeta
 import PurchasesGate, { PurchaseEditorGate } from '@modules/purchasing/purchases/pages/PurchasesGate';
 import PurchaseDetailGate from '@modules/purchasing/purchases/pages/PurchaseDetailGate';
 import ExpensesPage from '@modules/finance/expenses/pages/ExpensesPage';
+import IncomePage from '@modules/finance/income/pages/IncomePage';
 
 // ─── Inventory ─────────────────────────────────────────────────
 import StockMovementsPage from '@modules/inventory/stock-movements/pages/StockMovementsPage';
@@ -194,6 +195,12 @@ import { PERMISSIONS } from '@core/lib/permissions';
 
 // ─── Nafaa AI (full page; the side panel lives in the app shell) ───
 const AiPage = lazy(() => import('@modules/ai-assistant/pages/AiPage'));
+const ManufacturingPage = lazy(() => import('@modules/manufacturing/pages/ManufacturingPage'));
+const MfgRecipesPage = lazy(() => import('@modules/manufacturing/pages/RecipesPage'));
+const MfgRecipeEditPage = lazy(() => import('@modules/manufacturing/pages/RecipeEditPage'));
+const MfgProducePage = lazy(() => import('@modules/manufacturing/pages/ProducePage'));
+const MfgHistoryPage = lazy(() => import('@modules/manufacturing/pages/HistoryPage'));
+const MfgReportPage = lazy(() => import('@modules/manufacturing/pages/ReportPage'));
 
 // ─── Industry Pack System ──────────────────────────────────────
 import '@app/providers/registerIndustries';
@@ -335,12 +342,21 @@ export default function App() {
                   <Route path="/purchases/:id" element={secure(PERMISSIONS.PURCHASES_VIEW, <PurchaseDetailGate />)} />
                   <Route path="/purchases" element={secure(PERMISSIONS.PURCHASES_VIEW, <PurchasesGate />)} />
                   <Route path="/expenses" element={secure(PERMISSIONS.EXPENSES_VIEW, <ExpensesPage />)} />
+                  <Route path="/income" element={secure(PERMISSIONS.INCOME_VIEW, <IncomePage />)} />
 
                   {/* ── Inventory ──────────────────────────────── */}
                   <Route path="/stock-movements" element={secure(PERMISSIONS.STOCK_MOVEMENTS_VIEW, <StockMovementsPage />)} />
                   <Route path="/stock-adjustments" element={secure(PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, <StockAdjustmentsPage />)} />
                   <Route path="/low-stock" element={secure(PERMISSIONS.LOW_STOCK_VIEW, <LowStockPage />)} />
                   <Route path="/transfers" element={secure(PERMISSIONS.STOCK_TRANSFERS_MANAGE, <TransfersPage />)} />
+
+                  {/* ── Manufacturing (all industries, switched on in Settings → Stock) ── */}
+                  <Route path="/manufacturing" element={secure(PERMISSIONS.MANUFACTURING_VIEW, <ManufacturingPage />)} />
+                  <Route path="/manufacturing/recipes" element={secure(PERMISSIONS.MANUFACTURING_VIEW, <MfgRecipesPage />)} />
+                  <Route path="/manufacturing/recipes/:productId" element={secure(PERMISSIONS.MANUFACTURING_VIEW, <MfgRecipeEditPage />)} />
+                  <Route path="/manufacturing/produce" element={secure(PERMISSIONS.MANUFACTURING_PRODUCE, <MfgProducePage />)} />
+                  <Route path="/manufacturing/history" element={secure(PERMISSIONS.MANUFACTURING_VIEW, <MfgHistoryPage />)} />
+                  <Route path="/manufacturing/report" element={secure(PERMISSIONS.MANUFACTURING_VIEW, <MfgReportPage />)} />
 
                   {/* ── Reports ────────────────────────────────── */}
                   <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsCenterPage />)} />

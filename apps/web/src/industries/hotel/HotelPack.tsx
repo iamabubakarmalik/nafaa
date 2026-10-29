@@ -55,7 +55,7 @@ export const HotelPack: IndustryPack = {
       color: '#4f46e5',
       order: 20,
       items: [
-        { to: '/hotel/bookings/new', label: 'Nayi booking', icon: CalendarPlus, badge: 'FAST' },
+        { to: '/hotel/bookings/new', label: 'New booking', icon: CalendarPlus, badge: 'FAST' },
         { to: '/hotel/dashboard', label: 'Hotel dashboard', icon: LayoutDashboard },
         { to: '/hotel/rooms', label: 'Room board', icon: Home },
         { to: '/hotel/bookings', label: 'Bookings', icon: CalendarDays },

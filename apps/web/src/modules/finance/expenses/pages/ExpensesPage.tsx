@@ -9,11 +9,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   ArrowDownWideNarrow, BarChart3, CalendarClock, CheckCircle2, ChevronDown, CircleSlash, Clock, Copy, CreditCard, Filter, FolderTree,
-  GraduationCap, ImageIcon, ListChecks, Pencil, PieChart, Plus, Printer, Receipt, Repeat, RotateCcw, Store, Tags, Trash2, TrendingDown,
+  GraduationCap, HandCoins, ImageIcon, ListChecks, Pencil, PieChart, Plus, Printer, Receipt, Repeat, RotateCcw, Store, Tags, Trash2, TrendingDown,
   TrendingUp, UserRound, Wallet, WifiOff,
 } from 'lucide-react';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -50,6 +50,7 @@ export default function ExpensesPage() {
   const startHour = useBusinessDayStart();
   const allShops = useIsAllShops();
   const canWrite = usePermission(PERMISSIONS.EXPENSES_CREATE);
+  const canSeeIncome = usePermission(PERMISSIONS.INCOME_VIEW);
   const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -170,6 +171,7 @@ export default function ExpensesPage() {
         loading={overviewQ.isLoading}
         actions={<>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={printDoc} disabled={tab !== 'record' || !rows.length} /></span>
+          {canSeeIncome && <Link to="/income" className={heroButton}><HandCoins className="h-4 w-4" /> Doosri aamdani</Link>}
           <button type="button" onClick={() => setCats(true)} className={heroButton}><Tags className="h-4 w-4" /> Categories</button>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
           {canWrite && <button type="button" onClick={() => setForm({ mode: 'new' })} title="Naya expense (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Naya expense</button>}

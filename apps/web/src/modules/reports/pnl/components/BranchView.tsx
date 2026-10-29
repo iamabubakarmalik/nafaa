@@ -26,7 +26,7 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
   const showCost = !fmt.costHidden && data.costVisible;
   const list = data.branches;
   if (!list.length) return <Empty text="Koi branch nahi mili" />;
-  const chart = list.map((b) => ({ id: b.id, name: b.name, bikri: b.statement.revenue.net, munafa: b.statement.netProfit ?? 0 }));
+  const chart = list.map((b) => ({ id: b.id, name: b.name, bikri: b.statement.revenue.net, profit: b.statement.netProfit ?? 0 }));
   const total = data.total.revenue.net;
   const top = showCost ? [...list].sort((a, b) => (b.statement.netMargin ?? -1e9) - (a.statement.netMargin ?? -1e9))[0] : undefined;
 
@@ -71,8 +71,8 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
               <Tooltip formatter={(v, n) => [formatPKR(Number(v)), n === 'bikri' ? 'Net sale' : 'Net profit']} {...theme.tooltip} />
               <Bar dataKey="bikri" fill={PART_COLORS.revenue} radius={[4, 4, 0, 0]} maxBarSize={36} />
               {showCost && (
-                <Bar dataKey="munafa" radius={[4, 4, 0, 0]} maxBarSize={36}>
-                  {chart.map((d) => <Cell key={d.id} fill={d.munafa >= 0 ? PART_COLORS.profit : PART_COLORS.loss} />)}
+                <Bar dataKey="profit" radius={[4, 4, 0, 0]} maxBarSize={36}>
+                  {chart.map((d) => <Cell key={d.id} fill={d.profit >= 0 ? PART_COLORS.profit : PART_COLORS.loss} />)}
                 </Bar>
               )}
             </BarChart>
@@ -80,7 +80,7 @@ export function BranchView({ data, lines, fmt, onPickBranch }: {
         </div>
         <div className="mt-2 flex flex-wrap gap-4 text-[0.75rem] text-slate-600">
           <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: PART_COLORS.revenue }} />Net sale</span>
-          {showCost && <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: PART_COLORS.profit }} />Net profit (laal = nuqsan)</span>}
+          {showCost && <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: PART_COLORS.profit }} />Net profit (laal = nuksan)</span>}
         </div>
       </Card>
 

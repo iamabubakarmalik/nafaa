@@ -7,7 +7,7 @@ import {
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { computeLiveCash } from '../../common/helpers/live-cash.helper';
 import {
-  LINE_REVENUE, LIVE_BILL, billMathCte, liveSaleSql, netProfit, paidExpenseWhere, saleFigures, saleFiguresBy, writeOffs,
+  LINE_REVENUE, LIVE_BILL, billMathCte, liveSaleSql, netProfit, paidExpenseWhere, profitParts, saleFigures, saleFiguresBy, writeOffs,
 } from '../../common/helpers/business-math.helper';
 
 @Injectable()
@@ -104,6 +104,8 @@ export class DashboardService {
       paymentMethodAgg,
       lostToday,
       lostMonth,
+      partsToday,
+      partsMonth,
     ] = await Promise.all([
       // Products — global list (name, price, stock, image) — always tenant-level
       this.prisma.product.findMany({
@@ -351,6 +353,8 @@ export class DashboardService {
       }),
       writeOffs(this.prisma, math, { gte: todayStart }),
       writeOffs(this.prisma, math, { gte: monthStart }),
+      profitParts(this.prisma, math, { gte: todayStart }),
+      profitParts(this.prisma, math, { gte: monthStart }),
     ]);
 
     // Calculations
@@ -361,15 +365,16 @@ export class DashboardService {
     const salesToday = salesTodayAgg.net;
     const cogsToday = salesTodayAgg.cost;
     const expensesToday = expensesTodayAgg._sum.amount ?? 0;
-    const grossProfitToday = salesTodayAgg.grossProfit;
-    const netProfitToday = netProfit(grossProfitToday, expensesToday, lostToday.net);
+    // Headline profit follows the shop's khata basis (business-math.helper, "Khata profit").
+    const grossProfitToday = partsToday.split.headline;
+    const netProfitToday = netProfit(grossProfitToday, expensesToday, lostToday.net, partsToday.otherIncome);
     const salesYesterday = salesYesterdayAgg.net;
 
     const salesMonth = salesMonthAgg.net;
     const cogsMonth = salesMonthAgg.cost;
     const expensesMonth = expensesMonthAgg._sum.amount ?? 0;
-    const grossProfitMonth = salesMonthAgg.grossProfit;
-    const netProfitMonth = netProfit(grossProfitMonth, expensesMonth, lostMonth.net);
+    const grossProfitMonth = partsMonth.split.headline;
+    const netProfitMonth = netProfit(grossProfitMonth, expensesMonth, lostMonth.net, partsMonth.otherIncome);
     const salesLastMonth = salesLastMonthAgg.net;
 
     const salesGrowthVsYesterday = salesYesterday > 0
@@ -471,6 +476,13 @@ export class DashboardService {
         registerOpen: !!currentRegister,
         registerExpected: currentRegister ? (await computeLiveCash(this.prisma, tenantId, currentRegister)).expected : 0,
         registerOpening: currentRegister?.openingBalance ?? 0,
+        // Khata profit split, other income and stock loss / gain behind the profit figures.
+        profitSplitToday: partsToday.split,
+        profitSplitMonth: partsMonth.split,
+        otherIncomeToday: partsToday.otherIncome,
+        otherIncomeMonth: partsMonth.otherIncome,
+        stockLossToday: lostToday.lossTotal, stockGainToday: lostToday.gain,
+        stockLossMonth: lostMonth.lossTotal, stockGainMonth: lostMonth.gain,
         returnsTodayCount: returnsToday._count._all ?? 0,
         returnsTodayAmount: returnsToday._sum.refundAmount ?? 0,
         returnsMonthCount: returnsMonth._count._all ?? 0,

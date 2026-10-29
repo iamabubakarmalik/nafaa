@@ -45,17 +45,17 @@ export const GarmentsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Garments Extras',
+      label: 'Garments extras',
       icon: Shirt,
       emoji: '👗',
       color: '#ec4899',
       order: 20,
       items: [
-        { to: '/garments/tailoring', label: 'Silai orders', icon: Scissors },
+        { to: '/garments/tailoring', label: 'Tailoring orders', icon: Scissors },
         { to: '/garments/alterations', label: 'Alterations', icon: Ruler },
-        { to: '/garments/measurements', label: 'Naap', icon: Ruler },
-        { to: '/garments/reservations', label: 'Hold', icon: Bookmark },
-        { to: '/garments/layaway', label: 'Qist plan', icon: CreditCard },
+        { to: '/garments/measurements', label: 'Measurements', icon: Ruler },
+        { to: '/garments/reservations', label: 'Holds', icon: Bookmark },
+        { to: '/garments/layaway', label: 'Instalment plan', icon: CreditCard },
         { to: '/garments/exchange', label: 'Exchange', icon: ArrowLeftRight, permission: 'returns.create' },
         { to: '/garments/collections', label: 'Collections', icon: Palette },
         { to: '/garments/size-charts', label: 'Size charts', icon: Package },

@@ -17,7 +17,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import {
   BILL_CASH_IN, BILL_NET, KEPT_QTY, LINE_COST, LINE_COST_JOINS, LINE_FALLBACK, LINE_NO_COST, LINE_REVENUE, RETURN_LINE_COST,
   billMathCte, emptySaleFigures, foldWriteOffs, netProfit, paidExpenseSql, paidExpenseWhere, saleFiguresBy, writeOffRows,
-  type SaleFigures,
+  type SaleFigures, creditProfit, creditProfitRows, foldCreditProfit, otherIncome, otherIncomeRows, profitBasis, profitSplit,
 } from '../../../common/helpers/business-math.helper';
 import { foldTierSplit, tierSplitRowsSafe, type TierSplitRow } from '../../../common/helpers/price-tier-split.helper';
 import { ShopScope } from '../../../common/shop-scope';
@@ -540,7 +540,7 @@ export class ReportsCenterService {
     const mathScope = { tenantId: user.tenantId, shopId: scope.shopId };
     const dayKey = (at: Prisma.Sql) => Prisma.sql`to_char(${bizTime(at, r)}, 'YYYY-MM-DD')`;
 
-    const [cur, prev, exp, prevExp, losses, prevLosses, saleDays, expDays, first, tierRows] = await Promise.all([
+    const [cur, prev, exp, prevExp, losses, prevLosses, saleDays, expDays, first, tierRows, credit, prevCredit, creditDays, income, prevIncome, incomeDays, basis] = await Promise.all([
       this.saleTotals(user, scope, r),
       r.prev ? this.saleTotals(user, scope, r.prev) : Promise.resolve(null),
       this.prisma.expense.aggregate({ where: paidExpenseWhere(mathScope, r), _sum: { amount: true } }),
@@ -553,41 +553,62 @@ export class ReportsCenterService {
         FROM "Expense" e WHERE ${paidExpenseSql(mathScope, r)} GROUP BY 1`,
       this.firstSaleKey(user, scope, r),
       tierSplitRowsSafe(this.prisma, where),
+      // Khata profit (when the money came) and other income, by the shared rules.
+      creditProfit(this.prisma, mathScope, r),
+      r.prev ? creditProfit(this.prisma, mathScope, r.prev) : Promise.resolve(null),
+      creditProfitRows(this.prisma, mathScope, r, { key: (at) => dayKey(at) }),
+      otherIncome(this.prisma, mathScope, r),
+      r.prev ? otherIncome(this.prisma, mathScope, r.prev) : Promise.resolve(null),
+      otherIncomeRows(this.prisma, mathScope, r, { key: (at) => dayKey(at) }),
+      profitBasis(this.prisma, user.tenantId),
     ]);
 
-    const rows = new Map(bucketKeys(r, first).map((k) => [k, { key: k, sales: 0, cost: 0, expenses: 0, damage: 0 }]));
+    const rows = new Map(bucketKeys(r, first).map((k) => [k, { key: k, sales: 0, cost: 0, expenses: 0, damage: 0, realised: 0, income: 0 }]));
     const bucket = (day: string) => {
       const k = r.monthly ? day.slice(0, 7) : day;
-      const b = rows.get(k) ?? { key: k, sales: 0, cost: 0, expenses: 0, damage: 0 };
+      const b = rows.get(k) ?? { key: k, sales: 0, cost: 0, expenses: 0, damage: 0, realised: 0, income: 0 };
       rows.set(k, b);
       return b;
     };
     for (const [day, f] of saleDays) { const b = bucket(day); b.sales += f.net; b.cost += f.cost; }
     for (const d of expDays) bucket(d.day).expenses += d.amount;
     for (const w of losses) bucket(w.k).damage += foldWriteOffs([w]).net;
+    for (const x of incomeDays) bucket(x.k).income += x.amount;
+    const creditBy = new Map<string, typeof creditDays>();
+    for (const x of creditDays) creditBy.set(x.k, [...(creditBy.get(x.k) ?? []), x]);
+    for (const [day, list] of creditBy) bucket(day).realised += foldCreditProfit(list).realised;
 
-    const summary = (t: SaleFigures, expenses: number, loss: number) => {
-      const net = netProfit(t.grossProfit, expenses, loss);
+    // Headline gross profit follows the shop's khata basis; both figures are always sent.
+    const summary = (t: SaleFigures, expenses: number, w: ReturnType<typeof foldWriteOffs>, c: Awaited<ReturnType<typeof creditProfit>>, income: number) => {
+      const split = profitSplit(c, basis);
+      const gross = split.headline;
+      const net = netProfit(gross, expenses, w.net, income);
       return {
-        sales: t.net, gross: t.gross, refunds: t.refunds, discount: t.discount, service: t.service, cost: t.cost, grossProfit: t.grossProfit,
-        margin: t.net > 0 ? r2((t.grossProfit / t.net) * 100) : 0,
-        expenses: r2(expenses), damage: r2(loss), netProfit: net,
+        sales: t.net, gross: t.gross, refunds: t.refunds, discount: t.discount, service: t.service, cost: t.cost,
+        grossProfit: gross, billProfit: t.grossProfit, split,
+        margin: t.net > 0 ? r2((gross / t.net) * 100) : 0,
+        expenses: r2(expenses), damage: r2(w.net), stockLoss: w.lossTotal, stockGain: w.gain, otherIncome: r2(income), netProfit: net,
         netMargin: t.net > 0 ? r2((net / t.net) * 100) : 0,
       };
     };
     const w = foldWriteOffs(losses);
+    const paidBasis = basis === 'PAID';
     const priceTiers = ReportsCenterService.priceTiers(tierRows, { net: cur.net, cost: cur.cost });
     return {
       ...this.meta(r, first),
       totals: {
-        ...summary(cur, num(exp._sum.amount), w.net), damageCount: w.count,
+        ...summary(cur, num(exp._sum.amount), w, credit, income.amount), damageCount: w.count,
         fallbackLines: cur.fallbackLines, noCostLines: cur.noCostLines,
       },
-      previous: prev ? summary(prev, num(prevExp?._sum.amount), foldWriteOffs(prevLosses).net) : null,
-      rows: [...rows.values()].sort((a, b) => a.key.localeCompare(b.key)).map((b) => ({
-        key: b.key, sales: r2(b.sales), cost: r2(b.cost), grossProfit: r2(b.sales - b.cost), expenses: r2(b.expenses),
-        damage: r2(b.damage), netProfit: r2(b.sales - b.cost - b.expenses - b.damage),
-      })),
+      previous: prev && prevCredit ? summary(prev, num(prevExp?._sum.amount), foldWriteOffs(prevLosses), prevCredit, prevIncome?.amount ?? 0) : null,
+      rows: [...rows.values()].sort((a, b) => a.key.localeCompare(b.key)).map((b) => {
+        const bill = b.sales - b.cost;
+        const gross = paidBasis ? b.realised : bill;
+        return {
+          key: b.key, sales: r2(b.sales), cost: r2(b.cost), grossProfit: r2(gross), billProfit: r2(bill), realised: r2(b.realised),
+          expenses: r2(b.expenses), damage: r2(b.damage), otherIncome: r2(b.income), netProfit: r2(gross - b.expenses - b.damage + b.income),
+        };
+      }),
       priceTiers,
     };
   }

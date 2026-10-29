@@ -72,6 +72,7 @@ export function ledgerRows(c: CashBreakdown): Array<{ label: string; value: numb
     { label: 'Cash sale', value: c.cashSales, sign: '+', note: `${c.cashSalesCount} bill`, keep: true },
     { label: 'Booking ki amount', value: c.bookingReceived, sign: '+', note: `${c.bookingReceivedCount} payment` },
     { label: 'Khata receiving', value: c.khataReceived, sign: '+', note: `${c.khataCount} receiving` },
+    { label: 'Doosri aamdani', value: c.otherIncome ?? 0, sign: '+', note: `${c.otherIncomeCount ?? 0} dafa` },
     { label: 'Haath se daala', value: c.cashIn, sign: '+', note: `${c.cashInCount} dafa` },
     { label: 'Haath se nikala', value: c.cashOut, sign: '−', note: `${c.cashOutCount} dafa` },
     { label: 'Cash kharch', value: c.expenses, sign: '−', note: `${c.expenseCount} kharch` },

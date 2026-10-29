@@ -45,18 +45,18 @@ export const BakeryPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Bakery Extras',
+      label: 'Bakery extras',
       icon: Cake,
       emoji: '🍰',
       color: '#f472b6',
       order: 20,
       items: [
-        { to: '/bakery/cake-orders/new', label: 'Naya cake order', icon: Cake },
-        { to: '/bakery/cake-orders', label: 'Cake Orders', icon: Calendar },
+        { to: '/bakery/cake-orders/new', label: 'New cake order', icon: Cake },
+        { to: '/bakery/cake-orders', label: 'Cake orders', icon: Calendar },
         { to: '/bakery/production', label: 'Baking', icon: ChefHat },
-        { to: '/bakery/ingredients', label: 'Raw material', icon: Wheat },
-        { to: '/bakery/freshness', label: 'Freshness aur waste', icon: Timer },
-        { to: '/bakery/bulk-orders', label: 'Bulk Orders', icon: ShoppingBag },
+        { to: '/bakery/ingredients', label: 'Raw materials', icon: Wheat },
+        { to: '/bakery/freshness', label: 'Freshness & waste', icon: Timer },
+        { to: '/bakery/bulk-orders', label: 'Bulk orders', icon: ShoppingBag },
       ],
     },
   ],

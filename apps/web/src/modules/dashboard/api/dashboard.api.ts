@@ -1,4 +1,5 @@
 import { apiClient } from '@core/api/client';
+import type { ProfitSplit } from '@modules/reports/ProfitSplit';
 
 export interface DashboardStats {
   salesToday: number; ordersToday: number; cogsToday: number;
@@ -19,6 +20,10 @@ export interface DashboardStats {
   returnsTodayCount: number; returnsTodayAmount: number;
   returnsMonthCount: number; returnsMonthAmount: number;
   pendingTransfers: number;
+  /** Khata profit split, other income and stock loss / gain (missing when cost is hidden). */
+  profitSplitToday?: ProfitSplit; profitSplitMonth?: ProfitSplit;
+  otherIncomeToday?: number; otherIncomeMonth?: number;
+  stockLossToday?: number; stockGainToday?: number; stockLossMonth?: number; stockGainMonth?: number;
 }
 
 export interface CarpetStats {

@@ -25,7 +25,7 @@ export class PnlMonthlyDto extends PnlScopeDto {
   @ApiPropertyOptional() @IsOptional() @Type(() => Number) @IsInt() @Min(3) @Max(24) months?: number;
 }
 
-export const PNL_DETAIL_KINDS = ['expense', 'staff', 'writeoff', 'booking'] as const;
+export const PNL_DETAIL_KINDS = ['expense', 'staff', 'writeoff', 'booking', 'income', 'credit'] as const;
 export type PnlDetailKind = (typeof PNL_DETAIL_KINDS)[number];
 
 export class PnlDetailDto extends PnlQueryDto {

@@ -12,7 +12,7 @@ import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 interface DaySnapshot { date: string; bills: number; net: number; avgBill: number; itemsSold: number; profit?: number }
 
 export interface CashFlow {
-  cashSales: number; bookingReceived: number; khataReceived: number; cashIn: number; cashOut: number;
+  cashSales: number; bookingReceived: number; khataReceived: number; otherIncome?: number; cashIn: number; cashOut: number;
   returns: number; bookingRefunds: number; expenses: number; purchases: number; supplierPaid: number;
 }
 

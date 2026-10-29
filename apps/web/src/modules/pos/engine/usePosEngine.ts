@@ -52,6 +52,7 @@ import type { AddOptions, PosBundle, PosEngineApi, PosIndustryConfig, PosItem, P
 import { PRICE_TIER_LABEL, isPriceTier, tierPrice, type PriceTier, type TierPriced } from '@core/lib/priceTiers';
 import { addTierToReceipt } from '@modules/sales/receipt/fromSale';
 import { getCounterTier, setCounterTier, useCounterTier } from '../lib/priceTierStore';
+import { useMadeOnSaleIds } from '@modules/manufacturing/hooks';
 
 /** Customers refresh after a sale (balances change). */
 const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
@@ -269,6 +270,10 @@ export function usePosEngine(config: PosIndustryConfig) {
   }), [ls, user]);
   const rulesRef = useRef(rules);
   rulesRef.current = rules;
+  // Items made when sold (manufacturing) have no stock of their own; the server makes them from raw materials.
+  const madeOnSale = useMadeOnSaleIds();
+  const madeRef = useRef(madeOnSale);
+  madeRef.current = madeOnSale;
 
   // Counter layout and parts shown: shop default, with this user's own layout and density on top.
   const userLayout = usePosUserLayout(user?.id);
@@ -407,7 +412,7 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   /* ── Adding lines ── */
   const limitFor = (item: PosItem, opts: AddOptions) =>
-    opts.oversell || rulesRef.current.negativeStock ? Number.MAX_SAFE_INTEGER
+    opts.oversell || rulesRef.current.negativeStock || madeRef.current.has(item.id) ? Number.MAX_SAFE_INTEGER
       : opts.variant?.stock != null ? Number(opts.variant.stock) : item.stock;
 
   const pushLine = useCallback((item: PosItem, unit: PosUnitOption, qty: number, opts: AddOptions) => {
@@ -499,7 +504,7 @@ export function usePosEngine(config: PosIndustryConfig) {
   const addItem = useCallback(async (item: PosItem, opts: AddOptions = {}) => {
     if (config.beforeAdd && config.beforeAdd(item, opts, engineApiRef.current) === 'handled') return;
     if (item.price <= 0 && !opts.variant && !(opts.price != null && opts.price > 0)) { toast.error(`${item.name} ka rate set nahi — pehle product mein rate daalein`); return; }
-    if (!opts.oversell && !opts.imei && !rulesRef.current.negativeStock && !opts.variant && item.stock <= 0 && !item.hasVariants) { toast.error(`${item.name} — stock khatam`); return; }
+    if (!opts.oversell && !opts.imei && !rulesRef.current.negativeStock && !opts.variant && item.stock <= 0 && !item.hasVariants && !madeRef.current.has(item.id)) { toast.error(`${item.name} — stock khatam`); return; }
 
     if (item.hasVariants && !opts.variant && !opts.imei) {
       try {

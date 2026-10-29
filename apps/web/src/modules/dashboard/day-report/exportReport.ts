@@ -15,6 +15,32 @@ export interface ReportMoney {
 
 const qty = (n: number) => (n % 1 === 0 ? String(n) : n.toFixed(2));
 
+/**
+ * The day's profit lines (shared rules, as on the dashboard): headline gross
+ * profit, the khata split, expenses, stock loss and gain, other income, net.
+ * Empty when the viewer may not see profit (the API leaves the fields out).
+ */
+export function dayProfitRows(r: DayReport, money: ReportMoney): PrintRow[] {
+  const p = r.profit;
+  if (!p?.split || p.netProfit == null) return [];
+  const s = p.split;
+  const rows: PrintRow[] = [
+    { label: s.basis === 'PAID' ? 'Haath mein aaya profit' : 'Bill ka profit', value: money.cost(s.headline) },
+  ];
+  if (Math.abs(s.pending) > 0.5 || Math.abs(s.fromOlderBills) > 0.5) {
+    rows.push({ label: 'Bill ka profit', value: money.cost(s.billProfit), sub: true });
+    rows.push({ label: 'Haath mein aaya', value: money.cost(s.realised), sub: true });
+    rows.push({ label: 'Udhaar mein (abhi aana hai)', value: money.cost(s.pending), sub: true });
+    if (Math.abs(s.fromOlderBills) > 0.5) rows.push({ label: 'Pehle ke udhaar se aaya', value: money.cost(s.fromOlderBills), sub: true });
+  }
+  rows.push({ label: '- Expense', value: money.cost(p.expenses) });
+  if (p.stockLoss) rows.push({ label: '- Stock nuksan', value: money.cost(p.stockLoss) });
+  if (p.stockGain) rows.push({ label: '+ Stock faida', value: money.cost(p.stockGain) });
+  if (p.otherIncome) rows.push({ label: '+ Doosri aamdani', value: money.cost(p.otherIncome) });
+  rows.push({ label: '= Net profit', value: money.cost(p.netProfit), strong: true });
+  return rows;
+}
+
 export const prettyDate = (key: string) =>
   new Intl.DateTimeFormat('en-PK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     .format(new Date(`${key}T12:00:00`));
@@ -49,6 +75,11 @@ export function reportText(r: DayReport, money: ReportMoney, shopName?: string) 
   if (r.sales.refunds > 0) lines.push(`Return: ${money.sales(r.sales.refunds)}`);
   lines.push(`Expense: ${money.cost(r.expenses.total)}`);
   r.expenses.list.forEach((e) => lines.push(`  - ${e.title}: ${money.cost(e.amount)}`));
+  const profit = dayProfitRows(r, money);
+  if (profit.length) {
+    lines.push('', '*Profit*');
+    profit.forEach((x) => lines.push(`${x.sub ? '  ' : ''}${x.label}: ${x.value}`));
+  }
   lines.push('');
   lines.push(`Closing balance: ${money.sales(r.cash.countedClosing ?? r.cash.expectedClosing)}${r.cash.countedClosing == null ? ' (andaza)' : ''}`);
   if (r.cash.difference) lines.push(`Farq: ${money.sales(r.cash.difference)}`);
@@ -62,6 +93,8 @@ export function dayReportDoc(r: DayReport, money: ReportMoney, branch?: string):
     { label: 'Opening balance', value: money.sales(c.opening) },
     { label: '+ Cash sale', value: money.sales(c.cashSales) },
   ];
+  if (c.khataCollected) cashRows.push({ label: '+ Udhaar wapas aaya (cash)', value: money.sales(c.khataCollected) });
+  if (c.otherIncome) cashRows.push({ label: '+ Doosri aamdani', value: money.sales(c.otherIncome) });
   if (c.cashIn) cashRows.push({ label: '+ Cash in', value: money.sales(c.cashIn) });
   if (c.expenses) cashRows.push({ label: '- Cash expense', value: money.cost(c.expenses) });
   if (c.refunds) cashRows.push({ label: '- Return', value: money.sales(c.refunds) });
@@ -105,6 +138,8 @@ export function dayReportDoc(r: DayReport, money: ReportMoney, branch?: string):
       rows: [...r.expenses.list.map((e) => ({ label: e.title, value: money.cost(e.amount) })), { label: 'Kul expense', value: money.cost(r.expenses.total), strong: true }],
     },
   ];
+  const profit = dayProfitRows(r, money);
+  if (profit.length) sections.push({ kind: 'rows', title: 'Profit', rows: profit });
   if (r.staff.length) {
     sections.push({ kind: 'rows', title: 'Staff', rows: r.staff.map((p) => ({ label: `${p.name} (${p.bills} bill)`, value: money.sales(p.total) })) });
   }

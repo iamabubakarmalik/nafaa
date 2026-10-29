@@ -12,7 +12,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, ArrowLeft, Boxes, CalendarClock, Coins, Eye, EyeOff, GraduationCap, Hourglass, Layers, LineChart, Package,
+  AlertTriangle, ArrowLeft, Boxes, CalendarClock, Coins, Eye, EyeOff, Factory, GraduationCap, Hourglass, Layers, LineChart, Package,
   Pencil, Plus, Receipt, ShoppingBag, Star, Tag, TrendingUp, Truck, Wallet,
 } from 'lucide-react';
 import { Badge, Button, Kbd, KpiCard, KpiRow, Modal, PageShell, Skeleton, ViewTabs } from '@/design-system/components';
@@ -30,6 +30,8 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
 import { productUnitsApi, type ProductUnit } from '@modules/inventory/products/api/product-units.api';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
+import { ProductRecipePanel } from '@modules/manufacturing/components/ProductRecipePanel';
+import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
 import { StockModal } from '../list/components/StockModal';
 import { CATALOG_KEY } from '../list/useCatalog';
 import { productInsightsApi, type ProductInsights } from './api';
@@ -86,7 +88,9 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
     purchases: usePermission(PERMISSIONS.PURCHASES_VIEW),
     buy: usePermission(PERMISSIONS.PURCHASES_CREATE),
     suppliers: usePermission(PERMISSIONS.SUPPLIERS_VIEW),
+    recipe: usePermission(PERMISSIONS.MANUFACTURING_VIEW),
   };
+  const manufacturing = useManufacturingEnabled();
   const [days, setDays] = useState(30);
   const [tab, setTab] = useState('overview');
   const [stockOpen, setStockOpen] = useState(false);
@@ -121,9 +125,10 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
     if (nUnits || nVariants) {
       list.push({ id: 'units', label: nUnits && nVariants ? 'Packing / Variants' : nUnits ? 'Packing' : 'Variants', icon: nVariants ? Layers : Boxes, count: nUnits + nVariants });
     }
+    if (manufacturing && can.recipe && !ctx.product.hasVariants) list.push({ id: 'recipe', label: 'Recipe', icon: Factory });
     for (const t of config.tabs ?? []) if (!t.when || t.when(ctx)) list.push({ id: t.id, label: t.label, icon: t.icon, render: () => t.render(ctx) });
     return list;
-  }, [ctx, config.tabs, can.purchases]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ctx, config.tabs, can.purchases, can.recipe, manufacturing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -312,6 +317,7 @@ export function ProductDetailPage<X>({ config }: { config: DetailConfig<X> }) {
       {active.id === 'purchases' && <PurchasesTab product={p} cost={cost} canBuy={can.buy} canSuppliers={can.suppliers} />}
       {active.id === 'batches' && <BatchesTab product={p} />}
       {active.id === 'units' && <UnitsTab product={p} units={ctx.units} stock={stock} money={money} cost={cost} costHidden={costHidden} />}
+      {active.id === 'recipe' && <ProductRecipePanel product={p} />}
       {active.render?.()}
     </PageShell>
   );

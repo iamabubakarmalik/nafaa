@@ -5,7 +5,7 @@
  */
 
 import { ArrowDownCircle, ArrowUpCircle, HelpCircle, PackagePlus, ShieldAlert, type LucideIcon } from 'lucide-react';
-import type { AdjustmentType } from '../api/stock-adjustments.api';
+import type { AdjustmentType, ProfitEffect, ReasonCode } from '../api/stock-adjustments.api';
 
 export const TYPES: Record<AdjustmentType, { label: string; short: string; sign: 1 | -1; icon: LucideIcon; tone: string; color: string }> = {
   ADJUSTMENT_IN: { label: 'Stock barhaya', short: 'Barhayein', sign: 1, icon: ArrowUpCircle, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
@@ -44,3 +44,37 @@ export const STOCK_KEYS = [
   'imei-list', 'imei-stats', 'imei-global-list', 'imei-global-stats', 'electronics-serials-adjust', 'stock-movements',
   'low-stock', 'dashboard-overview', 'inventory',
 ];
+
+/* ───────────────────────── reasons and profit effect ───────────────────────── */
+
+/**
+ * Fixed reasons, mirroring the API (stock-adjustments/reason-codes.ts). The
+ * reason fixes the stock direction and how the line counts in profit; a data
+ * correction keeps the chosen direction and does not touch profit.
+ */
+export const REASONS: Record<ReasonCode, { label: string; effect: ProfitEffect; type: AdjustmentType | null; hint: string }> = {
+  DAMAGE: { label: 'Damage', effect: 'LOSS', type: 'DAMAGE', hint: 'Toota ya kharab maal' },
+  EXPIRY: { label: 'Expiry', effect: 'LOSS', type: 'DAMAGE', hint: 'Expire ho gaya, bik nahi sakta' },
+  THEFT: { label: 'Chori / shortage', effect: 'LOSS', type: 'LOSS', hint: 'Chori, gum ya ginti me kam' },
+  SHOP_USE: { label: 'Dukaan mein istemal', effect: 'LOSS', type: 'ADJUSTMENT_OUT', hint: 'Apne kaam me liya, sample ya free diya' },
+  AUDIT_FOUND: { label: 'Audit mein zyada nikla', effect: 'GAIN', type: 'ADJUSTMENT_IN', hint: 'Ginti me system se zyada maal' },
+  FREE_BONUS: { label: 'Free / bonus maal mila', effect: 'GAIN', type: 'ADJUSTMENT_IN', hint: 'Company ya supplier se muft maal' },
+  CORRECTION: { label: 'Galti theek karna (data correction)', effect: 'NONE', type: null, hint: 'Sirf ghalat entry theek karni hai' },
+};
+
+export const LOSS_REASONS: ReasonCode[] = ['DAMAGE', 'EXPIRY', 'THEFT', 'SHOP_USE'];
+export const GAIN_REASONS: ReasonCode[] = ['AUDIT_FOUND', 'FREE_BONUS'];
+
+/** How each effect reads in the app. */
+export const EFFECTS: Record<ProfitEffect, { label: string; note: string; tone: string; text: string }> = {
+  LOSS: { label: 'Stock nuksan', note: 'Profit se minus', tone: 'bg-rose-50 text-rose-700 ring-rose-200', text: 'text-rose-700' },
+  GAIN: { label: 'Stock faida', note: 'Profit mein plus', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', text: 'text-emerald-700' },
+  NONE: { label: 'Profit par asar nahi', note: 'Sirf stock badla', tone: 'bg-slate-100 text-slate-600 ring-slate-200', text: 'text-slate-600' },
+};
+
+/** Warning shown with the data-correction choice. */
+export const CORRECTION_WARNING = 'Sirf data ki galti theek karne ke liye — is se profit nahi badlega. Asal nuksan/faida ke liye upar wali reason chunein.';
+
+/** A row's profit effect: saved on the row, else by its type (same rule as the reports). */
+export const effectOf = (row: { type: AdjustmentType; profitEffect?: ProfitEffect | null }): ProfitEffect =>
+  row.profitEffect ?? (row.type === 'ADJUSTMENT_IN' ? 'GAIN' : row.type === 'OPENING_BALANCE' ? 'NONE' : 'LOSS');

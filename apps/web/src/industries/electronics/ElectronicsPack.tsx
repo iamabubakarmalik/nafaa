@@ -65,7 +65,7 @@ export const ElectronicsPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Electronics Extras',
+      label: 'Electronics extras',
       icon: Cpu,
       emoji: '🔌',
       color: '#3b82f6',

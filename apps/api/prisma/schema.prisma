@@ -80,12 +80,46 @@ enum StockMovementType {
   TRANSFER_OUT
   /// Goods sent back to the supplier.
   PURCHASE_RETURN
+  /// Finished goods made in-house (manufacturing). A reversal is the same type with the opposite sign.
+  PRODUCTION_IN
+  /// Raw materials used to make goods in-house. A reversal is the same type with the opposite sign.
+  PRODUCTION_OUT
 }
 
 enum ExpenseStatus {
   PENDING
   PAID
   CANCELLED
+}
+
+/// How a stock adjustment counts in profit.
+enum StockProfitEffect {
+  /// Stock nuksan: damage, expiry, theft or shortage, used in the shop.
+  LOSS
+  /// Stock faida: found extra in a count, free or bonus goods received.
+  GAIN
+  /// Data correction: stock changes, profit does not.
+  NONE
+}
+
+/// What settled part of a khata bill.
+enum SettlementKind {
+  /// Paid at the counter (cash, card, wallet, trade-in) when the bill was made.
+  UPFRONT
+  /// A khata payment allocated to the bill.
+  PAYMENT
+  /// Khata forgiven or reduced without money; its profit is never realised.
+  WRITE_OFF
+}
+
+/// Where other income was received.
+enum IncomeReceivedVia {
+  /// Cash into the shop drawer (counted in the cash register).
+  CASH_DRAWER
+  /// Into a money account (safe, bank, wallet) as a deposit entry.
+  ACCOUNT
+  /// Set off against what the business owes the supplier.
+  SUPPLIER_KHATA
 }
 
 enum CustomerLedgerType {
@@ -469,6 +503,13 @@ model Tenant {
   commissionRules       CommissionRule[]
   commissionEnrollments CommissionEnrollment[]
   commissionPayouts     CommissionPayout[]
+
+  saleSettlements       SaleSettlement[]
+  otherIncomes          OtherIncome[]
+  otherIncomeCategories OtherIncomeCategory[]
+
+  productionRecipes ProductionRecipe[]
+  productionRuns    ProductionRun[]
 }
 
 model Referral {
@@ -656,6 +697,7 @@ model Shop {
   bookings         Booking[]
   purchases        Purchase[]
   expenses         Expense[]
+  otherIncomes     OtherIncome[]
   customerLedgers  CustomerLedger[]
   customers        Customer[]
   stockMovements   StockMovement[]
@@ -721,6 +763,7 @@ model User {
   salesCreated        Sale[]                  @relation("UserSales")
   purchasesMade       Purchase[]              @relation("UserPurchases")
   expensesMade        Expense[]               @relation("UserExpenses")
+  otherIncomesMade    OtherIncome[]           @relation("UserOtherIncomes")
   adjustmentsMade     StockAdjustment[]       @relation("UserAdjustments")
   ledgersCreated      CustomerLedger[]        @relation("UserLedgers")
   cashRegistersOpened CashRegister[]          @relation("UserOpenedRegisters")
@@ -978,6 +1021,12 @@ model Product {
   pharmacyMedicine     PharmacyMedicine?     @relation("PharmacyMedicine")
   productSalts         ProductSalt[]         @relation("ProductSalt")
   salonService         SalonService?         @relation("SalonServiceProduct")
+
+  // ── Manufacturing ──
+  productionRecipe      ProductionRecipe?      @relation("ProductionRecipeOutput")
+  productionRecipeLines ProductionRecipeLine[] @relation("ProductionRecipeInput")
+  productionRuns        ProductionRun[]        @relation("ProductionRunOutput")
+  productionRunLines    ProductionRunLine[]    @relation("ProductionRunInput")
 
   // ── Marketplace relations ──
   marketplaceProfile ProductMarketplaceProfile?
@@ -1241,6 +1290,8 @@ model Customer {
   usedPhonesSold      UsedPhone[]          @relation("UsedPhoneFromCustomer")
   repairTickets       RepairTicket[]       @relation("RepairTicketCustomer")
   bookings            Booking[]
+  settlements         SaleSettlement[]
+  settlementSync      SaleSettlementSync?
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -1399,6 +1450,8 @@ model Sale {
   returns         SaleReturn[]
   booking         Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   repairTicket    RepairTicket? @relation("RepairTicketSale")
+  /// Money that settled the bill, for profit on khata bills (see sale-settlement.helper).
+  settlements     SaleSettlement[]
 
   @@unique([tenantId, saleNumber])
   @@index([tenantId])
@@ -1541,6 +1594,7 @@ model Supplier {
   tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   purchases Purchase[]
   ledgers   SupplierLedger[]
+  incomes   OtherIncome[]
 
   @@index([tenantId])
   @@index([tenantId, name])
@@ -1762,6 +1816,10 @@ model StockAdjustment {
   systemQty    Float?
   countedQty   Float?
   note         String?
+  /// Reason picked from the fixed list (DAMAGE, EXPIRY, THEFT, SHOP_USE, AUDIT_FOUND, FREE_BONUS, CORRECTION). Null on older rows.
+  reasonCode   String?
+  /// How the line counts in profit. Null on older rows, which are classified by type (business-math.helper).
+  profitEffect StockProfitEffect?
   createdAt    DateTime          @default(now())
 
   tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -2001,6 +2059,103 @@ model MoneyAccountEntry {
   @@unique([tenantId, requestId])
   @@index([tenantId, accountId, entryDate])
   @@index([transferGroupId])
+}
+
+/// Part of a khata bill that has been settled, and when. Rows are derived
+/// from the customer's khata (CustomerLedger) by FIFO allocation and are
+/// rebuilt per customer (common/helpers/sale-settlement.helper.ts). Bills
+/// without rows count their whole profit on the bill day.
+model SaleSettlement {
+  id               String         @id @default(uuid())
+  tenantId         String
+  /// The bill's branch.
+  shopId           String?
+  saleId           String
+  customerId       String
+  /// The khata line that settled this part; null for the counter payment.
+  customerLedgerId String?
+  kind             SettlementKind
+  amount           Float
+  /// Profit share at the time the rows were built (amount × bill profit ÷ bill net). Reports recompute it from the bill.
+  profitRealised   Float          @default(0)
+  settledAt        DateTime
+  createdAt        DateTime       @default(now())
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sale     Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, settledAt])
+  @@index([saleId])
+  @@index([customerId])
+}
+
+/// Fingerprint of the khata a customer's settlement rows were built from.
+model SaleSettlementSync {
+  customerId  String   @id
+  tenantId    String
+  fingerprint String
+  builtAt     DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+/// Shop's own categories for other income, next to the fixed ones.
+model OtherIncomeCategory {
+  id        String   @id @default(uuid())
+  tenantId  String
+  name      String
+  color     String   @default("#10b981")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  incomes OtherIncome[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+/// Money the business earns besides sales: company incentives, scheme
+/// claims, commission, rent, interest. Counts in net profit by incomeDate.
+model OtherIncome {
+  id               String            @id @default(uuid())
+  tenantId         String
+  shopId           String?
+  incomeNumber     String
+  /// COMPANY_INCENTIVE, SCHEME_CLAIM, COMMISSION, RENT, INTEREST, OTHER or CUSTOM (with categoryId).
+  category         String            @default("OTHER")
+  categoryId       String?
+  title            String
+  amount           Float
+  incomeDate       DateTime          @default(now())
+  /// The company that paid, when it is one of the shop's suppliers.
+  supplierId       String?
+  receivedVia      IncomeReceivedVia @default(CASH_DRAWER)
+  moneyAccountId   String?
+  /// Deposit written to the money account, or the supplier khata line.
+  moneyEntryId     String?
+  supplierLedgerId String?
+  note             String?
+  /// Expected again every month (shown as a reminder).
+  repeatMonthly    Boolean           @default(false)
+  createdById      String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shop           Shop?                @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  customCategory OtherIncomeCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  supplier       Supplier?            @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  createdBy      User?                @relation("UserOtherIncomes", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, incomeNumber])
+  @@index([tenantId, incomeDate])
+  @@index([tenantId, shopId])
+  @@index([supplierId])
 }
 
 model CashTransaction {
@@ -2350,6 +2505,8 @@ model TenantSettings {
   // ===== 5. POS SETTINGS =====
   defaultPaymentMethod   String  @default("CASH")
   allowNegativeStock     Boolean @default(false)
+  /// Manufacturing (recipes and production) is switched on for this business.
+  manufacturingEnabled   Boolean @default(false)
   confirmBeforeCheckout  Boolean @default(true)
   requireCustomerForSale Boolean @default(false)
   allowDiscount          Boolean @default(true)
@@ -4378,6 +4535,124 @@ model RecipeSizeFactor {
   @@unique([recipeId, variantId])
   @@index([tenantId])
   @@index([variantId])
+}
+
+// ─── Manufacturing (all industries): recipes and production runs ───
+
+/// Bill of materials for a product made in-house: the raw items one batch
+/// takes, how many units it yields, and fixed costs per batch.
+model ProductionRecipe {
+  id             String   @id @default(uuid())
+  tenantId       String
+  productId      String   @unique
+  /// Units of the product (its base unit) one batch makes, e.g. 10 packets.
+  yieldQty       Float    @default(1)
+  /// Extra raw material lost while making, as a percent on top of every line.
+  wastagePercent Float    @default(0)
+  /// Fixed costs per batch in rupees.
+  packingCost    Float    @default(0)
+  labourCost     Float    @default(0)
+  overheadCost   Float    @default(0)
+  /// Raw materials leave stock when the product is sold (made at the counter).
+  makeOnSale     Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  notes          String?
+  createdById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant  Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product                @relation("ProductionRecipeOutput", fields: [productId], references: [id], onDelete: Cascade)
+  lines   ProductionRecipeLine[]
+  runs    ProductionRun[]
+
+  @@index([tenantId])
+  @@index([tenantId, makeOnSale])
+}
+
+/// One raw item of a recipe, in the unit it was written in.
+model ProductionRecipeLine {
+  id        String  @id @default(uuid())
+  recipeId  String
+  /// The raw material product.
+  productId String
+  quantity  Float
+  /// The item's own unit, one of its packs (unitId), or a related unit (g for kg).
+  unitName  String
+  unitId    String?
+  sortOrder Int     @default(0)
+  notes     String?
+
+  recipe  ProductionRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  product Product          @relation("ProductionRecipeInput", fields: [productId], references: [id], onDelete: NoAction)
+
+  @@index([recipeId])
+  @@index([productId])
+}
+
+/// One production: raw materials out, finished goods in, at a cost worked
+/// out from the raw materials. Reversing puts both back.
+model ProductionRun {
+  id             String    @id @default(uuid())
+  tenantId       String
+  shopId         String
+  runNumber      String
+  recipeId       String?
+  productId      String
+  /// Recipe batches made (quantity / yield).
+  batches        Float
+  /// Units made, in the product's base unit.
+  quantity       Float
+  materialCost   Float     @default(0)
+  extraCost      Float     @default(0)
+  totalCost      Float     @default(0)
+  unitCost       Float     @default(0)
+  wastagePercent Float     @default(0)
+  batchNumber    String?
+  expiryDate     DateTime?
+  outputBatchId  String?
+  /// MANUAL, SALE (made when sold at the counter) or AI.
+  source         String    @default("MANUAL")
+  /// Sale number for runs made at the counter.
+  reference      String?
+  /// DONE or REVERSED.
+  status         String    @default("DONE")
+  notes          String?
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  reversedById   String?
+  reversedAt     DateTime?
+  reverseReason  String?
+
+  tenant  Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product             @relation("ProductionRunOutput", fields: [productId], references: [id], onDelete: NoAction)
+  recipe  ProductionRecipe?   @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  lines   ProductionRunLine[]
+
+  @@unique([tenantId, runNumber])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, shopId, createdAt])
+  @@index([productId])
+  @@index([recipeId])
+}
+
+/// Raw material a production took out of stock, at its cost then.
+model ProductionRunLine {
+  id         String @id @default(uuid())
+  runId      String
+  productId  String
+  /// Base units taken out of stock.
+  quantity   Float
+  unitCost   Float  @default(0)
+  totalCost  Float  @default(0)
+  /// Batches the quantity came from: [{ batchId, quantity }].
+  batchTakes Json?
+
+  run     ProductionRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  product Product       @relation("ProductionRunInput", fields: [productId], references: [id], onDelete: NoAction)
+
+  @@index([runId])
+  @@index([productId])
 }
 
 // ─── Per-branch "86": a dish switched off at one branch, optionally until a time ───

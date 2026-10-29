@@ -57,16 +57,19 @@ export const KINDS: Array<{ key: string; label: string; dir: 'in' | 'out' }> = [
   { key: 'returnIn', label: 'Customer return', dir: 'in' },
   { key: 'transferIn', label: 'Branch se aaya', dir: 'in' },
   { key: 'adjustIn', label: 'Ginti / opening (+)', dir: 'in' },
+  { key: 'made', label: 'Banaya (Production)', dir: 'in' },
   { key: 'sale', label: 'Sale', dir: 'out' },
   { key: 'transferOut', label: 'Branch ko gaya', dir: 'out' },
   { key: 'damage', label: 'Kharab / gum', dir: 'out' },
   { key: 'adjustOut', label: 'Ginti (−)', dir: 'out' },
   { key: 'supplier', label: 'Supplier ko wapas', dir: 'out' },
+  { key: 'used', label: 'Raw maal production me laga', dir: 'out' },
 ];
 
 export const MOVE_LABEL: Record<string, string> = {
   PURCHASE_IN: 'Purchase', SALE_OUT: 'Sale', ADJUSTMENT_IN: 'Ginti (+)', ADJUSTMENT_OUT: 'Ginti (−)', RETURN_IN: 'Customer return',
   OPENING_BALANCE: 'Opening', DAMAGE: 'Kharab', LOSS: 'Gum', TRANSFER_IN: 'Branch se aaya', TRANSFER_OUT: 'Branch ko gaya', PURCHASE_RETURN: 'Supplier ko wapas',
+  PRODUCTION_IN: 'Banaya', PRODUCTION_OUT: 'Production me laga',
 };
 
 export const DEAD_OPTIONS = [30, 60, 90, 180];

@@ -52,17 +52,17 @@ export const ServicesBizPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Services Business',
+      label: 'Services business',
       icon: Wrench,
       emoji: '🛠️',
       color: '#0ea5e9',
       order: 20,
       items: [
-        { to: '/services-biz/jobs/new', label: 'Naya job', icon: Plus, badge: 'FAST' },
+        { to: '/services-biz/jobs/new', label: 'New job', icon: Plus, badge: 'FAST' },
         { to: '/services-biz/jobs', label: 'Jobs', icon: Briefcase },
         { to: '/services-biz/dispatch', label: 'Dispatch', icon: MapPin },
         { to: '/services-biz/quotes', label: 'Quotes', icon: FileText },
-        { to: '/services-biz/catalog', label: 'Service Catalog', icon: Package },
+        { to: '/services-biz/catalog', label: 'Service catalog', icon: Package },
         { to: '/services-biz/technicians', label: 'Technicians', icon: Users },
         { to: '/services-biz/amc', label: 'AMC contracts', icon: Award },
         { to: '/services-biz/warranty', label: 'Warranty', icon: ShieldCheck },

@@ -55,22 +55,22 @@ export const ClinicPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Clinic Industry',
+      label: 'Clinic',
       icon: Stethoscope,
       emoji: '🩺',
       color: '#0891b2',
       order: 20,
       items: [
-        { to: '/clinic/dashboard', label: 'Clinic Dashboard', icon: LayoutDashboard },
+        { to: '/clinic/dashboard', label: 'Clinic dashboard', icon: LayoutDashboard },
         { to: '/clinic/appointments/new', label: 'Reception (token)', icon: CalendarPlus, permission: BOOKINGS },
-        { to: '/clinic/queue', label: 'Live line', icon: Timer, permission: BOOKINGS },
+        { to: '/clinic/queue', label: 'Live queue', icon: Timer, permission: BOOKINGS },
         { to: '/clinic/appointments', label: 'Appointments', icon: Calendar, permission: BOOKINGS },
-        { to: '/clinic/patients', label: 'Mareez', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
+        { to: '/clinic/patients', label: 'Patients', icon: Users, permission: PERMISSIONS.CUSTOMERS_VIEW },
         { to: '/clinic/doctors', label: 'Doctors', icon: UserCog, permission: BOOKINGS },
         { to: '/clinic/panels', label: 'Panels', icon: Building2, permission: PERMISSIONS.CUSTOMERS_VIEW },
-        { to: '/clinic/prescriptions', label: 'Nuskhe', icon: Pill, permission: RECORDS },
+        { to: '/clinic/prescriptions', label: 'Prescriptions', icon: Pill, permission: RECORDS },
         { to: '/clinic/lab-orders', label: 'Lab', icon: TestTube, permission: RECORDS },
-        { to: '/clinic/vaccinations', label: 'Vaccines', icon: Syringe, permission: RECORDS },
+        { to: '/clinic/vaccinations', label: 'Vaccinations', icon: Syringe, permission: RECORDS },
       ],
     },
   ],

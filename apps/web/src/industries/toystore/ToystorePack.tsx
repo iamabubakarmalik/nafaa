@@ -32,7 +32,7 @@ export const ToystorePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Toy Store',
+      label: 'Toy store',
       icon: Baby,
       emoji: '🧸',
       color: '#ec4899',
@@ -41,7 +41,7 @@ export const ToystorePack: IndustryPack = {
         { to: '/toystore/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { to: '/toystore/gift-finder', label: 'Gift finder', icon: Sparkles },
         { to: '/toystore/gift-packs', label: 'Gift packs', icon: Gift },
-        { to: '/toystore/birthdays', label: 'Saalgirah', icon: Cake },
+        { to: '/toystore/birthdays', label: 'Birthdays', icon: Cake },
         { to: '/toystore/safety-review', label: 'Safety review', icon: ShieldAlert },
       ],
     },

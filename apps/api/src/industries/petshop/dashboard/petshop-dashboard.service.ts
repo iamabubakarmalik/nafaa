@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SaleStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { saleFigures } from '../../../common/helpers/business-math.helper';
+import { profitParts, saleFigures } from '../../../common/helpers/business-math.helper';
 import { addDaysTz, dayEnd, dayKey, dayRange, dayStart } from '../petshop-common';
 
 @Injectable()
@@ -118,9 +118,12 @@ export class PetshopDashboardService {
     ]);
 
     // Every bill counts: counter sales, animals and grooming visits all become bills.
-    const [salesToday, salesMonth] = await Promise.all([
+    const [salesToday, salesMonth, partsToday, partsMonth] = await Promise.all([
       saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: todayStart, lt: new Date(todayEnd.getTime() + 1) }),
       saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: monthStart }),
+      // Headline profit on the shop's khata basis, with the in-hand / udhaar split.
+      profitParts(this.prisma, { tenantId: user.tenantId }, { gte: todayStart, lt: new Date(todayEnd.getTime() + 1) }),
+      profitParts(this.prisma, { tenantId: user.tenantId }, { gte: monthStart }),
     ]);
 
     // Grooming and animal money from their bills (voided bills left out), as the reports count it.
@@ -157,6 +160,8 @@ export class PetshopDashboardService {
         animalRevenue: billedToday.animals,
         totalRevenue: salesToday.net,
         bills: salesToday.bills,
+        grossProfit: partsToday.split.headline,
+        split: partsToday.split,
       },
       monthly: {
         grooming: { count: groomingMonth._count._all, billed: groomingMonth._sum.totalFee ?? 0, collected: groomRev },
@@ -167,7 +172,9 @@ export class PetshopDashboardService {
           profit: animalRev - (animalsMonth._sum.costPrice ?? 0),
         },
         totalRevenue: salesMonth.net,
-        grossProfit: salesMonth.grossProfit,
+        grossProfit: partsMonth.split.headline,
+        split: partsMonth.split,
+        otherIncome: partsMonth.otherIncome,
       },
       todaySchedule,
       pickupList,

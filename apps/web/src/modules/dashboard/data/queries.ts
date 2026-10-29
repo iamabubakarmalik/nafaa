@@ -15,6 +15,7 @@ import { dashboardApi, type DashboardOverview } from '../api/dashboard.api';
 import { retailDashboardApi } from '@industries/retail/api/dashboard.api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import type { PriceTier } from '@core/lib/priceTiers';
+import type { ProfitSplit } from '@modules/reports/ProfitSplit';
 
 const MINUTE = 60_000;
 
@@ -39,7 +40,13 @@ export interface MoneyMap {
     recent: Array<{ id: string; purchaseNumber: string; total: number; paidAmount: number; purchasedAt: string; supplier?: { name: string } | null }>;
   };
   receivable: { total: number; customerCount: number };
-  profit: { todayNet: number; monthRevenue: number; monthCogs: number; monthExpenses: number };
+  profit: {
+    todayNet: number; monthRevenue: number; monthCogs: number; monthExpenses: number;
+    /** Headline gross and net on the shop's khata basis (missing when cost is hidden). */
+    todayGross?: number; monthGross?: number; monthNet?: number;
+    todaySplit?: ProfitSplit; monthSplit?: ProfitSplit;
+    todayOtherIncome?: number; monthOtherIncome?: number;
+  };
 }
 
 export function useMoneyMap() {
@@ -110,8 +117,14 @@ export interface DayReport {
   cash: {
     registers: number; opening: number; cashSales: number; cashIn: number; cashOut: number; expenses: number;
     refunds: number; purchases: number; supplierPaid: number; expectedClosing: number;
+    /** Other income received in the drawer (in expectedClosing). */
+    otherIncome?: number;
+    /** Khata collected in cash during the day (in expectedClosing). */
+    khataCollected?: number;
     countedClosing: number | null; difference: number | null; allClosed: boolean;
   };
+  /** The day's profit by the shared rules (as the dashboard); cost fields are missing when cost is hidden. */
+  profit?: { split?: ProfitSplit; expenses: number; stockLoss?: number; stockGain?: number; otherIncome: number; netProfit?: number };
   staff: Array<{ userId: string; name: string; total: number; bills: number }>;
   /**
    * The day's bills split by price tier at full value (adds up to sales.total);

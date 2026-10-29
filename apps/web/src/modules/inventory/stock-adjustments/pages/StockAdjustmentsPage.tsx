@@ -3,7 +3,8 @@
  * lost goods, physical counts, and the record of all of it with value in
  * rupees. Filters by period, type, reason and search, a page at a time from
  * the server; lines saved together are shown together. Analytics shows
- * where stock went.
+ * where stock went. Each line carries its profit effect: Stock nuksan,
+ * Stock faida, or none (opening stock, data correction).
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -26,7 +27,7 @@ import { stockAdjustmentsApi, type AdjustmentQuery, type AdjustmentType, type St
 import { AdjustmentAnalytics } from '../components/AdjustmentAnalytics';
 import { AdjustmentForm } from '../components/AdjustmentForm';
 import { StockCountPanel } from '../components/StockCountPanel';
-import { ADJ_KEY, TYPES, TYPE_ORDER, isOpeningType, when } from '../components/meta';
+import { ADJ_KEY, EFFECTS, TYPES, TYPE_ORDER, effectOf, when } from '../components/meta';
 import { adjustmentsDoc, itemLabel, qtyLabel } from '../components/print';
 
 type TypeFilter = 'all' | AdjustmentType;
@@ -95,7 +96,13 @@ export default function StockAdjustmentsPage() {
           { label: 'Is period me', value: t.count, hint: 'adjustment' },
           { label: 'Stock barha', value: money(t.inValue) },
           { label: 'Stock ghata', value: money(lost), hint: t.damageValue + t.lossValue > 0 ? `kharab/gum ${money(t.damageValue + t.lossValue)}` : undefined },
-          { label: 'Kul farq', value: `${t.net >= 0 ? '+' : '−'}${money(Math.abs(t.net))}` },
+          { label: 'Stock nuksan', value: `−${money(t.stockLoss ?? t.outValue + t.damageValue + t.lossValue)}`, hint: 'Profit se minus' },
+          { label: 'Stock faida', value: `+${money(t.stockGain ?? t.inValue)}`, hint: 'Profit mein plus' },
+          {
+            label: 'Profit par asar',
+            value: `${(t.profitNet ?? t.net) >= 0 ? '+' : '−'}${money(Math.abs(t.profitNet ?? t.net))}`,
+            hint: t.correctionValue ? `correction ${money(t.correctionValue)} alag` : 'faida − nuksan',
+          },
         ] : [{ label: 'Is period me', value: '—' }]}
       />
 
@@ -198,7 +205,8 @@ function Group({ rows, money }: { rows: StockAdjustment[]; money: (n: number) =>
   const head = rows[0];
   const many = rows.length > 1;
   const count = head.groupRef?.startsWith('CNT');
-  const net = rows.reduce((s, a) => s + (isOpeningType(a.type) ? 0 : TYPES[a.type].sign * a.value), 0);
+  // Effect on profit: gains add, losses take away, corrections and opening stock count in neither.
+  const net = rows.reduce((s, a) => s + ({ GAIN: 1, LOSS: -1, NONE: 0 }[effectOf(a)]) * a.value, 0);
   const by = [when(head.createdAt), head.shop?.name, head.createdBy?.fullName].filter(Boolean).join(' · ');
   return (
     <li className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
@@ -221,6 +229,7 @@ function Group({ rows, money }: { rows: StockAdjustment[]; money: (n: number) =>
 
 function Line({ a, money, showMeta }: { a: StockAdjustment; money: (n: number) => string; showMeta: boolean }) {
   const m = TYPES[a.type];
+  const effect = effectOf(a);
   const meta = [when(a.createdAt), a.shop?.name, a.createdBy?.fullName].filter(Boolean).join(' · ');
   const counted = a.countedQty !== null && a.countedQty !== undefined && a.systemQty !== null && a.systemQty !== undefined;
   return (
@@ -230,6 +239,7 @@ function Line({ a, money, showMeta }: { a: StockAdjustment; money: (n: number) =
         <div className="flex flex-wrap items-center gap-2">
           <span className="truncate font-semibold text-slate-900">{itemLabel(a)}</span>
           <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', m.tone)}>{m.label}</span>
+          <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-medium ring-1', EFFECTS[effect].tone)} title={EFFECTS[effect].note}>{EFFECTS[effect].label}</span>
           {a.variant?.colorHex && <span className="h-2.5 w-2.5 rounded-full ring-1 ring-black/10" style={{ background: a.variant.colorHex }} />}
         </div>
         <p className="mt-0.5 truncate text-[0.8125rem] text-slate-600">
@@ -239,7 +249,7 @@ function Line({ a, money, showMeta }: { a: StockAdjustment; money: (n: number) =
       </div>
       <div className="ml-auto text-right">
         <p className={cn('text-base font-bold tabular-nums', m.sign > 0 ? 'text-emerald-700' : 'text-rose-700')}>{qtyLabel(a)}</p>
-        <p className="text-[0.75rem] tabular-nums text-slate-500">{money(a.value)}</p>
+        <p className={cn('text-[0.75rem] tabular-nums', effect === 'NONE' ? 'text-slate-500' : EFFECTS[effect].text)}>{effect === 'GAIN' ? '+' : effect === 'LOSS' ? '−' : ''}{money(a.value)}</p>
       </div>
     </li>
   );

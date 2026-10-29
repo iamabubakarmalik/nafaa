@@ -41,14 +41,14 @@ export const CarpetPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Carpet Extras',
+      label: 'Carpet extras',
       icon: Sparkles,
       emoji: '🧶',
       color: '#059669',
       order: 20,
       items: [
         { to: '/carpet-rolls',       label: 'Carpet rolls',  icon: Layers },
-        { to: '/carpet-cut-pieces',  label: 'Tukre',         icon: Scissors },
+        { to: '/carpet-cut-pieces',  label: 'Pieces',         icon: Scissors },
         { to: '/carpet-bulk-import', label: 'Rolls import',  icon: Download },
       ],
     },

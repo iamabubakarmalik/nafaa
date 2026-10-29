@@ -6,7 +6,9 @@
  * Day boundaries follow the tenant's timezone and business-day start hour,
  * the same as every other dashboard number. As a day-close sheet, the day's
  * bills count at full value and returns count on the day they were made;
- * cost and cash follow business-math.helper.
+ * cost and cash follow business-math.helper. The `profit` block is the
+ * shared profit of the day (as on the dashboard): profit in hand and still on
+ * khata, expenses, stock loss and gain, other income and net profit.
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common';
@@ -14,7 +16,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { businessDayKey, safeDayStart, zonedToUtc } from '../../common/helpers/business-time.helper';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
-import { LIVE_BILL, dayCloseCost, liveSaleSql } from '../../common/helpers/business-math.helper';
+import { NOT_BOOKING_LINE } from '../../common/helpers/live-cash.helper';
+import { LIVE_BILL, dayCloseCost, liveSaleSql, netProfit, profitParts, writeOffs } from '../../common/helpers/business-math.helper';
 import { foldTierSplit, tierSplitRowsSafe } from '../../common/helpers/price-tier-split.helper';
 const DAY_MS = 24 * 3600_000;
 const n = (v: unknown) => Number(v ?? 0);
@@ -46,7 +49,7 @@ export class DayReportService {
 
     const [
       salesAgg, prevAgg, byMethod, paidBy, itemGroups, expenses, refunds, registers,
-      cashPurchases, supplierCash, sellers, cost, tierRows,
+      cashPurchases, supplierCash, sellers, cost, tierRows, parts, lost, incomeCash, khataCash, cashReturns,
     ] = await Promise.all([
       this.prisma.sale.aggregate({
         where: saleWhere,
@@ -118,7 +121,40 @@ export class DayReportService {
       }),
       dayCloseCost(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
       tierSplitRowsSafe(this.prisma, liveSaleSql({ tenantId, shopId }, { gte: from, lt: to })),
+      profitParts(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
+      writeOffs(this.prisma, { tenantId, shopId }, { gte: from, lt: to }),
+      // Other income received in the drawer (incentives, claims, rent).
+      this.prisma.otherIncome.aggregate({
+        where: { tenantId, ...shop, receivedVia: 'CASH_DRAWER', incomeDate: { gte: from, lt: to } },
+        _sum: { amount: true },
+      }),
+      // Khata collected in cash (older rows with no method count as cash), as in the live drawer.
+      this.prisma.customerLedger.aggregate({
+        where: {
+          tenantId, type: 'PAYMENT_RECEIVED', amount: { lt: 0 }, createdAt: { gte: from, lt: to },
+          AND: [
+            ...(shopId ? [{ OR: [{ shopId }, { shopId: null }] }] : []),
+            NOT_BOOKING_LINE,
+            { OR: [{ paymentMethod: 'CASH' as const }, { paymentMethod: null }] },
+          ],
+        },
+        _sum: { amount: true },
+      }),
+      // Cash refunds of the day: only the payout leaves the drawer, not the part that cleared udhaar.
+      this.prisma.saleReturn.findMany({
+        where: {
+          tenantId, refundMethod: 'CASH', refundAmount: { gt: 0 }, returnedAt: { gte: from, lt: to },
+          ...(shopId && { OR: [{ shopId }, { shopId: null, sale: { shopId } }] }),
+        },
+        select: { returnNumber: true },
+      }),
     ]);
+    const refundKhataPart = cashReturns.length
+      ? n((await this.prisma.customerLedger.aggregate({
+        where: { tenantId, type: 'REFUND', reference: { in: cashReturns.map((x) => x.returnNumber) } },
+        _sum: { amount: true },
+      }))._sum.amount)
+      : 0;
 
     // ── Items and categories ──
     const productIds = itemGroups.map((g) => g.productId).filter((id): id is string => !!id);
@@ -175,7 +211,8 @@ export class DayReportService {
     const cashCollected = payments.filter((p) => p.method === 'CASH').reduce((x, p) => x + p.collected, 0);
     const onlineCollected = payments.filter((p) => p.method !== 'CASH').reduce((x, p) => x + p.collected, 0);
 
-    const refundCash = n(refunds.find((r) => r.refundMethod === 'CASH')?._sum.refundAmount);
+    // REFUND lines are stored negative, so adding them leaves the cash actually paid out.
+    const refundCash = n(refunds.find((r) => r.refundMethod === 'CASH')?._sum.refundAmount) + refundKhataPart;
     const refundTotal = refunds.reduce((x, r) => x + n(r._sum.refundAmount), 0);
     const refundCount = refunds.reduce((x, r) => x + r._count._all, 0);
 
@@ -190,7 +227,11 @@ export class DayReportService {
     const cashOut = registers.reduce((x, r) => x + n(r.totalCashOut), 0);
     const purchasesCash = n(cashPurchases._sum.paidAmount);
     const supplierPaidCash = n(supplierCash._sum.amount);
-    const expectedClosing = opening + cashCollected + cashIn - cashOut - expenseCash - refundCash - purchasesCash - supplierPaidCash;
+    const otherIncomeCash = n(incomeCash._sum.amount);
+    const khataCashIn = -n(khataCash._sum.amount);
+    // Khata bills add only what was paid at the counter (cashCollected); the khata part is never drawer
+    // cash. Khata money comes in when it is collected (khataCashIn).
+    const expectedClosing = opening + cashCollected + khataCashIn + otherIncomeCash + cashIn - cashOut - expenseCash - refundCash - purchasesCash - supplierPaidCash;
     const closed = registers.filter((r) => r.status === 'CLOSED');
     const allClosed = registers.length > 0 && closed.length === registers.length;
 
@@ -263,6 +304,8 @@ export class DayReportService {
         refunds: refundCash,
         purchases: purchasesCash,
         supplierPaid: supplierPaidCash,
+        otherIncome: otherIncomeCash,
+        khataCollected: khataCashIn,
         expectedClosing,
         countedClosing: allClosed ? closed.reduce((x, r) => x + n(r.closingBalance), 0) : null,
         difference: allClosed ? closed.reduce((x, r) => x + n(r.difference), 0) : null,
@@ -270,6 +313,15 @@ export class DayReportService {
       },
       staff,
       priceTiers,
+      // The day's profit by the shared rules (same as the dashboard's "aaj ka profit").
+      profit: {
+        split: parts.split,
+        expenses: expenseTotal,
+        stockLoss: lost.lossTotal,
+        stockGain: lost.gain,
+        otherIncome: parts.otherIncome,
+        netProfit: netProfit(parts.split.headline, expenseTotal, lost.net, parts.otherIncome),
+      },
     };
   }
 }

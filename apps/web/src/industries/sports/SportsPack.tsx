@@ -40,7 +40,7 @@ export const SportsPack: IndustryPack = {
     order: 20,
     items: [
       { to: '/sports/dashboard', label: 'Sports dashboard', icon: LayoutDashboard },
-      { to: '/sports/team-orders/new', label: 'Naya team order', icon: Plus, permission: PERMISSIONS.POS_USE },
+      { to: '/sports/team-orders/new', label: 'New team order', icon: Plus, permission: PERMISSIONS.POS_USE },
       { to: '/sports/team-orders', label: 'Team orders', icon: Users, permission: PERMISSIONS.POS_USE },
       { to: '/sports/repair-services', label: 'Repairs', icon: Wrench, permission: PERMISSIONS.POS_USE },
       { to: '/sports/brands', label: 'Brands', icon: Trophy, permission: PERMISSIONS.BRANDS_VIEW },

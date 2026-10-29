@@ -16,6 +16,7 @@ import type { PnlReport, PnlStatement } from '../api';
 import { CHANNELS, PART_COLORS, change, pctText, type PnlLine } from '../meta';
 import { lineText, statementNotes } from '../print';
 import { Empty, type Fmt } from './parts';
+import { ProfitSplitCard } from '@modules/reports/ProfitSplit';
 
 export function StatementView({ report, lines, fmt, prevLabel, onDrill }: {
   report: PnlReport;
@@ -29,7 +30,7 @@ export function StatementView({ report, lines, fmt, prevLabel, onDrill }: {
     <div className="space-y-4">
       {!report.costVisible && (
         <p className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] font-medium text-amber-900 ring-1 ring-amber-100">
-          <AlertTriangle className="h-4 w-4 shrink-0" /> Aap ko cost dekhne ki permission nahi, is liye profit aur stock nuqsan khali hain. Malik se "Cost dekhna" ki permission lein.
+          <AlertTriangle className="h-4 w-4 shrink-0" /> Aap ko cost dekhne ki permission nahi, is liye profit aur stock nuksan khali hain. Malik se "Cost dekhna" ki permission lein.
         </p>
       )}
 
@@ -37,6 +38,7 @@ export function StatementView({ report, lines, fmt, prevLabel, onDrill }: {
         <StatementTable report={report} lines={lines} fmt={fmt} prevLabel={prevLabel} onDrill={onDrill} />
         <div className="space-y-4">
           <Bridge s={report.current} fmt={fmt} />
+          {report.costVisible && !fmt.costHidden && <ProfitSplitCard split={report.current.profitSplit} money={fmt.cost} />}
           {notes.length > 0 && (
             <div className="rounded-2xl bg-amber-50 p-4 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">
               <p className="mb-1.5 flex items-center gap-1.5 font-semibold"><AlertTriangle className="h-4 w-4" /> Dhyan dein</p>
@@ -87,7 +89,7 @@ function StatementTable({ report, lines, fmt, prevLabel, onDrill }: { report: Pn
             const good = ch == null || l.upIsGood == null ? null : (ch >= 0) === l.upIsGood;
             const share = l.kind === 'ratio' || v == null || Math.abs(net) < 0.005 || (l.cost && fmt.costHidden) ? '' : `${((v / net) * 100).toFixed(1)}%`;
             const negative = (l.kind === 'grand' || l.id === 'operating') && v != null && v < 0;
-            const clickable = !!l.drill && !(l.drill.kind === 'writeoff' && !report.costVisible);
+            const clickable = !!l.drill && !((l.drill.kind === 'writeoff' || l.drill.kind === 'credit') && !report.costVisible);
             return (
               <Tr key={l.id} className={cn(
                 'group',
@@ -132,6 +134,8 @@ function Bridge({ s, fmt }: { s: PnlStatement; fmt: Fmt }) {
   const steps = [
     { name: 'Net sale', delta: s.revenue.net, color: PART_COLORS.revenue, total: true },
     { name: 'Cost', delta: -(s.cogs?.total ?? 0), color: PART_COLORS.cogs },
+    // Khata: headline gross profit less the bill profit (zero with "Bill bante hi").
+    { name: 'Udhaar', delta: (s.grossProfit ?? 0) - (s.revenue.net - (s.cogs?.total ?? 0)), color: '#d97706' },
     { name: 'Kharchay', delta: -s.expenses.total, color: PART_COLORS.expenses },
     { name: 'Stock', delta: -(s.writeOffs?.net ?? 0), color: PART_COLORS.writeOffs },
     { name: 'Aamdani', delta: s.otherIncome.total, color: PART_COLORS.other },

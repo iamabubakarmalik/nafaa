@@ -214,6 +214,14 @@ export function ruleActionPlan(text: string): Plan | null {
     return [{ name: 'propose_khata_payment', input: { customer: cleanName(who), amount: Number(amount), ...(PAY_WORDS.find(([re]) => re.test(t)) && { payment_method: PAY_WORDS.find(([re]) => re.test(t))![1] }) } }];
   }
 
+  // Other income (incentive, scheme claim, commission, rent received)
+  if (/\b(?:income|aamdani|incentive|scheme claim|claim mila|commission mili|kiraya mila)\b/.test(t) && /\b(likho|likh do|add|daalo|dalo|karo|record|mila|mili)\b/.test(t) && !asking) {
+    const amt = new RegExp(`(?:rs\\.?\\s*)?${NUM}`).exec(t);
+    const titleText = t.replace(amt?.[0] ?? '§', ' ')
+      .split(/\s+/).filter((w) => w && !['income', 'aamdani', 'ka', 'ki', 'ke', 'likho', 'likh', 'do', 'add', 'karo', 'daalo', 'dalo', 'record', 'mila', 'mili', 'rs', 'rupay', 'rupees', 'a', 'an'].includes(w)).join(' ');
+    return [{ name: 'propose_income', input: { ...(titleText && { title: title(titleText) }), ...(amt && { amount: Number(amt[1]) }) } }];
+  }
+
   // Expense
   if (/\b(?:expense|kharcha|kharch|kharche)\b/.test(t) && (/^(?:expense|kharcha|kharch)\b/.test(t) || /\b(likho|likh do|add|daalo|dalo|karo|banao|record)\b/.test(t)) && !asking) {
     const amt = new RegExp(`(?:rs\\.?\\s*)?${NUM}`).exec(t);
@@ -230,6 +238,10 @@ export function ruleActionPlan(text: string): Plan | null {
   if (price) return [{ name: 'propose_update_price', input: { product: price[1].trim(), new_price: Number(price[2]) } }];
   const adj = new RegExp(`^(.+?) (?:ka )?stock ${NUM} (barhao|kam karo|kharab|gum)`).exec(t);
   if (adj) return [{ name: 'propose_adjust_stock', input: { product: adj[1].trim(), quantity: Number(adj[2]), direction: adj[3] === 'barhao' ? 'in' : adj[3] === 'kharab' ? 'damage' : adj[3] === 'gum' ? 'loss' : 'out', reason: 'Ginti me farq (Nafaa AI)' } }];
+
+  // Production: "10 mix daal banao", "2 batch cake banao"
+  const make = new RegExp(`^${NUM}\\s*(batch(?:es)?\\s+)?(.+?)\\s+(?:banao|bana do|banado|tayyar karo)$`).exec(t);
+  if (make && !/\b(bill|sale|order|product|customer|khata)\b/.test(make[3])) return [{ name: 'propose_produce', input: { product: make[3].trim(), ...(make[2] ? { batches: Number(make[1]) } : { quantity: Number(make[1]) }) } }];
 
   // Bill: "… bill banao", "make a bill …", "… card se bill"
   if (!asking && (/\b(?:bill|sale)\s+(?:banao|bana do|banado|karo|kar do|nikalo)\b/.test(t) || /\b(?:make|create)\s+(?:a\s+)?(?:new\s+)?(?:bill|sale)\b/.test(t) || /\bse bill$|\bbill$/.test(t))) return parseBill(t);
@@ -260,6 +272,7 @@ export function ruleToolPlan(text: string): Array<{ name: string; input: Record<
   if (/(udhaar|udhar|khata|owe|debt|baqi)/.test(t)) add('khata_udhaar');
   if (/(kharch|expense)/.test(t)) add('expenses_summary');
   if (/(purchase|supplier)/.test(t)) add('purchases_suppliers');
+  if (/(production|banaya|banaye|recipe|manufactur|raw maal|kacha maal)/.test(t)) add('production_summary');
   if (/(customer|gahak|grahak)/.test(t) && !/(udhaar|khata)/.test(t)) add('customer_insights');
   if (/(staff|cashier|salesman|kis ne|who sold|void|discount)/.test(t)) add('staff_performance');
   if (/(galla|drawer|short|shift)/.test(t)) add('cash_drawer');
@@ -376,6 +389,16 @@ export function renderTool(name: string, data: any, lang: Lang): string {
       return [`**${d.owe}: ${money(t.receivable)}** — ${t.customersOwing} customers`, `- ${d.khataOld}: ${money(t.olderThan60Days)}`,
         ...(data.topDebtors ?? []).slice(0, 5).map((x: any) => `- ${x.name}: ${money(x.balance)}${x.daysSinceLastPayment != null ? ` (${x.daysSinceLastPayment} din)` : ''}`)].join('\n');
     }
+    case 'production_summary': {
+      const t = data.totals ?? {};
+      if (!t.runs) return lang === 'en' ? `Nothing was made in ${data.period ?? 'this period'}.` : `${data.period ?? 'Is period'} me koi production nahi hui.`;
+      return [
+        `**Production (${data.period ?? ''}): ${num(t.runs)} ${lang === 'en' ? 'runs' : 'dafa'}, ${num(t.quantity)} units${t.totalCost != null ? ` · Cost ${money(t.totalCost)}` : ''}**`,
+        ...(data.made ?? []).slice(0, 5).map((m: any) => `- ${m.name}: ${num(m.quantity)} ${m.unit ?? ''}${m.unitCostAvg != null ? ` · ${money(m.unitCostAvg)} / ${m.unit ?? 'unit'}` : ''}`),
+        ...((data.rawMaterialsUsed ?? []).length ? [lang === 'en' ? 'Raw material used:' : 'Raw maal laga:'] : []),
+        ...(data.rawMaterialsUsed ?? []).slice(0, 5).map((m: any) => `- ${m.name}: ${num(m.quantity)} ${m.unit ?? ''}`),
+      ].join('\n');
+    }
     case 'expenses_summary': {
       const t = data.totals ?? {};
       return [`**${d.exp}: ${money(t.paid)}** — ${t.entries} entries${change(d, data.changePercent)}`,
@@ -386,7 +409,7 @@ export function renderTool(name: string, data: any, lang: Lang): string {
         ? (lang === 'en' ? 'I cannot do this from chat (delete, void, refund, settings, roles and billing stay with you). Open the page below to do it yourself.' : 'Ye kaam main chat se nahi kar sakta — delete, void, refund, settings, roles aur billing aap khud karein. Neeche button se page kholein.')
         : (lang === 'en' ? `Here you go — ${data.opened}.` : `Ye lijiye — ${data.opened} ka button neeche hai.`);
     case 'propose_create_product': case 'propose_update_price': case 'propose_adjust_stock': case 'propose_sale':
-    case 'propose_create_customer': case 'propose_khata_payment': case 'propose_expense': case 'propose_purchase_draft': {
+    case 'propose_create_customer': case 'propose_khata_payment': case 'propose_expense': case 'propose_income': case 'propose_purchase_draft': case 'propose_produce': {
       if (data.error === 'AMBIGUOUS') return `${lang === 'en' ? 'Which one do you mean' : 'Kaunsa'} "${data.query}"? ${(data.choices ?? []).map((c: any) => c.name).join(' · ')}`;
       if (data.error === 'NOT_FOUND') return lang === 'en' ? `"${data.query}" was not found.` : `"${data.query}" nahi mila. Naam check karein.`;
       if (data.error === 'MISSING') return lang === 'en' ? `Please tell me ${needText(data.need, 'en')}.` : `Ye bhi batayein: ${needText(data.need, 'roman')}.`;
@@ -425,6 +448,7 @@ const FOLLOW: Record<string, { roman: string[]; en: string[] }> = {
   customer_insights: { roman: ['Kis par udhaar sab se zyada hai?', 'Naye customers kitne aaye?', 'Pichhle mahine se compare karo'], en: ['Who owes the most udhaar?', 'How many new customers came?', 'Compare with last month'] },
   staff_performance: { roman: ['Galle me koi short?', 'Kis ne sab se zyada discount diya?', 'Aaj ki sale kitni hai?'], en: ['Any cash drawer shortages?', 'Who gave the most discount?', "What are today's sales?"] },
   compare_periods: { roman: ['Kis cheez ki wajah se farq aaya?', 'Expenses ka muqabla', 'Profit kitna bana?'], en: ['Which items caused the difference?', 'Compare expenses', 'How much profit was made?'] },
+  production_summary: { roman: ['Kaunsi Recipe me sab se zyada Profit?', 'Kaunsa raw maal kam hai?', 'Is mahine kitna bika?'], en: ['Which recipe has the best margin?', 'Which raw material is low?', 'How much sold this month?'] },
   morning: { roman: ['Aaj ki sale kitni hai?', 'Kya mangwana hai?', 'Is hafte ka profit?'], en: ["What are today's sales?", 'What should I reorder?', "This week's profit?"] },
   action: { roman: ['Aaj ki sale kitni hai?', 'Kam stock dikhao', 'Is mahine ka profit?'], en: ["What are today's sales?", 'Show low stock', "This month's profit?"] },
   default: { roman: ['Aaj ki sale kitni hai?', 'Is mahine ka profit?', 'Kya mangwana hai?'], en: ["What are today's sales?", "This month's profit?", 'What should I reorder?'] },

@@ -12,6 +12,8 @@ export interface ReportsConfig {
   compareDefault: 'prev' | 'year' | 'off';
   roundOff: 'paisa' | 'rupee';
   staffFigures: ReportFigure[];
+  /** When khata (udhaar) profit is the headline: 'paid' when the money comes (default), 'bill' on the bill day. */
+  creditProfit: 'paid' | 'bill';
   summary: {
     channels: SummaryChannel[];
     /** null = the owner and everyone with "View Reports". */

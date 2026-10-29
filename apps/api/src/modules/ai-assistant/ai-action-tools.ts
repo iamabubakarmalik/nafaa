@@ -30,6 +30,7 @@ export const PAGES: Record<string, { to: string; label: string }> = {
   customers: { to: '/customers', label: 'Customers' },
   khata: { to: '/khata', label: 'Khata' },
   expenses: { to: '/expenses', label: 'Expenses' },
+  income: { to: '/income', label: 'Doosri aamdani' },
   purchases: { to: '/purchases', label: 'Purchases' },
   new_purchase: { to: '/purchases/new', label: 'Nayi purchase' },
   suppliers: { to: '/suppliers', label: 'Suppliers' },
@@ -37,6 +38,7 @@ export const PAGES: Record<string, { to: string; label: string }> = {
   online_orders: { to: '/online-orders', label: 'Online orders' },
   settings: { to: '/settings', label: 'Settings' },
   team: { to: '/staff?tab=roles', label: 'Roles aur permissions' },
+  manufacturing: { to: '/manufacturing', label: 'Banayein (production)' },
   staff: { to: '/staff', label: 'Staff' },
   plan: { to: '/plans', label: 'Plan' },
   billing: { to: '/billing', label: 'Billing' },
@@ -86,6 +88,11 @@ export const ACTION_TOOLS = [
     input_schema: { type: 'object' as const, properties: { title: { type: 'string' }, amount: { type: 'number' }, category: { type: 'string' }, payment_method: methodSchema }, required: ['title', 'amount'] },
   },
   {
+    name: 'propose_income', status: 'Aamdani ka card bana raha hoon…',
+    description: 'Propose recording other income besides sales (company incentive, scheme claim, commission, rent received, bank interest). It adds to net profit. Confirmation card.',
+    input_schema: { type: 'object' as const, properties: { title: { type: 'string' }, amount: { type: 'number' }, category: { type: 'string', enum: ['incentive', 'scheme_claim', 'commission', 'rent', 'interest', 'other'] }, company: { type: 'string', description: 'Company or supplier that paid, if said.' }, received_via: { type: 'string', enum: ['cash', 'supplier_khata'], description: 'cash = into the drawer (default); supplier_khata = set off against what we owe that supplier.' } }, required: ['title', 'amount'] },
+  },
+  {
     name: 'propose_purchase_draft', status: 'Purchase order ka card bana raha hoon…',
     description: 'Propose a purchase ORDER (draft, goods not received, no stock change) to a supplier. For "reorder se order banao" pass from_reorder=true (optionally with the supplier) instead of items.',
     input_schema: { type: 'object' as const, properties: { supplier: { type: 'string' }, items: itemsSchema, from_reorder: { type: 'boolean', description: 'true = take the items from the current reorder suggestions (no items needed).' } } },
@@ -94,6 +101,11 @@ export const ACTION_TOOLS = [
     name: 'open_page', status: 'Page ka link bana raha hoon…',
     description: 'Give the user a button to open an app page ("POS kholo", "profit report kholo"). Also use it to point to the right page for things you cannot do (delete, void, refund, settings, roles, plan, billing).',
     input_schema: { type: 'object' as const, properties: { page: { type: 'string', enum: Object.keys(PAGES) } }, required: ['page'] },
+  },
+  {
+    name: 'propose_produce', status: 'Production ka card bana raha hoon…',
+    description: 'Propose making a product from its recipe (manufacturing): raw materials leave stock, the made goods are added at the worked-out cost. Give quantity (units) or batches. Confirmation card; nothing changes until confirmed.',
+    input_schema: { type: 'object' as const, properties: { product: { type: 'string' }, quantity: { type: 'number', description: 'Units to make, in the product\'s unit.' }, batches: { type: 'number', description: 'Recipe batches, when the user says batch.' } }, required: ['product'] },
   },
 ];
 

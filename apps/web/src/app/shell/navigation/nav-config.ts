@@ -5,7 +5,7 @@ import {
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
-  Briefcase, Code2, FileSpreadsheet, MapPin,
+  Briefcase, Code2, FileSpreadsheet, MapPin, Factory,
 } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -33,6 +33,8 @@ export type NavItem = {
   needsShop?: boolean;
   /** Extra words that should find this item in search */
   keywords?: string;
+  /** Shown only while this business feature is switched on in Settings. */
+  feature?: 'manufacturing';
   /** Jora hua sales channel — apni ginti (naye orders) ke saath */
   count?: number;
   /** Channel ki halat: band ho to halka dikhe */
@@ -64,14 +66,14 @@ export const posNavGroups: NavGroup[] = [
     items: [
       { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, keywords: 'home' },
       { to: '/ai', label: 'Nafaa AI', icon: Sparkles, permission: P.AI_USE, keywords: 'ai assistant sawal poochein question chat bot' },
-      { to: '/day-report', label: 'Din ka hisaab', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'daily report closing opening z report' },
+      { to: '/day-report', label: 'Day report', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'din ka hisaab daily report closing opening z report' },
       { to: '/reports', label: 'Reports', icon: BarChart3, permission: P.REPORTS_VIEW },
       { to: '/profit-loss', label: 'Profit-loss (P&L)', icon: Scale, permission: P.PROFIT_REPORT_VIEW, keywords: 'p&l profit loss profit-loss profit statement break even cash flow' },
       { to: '/profit-report', label: 'Profit by product', icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW },
       { to: '/stock-report', label: 'Stock report', icon: Package, permission: P.REPORTS_VIEW },
-      { to: '/reports/staff', label: 'Staff aur counter', icon: UserCheck, permission: P.REPORTS_VIEW, alsoNeeds: P.STAFF_VIEW, keywords: 'cashier counter galla shift performance' },
+      { to: '/reports/staff', label: 'Staff & counter', icon: UserCheck, permission: P.REPORTS_VIEW, alsoNeeds: P.STAFF_VIEW, keywords: 'cashier counter galla shift performance' },
       { to: '/reports/customers', label: 'Customers report', icon: Users, permission: P.REPORTS_VIEW, alsoNeeds: P.CUSTOMERS_VIEW, keywords: 'rfm cohort udhaar loyalty repeat' },
-      { to: '/audit', label: 'Nigrani', icon: ShieldAlert, permission: P.ACTIVITY_VIEW, keywords: 'audit chori loss void refund drawer' },
+      { to: '/audit', label: 'Audit', icon: ShieldAlert, permission: P.ACTIVITY_VIEW, keywords: 'nigrani audit chori loss void refund drawer' },
     ],
   },
   {
@@ -101,7 +103,7 @@ export const posNavGroups: NavGroup[] = [
     id: 'customers', label: 'Customers', icon: Users, color: '#ec4899', defaultOpen: true, order: 7,
     items: [
       { to: '/customers', label: 'Customers', icon: Users, permission: P.CUSTOMERS_VIEW },
-      { to: '/khata', label: 'Khata (credit)', icon: BookOpen, permission: P.KHATA_VIEW, keywords: 'udhaar credit ledger' },
+      { to: '/khata', label: 'Customer credit', icon: BookOpen, permission: P.KHATA_VIEW, keywords: 'udhaar credit ledger' },
       { to: '/loyalty', label: 'Loyalty', icon: Award, permission: P.LOYALTY_VIEW, keywords: 'points rewards' },
       { to: '/discounts', label: 'Discounts', icon: Percent, permission: P.DISCOUNTS_VIEW, keywords: 'offers coupons' },
     ],
@@ -114,8 +116,9 @@ export const posNavGroups: NavGroup[] = [
       { to: '/low-stock', label: 'Low stock', icon: AlertTriangle, permission: P.LOW_STOCK_VIEW, keywords: 'reorder khatam' },
       { to: '/combos', label: 'Combos', icon: Gift, permission: P.PRODUCTS_VIEW, keywords: 'bundle deal offer package' },
       { to: '/product-units', label: 'Multi-units', icon: Layers, permission: P.PRODUCTS_VIEW, keywords: 'pack box carton dozen unit' },
-      { to: '/damage', label: 'Kharab maal', icon: PackageX, permission: P.PRODUCTS_VIEW, keywords: 'damage wastage expiry toota report approve' },
+      { to: '/damage', label: 'Damaged stock', icon: PackageX, permission: P.PRODUCTS_VIEW, keywords: 'kharab maal damage wastage expiry toota report approve' },
       { to: '/stock-adjustments', label: 'Adjustments', icon: ClipboardCheck, permission: P.STOCK_ADJUSTMENTS_MANAGE, needsShop: true, keywords: 'count correction' },
+      { to: '/manufacturing', label: 'Manufacturing', icon: Factory, permission: P.MANUFACTURING_VIEW, feature: 'manufacturing', keywords: 'banayein manufacturing production recipe bom mix pack raw maal banana' },
       { to: '/transfers', label: 'Transfers', icon: ArrowRightLeft, permission: P.STOCK_TRANSFERS_MANAGE, keywords: 'branch move' },
       { to: '/stock-movements', label: 'Stock movements', icon: Activity, permission: P.STOCK_MOVEMENTS_VIEW },
       { to: '/barcode-labels', label: 'Barcode labels', icon: ScanLine, permission: P.BARCODE_LABELS_VIEW, keywords: 'print sticker' },
@@ -141,6 +144,7 @@ export const posNavGroups: NavGroup[] = [
     items: [
       { to: '/money', label: 'Shop accounts', icon: Landmark, permission: P.REPORTS_VIEW, keywords: 'hisab cash money' },
       { to: '/expenses', label: 'Expenses', icon: Wallet, permission: P.EXPENSES_VIEW, keywords: 'kharcha' },
+      { to: '/income', label: 'Other income', icon: HandCoins, permission: P.INCOME_VIEW, keywords: 'doosri aamdani income incentive scheme claim commission kiraya rent' },
     ],
   },
   {
@@ -176,14 +180,14 @@ export const allShopsNavGroups: NavGroup[] = [
   {
     id: 'reports', label: 'Reports', icon: BarChart3, color: '#10b981', defaultOpen: true, order: 20,
     items: [
-      { to: '/day-report', label: 'Din ka hisaab', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'daily report closing opening z report' },
+      { to: '/day-report', label: 'Day report', icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'din ka hisaab daily report closing opening z report' },
       { to: '/reports', label: 'Reports', icon: BarChart3, permission: P.REPORTS_VIEW },
       { to: '/profit-loss', label: 'Profit-loss (P&L)', icon: Scale, permission: P.PROFIT_REPORT_VIEW, keywords: 'p&l profit loss profit-loss profit statement break even cash flow' },
       { to: '/profit-report', label: 'Profit by product', icon: TrendingUp, permission: P.PROFIT_REPORT_VIEW },
       { to: '/stock-report', label: 'Stock report', icon: Package, permission: P.REPORTS_VIEW },
-      { to: '/reports/staff', label: 'Staff aur counter', icon: UserCheck, permission: P.REPORTS_VIEW, alsoNeeds: P.STAFF_VIEW, keywords: 'cashier counter galla shift performance' },
+      { to: '/reports/staff', label: 'Staff & counter', icon: UserCheck, permission: P.REPORTS_VIEW, alsoNeeds: P.STAFF_VIEW, keywords: 'cashier counter galla shift performance' },
       { to: '/reports/customers', label: 'Customers report', icon: Users, permission: P.REPORTS_VIEW, alsoNeeds: P.CUSTOMERS_VIEW, keywords: 'rfm cohort udhaar loyalty repeat' },
-      { to: '/audit', label: 'Nigrani', icon: ShieldAlert, permission: P.ACTIVITY_VIEW, keywords: 'audit chori loss void refund drawer' },
+      { to: '/audit', label: 'Audit', icon: ShieldAlert, permission: P.ACTIVITY_VIEW, keywords: 'nigrani audit chori loss void refund drawer' },
       { to: '/sales', label: 'Sales history', icon: Receipt, permission: P.SALES_VIEW },
       { to: '/returns', label: 'Returns', icon: RotateCcw, permission: P.RETURNS_VIEW },
       { to: '/stock-movements', label: 'Stock movements', icon: Activity, permission: P.STOCK_MOVEMENTS_VIEW },
@@ -192,10 +196,11 @@ export const allShopsNavGroups: NavGroup[] = [
   {
     id: 'money', label: 'Money', icon: Wallet, color: '#f59e0b', defaultOpen: true, order: 30,
     items: [
-      { to: '/khata', label: 'Khata (credit)', icon: BookOpen, permission: P.KHATA_VIEW },
+      { to: '/khata', label: 'Customer credit', icon: BookOpen, permission: P.KHATA_VIEW, keywords: 'khata udhaar credit ledger' },
       { to: '/customers', label: 'Customers', icon: Users, permission: P.CUSTOMERS_VIEW },
       { to: '/money', label: 'Shop accounts', icon: Landmark, permission: P.REPORTS_VIEW },
       { to: '/expenses', label: 'Expenses', icon: Wallet, permission: P.EXPENSES_VIEW },
+      { to: '/income', label: 'Other income', icon: HandCoins, permission: P.INCOME_VIEW },
     ],
   },
   {
@@ -333,7 +338,7 @@ export const SETTINGS_SECTIONS: SettingsGroup[] = [
   {
     id: 'stock-customers', title: 'Stock & customers', icon: Package, desc: 'Stock ke usool, udhaar aur loyalty',
     items: [
-      { to: '/settings/stock', label: 'Stock rules', icon: Package, permission: VIEW, desc: 'Kam stock ki had, minus stock', keywords: 'low stock negative minus inventory' },
+      { to: '/settings/stock', label: 'Stock rules', icon: Package, permission: VIEW, desc: 'Kam stock ki had, minus stock, Banayein (Manufacturing)', keywords: 'low stock negative minus inventory manufacturing production recipe' },
       { to: '/settings/credit-loyalty', label: 'Credit & loyalty', icon: Award, permission: VIEW, desc: 'Udhaar ki limit, loyalty points', keywords: 'udhaar credit khata limit loyalty points rewards' },
     ],
   },
@@ -451,6 +456,7 @@ const SETTINGS_FIELDS: Array<{ to: string; find: string; words?: string }> = [
   { to: '/settings/receipt', find: 'Peeche ka hissa', words: 'back terms conditions shartein' },
   { to: '/settings/stock', find: 'Kam stock ki had', words: 'low stock alert' },
   { to: '/settings/stock', find: 'Stock khatam hone par bhi bechein', words: 'negative minus stock' },
+  { to: '/settings/stock', find: 'Recipe aur Production chalu karein', words: 'manufacturing production recipe banayein' },
   { to: '/settings/credit-loyalty', find: 'Udhaar par bechna', words: 'credit khata' },
   { to: '/settings/credit-loyalty', find: 'Naye customer ki credit limit', words: 'credit limit had' },
   { to: '/settings/credit-loyalty', find: 'Loyalty points', words: 'points inaam rewards' },

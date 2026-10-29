@@ -17,6 +17,7 @@ function FlowLines({ f, m }: { f: CashFlow; m: Money }) {
     ['Cash sale', f.cashSales, '+', 'diya − wapas rezgari'],
     ['Booking advance', f.bookingReceived, '+'],
     ['Khata wasooli', f.khataReceived, '+'],
+    ['Doosri aamdani', f.otherIncome ?? 0, '+'],
     ['Cash in', f.cashIn, '+'],
     ['Cash out', f.cashOut, '−'],
     ['Return (cash)', f.returns, '−'],

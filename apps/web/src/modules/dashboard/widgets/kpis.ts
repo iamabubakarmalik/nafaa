@@ -12,6 +12,7 @@ import type { KpiDef } from '../engine/types';
 import { useMasked } from '../engine/useMasked';
 import { fmtQty } from '../engine/parts';
 import { useDayReport, useMoneyMap, useOverview } from '../data/queries';
+import { splitHint } from '@modules/reports/ProfitSplit';
 
 const pctChange = (now: number, before: number) => (before > 0 ? ((now - before) / before) * 100 : undefined);
 
@@ -63,7 +64,8 @@ export const commonKpis: Record<string, KpiDef> = {
       const { data, isLoading } = useOverview();
       const trend = useLast7('profit');
       const s = data?.stats;
-      return { loading: isLoading, value: formatPKR(s?.netProfitToday ?? 0), hint: 'cost aur expense nikal kar', trend, to: '/profit-report' };
+      // Khata bills: show what came in and what is still on khata, so nothing is hidden.
+      return { loading: isLoading, value: formatPKR(s?.netProfitToday ?? 0), hint: splitHint(s?.profitSplitToday) ?? 'cost aur expense nikal kar', trend, to: '/profit-report' };
     },
   },
   items: {

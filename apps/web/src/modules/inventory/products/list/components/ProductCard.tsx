@@ -170,7 +170,7 @@ export function ProductRow({ item, config, extras, tagNames, money, cost, costHi
   return (
     <tr data-nav-row className={cn('group transition hover:bg-slate-50/80', selected && 'bg-brand-50/50', !item.isActive && 'opacity-70')}>
       <td className="w-10 py-2.5 pl-4"><Select selected={selected} onToggle={onToggle} /></td>
-      <td className="py-2.5 pr-3">
+      <td className="max-w-[18rem] py-2.5 pr-3">
         <Link to={config.paths.detail(item.id)} className="flex min-w-0 items-center gap-3">
           <ProductThumb name={item.name} category={item.category?.name} url={item.image} size="md" />
           <span className="min-w-0">
@@ -184,19 +184,19 @@ export function ProductRow({ item, config, extras, tagNames, money, cost, costHi
         </Link>
       </td>
       <td className="px-3 py-2.5"><CategoryChip item={item} /></td>
-      {!costHidden && <td className="px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-500">{item.costPrice ? cost(item.costPrice) : '—'}</td>}
-      <td className="px-3 py-2.5 text-right text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(item.price)}</td>
-      {cols?.wholesale && <td className="px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-700">{Number(item.wholesalePrice) > 0 ? money(Number(item.wholesalePrice)) : <span className="text-slate-400" title="Retail price lagegi">—</span>}</td>}
-      {cols?.credit && <td className="px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-700">{Number(item.creditPrice) > 0 ? money(Number(item.creditPrice)) : <span className="text-slate-400" title="Retail price lagegi">—</span>}</td>}
-      <td className="px-3 py-2.5 text-right">
+      {!costHidden && <td className="whitespace-nowrap px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-500">{item.costPrice ? cost(item.costPrice) : '—'}</td>}
+      <td className="whitespace-nowrap px-3 py-2.5 text-right text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(item.price)}</td>
+      {cols?.wholesale && <td className="whitespace-nowrap px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-700">{Number(item.wholesalePrice) > 0 ? money(Number(item.wholesalePrice)) : <span className="text-slate-400" title="Retail price lagegi">—</span>}</td>}
+      {cols?.credit && <td className="whitespace-nowrap px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-700">{Number(item.creditPrice) > 0 ? money(Number(item.creditPrice)) : <span className="text-slate-400" title="Retail price lagegi">—</span>}</td>}
+      <td className="whitespace-nowrap px-3 py-2.5 text-right">
         <button type="button" onClick={can.stock ? onStock : undefined} disabled={!can.stock} title={can.stock ? 'Stock badlein' : undefined}
           className={cn('rounded-lg px-2 py-1 text-[0.8125rem] font-bold tabular-nums transition enabled:hover:ring-2 enabled:hover:ring-brand-200',
             item.status === 'out' ? 'bg-rose-50 text-rose-700' : item.status === 'low' ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-800')}>
           {qty(item.stock)} <span className="text-[0.6875rem] font-medium opacity-70">{item.unit}</span>
         </button>
       </td>
-      <td className="px-3 py-2.5 text-[0.75rem]"><Movement item={item} days={days} /></td>
-      {!costHidden && <td className="px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-600">{value ? cost(value) : '—'}</td>}
+      <td className="whitespace-nowrap px-3 py-2.5 text-[0.75rem]"><Movement item={item} days={days} /></td>
+      {!costHidden && <td className="whitespace-nowrap px-3 py-2.5 text-right text-[0.8125rem] tabular-nums text-slate-600">{value ? cost(value) : '—'}</td>}
       {config.columns?.map((c) => <td key={c.id} className={cn('px-3 py-2.5 text-[0.8125rem]', c.align === 'right' && 'text-right')}>{c.cell(item)}</td>)}
       <td className="px-3 py-2.5">
         {!item.isActive ? <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-600">Band</span>

@@ -40,9 +40,9 @@ export const FurniturePack: IndustryPack = {
       order: 20,
       items: [
         { to: '/furniture/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { to: '/furniture/custom-orders', label: 'Custom Orders', icon: ClipboardList, badge: 'HOT' },
+        { to: '/furniture/custom-orders', label: 'Custom orders', icon: ClipboardList, badge: 'HOT' },
         { to: '/furniture/deliveries', label: 'Deliveries', icon: Truck },
-        { to: '/furniture/carpenters', label: 'Karigar', icon: Hammer },
+        { to: '/furniture/carpenters', label: 'Craftsmen', icon: Hammer },
       ],
     },
   ],

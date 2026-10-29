@@ -1,4 +1,5 @@
 import { addCartNeed, claimShopStock } from './stock-claim.helper';
+import { loadMakeOnSale, produceInTx } from '../../manufacturing/production-engine';
 import { priceCutTotal } from './price-cut.helper';
 import { isPriceTier, tierPrice, type PriceTier } from '../../../common/helpers/price-tier.helper';
 import { normalizePosCounter } from '../../organization/settings/constants/settings.constants';
@@ -24,6 +25,7 @@ import { DiscountsService } from '../discounts/discounts.service';
 import { hasPermission, PERMISSIONS } from '../../../common/constants/permissions.constants';
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { refreshSettlements } from '../../../common/helpers/sale-settlement.helper';
 
 /**
  * Sale kahan se aayi. Sirf server ke andar se set hota hai (online order
@@ -328,6 +330,11 @@ export class SalesService {
     const stockMap = new Map(
       shopStocks.map((s) => [`${s.productId}:${s.variantId ?? 'null'}`, s]),
     );
+    // Items made when sold (manufacturing): their raw materials leave stock
+    // with the sale. Read only when the business has manufacturing on.
+    const madeOnSale = settings?.manufacturingEnabled
+      ? await loadMakeOnSale(this.prisma, user.tenantId, standardItems.filter((i) => !i.variantId).map((i) => i.productId as string))
+      : null;
 
     let subtotal = 0;
     let costOfGoods = 0;
@@ -367,9 +374,12 @@ export class SalesService {
 
       // Cost: trusted caller's figure > IMEI cost > used-phone total cost > variant/product cost
       const givenCost = opts.unitCosts?.[idx];
+      const made = !isUsedPhoneItem && !item.variantId && !carpetItemIndices.has(idx) && !imeiItemIndices.has(idx) && product ? madeOnSale?.get(product.id) : undefined;
       const unitCost = givenCost != null && Number.isFinite(givenCost) && givenCost >= 0
         ? givenCost
-        : isUsedPhoneItem
+        : made
+          ? made.unitCost
+          : isUsedPhoneItem
           ? Number(usedPhone!.totalCost) || 0
           : imei?.costPrice ?? variant?.costPrice ?? product?.costPrice ?? 0;
 
@@ -389,7 +399,8 @@ export class SalesService {
       const isServiceItem = !!product && isServiceProduct(product);
       let shopStock = null;
 
-      if (!isCarpetItem && !isImeiItem && !isUsedPhoneItem && !isServiceItem) {
+      // An item made when sold is made from raw materials in the transaction, so its own stock is not checked.
+      if (!isCarpetItem && !isImeiItem && !isUsedPhoneItem && !isServiceItem && !made) {
         const stockKey = `${item.productId}:${item.variantId ?? 'null'}`;
         shopStock = stockMap.get(stockKey);
 
@@ -428,6 +439,7 @@ export class SalesService {
         serialId: item.serialId ?? null,
         batchId: item.batchId ?? null,
         shopStockId: shopStock?.id ?? null,
+        madeOnSale: !!made,
         isCarpetItem,
         isServiceItem,
         isImeiItem,
@@ -743,6 +755,23 @@ export class SalesService {
           });
         }
 
+        // ─── Made when sold: make it from raw materials first ──
+        // Pieces already on the shelf (returned, or made ahead) go first; the
+        // rest is made now at the recipe cost, and the sale below takes it off.
+        if (item.madeOnSale) {
+          const onShelf = Math.max(0, await readShopStock(tx, sellingShopId, item.productId!, null));
+          const toMake = Math.round((item.quantity - Math.min(onShelf, item.quantity)) * 10_000) / 10_000;
+          if (toMake > 0) {
+            const produced = await produceInTx(tx, {
+              tenantId: user.tenantId, userId: user.id, shopId: sellingShopId, loaded: madeOnSale!.get(item.productId!)!.loaded,
+              quantity: toMake, allowNegative: allowNegativeStock, source: 'SALE', reference: sale.saleNumber,
+            });
+            item.shopStockId = produced.shopStockId;
+          } else {
+            item.shopStockId = (await tx.shopStock.findFirst({ where: { shopId: sellingShopId, productId: item.productId!, variantId: null }, select: { id: true } }))!.id;
+          }
+        }
+
         // ─── Standard items: decrement ShopStock + global stock ──
         // Atomic: sirf tab ghatao jab abhi bhi kaafi ho (race / offline sync se minus nahi)
         const updatedShopStock = { stock: await claimShopStock(tx, item.shopStockId!, item.quantity, shop.name, allowNegativeStock) };
@@ -861,6 +890,9 @@ export class SalesService {
       link: `/sales/${(result as any).id}/receipt`,
       metadata: { saleId: (result as any).id, total, itemCount: dto.items.length },
     }).catch(() => null);
+
+    // A khata bill: record which part is paid, for profit when the money comes.
+    if (creditAmount > 0) refreshSettlements(this.prisma, user.tenantId, (result as { customerId?: string | null }).customerId);
 
     return result;
   }
@@ -1356,7 +1388,7 @@ export class SalesService {
     if (rules?.requirePinForVoid) await requireManagerPin(this.prisma, user, managerPin, 'Bill cancel', false, PIN_NEEDS.void);
     if (!sale.shopId) throw new BadRequestException('Sale has no shop linked — cannot void safely');
 
-    return this.prisma.$transaction(async (tx) => {
+    const voided = await this.prisma.$transaction(async (tx) => {
       // Pehle sale ko "apna" karo — do log (ya do tab) ek saath void karein
       // to stock sirf ek dafa wapas aaye, do dafa nahi.
       const claim = await tx.sale.updateMany({
@@ -1636,6 +1668,8 @@ export class SalesService {
         .catch(() => undefined);
       return result;
     });
+    if (sale.creditAmount > 0) refreshSettlements(this.prisma, user.tenantId, sale.customerId);
+    return voided;
   }
 }
 

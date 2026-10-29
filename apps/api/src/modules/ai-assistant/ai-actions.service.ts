@@ -43,9 +43,12 @@ import { CustomerLedgerService } from '../customers/customer-ledger/customer-led
 import type { CreatePaymentDto } from '../customers/customer-ledger/dto/create-payment.dto';
 import { ExpensesService } from '../finance/expenses/expenses.service';
 import type { CreateExpenseDto } from '../finance/expenses/dto/create-expense.dto';
+import { IncomeService } from '../finance/income/income.service';
+import type { CreateIncomeDto, IncomeCategory } from '../finance/income/dto/income.dto';
 import { PurchasesService } from '../purchasing/purchases/purchases.service';
 import type { CreatePurchaseDto } from '../purchasing/purchases/dto/create-purchase.dto';
 import { AiToolsService, type AiToolContext, type AiToolResult } from './ai-tools.service';
+import { ManufacturingService } from '../manufacturing/manufacturing.service';
 import { PAGES } from './ai-action-tools';
 import type { AiActionField, AiActionLine, AiActionProposal, AiActionResult, AiLink } from './ai.types';
 
@@ -81,7 +84,9 @@ const NEEDS: Record<Kind, PermissionKey[]> = {
   create_customer: [PERMISSIONS.CUSTOMERS_EDIT],
   receive_khata_payment: [PERMISSIONS.KHATA_MANAGE],
   create_expense: [PERMISSIONS.EXPENSES_CREATE],
+  create_income: [PERMISSIONS.INCOME_MANAGE],
   create_purchase_draft: [PERMISSIONS.PURCHASES_CREATE],
+  produce: [PERMISSIONS.MANUFACTURING_PRODUCE],
 };
 
 /* ───────────────────────── matching ───────────────────────── */
@@ -105,6 +110,27 @@ function similarity(query: string, name: string): number {
   return Math.max(words * 0.85 + dice * 0.15, dice);
 }
 
+/** Fixed income categories offered on the confirmation card. */
+const INCOME_OPTIONS = [
+  { value: 'COMPANY_INCENTIVE', label: 'Company incentive' },
+  { value: 'SCHEME_CLAIM', label: 'Scheme claim' },
+  { value: 'COMMISSION', label: 'Commission' },
+  { value: 'RENT', label: 'Kiraya mila' },
+  { value: 'INTEREST', label: 'Bank profit / interest' },
+  { value: 'OTHER', label: 'Doosri' },
+];
+
+/** Income category from the words the user used. */
+function incomeCategory(text: string): IncomeCategory {
+  const t = text.toLowerCase();
+  if (/incentive|target|inaam|bonus/.test(t)) return 'COMPANY_INCENTIVE';
+  if (/scheme|claim/.test(t)) return 'SCHEME_CLAIM';
+  if (/commission|kamishan/.test(t)) return 'COMMISSION';
+  if (/rent|kiraya|kiraaya/.test(t)) return 'RENT';
+  if (/interest|bank profit|sood/.test(t)) return 'INTEREST';
+  return 'OTHER';
+}
+
 interface ProductHit { id: string; name: string; unit: string; price: number; cost: number; stock: number | null; hasVariants: boolean; score: number }
 
 @Injectable()
@@ -122,6 +148,8 @@ export class AiActionsService {
     private readonly expenses: ExpensesService,
     private readonly purchases: PurchasesService,
     private readonly tools: AiToolsService,
+    private readonly manufacturing?: ManufacturingService,
+    private readonly income?: IncomeService,
   ) {}
 
   /* ───────────────────────── lookups ───────────────────────── */
@@ -217,7 +245,7 @@ export class AiActionsService {
   /** Entry point for the propose_* tools and open_page. Never throws. */
   async propose(name: string, input: Record<string, any>, ctx: AiToolContext): Promise<AiToolResult> {
     if (name === 'open_page') return this.openPage(input);
-    const kind = ({ propose_sale: 'create_sale', propose_khata_payment: 'receive_khata_payment', propose_expense: 'create_expense', propose_purchase_draft: 'create_purchase_draft' } as Record<string, Kind>)[name] ?? (name.replace(/^propose_/, '') as Kind);
+    const kind = ({ propose_sale: 'create_sale', propose_khata_payment: 'receive_khata_payment', propose_expense: 'create_expense', propose_income: 'create_income', propose_purchase_draft: 'create_purchase_draft', propose_produce: 'produce' } as Record<string, Kind>)[name] ?? (name.replace(/^propose_/, '') as Kind);
     if (!NEEDS[kind]) return { refused: true, data: { error: 'UNKNOWN_ACTION' } };
     const missing = NEEDS[kind].filter((p) => !hasPermission(ctx.user.role, ctx.user.permissions, p));
     if (missing.length) {
@@ -446,6 +474,63 @@ export class AiActionsService {
         };
       }
 
+      case 'create_income': {
+        const title = String(a.title ?? '').trim().slice(0, 120);
+        const amount = n(a.amount);
+        if (!title || !(amount > 0)) return { error: { error: 'MISSING', need: [...(!title ? ['title'] : []), ...(!(amount > 0) ? ['amount'] : [])] } };
+        const category = incomeCategory(`${a.category ?? ''} ${title}`);
+        const suppliers = await this.prisma.supplier.findMany({ where: { tenantId, isActive: true }, select: { id: true, name: true }, orderBy: { name: 'asc' }, take: 200 });
+        const hit = a.company ? suppliers.map((s) => ({ ...s, s: similarity(String(a.company), s.name) })).sort((x, y) => y.s - x.s)[0] : null;
+        const supplierId = hit && hit.s >= 0.5 ? hit.id : '';
+        const via = String(a.received_via ?? '') === 'supplier_khata' && supplierId ? 'SUPPLIER_KHATA' : 'CASH_DRAWER';
+        const shop = await this.writeShop(ctx);
+        return {
+          shopId: shop?.id ?? null, payload: {},
+          proposal: {
+            title: 'Doosri aamdani', summary: `${title} — ${rs(amount)} (net profit mein judegi)`,
+            warnings: [...(!ctx.scope.shopId && shop ? [`Aamdani ${shop.name} ki likhi jayegi.`] : []), ...(a.company && !supplierId ? [`"${a.company}" suppliers mein nahi mila.`] : [])],
+            confirmLabel: 'Aamdani likhein',
+            fields: [
+              { key: 'title', label: 'Kis cheez ki', type: 'text', value: title, required: true },
+              { key: 'amount', label: 'Raqam', type: 'money', value: amount, required: true },
+              { key: 'category', label: 'Category', type: 'select', value: category, options: INCOME_OPTIONS },
+              { key: 'supplierId', label: 'Company / supplier', type: 'select', value: supplierId, options: [{ value: '', label: 'Koi nahi' }, ...suppliers.map((s) => ({ value: s.id, label: s.name }))] },
+              { key: 'receivedVia', label: 'Kahan aaya', type: 'select', value: via, options: [{ value: 'CASH_DRAWER', label: 'Galle mein cash' }, { value: 'SUPPLIER_KHATA', label: 'Supplier khate mein adjust' }] },
+            ],
+          },
+        };
+      }
+
+      case 'produce': {
+        if (!this.manufacturing) return { error: { error: 'NOT_SUPPORTED', note: 'Manufacturing is not available.' } };
+        const shop = await this.writeShop(ctx);
+        if (!shop) return { error: { error: 'NO_SHOP', note: 'The shop has no active branch.' } };
+        const pick = await this.pickProduct(ctx, String(a.product ?? ''), shop.id);
+        if ('error' in pick) return { error: pick.error! };
+        const p = pick.hit!;
+        const qty = Math.abs(n(a.quantity));
+        const batches = Math.abs(n(a.batches));
+        const amount = qty > 0 ? { quantity: qty } : batches > 0 ? { batches } : { batches: 1 };
+        let prev: Awaited<ReturnType<ManufacturingService['preview']>>;
+        try {
+          prev = await this.manufacturing.preview(ctx.user, ctx.scope, { shopId: shop.id, items: [{ productId: p.id, ...amount }] });
+        } catch (e: any) {
+          return { error: { error: 'NO_RECIPE', note: `${e?.message ?? 'No recipe'}. Tell the user to make the recipe first on the Banayein (manufacturing) page.` } };
+        }
+        const it = prev.items[0];
+        const warnings = prev.materials.filter((m) => m.short > 0).map((m) => `${m.name}: ${m.need} ${m.unit} chahiye, stock ${m.have} — ${m.short} kam`);
+        if (prev.shortCount && !prev.allowNegative) warnings.unshift('Raw maal kam hai — stock poora kiye baghair nahi banega.');
+        if (!ctx.scope.shopId) warnings.push(`Ye ${shop.name} me banega.`);
+        const uses = prev.materials.map((m) => `${m.name} ${m.need} ${m.unit}`).join(', ');
+        return {
+          shopId: shop.id, payload: { productId: p.id, name: p.name, unit: it.unit },
+          proposal: {
+            title: 'Production', summary: `${p.name}: ${it.quantity} ${it.unit} banayein · ${uses}`, warnings, confirmLabel: 'Bana dein',
+            fields: [{ key: 'quantity', label: `Kitna banana hai (${it.unit})`, type: 'number', value: it.quantity, required: true }],
+          },
+        };
+      }
+
       case 'create_purchase_draft': {
         const shop = await this.writeShop(ctx);
         if (!shop) return { error: { error: 'NO_SHOP' } };
@@ -589,7 +674,9 @@ export class AiActionsService {
         if (!reason) throw new BadRequestException('Wajah likhna zaroori hai');
         const dir = String(this.field(p, f, 'direction') ?? 'in');
         const type = dir === 'out' ? 'ADJUSTMENT_OUT' : dir === 'damage' ? 'DAMAGE' : dir === 'loss' ? 'LOSS' : 'ADJUSTMENT_IN';
-        const dto: CreateAdjustmentDto = { productId: p.payload.productId, type, quantity: qty, reason, ...(p.shopId && { shopId: p.shopId }), note: 'Nafaa AI se' } as CreateAdjustmentDto;
+        // A fixed reason gives the line its profit effect (loss or gain).
+        const reasonCode = ({ out: 'SHOP_USE', damage: 'DAMAGE', loss: 'THEFT', in: 'AUDIT_FOUND' } as const)[dir as 'in'] ?? 'AUDIT_FOUND';
+        const dto: CreateAdjustmentDto = { productId: p.payload.productId, type, reasonCode, quantity: qty, reason, ...(p.shopId && { shopId: p.shopId }), note: 'Nafaa AI se' } as CreateAdjustmentDto;
         const adj: any = await this.adjustments.create(user, write, dto);
         return { message: `${p.payload.name}: stock adjustment ho gaya`, links: [{ label: 'Stock adjustments', to: '/stock-adjustments' }], entityType: 'StockAdjustment', entityId: adj?.id ?? p.payload.productId };
       }
@@ -645,6 +732,30 @@ export class AiActionsService {
         const dto: CreateExpenseDto = { title, amount, paymentMethod: this.method(this.field(p, f, 'paymentMethod')), ...(cat && { categoryId: cat }), ...(p.shopId && { shopId: p.shopId }), description: 'Nafaa AI se' } as CreateExpenseDto;
         const e: any = await this.expenses.create(user, write, dto);
         return { message: `Expense likh liya: ${title} — ${rs(amount)}`, links: [{ label: 'Expenses', to: '/expenses' }], entityType: 'Expense', entityId: e?.id ?? '' };
+      }
+      case 'create_income': {
+        if (!this.income) throw new BadRequestException('Aamdani abhi nahi likh sakte');
+        const title = this.str(p, f, 'title', 120);
+        const amount = this.num(p, f, 'amount');
+        if (!title || !amount) throw new BadRequestException('Title aur raqam zaroori hain');
+        const supplierId = this.str(p, f, 'supplierId', 60);
+        const via = this.str(p, f, 'receivedVia', 20) === 'SUPPLIER_KHATA' ? 'SUPPLIER_KHATA' : 'CASH_DRAWER';
+        if (via === 'SUPPLIER_KHATA' && !supplierId) throw new BadRequestException('Supplier khate ke liye supplier chunein');
+        const cat = this.str(p, f, 'category', 30);
+        const dto: CreateIncomeDto = {
+          title, amount, category: (INCOME_OPTIONS.some((o) => o.value === cat) ? cat : 'OTHER') as IncomeCategory,
+          receivedVia: via, ...(supplierId && { supplierId }), ...(p.shopId && { shopId: p.shopId }), note: 'Nafaa AI se',
+        };
+        const i = await this.income.create(user, write, dto);
+        return { message: `Aamdani likh li: ${title} — ${rs(amount)}`, links: [{ label: 'Doosri aamdani', to: '/income' }], entityType: 'OtherIncome', entityId: i.id };
+      }
+      case 'produce': {
+        if (!this.manufacturing) throw new BadRequestException('Manufacturing abhi nahi chal sakti');
+        const qty = this.num(p, f, 'quantity');
+        if (!qty || qty <= 0) throw new BadRequestException('Quantity likhein');
+        const out = await this.manufacturing.produce(user, write, { shopId: p.shopId ?? undefined, items: [{ productId: p.payload.productId, quantity: qty }], notes: 'Nafaa AI se' }, 'AI');
+        const run = out.runs[0];
+        return { message: `${p.payload.name}: ${qty} ${p.payload.unit} ban gaya (${run.runNumber})`, links: [{ label: 'Production dekhein', to: `/manufacturing/history?run=${run.id}` }], entityType: 'ProductionRun', entityId: run.id };
       }
       case 'create_purchase_draft': {
         const supplierId = this.str(p, f, 'supplierId', 60);

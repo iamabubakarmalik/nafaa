@@ -7,6 +7,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { startOfBusinessMonthTz, tzParts } from '../../../common/helpers/business-time.helper';
+import { refreshSettlements } from '../../../common/helpers/sale-settlement.helper';
 import {
   AddUdhaarDto,
   CreatePaymentDto,
@@ -91,7 +92,7 @@ export class CustomerLedgerService {
   ) {
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
 
-    return this.prisma.$transaction(async (tx) => {
+    const done = await this.prisma.$transaction(async (tx) => {
       // The balance check and the decrement are one statement, so two people
       // taking the same payment at once cannot push the balance below zero.
       // It is checked against the overall balance on purpose: a customer may
@@ -125,6 +126,9 @@ export class CustomerLedgerService {
 
       return { customer: updated, ledger };
     });
+    // Profit on the bills this payment settles counts from today.
+    refreshSettlements(this.prisma, user.tenantId, customerId);
+    return done;
   }
 
   /** Credit without a sale. */

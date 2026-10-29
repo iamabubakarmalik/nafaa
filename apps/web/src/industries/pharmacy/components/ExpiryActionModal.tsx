@@ -47,7 +47,7 @@ export function ExpiryActionModal({ row, onDone, onClose }: { row: ExpiryRow; on
         return `${res.returnNumber} — ${line.supplier.name} ke khate se ${formatPKR(res.total)} kam`;
       }
       await stockAdjustmentsApi.create({
-        productId: row.product.id, shopId: row.shop?.id, type: 'DAMAGE', quantity: amount, batchId: row.id,
+        productId: row.product.id, shopId: row.shop?.id, type: 'DAMAGE', reasonCode: 'EXPIRY', quantity: amount, batchId: row.id,
         reason: reason.trim() || 'Expire', note: `Batch ${row.batchNumber} · expiry ${shortDate(row.expiryDate)}`,
       });
       return `${amount} ${row.product.unit} kharab likh diya`;

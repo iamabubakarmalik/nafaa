@@ -6,6 +6,7 @@
  */
 
 import { apiClient } from '@core/api/client';
+import type { ProfitSplit } from '@modules/reports/ProfitSplit';
 
 export type ProfitSort = 'profit' | 'margin' | 'revenue' | 'qty' | 'discount' | 'returns' | 'loss' | 'name';
 export type ProfitView = 'all' | 'loss' | 'fallback' | 'nocost' | 'discount' | 'returns';
@@ -87,7 +88,15 @@ export interface ProfitBrief {
 }
 
 export interface NetFigures {
+  /** Headline gross profit on the shop's khata basis (bill profit under a filter). */
   grossProfit?: number;
+  billProfit?: number;
+  /** Khata split; null under a category or brand filter, missing when cost is hidden. */
+  split?: ProfitSplit | null;
+  otherIncome?: number;
+  /** Stock nuksan and Stock faida; writeOffCost = stockLoss − stockGain. */
+  stockLoss?: number;
+  stockGain?: number;
   expenses: number;
   expenseCategories: Array<{ id: string; name: string; color: string | null; amount: number }>;
   damageCost?: number;

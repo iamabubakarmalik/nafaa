@@ -25,9 +25,15 @@ export function profitDoc(o: ProfitOverview, items: ProfitItem[], period: string
       ...(showCost ? [
         { label: 'Maal ki cost', value: `− ${formatPKR(c.lineCost)}`, sub: true },
         ...(c.cost ? [{ label: 'Bill par alag cost (rider waghera)', value: `− ${formatPKR(c.cost)}`, sub: true }] : []),
-        { label: `Gross profit (${(t.margin ?? 0).toFixed(1)}%)`, value: formatPKR(t.profit ?? 0), strong: true },
+        { label: `Bill ka profit (${(t.margin ?? 0).toFixed(1)}%)`, value: formatPKR(t.profit ?? 0), strong: true },
+        ...(n.split ? [
+          { label: 'Haath mein aaya profit', value: formatPKR(n.split.realised), sub: true },
+          { label: 'Udhaar mein profit (abhi aana hai)', value: formatPKR(n.split.pending), sub: true },
+        ] : []),
         { label: 'Expenses', value: `− ${formatPKR(n.expenses)}`, sub: true },
-        { label: 'Kharab / gum maal', value: `− ${formatPKR(n.writeOffCost ?? 0)}`, sub: true },
+        { label: 'Stock nuksan', value: `− ${formatPKR(n.stockLoss ?? n.writeOffCost ?? 0)}`, sub: true },
+        ...(n.stockGain ? [{ label: 'Stock faida', value: `+ ${formatPKR(n.stockGain)}`, sub: true }] : []),
+        ...(n.otherIncome ? [{ label: 'Doosri aamdani', value: `+ ${formatPKR(n.otherIncome)}`, sub: true }] : []),
         { label: 'Net profit', value: formatPKR(n.netProfit ?? 0), strong: true },
       ] : []),
     ],

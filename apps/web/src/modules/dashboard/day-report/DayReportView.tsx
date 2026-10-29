@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   ArrowRight, Banknote, CalendarDays, ChevronLeft, ChevronRight, Copy, FileText, MessageCircle, Package,
-  Search, Wallet,
+  Search, Target, Wallet,
 } from 'lucide-react';
 import { Badge, Button, IconButton, Skeleton } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -20,6 +20,7 @@ import { useMasked } from '../engine/useMasked';
 import { EmptyHint, fmtQty } from '../engine/parts';
 import { PrintButton } from '@core/print';
 import { TIER_DOT } from '@modules/reports/center/components/PriceTierSplit';
+import { ProfitSplitCard } from '@modules/reports/ProfitSplit';
 import { categoryTotals, dayReportDoc, prettyDate, reportText } from './exportReport';
 
 const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -60,6 +61,8 @@ function CashColumn({ r }: { r: DayReport }) {
     <Section title="Galla (cash)" icon={Banknote}>
       <Line label="Opening balance" value={sales(c.opening)} />
       <Line label="Cash sale" value={sales(c.cashSales)} sign="+" />
+      {(c.khataCollected ?? 0) > 0 && <Line label="Udhaar wapas aaya (cash)" value={sales(c.khataCollected ?? 0)} sign="+" />}
+      {(c.otherIncome ?? 0) > 0 && <Line label="Doosri aamdani" value={sales(c.otherIncome ?? 0)} sign="+" />}
       {c.cashIn > 0 && <Line label="Cash in" value={sales(c.cashIn)} sign="+" />}
       {c.expenses > 0 && <Line label="Cash expense" value={cost(c.expenses)} sign="−" />}
       {c.refunds > 0 && <Line label="Return" value={sales(c.refunds)} sign="−" />}
@@ -156,7 +159,7 @@ function ItemsColumn({ r, full }: { r: DayReport; full: boolean }) {
 }
 
 function MoneyColumn({ r }: { r: DayReport }) {
-  const { sales, cost, costHidden } = useMasked();
+  const { sales, cost } = useMasked();
   const max = Math.max(...r.payments.map((p) => p.collected), 1);
   return (
     <>
@@ -201,8 +204,8 @@ function MoneyColumn({ r }: { r: DayReport }) {
         {r.sales.credit > 0 && <Line label="Udhaar par diya" value={sales(r.sales.credit)} />}
         {r.sales.discount > 0 && <Line label="Discount" value={sales(r.sales.discount)} />}
         {r.sales.refunds > 0 && <Line label={`Return · ${r.sales.refundCount}`} value={sales(r.sales.refunds)} />}
-        {!costHidden && <Line label="Seedha profit" value={cost(r.sales.grossProfit)} />}
       </Section>
+      <ProfitBlock r={r} />
       <Section title="Expense" icon={Wallet}>
         {r.expenses.list.length === 0 ? (
           <p className="py-2 text-[0.8125rem] text-slate-500">Is din koi expense nahi</p>
@@ -219,6 +222,25 @@ function MoneyColumn({ r }: { r: DayReport }) {
         <Line label="Kul expense" value={cost(r.expenses.total)} strong />
       </Section>
     </>
+  );
+}
+
+/** The day's profit by the shared rules: same figures as the dashboard's "aaj ka profit". */
+function ProfitBlock({ r }: { r: DayReport }) {
+  const { cost, costHidden } = useMasked();
+  const p = r.profit;
+  if (costHidden || !p?.split || p.netProfit == null) return null;
+  const s = p.split;
+  return (
+    <Section title="Profit" icon={Target}>
+      <Line label={s.basis === 'PAID' ? 'Haath mein aaya profit' : 'Bill ka profit'} value={cost(s.headline)} />
+      <ProfitSplitCard split={s} money={cost} periodLabel="aaj" compact className="my-2" />
+      <Line label="Expense" value={cost(p.expenses)} sign="−" />
+      {!!p.stockLoss && <Line label="Stock nuksan" value={cost(p.stockLoss)} sign="−" />}
+      {!!p.stockGain && <Line label="Stock faida" value={cost(p.stockGain)} sign="+" />}
+      {!!p.otherIncome && <Line label="Doosri aamdani" value={cost(p.otherIncome)} sign="+" />}
+      <Line label="Net profit" value={cost(p.netProfit)} strong />
+    </Section>
   );
 }
 

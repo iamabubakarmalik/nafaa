@@ -58,7 +58,7 @@ export const GymPack: IndustryPack = {
       items: [
         { to: '/gym/dashboard', label: 'Gym dashboard', icon: LayoutDashboard },
         { to: '/gym/attendance', label: 'Check-in', icon: LogIn, badge: 'FAST' },
-        { to: '/gym/members/new', label: 'Naya member', icon: UserPlus },
+        { to: '/gym/members/new', label: 'New member', icon: UserPlus },
         { to: '/gym/members', label: 'Members', icon: Users },
         { to: '/gym/memberships', label: 'Memberships', icon: Award },
         { to: '/gym/plans', label: 'Plans', icon: Target },

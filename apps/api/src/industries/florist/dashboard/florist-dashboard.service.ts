@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
-import { saleFigures } from '../../../common/helpers/business-math.helper';
+import { profitParts, saleFigures } from '../../../common/helpers/business-math.helper';
 import { addDaysTz, dayEnd, dayStart } from '../florist-common';
 
 @Injectable()
@@ -132,7 +132,11 @@ export class FloristDashboardService {
       _count: { _all: true },
     });
 
-    const billed = await saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: monthAgo });
+    const [billed, parts] = await Promise.all([
+      saleFigures(this.prisma, { tenantId: user.tenantId }, { gte: monthAgo }),
+      // Headline profit on the shop's khata basis, with the in-hand / udhaar split.
+      profitParts(this.prisma, { tenantId: user.tenantId }, { gte: monthAgo }),
+    ]);
 
     return {
       totals: {
@@ -156,7 +160,9 @@ export class FloristDashboardService {
         // What was actually billed: counter sales (delivery orders are rung at the POS),
         // completed weddings and subscription deliveries all become bills.
         totalRevenue: billed.net,
-        grossProfit: billed.grossProfit,
+        grossProfit: parts.split.headline,
+        split: parts.split,
+        otherIncome: parts.otherIncome,
       },
       todayScheduledDeliveries,
       upcomingWeddingList,

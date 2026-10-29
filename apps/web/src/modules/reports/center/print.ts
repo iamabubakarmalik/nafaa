@@ -129,8 +129,15 @@ function sectionsFor<K extends SectionId>(id: K, raw: SectionData[K], f: Formatt
         sections: [
           { kind: 'rows', title: 'Profit-loss', rows: [
             { label: 'Total sale', value: m(t.gross) }, ...maybe(!!t.service, { label: 'Is me service charges', value: m(t.service), sub: true }), { label: '− Maal wapas', value: m(t.refunds), sub: true }, { label: 'Asal sale', value: m(t.sales), strong: true },
-            ...maybe(sc, { label: '− Maal ki cost', value: c(t.cost), sub: true }), ...maybe(sc, { label: 'Gross profit', value: c(t.grossProfit), strong: true }),
-            { label: '− Expenses', value: m(t.expenses), sub: true }, { label: '− Kharab maal', value: m(t.damage), sub: true },
+            ...maybe(sc, { label: '− Maal ki cost', value: c(t.cost), sub: true }), ...maybe(sc, { label: 'Bill ka profit', value: c(t.billProfit ?? t.grossProfit), strong: true }),
+            ...maybe(sc && !!t.split, { label: 'Haath mein aaya profit', value: c(t.split?.realised), sub: true }),
+            ...maybe(sc && !!t.split, { label: 'Udhaar mein profit (abhi aana hai)', value: c(t.split?.pending), sub: true }),
+            ...maybe(sc && !!t.split?.fromOlderBills, { label: 'Is me pehle ke udhaar se aaya', value: c(t.split?.fromOlderBills), sub: true }),
+            ...maybe(sc && t.split?.basis === 'PAID', { label: 'Headline profit (paisa milne par)', value: c(t.grossProfit), strong: true }),
+            { label: '− Expenses', value: m(t.expenses), sub: true },
+            ...maybe(sc, { label: '− Stock nuksan', value: c(t.stockLoss ?? t.damage), sub: true }),
+            ...maybe(sc && !!t.stockGain, { label: '+ Stock faida', value: c(t.stockGain), sub: true }),
+            ...maybe(!!t.otherIncome, { label: '+ Doosri aamdani', value: m(t.otherIncome ?? 0), sub: true }),
             ...maybe(sc, { label: 'Net profit', value: c(t.netProfit), strong: true }),
           ] },
           table(d.grouping === 'month' ? 'Mahine war' : 'Din war',

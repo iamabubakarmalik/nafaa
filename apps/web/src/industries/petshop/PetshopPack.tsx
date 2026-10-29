@@ -33,7 +33,7 @@ export const PetshopPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Pet Shop',
+      label: 'Pet shop',
       icon: PawPrint,
       emoji: '🐾',
       color: '#f59e0b',

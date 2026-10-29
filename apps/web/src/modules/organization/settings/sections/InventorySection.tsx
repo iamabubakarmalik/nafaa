@@ -1,10 +1,11 @@
 /**
- * Stock rules: the low-stock line new products start with, and whether the
- * counter may sell more than the stock on record. Links to the stock pages
- * where the day-to-day work happens.
+ * Stock rules: the low-stock line new products start with, whether the
+ * counter may sell more than the stock on record, and the manufacturing
+ * switch (recipes and production). Links to the stock pages where the
+ * day-to-day work happens.
  */
 
-import { AlertTriangle, ArrowRightLeft, ClipboardCheck, PackageX, TrendingDown } from 'lucide-react';
+import { AlertTriangle, ArrowRightLeft, ClipboardCheck, Factory, FlaskConical, PackageX, TrendingDown } from 'lucide-react';
 import { Field, NumberInput, PageLink, SectionCard, Toggle } from '../components/SettingsBlocks';
 import { Badge, Alert } from '@/design-system/components';
 import { SyncedBadge } from '../components/SyncedBadge';
@@ -44,6 +45,19 @@ export function InventorySection({ settings }: { settings: TenantSettings }) {
           )}
         </SectionCard>
       </div>
+
+      <SectionCard title="Banayein (Manufacturing)" desc="2–3 raw items mila kar apna maal banayein — Cost khud nikalti hai" icon={Factory} color="emerald"
+        badge={<Badge size="xs" variant={draft.manufacturingEnabled ? 'success' : 'default'}>{draft.manufacturingEnabled ? 'Chalu' : 'Band'}</Badge>}>
+        <Toggle checked={!!draft.manufacturingEnabled} onChange={(v) => set('manufacturingEnabled', v)} icon={Factory}
+          label="Recipe aur Production chalu karein"
+          desc="Mix daal, dry fruit pack, cake, attar — Recipe banayein, maal banayein, raw maal khud stock se kam ho" />
+        {draft.manufacturingEnabled && (
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <PageLink to="/manufacturing" icon={Factory} title="Banayein" desc="Aaj ki production aur kam raw maal" />
+            <PageLink to="/manufacturing/recipes" icon={FlaskConical} title="Recipes" desc="Har product ka raw maal aur Cost" />
+          </div>
+        )}
+      </SectionCard>
 
       <SectionCard title="Stock ke kaam" desc="Rozana ka stock kaam in pages par hota hai" icon={ClipboardCheck} color="slate">
         <div className="grid gap-2 sm:grid-cols-3">

@@ -29,7 +29,7 @@ export function MonthlyView({ data, lines, fmt, onPickMonth }: {
     key, name: monthLabel(key),
     bikri: s.revenue.net,
     kharch: (showCost ? (s.cogs?.total ?? 0) + (s.writeOffs?.net ?? 0) : 0) + s.expenses.total,
-    munafa: s.netProfit ?? 0,
+    profit: s.netProfit ?? 0,
   }));
   const pick = (e: unknown) => {
     const key = (e as { activePayload?: Array<{ payload?: { key?: string } }> } | null)?.activePayload?.[0]?.payload?.key;
@@ -42,7 +42,7 @@ export function MonthlyView({ data, lines, fmt, onPickMonth }: {
     <div className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><BarChart3 className="h-4 w-4 text-brand-600" />Sale aur kharch</span>}
-          description={showCost ? 'Kharch = maal ki cost + kharchay + stock nuqsan. Bar dabayein to us mahine ka bayan khulega' : 'Kharch = kharchay. Bar dabayein to us mahine ka bayan khulega'}>
+          description={showCost ? 'Kharch = maal ki cost + kharchay + stock nuksan. Bar dabayein to us mahine ka bayan khulega' : 'Kharch = kharchay. Bar dabayein to us mahine ka bayan khulega'}>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chart} margin={{ top: 4, right: 4, left: -12, bottom: 0 }} onClick={pick} barGap={2}>
@@ -59,7 +59,7 @@ export function MonthlyView({ data, lines, fmt, onPickMonth }: {
         </Card>
 
         <Card className="rounded-2xl" title={<span className="inline-flex items-center gap-2"><TrendingUp className="h-4 w-4 text-brand-600" />Net profit har mahine</span>}
-          description={showCost ? `${best ? `Sab se achha ${monthLabel(best.key, true)}` : 'Abhi koi profit nahi'}${losing ? ` · ${losing} mahine nuqsan` : ''}` : 'Cost chhupi hai'}>
+          description={showCost ? `${best ? `Sab se achha ${monthLabel(best.key, true)}` : 'Abhi koi profit nahi'}${losing ? ` · ${losing} mahine nuksan` : ''}` : 'Cost chhupi hai'}>
           {!showCost ? <p className="py-16 text-center text-[0.875rem] text-slate-500">Profit dekhne ke liye cost kholein</p> : (
             <div className="h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -68,8 +68,8 @@ export function MonthlyView({ data, lines, fmt, onPickMonth }: {
                   <XAxis dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} minTickGap={4} />
                   <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
                   <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Net profit']} {...theme.tooltip} />
-                  <Bar dataKey="munafa" radius={[4, 4, 0, 0]} maxBarSize={26} className="cursor-pointer">
-                    {chart.map((d) => <Cell key={d.key} fill={d.munafa >= 0 ? PART_COLORS.profit : PART_COLORS.loss} />)}
+                  <Bar dataKey="profit" radius={[4, 4, 0, 0]} maxBarSize={26} className="cursor-pointer">
+                    {chart.map((d) => <Cell key={d.key} fill={d.profit >= 0 ? PART_COLORS.profit : PART_COLORS.loss} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

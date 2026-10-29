@@ -69,26 +69,26 @@ export const RestaurantPack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Restaurant Industry',
+      label: 'Restaurant',
       icon: ChefHat,
       emoji: '🍽️',
       color: '#ea580c',
       order: 20,
       items: [
         // ✅ wizard button
-        { to: '/restaurant-menu-items/new', label: '+ Add Menu Item', icon: Sparkles, badge: 'FAST' },
+        { to: '/restaurant-menu-items/new', label: 'Add menu item', icon: Sparkles, badge: 'FAST' },
 
-        { to: '/restaurant/dashboard', label: 'Restaurant Dashboard', icon: LayoutDashboard, badge: 'NEW' },
+        { to: '/restaurant/dashboard', label: 'Restaurant dashboard', icon: LayoutDashboard, badge: 'NEW' },
         { to: '/restaurant/orders', label: 'Orders', icon: ShoppingBag },
         { to: '/restaurant/tables', label: 'Tables', icon: Utensils },
         { to: '/restaurant/menu', label: 'Menu', icon: ChefHat },
         { to: '/restaurant/modifiers', label: 'Add-ons', icon: Sparkles },
         { to: '/restaurant/kot', label: 'Kitchen (KOT)', icon: Timer },
         { to: '/restaurant/riders', label: 'Riders', icon: Bike },
-        { to: '/restaurant/happy-hours', label: 'Happy Hours', icon: Zap },
+        { to: '/restaurant/happy-hours', label: 'Happy hours', icon: Zap },
         { to: '/restaurant/recipes', label: 'Recipes', icon: BookOpen },
-        { to: '/restaurant/stations', label: 'Kitchen Stations', icon: Flame },
-        { to: '/restaurant/delivery', label: 'Delivery Tracking', icon: MapPin },
+        { to: '/restaurant/stations', label: 'Kitchen stations', icon: Flame },
+        { to: '/restaurant/delivery', label: 'Delivery tracking', icon: MapPin },
       ],
     },
   ],

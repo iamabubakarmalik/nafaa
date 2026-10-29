@@ -319,6 +319,12 @@ export function CustomerProfilePage() {
               <Tile label="Return / void" value={money(ins?.credit.reduced ?? 0)} />
               <Tile label="Sab se purana baqi" value={dueDays !== null ? `${dueDays} din` : '—'} hint={ins?.credit.oldestDueAt ? day(ins.credit.oldestDueAt) : undefined} />
             </div>
+            {ins?.credit.pendingProfit != null && (ins.credit.billProfit ?? 0) > 0.5 && (
+              <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">
+                Udhaar bills ka profit {cost(ins.credit.billProfit ?? 0)}: haath mein aaya <b className="tabular-nums">{cost(ins.credit.realised ?? 0)}</b>
+                {' · '}udhaar mein profit (abhi aana hai) <b className="tabular-nums">{cost(ins.credit.pendingProfit)}</b>
+              </p>
+            )}
           </Card>
         </div>
       )}

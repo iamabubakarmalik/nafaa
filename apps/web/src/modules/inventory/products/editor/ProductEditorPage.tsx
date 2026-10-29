@@ -10,12 +10,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle2, Eye, GraduationCap, History, Layers, List, Loader2, Plus, Save, Tag, Wallet } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, Check, CheckCircle2, ChevronDown, Eye, Factory, GraduationCap, History, Layers, List, Loader2, Plus, Save, Tag, Wallet } from 'lucide-react';
 import { Button, Kbd, PageHero, PageShell, Skeleton, heroIconButton } from '@/design-system/components';
 import { PageGuide, usePageGuide, type GuideStep } from '@core/components/PageGuide';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
+import { ProductRecipePanel } from '@modules/manufacturing/components/ProductRecipePanel';
+import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
 import { openingStock } from './save';
 import { useProductEditor } from './useProductEditor';
 import type { EditorConfig } from './types';
@@ -34,6 +38,9 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
   const navigate = useNavigate();
   const guide = usePageGuide();
   const [busy, setBusy] = useState(false);
+  const [recipeOpen, setRecipeOpen] = useState(false);
+  const manufacturing = useManufacturingEnabled();
+  const canRecipe = usePermission(PERMISSIONS.MANUFACTURING_VIEW);
   const c = e.draft.core;
 
   const doSave = async () => {
@@ -149,7 +156,8 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] xl:grid-cols-[15rem_minmax(0,1fr)_19rem]">
+      {/* The preview column needs about 1400px, or the form between it and the steps gets too narrow to use. */}
+      <div className="grid gap-5 lg:grid-cols-[14rem_minmax(0,1fr)] min-[1400px]:grid-cols-[15rem_minmax(0,1fr)_19rem]">
         {/* Desktop stepper */}
         <nav className="hidden lg:block" aria-label="Steps">
           <ol className="sticky top-24 space-y-1">
@@ -179,7 +187,7 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
         </section>
 
         {/* Live summary */}
-        <aside className="hidden xl:block">
+        <aside className="hidden min-[1400px]:block">
           <div className="sticky top-24 space-y-3">
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
               <div className="aspect-[4/3] bg-slate-100"><ProductThumb name={c.name || 'Naya'} url={c.images[0]?.url} size="full" /></div>
@@ -210,6 +218,26 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
           </div>
         </aside>
       </div>
+
+      {/* Recipe (manufacturing): saved on its own, only for a saved product without variants */}
+      {e.isEdit && e.id && manufacturing && canRecipe && !c.variants.length && (
+        <section className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
+          <button type="button" onClick={() => setRecipeOpen((v) => !v)} aria-expanded={recipeOpen}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left sm:px-5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600"><Factory className="h-4 w-4" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.9375rem] font-semibold text-slate-900">Recipe — banaya jata hai?</span>
+              <span className="block text-[0.75rem] text-slate-500">Raw maal, batch aur Cost. Recipe alag save hoti hai.</span>
+            </span>
+            <ChevronDown className={cn('h-4 w-4 text-slate-400 transition', recipeOpen && 'rotate-180')} />
+          </button>
+          {recipeOpen && (
+            <div className="border-t border-slate-100 p-4 sm:p-5">
+              <ProductRecipePanel compact product={{ id: e.id, name: c.name, unit: c.unit, price: c.price, wholesalePrice: c.wholesalePrice, creditPrice: c.creditPrice }} />
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Action bar */}
       <div className="sticky bottom-3 z-30 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">

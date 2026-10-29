@@ -3,7 +3,7 @@ import { IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } from 'class-va
 
 export const MOVEMENT_TYPES = [
   'PURCHASE_IN', 'SALE_OUT', 'ADJUSTMENT_IN', 'ADJUSTMENT_OUT', 'RETURN_IN', 'OPENING_BALANCE',
-  'DAMAGE', 'LOSS', 'TRANSFER_IN', 'TRANSFER_OUT', 'PURCHASE_RETURN',
+  'DAMAGE', 'LOSS', 'TRANSFER_IN', 'TRANSFER_OUT', 'PURCHASE_RETURN', 'PRODUCTION_IN', 'PRODUCTION_OUT',
 ] as const;
 
 export class ListMovementsDto {

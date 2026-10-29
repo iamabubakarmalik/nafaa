@@ -36,6 +36,11 @@ const MASKED_KEYS = new Set([
   'monthcogs', 'todaygross', 'todaynet', 'monthgross', 'monthnet',
   'monthmarginpct', 'valueatcost', 'stockcost', 'totalstockvalue',
   'totalpotentialprofit', 'inventoryvalueatcost', 'stockvalue',
+  // Khata profit split (in hand / still on khata) and stock loss or gain at cost.
+  'split', 'profitsplittoday', 'profitsplitmonth', 'todaysplit', 'monthsplit',
+  'billprofit', 'realised', 'profitinhand', 'profitonkhata', 'profitonbills', 'profitstillonkhata',
+  'profitinhandfromolderbills', 'profitforgivenonkhata', 'pendingprofit',
+  'stockloss', 'stockgain', 'stocklosstoday', 'stockgaintoday', 'stocklossmonth', 'stockgainmonth',
 ]);
 
 /**

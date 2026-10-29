@@ -186,7 +186,7 @@ function WasteTab({ canStock }: { canStock: boolean }) {
   const listQ = useQuery({ queryKey: ['stock-adjustments', 'dairy-waste', today], queryFn: () => stockAdjustmentsApi.list({ from: today, to: today, type: 'DAMAGE', limit: 100 }) });
   const lines = Object.entries(qtys).map(([productId, v]) => ({ productId, quantity: numIn(v) ?? 0 })).filter((l) => l.quantity > 0);
   const save = useMutation({
-    mutationFn: () => stockAdjustmentsApi.batch({ reason, items: lines.map((l) => ({ ...l, type: 'DAMAGE' as const, reason })) }),
+    mutationFn: () => stockAdjustmentsApi.batch({ reason, reasonCode: 'DAMAGE', items: lines.map((l) => ({ ...l, type: 'DAMAGE' as const, reason })) }),
     onSuccess: (r) => {
       ['stock-adjustments', DAIRY_KEYS.profiles, 'products', 'dashboard'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
       toast.success(`${r.count} cheezein kharab likhi — ${money(r.value)} ka nuqsan`); setQtys({});

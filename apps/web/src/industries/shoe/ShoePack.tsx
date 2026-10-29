@@ -34,7 +34,7 @@ export const ShoePack: IndustryPack = {
 
   navGroups: [
     {
-      label: 'Shoe Store',
+      label: 'Shoe store',
       icon: Footprints,
       emoji: '👟',
       color: '#f97316',
@@ -42,8 +42,8 @@ export const ShoePack: IndustryPack = {
       items: [
         { to: '/shoe/dashboard', label: 'Shoe dashboard', icon: LayoutDashboard },
         { to: '/shoe/exchanges', label: 'Exchange', icon: ArrowLeftRight, permission: PERMISSIONS.RETURNS_CREATE },
-        { to: '/shoe/try-on', label: 'Size farmaish', icon: HandMetal, permission: PERMISSIONS.POS_USE },
-        { to: '/shoe/size-charts', label: 'Size chart', icon: Ruler, permission: PERMISSIONS.PRODUCTS_VIEW },
+        { to: '/shoe/try-on', label: 'Size requests', icon: HandMetal, permission: PERMISSIONS.POS_USE },
+        { to: '/shoe/size-charts', label: 'Size charts', icon: Ruler, permission: PERMISSIONS.PRODUCTS_VIEW },
         { to: '/shoe/brands', label: 'Brands', icon: Award, permission: PERMISSIONS.BRANDS_VIEW },
       ],
     },
