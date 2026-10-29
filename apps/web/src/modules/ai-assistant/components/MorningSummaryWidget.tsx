@@ -2,16 +2,18 @@
  * Dashboard card: yesterday's sale, profit and udhaar in one place, from
  * GET /ai/morning-summary (built from the same numbers as the daily summary,
  * no AI cost). Money follows the privacy lock. "Nafaa AI se poochein" opens
- * the side panel with a follow-up question.
+ * the side panel with a follow-up question. Shops with an online channel also
+ * see yesterday's online orders, RTO, COD with couriers, ads and ROAS, with
+ * their own WhatsApp share.
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowDownRight, ArrowUpRight, Sun } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, ShoppingBag, Sun } from 'lucide-react';
 import { WidgetCard } from '@modules/dashboard/engine/parts';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { Skeleton } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
-import { aiApi } from '../api';
+import { aiApi, type MorningSummary } from '../api';
 import { useAiStore } from '../store';
 import { useCanUseAi } from './AiDrawer';
 import { NafaaAiMark } from './NafaaAiMark';
@@ -85,6 +87,7 @@ export function MorningSummaryWidget() {
             <Tile label="Stock" value={`${f.lowStock.out} khatam`} hint={`${f.lowStock.low} kam`} tone={f.lowStock.out > 0 ? 'bad' : undefined} />
           </div>
           {f.topItem && <p className="text-[0.8125rem] text-slate-600">Sab se zyada bika: <span className="font-semibold text-slate-900">{f.topItem}</span></p>}
+          {m?.ecommerce && <OnlineBlock e={m.ecommerce} sales={sales} cost={cost} hidden={costHidden || salesHidden} />}
           <div className="flex flex-wrap gap-1.5">
             {['Kal ka profit kis cheez se aaya?', 'Kal ki sale pichhle hafte se kaisi rahi?', 'Kya mangwana hai?'].map((t) => (
               <button key={t} type="button" onClick={() => ask(t)}
@@ -96,5 +99,31 @@ export function MorningSummaryWidget() {
         </div>
       )}
     </WidgetCard>
+  );
+}
+
+/** Yesterday's online orders: sale, RTO, COD with couriers, ads and ROAS, profit after ads. */
+function OnlineBlock({ e, sales, cost, hidden }: {
+  e: NonNullable<MorningSummary['ecommerce']>; sales: (n: number) => string; cost: (n: number) => string; hidden: boolean;
+}) {
+  const share = () => window.open(`https://wa.me/?text=${encodeURIComponent(e.text)}`, '_blank', 'noopener');
+  return (
+    <div className="rounded-xl ring-1 ring-sky-100">
+      <div className="flex items-center justify-between gap-2 rounded-t-xl bg-sky-50 px-3 py-1.5">
+        <p className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-sky-900"><ShoppingBag className="h-3.5 w-3.5" /> Online — kal</p>
+        {!hidden && (
+          <button type="button" onClick={share} aria-label="Online hisaab WhatsApp par bhejein" title="WhatsApp par bhejein"
+            className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[0.75rem] font-medium text-sky-800 hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+            <WhatsAppGlyph className="h-3.5 w-3.5" /> Bhejein
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-2 p-2 sm:grid-cols-4">
+        <Tile label="Online orders" value={String(e.orders)} hint={`Sale ${sales(e.sales)}`} />
+        <Tile label="RTO (wapas)" value={String(e.rto)} tone={e.rto > 0 ? 'bad' : undefined} hint={e.codWithCouriers != null ? `COD courier ke paas ${sales(e.codWithCouriers)}` : undefined} />
+        {e.adsSpend != null && <Tile label="Ads kharcha" value={sales(e.adsSpend)} hint={e.roas != null ? `ROAS ${e.roas.toFixed(2)}x` : 'ROAS —'} />}
+        {e.profitAfterAds != null && <Tile label="Ads ke baad Profit" value={cost(e.profitAfterAds)} tone={e.profitAfterAds < 0 ? 'bad' : undefined} />}
+      </div>
+    </div>
   );
 }

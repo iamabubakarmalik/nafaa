@@ -13,7 +13,7 @@ import { WebsiteCatalogService } from './website-catalog.service';
 import { NormalizedOrder } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
 import { DARAZ_AUTHORIZE, DarazClient, DarazError, priceXml, readTokenResponse, stockXml, darazOptionTitle } from './daraz.client';
-import { trackLinks } from './link-sync';
+import { PAGE_DELAY_MS, trackLinks } from './link-sync';
 import type { RemoteProduct } from './channel-catalog.service';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
@@ -415,6 +415,7 @@ export class DarazService {
     let sent = 0;
     for (let k = 0; k < rows.length; k += 20) {
       const chunk = rows.slice(k, k + 20);
+      if (k > 0) await new Promise((r) => setTimeout(r, PAGE_DELAY_MS.DARAZ));
       await client.call('/product/price_quantity/update', { payload: priceXml(chunk) }, 'POST');
       sent += chunk.length;
     }
@@ -466,6 +467,8 @@ export class DarazService {
 
   /** productIds = sirf yeh (POS sale ke baad), warna sab jore hue */
   async syncStock(i: Integration, opts: { productIds?: string[] } = {}) {
+    // Stock push switched off for this channel: nothing goes out, from any path.
+    if (!readWebsiteConfig(i.config).pushStock) return { updated: 0, off: true };
     return trackLinks(this.prisma, i.id, opts.productIds ? { productId: { in: opts.productIds } } : {}, () => this.pushStock(i, opts));
   }
 
@@ -483,6 +486,7 @@ export class DarazService {
     let updated = 0;
     for (let k = 0; k < rows.length; k += 20) {
       const chunk = rows.slice(k, k + 20);
+      if (k > 0) await new Promise((r) => setTimeout(r, PAGE_DELAY_MS.DARAZ));
       await client.call('/product/price_quantity/update', { payload: stockXml(chunk) }, 'POST');
       updated += chunk.length;
     }

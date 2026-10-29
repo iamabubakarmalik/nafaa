@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Info } from 'lucide-react';
 import { Button, Input, Modal, Segmented, Switch } from '@/design-system/components';
+import { cn } from '@core/lib/cn';
 import { apiErrorMessage } from '../../api/online-orders.api';
 import { applyRule, onlineProductsApi, type OnlineChannel, type PriceRounding, type PriceRuleMode } from '../../api/online-products.api';
 import { ChannelMark, channelName, kindOf, refreshOnlineProducts, rs } from './meta';
@@ -22,16 +23,22 @@ export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChan
   const [amount, setAmount] = useState(r.value ? String(Math.abs(r.value)) : '');
   const [rounding, setRounding] = useState<PriceRounding>(r.rounding);
   const [buffer, setBuffer] = useState(channel.stockBuffer ? String(channel.stockBuffer) : '');
+  const [pushStock, setPushStock] = useState(channel.pushStock);
+  const [autoLink, setAutoLink] = useState(channel.autoLink);
 
   const value = mode === 'NONE' ? 0 : (Number(amount) || 0) * (dir === 'down' ? -1 : 1);
   const rule = { mode, value, rounding };
   const tooLow = mode === 'PERCENT' && dir === 'down' && (Number(amount) || 0) >= 90;
 
   const save = useMutation({
-    mutationFn: () => onlineProductsApi.settings(channel.id, { pushPrice, priceRule: rule, stockBuffer: Math.max(0, Math.floor(Number(buffer) || 0)) }),
+    // A custom website only takes the stock buffer; its price is the Nafaa price from the website API.
+    mutationFn: () => onlineProductsApi.settings(channel.id, {
+      ...(channel.canPush ? { pushPrice, priceRule: rule, pushStock, autoLink } : {}),
+      stockBuffer: Math.max(0, Math.floor(Number(buffer) || 0)),
+    }),
     onSuccess: () => {
       refreshOnlineProducts(qc);
-      toast.success(pushPrice ? 'Save ho gaya — nayi Price aur Stock channel par ja rahe hain' : 'Save ho gaya');
+      toast.success(channel.canPush && pushPrice ? 'Save ho gaya — nayi Price aur Stock channel par ja rahe hain' : 'Save ho gaya');
       onClose();
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
@@ -42,14 +49,25 @@ export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChan
 
   return (
     <Modal open onClose={onClose} size="lg"
-      title={<span className="flex items-center gap-2"><ChannelMark type={channel.type} size="sm" />{name} — Price aur Stock</span>}
-      description={`${kindOf(channel.type).label}${channel.shopName ? ` · Stock ${channel.shopName} branch se` : ''}`}
+      title={<span className="flex items-center gap-2"><ChannelMark channel={channel} size="sm" />{name} — {channel.canPush ? 'Price aur Stock' : 'Stock buffer'}</span>}
+      description={`${kindOf(channel).label}${channel.shopName ? ` · Stock ${channel.shopName} branch se` : ''}`}
       footer={<>
         <Button variant="ghost" onClick={onClose}>Rehne dein</Button>
         <Button loading={save.isPending} disabled={tooLow} onClick={() => save.mutate()}>Save karein</Button>
       </>}>
       <div className="space-y-5">
-        <section className="space-y-3">
+        {channel.canPush && (
+          <section className="space-y-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/80">
+            <Switch checked={pushStock} onChange={(e) => setPushStock(e.target.checked)}
+              label="Stock Nafaa se channel par bhejein"
+              description={pushStock ? 'Har sale, return, purchase aur stock badalne par channel ka Stock khud barabar hota hai.' : 'Band hai — channel par Stock bilkul nahi jayega. Wahan haath se rakhein.'} />
+            <Switch checked={autoLink} onChange={(e) => setAutoLink(e.target.checked)}
+              label="Pakke match khud jorein"
+              description="Channel par naya product aaye aur us ka SKU ya barcode Nafaa se bilkul mile to khud jur jata hai. Sirf naam milne wale kabhi khud nahi jurte." />
+          </section>
+        )}
+
+        {channel.canPush && <section className="space-y-3">
           <Switch checked={pushPrice} onChange={(e) => setPushPrice(e.target.checked)}
             label="Price Nafaa se channel par bhejein"
             description={pushPrice ? 'Nafaa me Price badlein to yahan wali Price channel par khud lag jayegi.' : 'Band hai — Price channel par haath se badlein. Neeche wali Price sirf dikhane ke liye hai.'} />
@@ -88,9 +106,9 @@ export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChan
             </ul>
             <p className="mt-2 text-[0.75rem] text-slate-500">Kisi ek product ki apni Price grid me us ke khane se lag sakti hai — wo is rule se upar hai.</p>
           </div>
-        </section>
+        </section>}
 
-        <section className="space-y-2 border-t border-slate-100 pt-4">
+        <section className={cn('space-y-2', channel.canPush && 'border-t border-slate-100 pt-4')}>
           <p className="text-[0.8125rem] font-semibold text-slate-800">Stock buffer</p>
           <div className="flex flex-wrap items-center gap-3">
             <Input inputMode="numeric" value={buffer} onChange={(e) => setBuffer(e.target.value.replace(/\D/g, ''))} placeholder="0" aria-label="Kitne rakh lein"
@@ -104,6 +122,7 @@ export function ChannelSettingsModal({ channel, onClose }: { channel: OnlineChan
         <p className="flex gap-2 rounded-2xl bg-sky-50 p-3 text-[0.78125rem] text-sky-900 ring-1 ring-sky-100">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
+            {channel.mode === 'website' ? <>Website ko Nafaa price jati hai (branch ki Price ho to wo). Stock buffer website ke agle pull par lagta hai. </> : null}
             Online order ke bill me Price: <b>{channel.priceSource === 'NAFAA' ? 'Nafaa wali' : 'jo customer ne channel par di'}</b> (channel ki settings se).
             {channel.type === 'DARAZ' && ' Daraz par Sale price chal rahi ho to customer ko wohi dikhti hai.'}
           </span>

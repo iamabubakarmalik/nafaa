@@ -64,6 +64,8 @@ export interface BookInput {
 export interface BookResult {
   trackingNumber: string;
   labelUrl?: string | null;
+  /** The courier's charge for this parcel, when its reply says. */
+  charge?: number | null;
   raw?: unknown;
 }
 

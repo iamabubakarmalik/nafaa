@@ -28,6 +28,8 @@ export interface CustomerRisk {
   reason: string;
   duplicateOpen?: number;
   total: number; delivered: number; returned: number; cancelled: number; open: number; spent: number;
+  /** Every reason behind the level, most serious first. */
+  reasons?: string[];
 }
 
 export interface OnlineOrder {
@@ -103,7 +105,11 @@ export interface OnlineOrder {
 }
 
 export type DeliveryMode = 'CUSTOMER' | 'FREE' | 'RIDER';
-export interface OrderMoney { advance: number; codDue: number; deliveryMode: DeliveryMode; deliveryFee: number }
+export interface OrderMoney {
+  advance: number; codDue: number; deliveryMode: DeliveryMode; deliveryFee: number;
+  /** The website's delivery charge, also when the shop made it free on this order. */
+  originalFee?: number;
+}
 export type AdvanceMethod = 'JAZZCASH' | 'EASYPAISA' | 'BANK' | 'CASH' | 'OTHER';
 
 export type CourierState =
@@ -252,12 +258,16 @@ export interface CodCourier {
   withCourier: number; withCourierValue: number;
   settledMonth: number; settledMonthValue: number;
   dispatched30: number; returned30: number; rtoRate: number;
+  /** Money with the courier by days since delivery (see `ageLabels`). */
+  age?: number[];
 }
 export interface CodSummary {
   totals: {
     inTransit: number; inTransitValue: number; withCourier: number; withCourierValue: number;
     settledMonth: number; settledMonthValue: number; rtoRate: number; returned30: number; dispatched30: number;
+    age?: number[];
   };
+  ageLabels?: string[];
   couriers: CodCourier[];
   withCourier: Array<{
     id: string; externalOrderNumber?: string | null; externalOrderId: string; customerName: string; customerCity?: string | null;
@@ -294,6 +304,13 @@ export interface OnlineOrderDetail extends OnlineOrder {
     soldAt: string;
     shop?: { id: string; name: string };
   };
+  /** Selling costs (saved or estimated from the rate card). */
+  sellingCosts?: import('./order-money.api').OrderCosts;
+  /** True profit; left out for users who may not see cost. */
+  profit?: import('./order-money.api').OrderProfit;
+  costPosting?: { on: boolean; postedAt: string | null; expenseNumber: string | null };
+  /** The shop asks risky customers for an advance: this much (pct of the total). */
+  riskAdvice?: { pct: number; amount: number } | null;
 }
 
 export interface OrderAlertRow {
@@ -319,6 +336,8 @@ export interface OrderListQuery {
   /** Business-day keys; both needed. */
   from?: string; to?: string;
   pay?: 'COD' | 'PAID';
+  /** Customer confirmation; NONE = not asked yet. */
+  confirm?: 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED' | 'NONE';
 }
 
 export interface LiveOrders {

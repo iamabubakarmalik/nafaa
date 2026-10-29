@@ -210,6 +210,7 @@ export class WebsiteApiController {
       limit: limit ? +limit : 100,
       search,
       updatedSince: updatedSince ? new Date(updatedSince) : undefined,
+      stockBuffer: config.stockBuffer,
     });
   }
 

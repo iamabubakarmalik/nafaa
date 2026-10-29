@@ -7,13 +7,23 @@ export type PriceRuleMode = 'NONE' | 'PERCENT' | 'FIXED';
 export type PriceRounding = 'NONE' | 'NEAREST_10' | 'END_9';
 export interface PriceRule { mode: PriceRuleMode; value: number; rounding: PriceRounding }
 
-export type ChannelType = 'WOOCOMMERCE' | 'SHOPIFY' | 'DARAZ';
+export type ChannelType = 'WOOCOMMERCE' | 'SHOPIFY' | 'DARAZ' | 'CUSTOM_WEBSITE';
+/** How the channel works with products; Indolj and developer-built sites are both CUSTOM_WEBSITE. */
+export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
 
 export interface OnlineChannel {
   id: string;
   type: ChannelType;
   name: string;
   siteUrl: string | null;
+  platform: string | null;
+  mode: ChannelMode;
+  /** Nafaa sends stock and prices (Woo, Shopify, Daraz). */
+  canPush: boolean;
+  /** Nafaa can read the channel's product list (not a developer-built site). */
+  canFetch: boolean;
+  /** The channel keeps stock (Indolj does not). */
+  tracksStock: boolean;
   live: boolean;
   paused: boolean;
   shopId: string | null;
@@ -21,6 +31,10 @@ export interface OnlineChannel {
   pushPrice: boolean;
   priceRule: PriceRule;
   stockBuffer: number;
+  /** Nafaa sends stock to this channel (off = nothing goes out). */
+  pushStock: boolean;
+  /** Exact SKU/barcode matches are linked by themselves. */
+  autoLink: boolean;
   priceSource: 'WEBSITE' | 'NAFAA';
   lastSyncAt: string | null;
   lastSyncStatus: string | null;
@@ -42,7 +56,8 @@ export interface LinkedCell {
   /** Stock sent to the channel (after the buffer); null when the channel has no branch. */
   stock: number | null;
   nafaaStock: number;
-  status: 'PENDING' | 'SYNCING' | 'SUCCESS' | 'FAILED' | 'SKIPPED';
+  /** null where nothing is pushed (custom website, Indolj). */
+  status: 'PENDING' | 'SYNCING' | 'SUCCESS' | 'FAILED' | 'SKIPPED' | null;
   error: string | null;
   lastSyncedAt: string | null;
 }
@@ -82,6 +97,17 @@ export interface Suggestions {
   unmatched: UnmatchedGroup[];
 }
 
+/** One line of the Masle panel, with the fix it offers. */
+export interface Issue {
+  id: string;
+  channelId: string;
+  tone: 'danger' | 'warning' | 'info';
+  kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link';
+  text: string;
+  detail?: string | null;
+  count?: number;
+}
+
 export const ONLINE_PRODUCTS_KEY = 'online-products';
 
 export const onlineProductsApi = {
@@ -95,7 +121,7 @@ export const onlineProductsApi = {
   importItems: (channelId: string, externalProductIds: string[]) =>
     apiClient.post(`/online-products/channels/${channelId}/import`, { externalProductIds }, { timeout: 180_000 })
       .then((r) => unwrap<{ created: number; linkedExisting: number; failed: number; errors: string[] }>(r)),
-  settings: (channelId: string, body: { priceRule?: PriceRule; pushPrice?: boolean; stockBuffer?: number }) =>
+  settings: (channelId: string, body: { priceRule?: PriceRule; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean }) =>
     apiClient.put(`/online-products/channels/${channelId}/settings`, body).then((r) => unwrap<OnlineChannel>(r)),
   syncChannel: (channelId: string) =>
     apiClient.post(`/online-products/channels/${channelId}/sync`, {}, { timeout: 180_000 }).then((r) => unwrap<{ prices: number; error: string | null }>(r)),
@@ -104,6 +130,11 @@ export const onlineProductsApi = {
       .then((r) => unwrap<{ results: Array<{ channelId: string; name: string; ok: boolean; error: string | null }> }>(r)),
   setPrice: (mappingId: string, priceOverride: number | null) =>
     apiClient.put(`/online-products/links/${mappingId}/price`, { priceOverride }).then((r) => unwrap<{ success: boolean }>(r)),
+  issues: () => apiClient.get('/online-products/issues').then((r) => unwrap<{ issues: Issue[] }>(r)),
+  linkSure: (channelId: string) =>
+    apiClient.post(`/online-products/channels/${channelId}/link-sure`, {}, { timeout: 180_000 }).then((r) => unwrap<{ saved: number; errors: string[] }>(r)),
+  fixSizeLess: (channelId: string) =>
+    apiClient.post(`/online-products/channels/${channelId}/fix-size-less`, {}).then((r) => unwrap<{ removed: number }>(r)),
   unlink: (mappingId: string) => apiClient.delete(`/online-products/links/${mappingId}`).then((r) => unwrap<{ success: boolean }>(r)),
 };
 

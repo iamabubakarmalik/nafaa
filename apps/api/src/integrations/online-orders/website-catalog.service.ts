@@ -11,6 +11,8 @@ export interface CatalogExportOptions {
   search?: string;
   updatedSince?: Date;
   skus?: string[];
+  /** Units kept back from a website (channel stock buffer); 0 = full stock. */
+  stockBuffer?: number;
 }
 
 export interface ImportOptions {
@@ -111,12 +113,13 @@ export class WebsiteCatalogService {
       this.prisma.product.count({ where }),
     ]);
 
+    const buffer = Math.max(0, Math.floor(opts.stockBuffer ?? 0));
     const products = items.map((p: any) => {
       const rows: any[] = p.shopStocks ?? [];
       const baseRow = rows.find((r) => r.variantId === null);
       const variants = (p.variants ?? []).map((v: any) => {
         const row = rows.find((r) => r.variantId === v.id);
-        const stock = shopId ? Number(row?.stock ?? 0) : Number(v.stock ?? 0);
+        const stock = (shopId ? Number(row?.stock ?? 0) : Number(v.stock ?? 0)) - buffer;
         return {
           id: v.id,
           name: v.name,
@@ -131,7 +134,7 @@ export class WebsiteCatalogService {
         };
       });
 
-      const baseStock = shopId ? Number(baseRow?.stock ?? 0) : Number(p.stock ?? 0);
+      const baseStock = (shopId ? Number(baseRow?.stock ?? 0) : Number(p.stock ?? 0)) - buffer;
       const stock = variants.length
         ? variants.reduce((s: number, v: any) => s + v.stock, 0)
         : Math.max(baseStock, 0);

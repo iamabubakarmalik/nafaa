@@ -7,8 +7,8 @@ import { readWebsiteConfig } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { DarazService } from './daraz.service';
-import { channelPrice, samePrice } from './channel-price';
-import { trackLinks } from './link-sync';
+import { channelPrice, priceAction } from './channel-price';
+import { PAGE_DELAY_MS, trackLinks } from './link-sync';
 
 const DEBOUNCE_MS = 15_000;
 /** Pehli dafa (server start) kitna pichhe dekhna hai */
@@ -156,19 +156,15 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
           select: { productId: true, variantId: true, shopPrice: true },
         })
       : [];
+    const nowMs = Date.now();
     const changed = maps
       .map((m) => {
         const branch = branchPrices.find((b) => b.productId === m.productId && (b.variantId ?? null) === (m.variantId ?? null))?.shopPrice;
         const base = Number(branch ?? (m.variantId ? m.variant?.price ?? m.product.price : m.product.price));
-        return { m, price: channelPrice(base, cfg.priceRule, m.priceOverride) };
+        const price = channelPrice(base, cfg.priceRule, m.priceOverride);
+        return { m, price, action: priceAction(m.externalData as any, price, nowMs, force) };
       })
-      .filter(({ m, price }) => {
-        if (!(price > 0)) return false;
-        if (force) return true;
-        // Compare with the latest price known on the channel: what Nafaa sent, or what the channel list showed since.
-        const d = (m.externalData ?? {}) as any;
-        return !samePrice(Number(d.channelPrice ?? d.pushedPrice), price);
-      });
+      .filter(({ action }) => action !== 'skip');
     if (!changed.length) return 0;
 
     const items = changed.map(({ m, price }) => ({
@@ -177,20 +173,29 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
     await trackLinks(this.prisma, ch.id, { id: { in: changed.map(({ m }) => m.id) } }, async () => {
       if (ch.type === 'WOOCOMMERCE') await this.woo.pushPrices(ch, items);
       else if (ch.type === 'SHOPIFY') await this.shopify.pushPrices(ch, items);
-      else await this.daraz.pushPrices(ch, items);
+      else if (ch.type === 'DARAZ') await this.daraz.pushPrices(ch, items);
     });
     const at = new Date().toISOString();
-    for (const { m, price } of changed) {
+    for (const { m, price, action } of changed) {
+      const d = ((m.externalData as any) ?? {});
+      // A drift re-send counts towards the backoff; a real price change starts it again.
+      const drift = action === 'drift' ? { driftPushes: (Number(d.driftPushes) || 0) + 1, driftPushedAt: at } : { driftPushes: 0, driftPushedAt: null };
       await this.prisma.productChannelMapping.update({
         where: { id: m.id },
-        data: { externalData: { ...((m.externalData as any) ?? {}), pushedPrice: price, pushedPriceAt: at, channelPrice: price, channelPriceAt: at } },
+        data: { externalData: { ...d, pushedPrice: price, pushedPriceAt: at, channelPrice: price, channelPriceAt: at, ...drift } },
       }).catch(() => null);
     }
     return changed.length;
   }
 
+  /** Only Woo, Shopify and Daraz get pushes; any other channel type (custom website, Indolj) never does. */
   private connected(ch: Integration) {
-    return ch.type === 'WOOCOMMERCE' ? this.woo.isConnected(ch) : ch.type === 'SHOPIFY' ? this.shopify.isConnected(ch) : this.daraz.isConnected(ch);
+    switch (ch.type) {
+      case 'WOOCOMMERCE': return this.woo.isConnected(ch);
+      case 'SHOPIFY': return this.shopify.isConnected(ch);
+      case 'DARAZ': return this.daraz.isConnected(ch);
+      default: return false;
+    }
   }
 
   private async pushChannel(ch: Integration) {
@@ -198,7 +203,7 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
     if (!connected) return;
     const cfg = readWebsiteConfig(ch.config);
     const shopId = cfg.shopId ?? ch.shopId;
-    if (!shopId) return;
+    if (!shopId || !cfg.pushStock) return;
 
     const now = new Date();
     const since = this.watermark.get(ch.id) ?? new Date(now.getTime() - FIRST_LOOKBACK_MS);
@@ -212,8 +217,15 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
     if (!changed.length) return;
 
     const productIds = [...new Set(changed.map((c) => c.productId))];
-    // Bahut zyada badla (bulk import / stock count) → 15 minute wala poora sync sambhal lega
-    if (productIds.length > MAX_PRODUCTS_PER_PUSH) return;
+    // A big change (bulk import, stock count) goes out in pages of 200 products, with a pause per platform.
+    for (let k = 0; k < productIds.length; k += MAX_PRODUCTS_PER_PUSH) {
+      if (k > 0) await new Promise((r) => setTimeout(r, PAGE_DELAY_MS[ch.type as keyof typeof PAGE_DELAY_MS] ?? 500));
+      await this.pushProducts(ch, productIds.slice(k, k + MAX_PRODUCTS_PER_PUSH));
+    }
+  }
+
+  /** Stock for some changed products: linked items by link, the rest by SKU. */
+  private async pushProducts(ch: Integration, productIds: string[]) {
     // Daraz: sirf SKU se jore hue products (ItemId + SkuId mapping me)
     if (ch.type === 'DARAZ') {
       await this.daraz.syncStock(ch, { productIds });
@@ -242,6 +254,6 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
 
     const opts = { onlySkus: skus.slice(0, 50), onlyLinks: onlyLinks.slice(0, 200) };
     if (ch.type === 'WOOCOMMERCE') await this.woo.syncStock(ch, opts);
-    else await this.shopify.syncStock(ch, opts);
+    else if (ch.type === 'SHOPIFY') await this.shopify.syncStock(ch, opts);
   }
 }

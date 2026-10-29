@@ -29,6 +29,7 @@ import FoodpandaPage from '@integrations/online-orders/pages/FoodpandaPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
   OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage, OnlineStoreDocsPage, OnlineProductsPage,
+  CodReconcilePage, OrderCostsPage, CourierRulesPage, PackPage, ReturnScanPage,
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
@@ -201,6 +202,9 @@ const MfgRecipeEditPage = lazy(() => import('@modules/manufacturing/pages/Recipe
 const MfgProducePage = lazy(() => import('@modules/manufacturing/pages/ProducePage'));
 const MfgHistoryPage = lazy(() => import('@modules/manufacturing/pages/HistoryPage'));
 const MfgReportPage = lazy(() => import('@modules/manufacturing/pages/ReportPage'));
+// ─── Growth tools for online sellers ───
+const PriceCalculatorPage = lazy(() => import('@modules/growth/price-calculator/PriceCalculatorPage'));
+const AdsPage = lazy(() => import('@modules/growth/ads/AdsPage'));
 
 // ─── Industry Pack System ──────────────────────────────────────
 import '@app/providers/registerIndustries';
@@ -388,10 +392,17 @@ export default function App() {
                   <Route path="/integrations" element={secure(PERMISSIONS.SETTINGS_VIEW, <IntegrationHubPage />)} />
                   <Route path="/online-orders" element={secure(PERMISSIONS.SALES_VIEW, <OnlineOrdersPage />)} />
                   <Route path="/online-orders/cod" element={secure(PERMISSIONS.SALES_VIEW, <CodPage />)} />
+                  <Route path="/online-orders/cod/reconcile" element={secure(PERMISSIONS.SALES_VIEW, <CodReconcilePage />)} />
+                  <Route path="/online-orders/pack" element={secure(PERMISSIONS.SALES_VIEW, <PackPage />)} />
+                  <Route path="/online-orders/returns-scan" element={secure(PERMISSIONS.SALES_VIEW, <ReturnScanPage />)} />
+                  <Route path="/online-store/costs" element={secure(PERMISSIONS.SALES_VIEW, <OrderCostsPage />)} />
+                  <Route path="/online-store/couriers/rules" element={secure(PERMISSIONS.SALES_VIEW, <CourierRulesPage />)} />
                   <Route path="/online-orders/reports" element={secure(PERMISSIONS.SALES_VIEW, <OnlineReportsPage />)} />
                   <Route path="/online-orders/customers" element={secure(PERMISSIONS.SALES_VIEW, <OnlineCustomersPage />)} />
                   <Route path="/online-store/payments" element={secure(PERMISSIONS.SALES_VIEW, <PaymentsPage />)} />
                   <Route path="/online-store/products" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <OnlineProductsPage />)} />
+                  <Route path="/online-store/price-calculator" element={secure(PERMISSIONS.COST_VIEW, <PriceCalculatorPage />)} />
+                  <Route path="/online-store/ads" element={secure(PERMISSIONS.ADS_VIEW, <AdsPage />)} />
                   <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />

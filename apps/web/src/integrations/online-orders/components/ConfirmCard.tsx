@@ -5,6 +5,7 @@ import { Button } from '@/design-system/components';
 import { apiErrorMessage, onlineOrdersApi, type OnlineOrderDetail } from '../api/online-orders.api';
 import { rs, waNumber, whenText } from '../lib/labels';
 import { cn } from '@core/lib/cn';
+import { moneyOf } from './orders/OrderMoneyCard';
 
 /**
  * COD confirmation — bhejne se pehle customer se "haan" le lo. Fake / ghalat
@@ -29,12 +30,14 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
   const num = o.externalOrderNumber ?? o.externalOrderId;
   const wa = waNumber(o.customerPhone);
   const items = o.lines.map((l) => `${l.name}${l.variant ? ` (${l.variant})` : ''} x${l.quantity}`).join(', ');
+  const cod = moneyOf(o).codDue;
   const text = encodeURIComponent(
     `Assalam o Alaikum ${o.customerName}! 🙏\n` +
     `Aap ka order #${num} mila hai:\n${items}\n` +
-    `Total: ${rs(o.total)} (Cash on Delivery)\n` +
+    `Total: ${rs(o.total)}\n` +
+    (cod > 0 ? `Delivery par dena hai (COD): ${rs(cod)}\n` : 'Paisa mil chuka hai — delivery par kuch nahi dena\n') +
     `Address: ${[o.customerAddress, o.customerCity].filter(Boolean).join(', ')}\n\n` +
-    `Confirm karne ke liye "Haan" likh dein. Shukriya!`,
+    `Order confirm karne ke liye "Haan" likh kar confirm karein. Shukriya!`,
   );
 
   if (c?.result === 'CONFIRMED') {
@@ -66,7 +69,7 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
         {wa && (
           <a href={`https://wa.me/${wa}?text=${text}`} target="_blank" rel="noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg bg-success-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-success-700">
-            <MessageCircle className="h-3.5 w-3.5" /> WhatsApp par poochein
+            <MessageCircle className="h-3.5 w-3.5" /> Confirm karwayein
           </a>
         )}
         {o.customerPhone && (

@@ -21,6 +21,9 @@ export interface PurchaseItem {
   returnedQty?: number;
   batchNo?: string | null;
   expiryDate?: string | null;
+  /** This line's share of the landed cost (Rs, all its units) and its weight in kg. */
+  landedCost?: number;
+  weightKg?: number | null;
   ingredient?: { id: string; name: string; unit: string; currentStock: number } | null;
   /** Missing on raw-material lines. */
   product: {
@@ -68,6 +71,10 @@ export interface Purchase {
   supplierInvoiceNo?: string | null;
   otherCharges?: number;
   taxAmount?: number;
+  /** Freight, customs, clearing, transport paid to others: part of stock cost only. */
+  landedCost?: number;
+  landedCostMethod?: LandedMethod | null;
+  landedCosts?: PurchaseLandedCost[];
   receivedValue?: number;
   returnedAmount?: number;
   dueDate?: string | null;
@@ -132,6 +139,8 @@ export interface PurchaseLinePayload {
   salePrice?: number;
   batchNo?: string;
   expiryDate?: string;
+  /** Total weight of the line in kg (landed cost by weight). */
+  weightKg?: number;
   rolls?: PurchaseRollPayload[];
 }
 
@@ -152,6 +161,8 @@ export interface CreatePurchasePayload {
   /** false = an order; goods come later. */
   receive?: boolean;
   items: PurchaseLinePayload[];
+  landedCosts?: LandedCostPayload[];
+  landedCostMethod?: LandedMethod;
 }
 
 export interface PurchaseListRow {
@@ -262,7 +273,27 @@ export interface PurchaseAnalytics {
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
+export type LandedKind = 'FREIGHT' | 'CUSTOMS' | 'CLEARING' | 'TRANSPORT' | 'OTHER';
+export type LandedMethod = 'VALUE' | 'QTY' | 'WEIGHT';
+export interface LandedCostPayload {
+  kind: LandedKind; label?: string; amount?: number; currency?: string; foreignAmount?: number; exchangeRate?: number; paidTo?: string;
+}
+export interface PurchaseLandedCost {
+  id: string; kind: LandedKind; label: string | null; amount: number; currency: string | null; foreignAmount: number | null; exchangeRate: number | null;
+  paidTo: string | null; method: LandedMethod; afterReceipt: boolean; soldShare: number; createdAt: string;
+}
+export interface LandedCostResult {
+  total: number; method: LandedMethod; afterReceipt: boolean; soldShare: number;
+  lines: Array<{ itemId: string; itemName: string; share: number; perUnit: number; onHand: number; added: number; soldShare: number; newCost: number | null }>;
+}
+
 export const purchasesApi = {
+  /** Landed costs on an existing purchase; after receipt only the stock still on hand is re-costed. */
+  addLandedCosts: (id: string, body: { costs: LandedCostPayload[]; method: LandedMethod; weights?: Array<{ itemId: string; weightKg: number }> }) =>
+    apiClient.post<{ data: LandedCostResult }>(`/purchases/${id}/landed-costs`, body).then(unwrap),
+  removeLandedCost: (id: string, costId: string) =>
+    apiClient.delete<{ data: { removed: boolean; total: number } }>(`/purchases/${id}/landed-costs/${costId}`).then(unwrap),
+
   list: () =>
     apiClient.get<{ data: Purchase[] }>('/purchases').then(unwrap),
 

@@ -298,6 +298,10 @@ export class SettingsCoreService {
       summary: { ...current.summary, ...(dto.summary ?? {}), recipientIds },
     });
     const json = JSON.parse(JSON.stringify(next));
+    // The growth tools (price calculator, ads) share this JSON field; keep them.
+    const stored = await this.prisma.tenantSettings.findUnique({ where: { tenantId: user.tenantId }, select: { reportsConfig: true } });
+    const growth = (stored?.reportsConfig as Record<string, unknown> | null)?.growth;
+    if (growth !== undefined) json.growth = growth;
     await this.prisma.tenantSettings.upsert({
       where: { tenantId: user.tenantId },
       create: { tenantId: user.tenantId, reportsConfig: json },

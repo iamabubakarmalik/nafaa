@@ -2,7 +2,7 @@
  * Partner logos (sales channels, couriers, payment gateways) in one place.
  *
  * Every logo is the brand's own artwork, kept small in this folder:
- *  - simple-icons (CC0): Shopify, Woo, WordPress, foodpanda, Google, WhatsApp;
+ *  - simple-icons (CC0): Shopify, Woo, WordPress, foodpanda, Google, WhatsApp, Meta, TikTok;
  *  - the brand's website: Daraz, TCS, BlueEx, Safepay, NayaPay, Leopards,
  *    PostEx, SLGTrax, M&P, Call Courier, Indolj, Daewoo FastEx, SadaPay,
  *    JazzCash (its sandbox site);
@@ -22,6 +22,8 @@ import wordpress from './wordpress.svg';
 import foodpanda from './foodpanda.svg';
 import google from './google.svg';
 import whatsapp from './whatsapp.svg';
+import meta from './meta.svg';
+import tiktok from './tiktok.svg';
 import daraz from './daraz.svg';
 import tcs from './tcs.svg';
 import blueex from './blueex.svg';
@@ -44,7 +46,7 @@ export type BrandName =
   | 'shopify' | 'woocommerce' | 'wordpress' | 'daraz' | 'foodpanda' | 'indolj' | 'website'
   | 'tcs' | 'leopards' | 'postex' | 'trax' | 'mnp' | 'callcourier' | 'blueex' | 'daewoo' | 'tpl' | 'rider'
   | 'swyft' | 'jazzcash' | 'easypaisa' | 'safepay' | 'raast' | 'nayapay' | 'sadapay' | 'payfast'
-  | 'google' | 'whatsapp' | 'other';
+  | 'google' | 'whatsapp' | 'meta' | 'tiktok' | 'other';
 
 interface Brand {
   label: string;
@@ -93,6 +95,8 @@ export const BRANDS: Record<BrandName, Brand> = {
   payfast: { label: 'PayFast', color: '#000628', src: payfast, bleed: true },
   google: { label: 'Google', color: '#4285F4', src: google },
   whatsapp: { label: 'WhatsApp', color: '#25D366', src: whatsapp },
+  meta: { label: 'Facebook / Instagram', color: '#0467DF', src: meta, pad: 0.14 },
+  tiktok: { label: 'TikTok', color: '#000000', src: tiktok, pad: 0.18 },
   other: { label: 'Doosra', color: '#64748B', icon: Plug },
 };
 

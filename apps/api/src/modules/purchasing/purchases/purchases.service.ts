@@ -8,7 +8,10 @@
  * - Order then receive: a bill can be an order (nothing in stock yet) whose
  *   goods arrive in one go or in parts; the rest can be closed.
  * - Cost: each receipt updates the weighted average cost, with discount,
- *   freight and tax spread over the lines (landed cost).
+ *   freight and tax on the supplier's bill spread over the lines, plus the
+ *   landed cost paid to others (freight, customs, clearing, transport; see
+ *   landed-cost.ts). Landed cost is stock cost only: never on the supplier's
+ *   bill, khata or returns, and never an expense.
  * - Returns and cancel take stock back out and settle with the supplier's
  *   khata. Every money change goes through the supplier ledger atomically.
  */
@@ -22,8 +25,9 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { safeDayStart, startOfBusinessDayTz, tzParts, startOfBusinessMonthTz, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { SupplierLedgerService } from '../supplier-ledger/supplier-ledger.service';
 import {
-  CancelPurchaseDto, CreatePurchaseDto, CreatePurchaseItemDto, ListPurchasesDto, ReceivePurchaseDto, ReturnPurchaseDto,
+  AddLandedCostsDto, CancelPurchaseDto, CreatePurchaseDto, CreatePurchaseItemDto, LandedCostDto, ListPurchasesDto, ReceivePurchaseDto, ReturnPurchaseDto,
 } from './dto/create-purchase.dto';
+import { LANDED_METHODS, LandedCostRow, LandedMethod, allocate, cleanLandedCost, perUnit, recostRemaining } from './landed-cost';
 
 type Tx = Prisma.TransactionClient;
 
@@ -45,6 +49,8 @@ interface Line {
   baseQuantity: number;
   total: number;
   isCarpet: boolean;
+  /** Total weight in kg: typed on the line, else the product's weight × quantity. */
+  weightKg: number | null;
 }
 
 /** Base units and value of one line received now. */
@@ -54,7 +60,10 @@ interface Receipt {
     batchNo?: string | null; expiryDate?: Date | null;
   };
   baseQty: number;
+  /** Supplier cost of one base unit (bill value, returns, khata). */
   baseCost: number;
+  /** Landed cost of one base unit, added to the stock cost only. */
+  landed?: number;
 }
 
 /**
@@ -63,6 +72,26 @@ interface Receipt {
  */
 const lineBatchNumber = (item: Receipt['item'], purchaseNumber: string) =>
   item.batchNo?.trim() || (item.expiryDate ? purchaseNumber : null);
+
+/** Product weight in kg (weight + unit as saved on the product). */
+const weightInKg = (w: number | null | undefined, unit: string | null | undefined): number | null => {
+  const n = Number(w);
+  if (!(n > 0)) return null;
+  const u = (unit ?? 'kg').toLowerCase();
+  return u === 'g' || u === 'gm' || u === 'gram' || u === 'grams' ? n / 1000 : u === 'lb' || u === 'lbs' ? n * 0.4536 : n;
+};
+
+/** Landed cost of one base unit of a line. */
+const landedUnit = (item: { landedCost?: number | null; baseQuantity: number }) => perUnit(Number(item.landedCost) || 0, item.baseQuantity);
+
+const cleanCosts = (list: LandedCostDto[] | undefined): LandedCostRow[] => {
+  try {
+    return (list ?? []).map((c) => cleanLandedCost(c));
+  } catch (e) {
+    throw new BadRequestException(`Landed cost: ${(e as Error).message}`);
+  }
+};
+const methodOf = (m?: string | null): LandedMethod => ((LANDED_METHODS as readonly string[]).includes(String(m)) ? (m as LandedMethod) : 'VALUE');
 
 @Injectable()
 export class PurchasesService {
@@ -103,7 +132,7 @@ export class PurchasesService {
     }
     const ids = <K extends keyof CreatePurchaseItemDto>(k: K) => [...new Set(items.map((i) => i[k]).filter(Boolean) as string[])];
     const [products, variants, units, ingredients] = await Promise.all([
-      this.prisma.product.findMany({ where: { tenantId, id: { in: ids('productId') } }, select: { id: true, name: true, unit: true } }),
+      this.prisma.product.findMany({ where: { tenantId, id: { in: ids('productId') } }, select: { id: true, name: true, unit: true, weight: true, weightUnit: true } }),
       this.prisma.productVariant.findMany({ where: { id: { in: ids('variantId') }, product: { tenantId } }, select: { id: true, name: true, productId: true } }),
       this.prisma.productUnit.findMany({ where: { tenantId, id: { in: ids('unitId') } }, select: { id: true, productId: true, unitName: true, conversionRate: true } }),
       this.prisma.bakeryIngredient.findMany({ where: { tenantId, id: { in: ids('ingredientId') } }, select: { id: true, name: true, unit: true } }),
@@ -138,14 +167,16 @@ export class PurchasesService {
         baseQuantity: r4(dto.quantity * rate),
         total: r2(dto.quantity * dto.costPrice),
         isCarpet: !!product && CARPET_UNITS.has(product.unit),
+        weightKg: dto.weightKg != null ? dto.weightKg : (() => { const w = weightInKg(product?.weight, product?.weightUnit); return w ? r4(w * dto.quantity * rate) : null; })(),
       };
     });
   }
 
   /** Puts received goods into stock and moves costs to the new weighted average. */
   private async stockIn(tx: Tx, user: AuthenticatedUser, ctx: { shopId: string; reference: string; supplierName: string }, rows: Receipt[], salePrices = new Map<string, number>()) {
-    for (const { item, baseQty, baseCost } of rows) {
+    for (const { item, baseQty, baseCost: supplierCost, landed } of rows) {
       if (baseQty <= 0) continue;
+      const baseCost = r4(supplierCost + (landed ?? 0));
       if (item.ingredientId) {
         const ing = await tx.bakeryIngredient.findUniqueOrThrow({ where: { id: item.ingredientId }, select: { currentStock: true, costPerUnit: true, unit: true } });
         const old = Math.max(Number(ing.currentStock), 0);
@@ -247,6 +278,11 @@ export class PurchasesService {
     const paidAmount = receive ? r2(Math.min(Math.max(dto.paidAmount ?? total, 0), total)) : 0;
     if (receive && (dto.paidAmount ?? 0) > total + 0.01) throw new BadRequestException('Diya gaya paisa bill se zyada hai');
 
+    const landed = cleanCosts(dto.landedCosts);
+    const landedTotal = r2(landed.reduce((s, c) => s + c.amount, 0));
+    const landedMethod = methodOf(dto.landedCostMethod);
+    const shares = allocate(lines.map((l, i) => ({ id: String(i), value: l.total, qty: l.baseQuantity, weightKg: l.weightKg })), landedTotal, landedMethod);
+
     const purchaseNumber = await this.number('PO', user.tenantId, async (n) =>
       !!(await this.prisma.purchase.findFirst({ where: { tenantId: user.tenantId, purchaseNumber: n }, select: { id: true } })));
 
@@ -256,19 +292,22 @@ export class PurchasesService {
           tenantId: user.tenantId, shopId, supplierId: supplier.id, createdById: user.id, purchaseNumber,
           subtotal, discount, otherCharges, taxAmount, total, paidAmount, paymentMethod: dto.paymentMethod,
           notes: dto.notes, supplierInvoiceNo: dto.supplierInvoiceNo || null,
+          landedCost: landedTotal, landedCostMethod: landed.length ? landedMethod : null,
           purchasedAt: dto.purchasedAt ? new Date(dto.purchasedAt) : new Date(),
           dueDate: dto.dueDate ? new Date(dto.dueDate) : null,
           expectedAt: dto.expectedAt ? new Date(dto.expectedAt) : null,
           status: receive ? 'RECEIVED' : 'PENDING',
           receivedValue: receive ? total : 0,
           receivedAt: receive ? new Date() : null,
+          landedCosts: landed.length ? { create: landed.map((c) => ({ ...c, tenantId: user.tenantId, method: landedMethod, createdById: user.id })) } : undefined,
           items: {
-            create: lines.map((l) => ({
+            create: lines.map((l, i) => ({
               productId: l.productId, variantId: l.variantId, ingredientId: l.ingredientId, itemName: l.itemName,
               unitId: l.unitId, unitName: l.unitName, conversionRate: l.rate,
               quantity: l.dto.quantity, costPrice: l.dto.costPrice, total: l.total, baseQuantity: l.baseQuantity,
               receivedQty: receive ? l.baseQuantity : 0,
               batchNo: l.dto.batchNo || null, expiryDate: l.dto.expiryDate ? new Date(l.dto.expiryDate) : null,
+              landedCost: shares.get(String(i)) ?? 0, weightKg: l.weightKg,
             })),
           },
         },
@@ -280,7 +319,7 @@ export class PurchasesService {
       const ctx = { shopId, reference: purchase.purchaseNumber, supplierName: supplier.name };
       const sale = new Map<string, number>();
       purchase.items.forEach((it, i) => { if (lines[i].dto.salePrice != null) sale.set(it.id, lines[i].dto.salePrice!); });
-      await this.stockIn(tx, user, ctx, purchase.items.map((it) => ({ item: it, baseQty: it.baseQuantity, baseCost: this.baseCost(purchase, it) })), sale);
+      await this.stockIn(tx, user, ctx, purchase.items.map((it) => ({ item: it, baseQty: it.baseQuantity, baseCost: this.baseCost(purchase, it), landed: landedUnit(it) })), sale);
 
       await tx.supplier.update({ where: { id: supplier.id }, data: { totalPurchased: { increment: total } } });
       const credit = r2(total - paidAmount);
@@ -355,7 +394,7 @@ export class PurchasesService {
       if (!item) throw new BadRequestException('Line is order ki nahi');
       const left = item.baseQuantity - item.receivedQty;
       const baseQty = r4(Math.min(q.quantity * item.conversionRate, left));
-      if (baseQty > 0) rows.push({ item, baseQty, baseCost: this.baseCost(p, item) });
+      if (baseQty > 0) rows.push({ item, baseQty, baseCost: this.baseCost(p, item), landed: landedUnit(item) });
     }
     const value = r2(rows.reduce((s, r) => s + r.baseQty * r.baseCost, 0));
     if (value <= 0 && !dto.close) throw new BadRequestException('Kuch bhi nahi aaya — quantity likhein');
@@ -449,6 +488,106 @@ export class PurchasesService {
     }, { timeout: 30_000 });
   }
 
+  /* ───────────────────────── landed cost ───────────────────────── */
+
+  /**
+   * Adds landed costs to a purchase. Lines take their share now; units still
+   * to arrive take it on receipt. Units already received and still in stock
+   * have their average cost raised; the share of units already sold (or sent
+   * back) is not put on any past sale and comes back as `soldShare`.
+   */
+  async addLandedCosts(user: AuthenticatedUser, scope: ShopScope, id: string, dto: AddLandedCostsDto) {
+    const p = await this.own(user, scope, id);
+    if (p.status === 'CANCELLED') throw new BadRequestException('Cancel bill par cost nahi jor sakte');
+    const costs = cleanCosts(dto.costs);
+    if (!costs.length) throw new BadRequestException('Koi cost nahi likhi');
+    const method = methodOf(dto.method);
+    const total = r2(costs.reduce((s, c) => s + c.amount, 0));
+    const weights = new Map((dto.weights ?? []).map((w) => [w.itemId, w.weightKg]));
+    const items = p.items.map((i) => ({ ...i, weightKg: weights.has(i.id) ? weights.get(i.id)! : i.weightKg }));
+    const shares = allocate(items.map((i) => ({ id: i.id, value: i.total, qty: i.baseQuantity, weightKg: i.weightKg })), total, method);
+    const received = items.some((i) => i.receivedQty > 0);
+
+    return this.prisma.$transaction(async (tx) => {
+      let soldShare = 0;
+      const lines: Array<{ itemId: string; itemName: string; share: number; perUnit: number; onHand: number; added: number; soldShare: number; newCost: number | null }> = [];
+      for (const it of items) {
+        const share = shares.get(it.id) ?? 0;
+        await tx.purchaseItem.update({ where: { id: it.id }, data: { landedCost: { increment: share }, ...(weights.has(it.id) && { weightKg: it.weightKg }) } });
+        if (!(share > 0) || !(it.receivedQty > 0)) {
+          lines.push({ itemId: it.id, itemName: it.itemName, share, perUnit: perUnit(share, it.baseQuantity), onHand: 0, added: 0, soldShare: 0, newCost: null });
+          continue;
+        }
+        const keptQty = Math.max(0, it.receivedQty - it.returnedQty);
+        let r: ReturnType<typeof recostRemaining>;
+        if (it.ingredientId) {
+          const ing = await tx.bakeryIngredient.findUniqueOrThrow({ where: { id: it.ingredientId }, select: { currentStock: true, costPerUnit: true } });
+          r = recostRemaining({ share, baseQty: it.baseQuantity, receivedQty: it.receivedQty, keptQty, stockNow: Number(ing.currentStock), avgCost: Number(ing.costPerUnit) });
+          if (r.added > 0) await tx.bakeryIngredient.update({ where: { id: it.ingredientId }, data: { costPerUnit: r.newAvg } });
+        } else if (it.productId) {
+          const prod = await tx.product.findUniqueOrThrow({ where: { id: it.productId }, select: { stock: true, costPrice: true } });
+          r = recostRemaining({ share, baseQty: it.baseQuantity, receivedQty: it.receivedQty, keptQty, stockNow: Number(prod.stock), avgCost: Number(prod.costPrice) });
+          if (r.added > 0) {
+            await tx.product.update({ where: { id: it.productId }, data: { costPrice: r.newAvg } });
+            if (it.variantId) {
+              const v = await tx.productVariant.findUniqueOrThrow({ where: { id: it.variantId }, select: { stock: true, costPrice: true } });
+              const vr = recostRemaining({ share, baseQty: it.baseQuantity, receivedQty: it.receivedQty, keptQty, stockNow: Number(v.stock), avgCost: Number(v.costPrice) });
+              if (vr.added > 0) await tx.productVariant.update({ where: { id: it.variantId }, data: { costPrice: vr.newAvg } });
+            }
+            const units = await tx.productUnit.findMany({ where: { productId: it.productId, variantId: it.variantId }, select: { id: true, conversionRate: true } });
+            for (const u of units) await tx.productUnit.update({ where: { id: u.id }, data: { costPrice: r2(r.newAvg * (Number(u.conversionRate) || 1)) } });
+          }
+        } else {
+          continue;
+        }
+        soldShare += r.soldShare;
+        lines.push({ itemId: it.id, itemName: it.itemName, share, perUnit: r.unit, onHand: r.onHand, added: r.added, soldShare: r.soldShare, newCost: r.added > 0 ? r.newAvg : null });
+      }
+      soldShare = r2(soldShare);
+      // The share that fell on sold units is kept on each cost row by its part of the total.
+      let left = soldShare;
+      const rows = costs.map((c, i) => {
+        const part = i === costs.length - 1 ? left : r2((soldShare * c.amount) / total);
+        left = r2(left - part);
+        return { ...c, tenantId: user.tenantId, purchaseId: p.id, method, afterReceipt: received, soldShare: part, createdById: user.id };
+      });
+      await tx.purchaseLandedCost.createMany({ data: rows });
+      await tx.purchase.update({ where: { id: p.id }, data: { landedCost: { increment: total }, landedCostMethod: method } });
+      await tx.activityLog.create({
+        data: {
+          tenantId: user.tenantId, userId: user.id, action: 'PURCHASE_LANDED_COST', entityType: 'Purchase', entityId: p.id,
+          description: `Landed cost Rs ${total} jori: ${p.purchaseNumber}${soldShare > 0 ? ` · Rs ${soldShare} bik chuke maal ka hissa` : ''}`,
+          metadata: { total, method, soldShare, afterReceipt: received },
+        },
+      });
+      return { total, method, afterReceipt: received, soldShare, lines };
+    }, { timeout: 30_000 });
+  }
+
+  /** Removes a landed cost from a purchase whose goods have not arrived yet. */
+  async removeLandedCost(user: AuthenticatedUser, scope: ShopScope, id: string, costId: string) {
+    const p = await this.own(user, scope, id);
+    if (p.items.some((i) => i.receivedQty > 0)) {
+      throw new BadRequestException('Maal aa chuka aur us ki Cost badal chuki — ab ye cost hat nahi sakti');
+    }
+    const row = await this.prisma.purchaseLandedCost.findFirst({ where: { id: costId, purchaseId: p.id } });
+    if (!row) throw new NotFoundException('Cost nahi mili');
+    return this.prisma.$transaction(async (tx) => {
+      await tx.purchaseLandedCost.delete({ where: { id: row.id } });
+      // Rebuild every line's share from the costs that are left, each by its own method.
+      const rest = await tx.purchaseLandedCost.findMany({ where: { purchaseId: p.id } });
+      const sums = new Map(p.items.map((i) => [i.id, 0]));
+      for (const c of rest) {
+        const part = allocate(p.items.map((i) => ({ id: i.id, value: i.total, qty: i.baseQuantity, weightKg: i.weightKg })), c.amount, methodOf(c.method));
+        for (const [k, v] of part) sums.set(k, r2((sums.get(k) ?? 0) + v));
+      }
+      for (const [itemId, landedCost] of sums) await tx.purchaseItem.update({ where: { id: itemId }, data: { landedCost } });
+      const total = r2(rest.reduce((s, c) => s + c.amount, 0));
+      await tx.purchase.update({ where: { id: p.id }, data: { landedCost: total, ...(rest.length === 0 && { landedCostMethod: null }) } });
+      return { removed: true, total };
+    });
+  }
+
   /* ───────────────────────── reading ───────────────────────── */
 
   async findOne(user: AuthenticatedUser, scope: ShopScope, id: string) {
@@ -465,6 +604,7 @@ export class PurchasesService {
           },
         },
         returns: { orderBy: { createdAt: 'desc' }, include: { items: true } },
+        landedCosts: { orderBy: { createdAt: 'asc' } },
         createdBy: { select: { id: true, fullName: true, email: true } },
       },
     });

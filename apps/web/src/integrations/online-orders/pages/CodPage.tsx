@@ -9,12 +9,12 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
-  CheckCircle2, ChevronDown, ClipboardPaste, Clock, Download, GraduationCap, Hourglass, ListChecks, PackageX, ReceiptText, RotateCcw,
+  CheckCircle2, ChevronDown, ClipboardPaste, Clock, Download, FileSpreadsheet, GraduationCap, Hourglass, ListChecks, PackageX, ReceiptText, RotateCcw,
   Truck, Wallet,
 } from 'lucide-react';
 import { Button, Card, DateRangeMenu, FilterBar, FilterChip, FilterMenu, heroButton, heroIconButton, Kbd, KpiCard, KpiRow, Modal, PageHero, PageShell, resolveRange, SearchField, Skeleton, Table, TBody, Td, Textarea, Th, THead, Tr, ViewTabs } from '@/design-system/components';
@@ -30,7 +30,7 @@ import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { useReportRange } from '@modules/reports/prefs';
-import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
+import { apiErrorMessage, onlineOrdersApi, type CodSummary } from '../api/online-orders.api';
 import { OrderDrawer } from '../components/orders/OrderDrawer';
 import { brandIcon, courierBrand, whenText } from '../lib/labels';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
@@ -44,6 +44,7 @@ const daysSince = (iso?: string | null) => (iso ? Math.floor((Date.now() - new D
 
 export default function CodPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const startHour = useBusinessDayStart();
   const { sales: money } = useMasked();
   const theme = useChartTheme();
@@ -164,6 +165,7 @@ export default function CodPage() {
           <PrivacyToggle compact />
           <button type="button" onClick={exportCsv} className={cn(heroButton, 'hidden sm:inline-flex')}><Download className="h-4 w-4" /> CSV</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => codDoc(s!, h, periodText)} disabled={!s} /></span>
+          <Link to="/online-orders/cod/reconcile" className={heroButton}><FileSpreadsheet className="h-4 w-4" /> <span className="hidden sm:inline">Statement milayein</span></Link>
           <Link to="/online-store/couriers" className={cn(heroButton, 'hidden sm:inline-flex')}><Truck className="h-4 w-4" /> Couriers</Link>
           <button type="button" onClick={guide.open} title="Guide (G)" className={cn(heroIconButton, 'hidden sm:flex')}><GraduationCap className="h-4 w-4" /></button>
         </>}
@@ -220,11 +222,18 @@ export default function CodPage() {
             { id: 'couriers', label: 'Courier-wise', icon: ListChecks },
           ]} />
 
+        {s && tab === 'with' && s.totals.withCourier > 0 && s.totals.age && (
+          <HoldingCard s={s} money={money} onCourier={(name) => setCourier(name)} />
+        )}
+
         {!s ? <Skeleton className="h-64 rounded-3xl" /> : tab === 'with' ? (
           <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-4 py-3 sm:px-5">
               <p className="text-[0.8125rem] text-slate-500">Customer ne courier ko paisa de diya, courier ne abhi jama nahi karwaya. Settlement sheet se mila kar chunein.</p>
-              <Button size="sm" variant="secondary" leftIcon={<ClipboardPaste className="h-4 w-4" />} onClick={() => setPasteOpen(true)} disabled={!withRows.length}>Sheet se milayein</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="ghost" leftIcon={<ClipboardPaste className="h-4 w-4" />} onClick={() => setPasteOpen(true)} disabled={!withRows.length}>CN paste</Button>
+                <Button size="sm" variant="secondary" leftIcon={<FileSpreadsheet className="h-4 w-4" />} onClick={() => navigate('/online-orders/cod/reconcile')}>Statement upload</Button>
+              </div>
             </header>
             {picked.size > 0 && (
               <div className="sticky top-2 z-10 mx-3 mt-3 flex flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2 text-white shadow-lg sm:mx-4">
@@ -404,7 +413,7 @@ export default function CodPage() {
           steps={[
             { icon: Truck, color: '#0284c7', title: 'Raste me', text: 'Courier ko diye COD parcels jo abhi deliver nahi hue. Bahut din ho jayein to courier se poochein.' },
             { icon: Wallet, color: '#ea580c', title: 'Courier ke paas', text: 'Parcel deliver ho gaya, customer ne courier ko paisa de diya — magar courier ne abhi aap ko jama nahi karwaya.' },
-            { icon: ClipboardPaste, color: '#7c3aed', title: 'Settlement sheet', text: 'Courier ki sheet aaye to "Sheet se milayein" me CN paste karein — orders khud chune jate hain. Ref likh kar "Paisa mil gaya" dabayein.' },
+            { icon: ClipboardPaste, color: '#7c3aed', title: 'Settlement sheet', text: 'Courier ki statement (Excel/CSV) "Statement milayein" par upload karein — Nafaa har CN milata hai, farq dikhata hai aur courier charges order ki cost me likhta hai.' },
             { icon: ReceiptText, color: '#16a34a', title: 'Settlements', text: 'Har settlement din aur ref ke hisaab se — kis din kitna paisa aaya aur kaun se orders the.' },
             { icon: RotateCcw, color: '#e11d48', title: 'Wapas (RTO)', text: 'Customer ne parcel nahi liya. Bill void hota hai, stock wapas — aur wajah yahan dikhti hai.' },
             { icon: Clock, color: '#d97706', title: '7+ din', text: 'Jo paisa hafte se zyada courier ke paas atka ho, us ki list courier ko bhejein.' },
@@ -418,6 +427,38 @@ export default function CodPage() {
         />
       )}
     </PageShell>
+  );
+}
+
+/** Money with each courier by how long ago the parcel was delivered. */
+function HoldingCard({ s, money, onCourier }: { s: CodSummary; money: (n: number) => string; onCourier: (name: string) => void }) {
+  const labels = s.ageLabels ?? ['0–7 din', '8–15 din', '16–30 din', '30+ din'];
+  const rows = s.couriers.filter((c) => c.withCourierValue > 0);
+  const tone = (i: number, v: number) => (v <= 0 ? 'text-slate-300' : i >= 2 ? 'font-semibold text-rose-600' : i === 1 ? 'font-semibold text-amber-700' : 'text-slate-700');
+  return (
+    <Card className="rounded-2xl" flush title="Courier ke paas kitna paisa hai" description="Deliver ho chuka, paisa abhi nahi aaya — kitne din se">
+      <div className="overflow-x-auto">
+        <Table minWidth="36rem" className="[&_table]:text-[0.8125rem]">
+          <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+            <Tr><Th className="px-4 py-2 sm:px-5">Courier</Th>{labels.map((l) => <Th key={l} className="px-3 py-2 text-right">{l}</Th>)}<Th className="px-4 py-2 text-right sm:px-5">Kul</Th></Tr>
+          </THead>
+          <TBody className="divide-y divide-slate-100">
+            {rows.map((c) => (
+              <Tr key={c.code} className="cursor-pointer hover:bg-slate-50/80" onClick={() => onCourier(c.name)}>
+                <Td className="px-4 py-2.5 font-semibold text-slate-900 sm:px-5"><span className="inline-flex items-center gap-2"><BrandLogo name={courierBrand(c.code || c.name)} size={20} />{c.name}</span></Td>
+                {(c.age ?? [0, 0, 0, 0]).map((v, i) => <Td key={i} className={cn('px-3 py-2.5 text-right tabular-nums', tone(i, v))}>{v > 0 ? money(v) : '—'}</Td>)}
+                <Td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 sm:px-5">{money(c.withCourierValue)}</Td>
+              </Tr>
+            ))}
+            <Tr className="bg-slate-50/60">
+              <Td className="px-4 py-2.5 font-semibold text-slate-700 sm:px-5">Sab couriers</Td>
+              {(s.totals.age ?? []).map((v, i) => <Td key={i} className={cn('px-3 py-2.5 text-right tabular-nums', tone(i, v))}>{v > 0 ? money(v) : '—'}</Td>)}
+              <Td className="px-4 py-2.5 text-right font-bold tabular-nums text-slate-900 sm:px-5">{money(s.totals.withCourierValue)}</Td>
+            </Tr>
+          </TBody>
+        </Table>
+      </div>
+    </Card>
   );
 }
 

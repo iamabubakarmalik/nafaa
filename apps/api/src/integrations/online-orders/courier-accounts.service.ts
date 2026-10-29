@@ -7,7 +7,11 @@ import { ShopScope } from '../../common/shop-scope';
 import { decrypt, encrypt } from '../../core/lib/crypto';
 import { OnlineOrdersService } from './online-orders.service';
 import { WebsiteSetupService } from './website-setup.service';
-import { OrderAccepted, orderEvents } from './order-events';
+import { OrderAccepted, OrderStatusEvent, emitOrderStatus, orderEvents } from './order-events';
+import { CourierRulesService } from './courier-rules.service';
+import { pickCourier } from './courier-rules';
+import { phoneKey } from './customer-risk';
+import { chargeFromBooking } from './order-costs';
 import { advancePaid } from './payment-links.service';
 import { shopDue } from './shop-due';
 import { COURIERS, courierName } from './couriers';
@@ -36,41 +40,97 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
     private readonly prisma: PrismaService,
     private readonly orders: OnlineOrdersService,
     private readonly setup: WebsiteSetupService,
+    private readonly rules: CourierRulesService,
   ) {}
 
   private readonly onAccepted = (e: OrderAccepted) => {
-    this.autoBook(e).catch((err) => this.logger.warn(`Auto-book ${e.orderId}: ${msg(err)}`));
+    this.autoBook(e, 'ACCEPT').catch((err) => this.logger.warn(`Auto-book ${e.orderId}: ${msg(err)}`));
+  };
+
+  private readonly onStatus = (e: OrderStatusEvent) => {
+    if (e.status !== 'READY') return;
+    this.autoBook(e, 'READY').catch((err) => this.logger.warn(`Auto-book ${e.orderId}: ${msg(err)}`));
   };
 
   onModuleInit() {
     orderEvents.on('accepted', this.onAccepted);
+    orderEvents.on('status', this.onStatus);
+    this.orders.setCityCheck((tenantId, city) => this.cityCovered(tenantId, city));
+  }
+
+  /**
+   * Is the city in any connected courier's city list? null when no courier is
+   * connected or no list could be read (a slow courier is skipped after 4s).
+   */
+  async cityCovered(tenantId: string, city: string): Promise<boolean | null> {
+    const configs = await this.prisma.courierConfig.findMany({ where: { tenantId, isActive: true } });
+    const lists = await Promise.all(configs.filter((c) => COURIER_APIS[c.provider]).map((c) =>
+      Promise.race([
+        this.cities(tenantId, c.provider, credsOf(c)).catch(() => null),
+        new Promise<null>((r) => setTimeout(() => r(null), 4000)),
+      ])));
+    const read = lists.filter((l): l is CourierCity[] => !!l && l.length > 0);
+    if (!read.length) return null;
+    return read.some((l) => !!matchCity(l, city));
   }
 
   onModuleDestroy() {
     orderEvents.off('accepted', this.onAccepted);
+    orderEvents.off('status', this.onStatus);
   }
 
   /**
-   * Accept hote hi courier par khud booking — sirf jab kisi jure courier ki
-   * setting "autoBook" chalu ho. Fail ho to order par wajah likh do (order
-   * waise hi accept rehta hai, dukandar khud book kar le).
+   * Books a courier by itself when the order is accepted or marked ready,
+   * as the shop's rules say (first rule that fits, else the fallback; a
+   * risky customer or an "ask" rule waits for the shop). Shops that never
+   * saved rules keep the older per-courier "book on accept" switch. A
+   * failure or a hold is written on the order; the order itself is never
+   * held back. `book` claims the order first, so it is never booked twice.
    */
-  private async autoBook(e: OrderAccepted) {
-    const configs = await this.prisma.courierConfig.findMany({ where: { tenantId: e.tenantId, isActive: true } });
-    const cfg = configs.find((c) => COURIER_APIS[c.provider] && String((c.settings as any)?.autoBook) === 'true');
-    if (!cfg) return;
+  private async autoBook(e: { tenantId: string; orderId: string }, trigger: 'ACCEPT' | 'READY') {
+    const saved = await this.rules.saved(e.tenantId);
+    let code: string | null = null;
+    if (saved) {
+      if (saved.trigger !== trigger) return;
+      const order = await this.prisma.channelOrder.findFirst({
+        where: { id: e.orderId, tenantId: e.tenantId },
+        select: { id: true, customerCity: true, customerPhone: true, total: true, metadata: true, paymentStatus: true, integrationId: true, courierBookedAt: true, courierStatus: true, dispatchedAt: true, nafaaSaleId: true },
+      });
+      if (!order || !order.nafaaSaleId || order.dispatchedAt || (order.courierBookedAt && order.courierStatus !== 'CANCELLED')) return;
+      const risk = (await this.orders.customerRisk(e.tenantId, [order.customerPhone], [order.id]).catch(() => null))?.get(phoneKey(order.customerPhone) ?? '')?.level ?? null;
+      const cod = order.paymentStatus === 'PAID' ? 0 : Math.max(0, Number(order.total) - advancePaid(order.metadata));
+      const decision = pickCourier(saved, { city: order.customerCity, cod, risk, integrationId: order.integrationId });
+      if (decision.action === 'ASK') {
+        await this.noteAutoBook(e.orderId, `Ruki hui — ${decision.reason}`);
+        return;
+      }
+      code = decision.courier;
+      if (!COURIER_APIS[code]) {
+        await this.noteAutoBook(e.orderId, `${courierName(code)} ka API jura nahi — khud CN likhein`);
+        return;
+      }
+    } else {
+      if (trigger !== 'ACCEPT') return;
+      const configs = await this.prisma.courierConfig.findMany({ where: { tenantId: e.tenantId, isActive: true } });
+      code = configs.find((c) => COURIER_APIS[c.provider] && String((c.settings as any)?.autoBook) === 'true')?.provider ?? null;
+      if (!code) return;
+    }
     const actor = await this.orders.systemActor(e.tenantId);
     try {
-      const r = await this.book(actor, new ShopScope(null, true), e.orderId, { courier: cfg.provider });
-      this.logger.log(`⚡ Auto-book ${cfg.provider}: ${r.trackingNumber}`);
+      const r = await this.book(actor, new ShopScope(null, true), e.orderId, { courier: code });
+      this.logger.log(`⚡ Auto-book ${code}: ${r.trackingNumber}`);
     } catch (err: any) {
       const reason = String(err?.response?.message ?? err?.message ?? 'Auto-book nahi hua').slice(0, 300);
-      const row = await this.prisma.channelOrder.findUnique({ where: { id: e.orderId }, select: { metadata: true } });
-      await this.prisma.channelOrder.update({
-        where: { id: e.orderId },
-        data: { metadata: { ...((row?.metadata as any) ?? {}), autoBookError: `${courierName(cfg.provider)}: ${reason}` } },
-      }).catch(() => null);
+      await this.noteAutoBook(e.orderId, `${courierName(code)}: ${reason}`);
     }
+  }
+
+  private async noteAutoBook(orderId: string, text: string) {
+    const row = await this.prisma.channelOrder.findUnique({ where: { id: orderId }, select: { metadata: true } });
+    await this.prisma.channelOrder.update({
+      where: { id: orderId },
+      data: { metadata: { ...((row?.metadata as any) ?? {}), autoBookError: text } },
+    }).catch(() => null);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -411,6 +471,7 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
         notes: body?.notes?.trim() || settings.bookingNote || null,
       }));
 
+      const charge = result.charge ?? chargeFromBooking(result.raw);
       const updated = await this.prisma.channelOrder.update({
         where: { id: order.id },
         data: {
@@ -421,7 +482,9 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
           courierLabelUrl: result.labelUrl ?? null,
           courierStatus: 'BOOKED',
           courierStatusAt: new Date(),
-          metadata: { ...((order.metadata as any) ?? {}), autoBookError: undefined, courierBooking: { by: user.id, cod, weightKg, pieces, city: city.name, at: new Date().toISOString() } },
+          // The courier's own charge, when its booking reply carries one.
+          ...(charge !== null && { courierCharge: charge }),
+          metadata: { ...((order.metadata as any) ?? {}), autoBookError: undefined, ...(charge !== null && { costSources: { ...((order.metadata as any)?.costSources ?? {}), courierCharge: 'API' } }), courierBooking: { by: user.id, cod, weightKg, pieces, city: city.name, at: new Date().toISOString() } },
         },
       });
       return { ok: true, trackingNumber: result.trackingNumber, labelKind: api.labelKind, order: { id: updated.id, trackingNumber: updated.trackingNumber, courierCode: updated.courierCode } };
@@ -538,10 +601,11 @@ export class CourierAccountsService implements OnModuleInit, OnModuleDestroy {
       for (const o of orders.filter((x) => x.orderStatus === 'DELIVERED' && x.paymentStatus === 'COLLECTED').slice(0, 100)) {
         const p = await api.adapter.paymentSettled(creds, o.trackingNumber!).catch(() => null);
         if (!p?.settled) continue;
-        await this.prisma.channelOrder.updateMany({
+        const done = await this.prisma.channelOrder.updateMany({
           where: { id: o.id, paymentStatus: 'COLLECTED' },
           data: { paymentStatus: 'PAID', paymentReceivedAt: new Date(), codSettledAt: new Date(), codSettlementRef: p.reference ? `${courierName(cfg.provider)} ${p.reference}`.slice(0, 120) : `${courierName(cfg.provider)} (auto)` },
         });
+        if (done.count) emitOrderStatus({ tenantId: cfg.tenantId, orderId: o.id, status: 'SETTLED' });
       }
     }
     await this.prisma.courierConfig.update({ where: { id: cfg.id }, data: { lastSyncAt: new Date(), lastError: null } });

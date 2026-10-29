@@ -24,6 +24,10 @@ export interface WebsiteConfig {
   priceRule: PriceRule;
   /** Units kept back: the channel is told stock minus this. */
   stockBuffer: number;
+  /** Send Nafaa stock to the channel (Woo/Shopify/Daraz). Off = no stock push of any kind. */
+  pushStock: boolean;
+  /** Link exact SKU/barcode matches by itself. On for channels made after it existed; off for older ones. */
+  autoLink: boolean;
   /** Status badalne par Nafaa is URL par batata hai (plugin khud set karta hai) */
   statusWebhookUrl: string | null;
   /** Sirf signature wale orders qabool hon */
@@ -43,6 +47,8 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   pushPrice: false,
   priceRule: NO_PRICE_RULE,
   stockBuffer: 0,
+  pushStock: true,
+  autoLink: false,
   statusWebhookUrl: null,
   requireSignature: false,
   shopifySecret: null,
@@ -60,6 +66,8 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     pushPrice: c.pushPrice === true,
     priceRule: readPriceRule(c.priceRule),
     stockBuffer: Math.min(10_000, Math.max(0, Math.floor(Number(c.stockBuffer) || 0))),
+    pushStock: c.pushStock !== false,
+    autoLink: c.autoLink === true,
   };
 }
 

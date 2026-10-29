@@ -3,6 +3,7 @@ import { PaymentMethod } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsBoolean, IsDateString, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, Max, MaxLength, Min, ValidateNested } from 'class-validator';
 import { MONEY_METHODS } from '../../../../common/helpers/sale-payments.helper';
+import { LANDED_KINDS, LANDED_METHODS } from '../landed-cost';
 
 // ─── Carpet roll payload (per-roll details) ────────────────
 class PurchaseRollDto {
@@ -98,6 +99,7 @@ export class CreatePurchaseItemDto {
 
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(60) batchNo?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() expiryDate?: string;
+  @ApiPropertyOptional({ description: 'Total weight of the line in kg (landed cost by weight)' }) @IsOptional() @IsNumber() @Min(0) weightKg?: number;
 
   @ApiPropertyOptional({ type: [PurchaseRollDto] })
   @IsOptional()
@@ -105,6 +107,17 @@ export class CreatePurchaseItemDto {
   @ValidateNested({ each: true })
   @Type(() => PurchaseRollDto)
   rolls?: PurchaseRollDto[];
+}
+
+/** A landed cost: freight, customs, clearing, transport or other, in Rs or a foreign currency with its rate. */
+export class LandedCostDto {
+  @ApiProperty({ enum: LANDED_KINDS }) @IsIn(LANDED_KINDS as unknown as string[]) kind!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) label?: string;
+  @ApiPropertyOptional({ description: 'Rs' }) @IsOptional() @IsNumber() @Min(0) amount?: number;
+  @ApiPropertyOptional({ example: 'USD' }) @IsOptional() @IsString() @MaxLength(6) currency?: string;
+  @ApiPropertyOptional() @IsOptional() @IsNumber() @Min(0) foreignAmount?: number;
+  @ApiPropertyOptional({ description: 'Rs for one unit of the currency' }) @IsOptional() @IsNumber() @Min(0) exchangeRate?: number;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) paidTo?: string;
 }
 
 export class CreatePurchaseDto {
@@ -123,6 +136,10 @@ export class CreatePurchaseDto {
   @ApiPropertyOptional() @IsOptional() @IsDateString() dueDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsDateString() expectedAt?: string;
   @ApiPropertyOptional({ description: 'false = order only, goods not here yet' }) @IsOptional() @IsBoolean() receive?: boolean;
+
+  @ApiPropertyOptional({ type: [LandedCostDto], description: 'Freight, customs, clearing, transport paid to others; part of stock cost' })
+  @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => LandedCostDto) landedCosts?: LandedCostDto[];
+  @ApiPropertyOptional({ enum: LANDED_METHODS }) @IsOptional() @IsIn(LANDED_METHODS as unknown as string[]) landedCostMethod?: string;
 
   @ApiProperty({ type: [CreatePurchaseItemDto] })
   @IsArray()
@@ -149,6 +166,18 @@ export class ReceivePurchaseDto {
 export class ReturnPurchaseDto {
   @ApiProperty({ type: [LineQtyDto] }) @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => LineQtyDto) items!: LineQtyDto[];
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(200) reason?: string;
+}
+
+class LineWeightDto {
+  @ApiProperty() @IsString() itemId!: string;
+  @ApiProperty() @IsNumber() @Min(0) weightKg!: number;
+}
+
+/** Landed costs added to a purchase that already exists (also after the goods arrived). */
+export class AddLandedCostsDto {
+  @ApiProperty({ type: [LandedCostDto] }) @IsArray() @ArrayMinSize(1) @ValidateNested({ each: true }) @Type(() => LandedCostDto) costs!: LandedCostDto[];
+  @ApiProperty({ enum: LANDED_METHODS }) @IsIn(LANDED_METHODS as unknown as string[]) method!: string;
+  @ApiPropertyOptional({ type: [LineWeightDto] }) @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => LineWeightDto) weights?: LineWeightDto[];
 }
 
 export class CancelPurchaseDto {

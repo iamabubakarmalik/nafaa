@@ -28,10 +28,11 @@ import {
   ONLINE_PRODUCTS_KEY, onlineProductsApi, type GridCell, type GridFilter, type GridItem, type GridRow, type LinkedCell, type OnlineChannel,
 } from '../api/online-products.api';
 import { timeAgo } from '../lib/labels';
-import { ChannelMark, channelName, kindOf, refreshOnlineProducts, rs, ruleText } from '../components/online-products/meta';
+import { ChannelMark, channelName, kindOf, priceText, refreshOnlineProducts, rs, stockText, WEBSITE_LINKS_NOTE } from '../components/online-products/meta';
 import { LinkModal, type LinkFocus } from '../components/online-products/LinkModal';
 import { ChannelSettingsModal } from '../components/online-products/ChannelSettingsModal';
 import { CellModal } from '../components/online-products/CellModal';
+import { IssuesPanel } from '../components/online-products/IssuesPanel';
 
 const LIMIT = 25;
 
@@ -55,15 +56,27 @@ export default function OnlineProductsPage() {
   const searchRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState('');
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<GridFilter>('all');
-  // `?channel=<id>` (from a channel's own page) opens the grid on that channel.
+  // `?channel=<id>&filter=<f>` (a channel's own page, an alert) opens the grid there.
   const [params, setParams] = useSearchParams();
+  const [filter, setFilterState] = useState<GridFilter>(() => {
+    const f = params.get('filter') as GridFilter | null;
+    return f && TABS.some((t) => t.id === f) ? f : 'all';
+  });
+  const setFilter = (f: GridFilter) => {
+    setFilterState(f);
+    setParams((p) => { if (f !== 'all') p.set('filter', f); else p.delete('filter'); return p; }, { replace: true });
+  };
   const [channelId, setChannelIdState] = useState(() => params.get('channel') ?? '');
   const setChannelId = (id: string) => {
     setChannelIdState(id);
     setParams((p) => { if (id) p.set('channel', id); else p.delete('channel'); return p; }, { replace: true });
   };
-  useEffect(() => { const id = params.get('channel') ?? ''; if (id !== channelId) setChannelIdState(id); }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const id = params.get('channel') ?? '';
+    if (id !== channelId) setChannelIdState(id);
+    const f = (params.get('filter') ?? 'all') as GridFilter;
+    if (f !== filter && TABS.some((t) => t.id === f)) setFilterState(f);
+  }, [params]); // eslint-disable-line react-hooks/exhaustive-deps
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<Open | null>(null);
 
@@ -121,7 +134,7 @@ export default function OnlineProductsPage() {
     const title = row.label ? `${item.name} — ${row.label}` : item.name;
     const focus: LinkFocus = { productId: item.productId, variantId: row.variantId, title };
     if (cell.linked) setOpen({ kind: 'cell', channel: c, cell, title, productId: item.productId, focus });
-    else if (canManage) setOpen({ kind: 'link', channel: c, focus });
+    else if (canManage && c.canFetch) setOpen({ kind: 'link', channel: c, focus });
   };
   const askUnlinkSizeLess = async (mappingId: string, c: OnlineChannel) => {
     if (await confirmDialog({ title: 'Bina size wala link hatayein?', text: `Is product ke sizes hain, magar ${channelName(c)} par poora product ek saath jura hai — is se bill par "Available: 0" aata hai. Hata kar har size alag jorein.`, danger: true })) unlinkSizeLess.mutate(mappingId);
@@ -162,6 +175,10 @@ export default function OnlineProductsPage() {
           <Link to="/online-store/connect" className="mt-4 inline-flex h-10 items-center gap-2 rounded-lg bg-brand-600 px-4 text-sm font-semibold text-brand-fg hover:bg-brand-700"><Plus className="h-4 w-4" /> Channel jorein</Link>
         </div>
       ) : (<>
+        <IssuesPanel channels={channels} canManage={canManage}
+          onLink={(c) => setOpen({ kind: 'link', channel: c })}
+          onFilter={(c, f) => { setChannelId(c.id); setFilter(f); }} />
+
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-3">
           {channels.map((c) => (
             <ChannelCard key={c.id} c={c} sellable={sellable} canManage={canManage}
@@ -197,7 +214,7 @@ export default function OnlineProductsPage() {
           onClear={() => { setSearch(''); setChannelId(''); setFilter('all'); }}>
           {channels.length > 1 && (
             <FilterMenu icon={Store} label="Channel" value={channelId} active={!!channelId} onChange={setChannelId} align="right" width="w-72"
-              options={[{ value: '', label: 'Sab channels' }, ...channels.map((c) => ({ value: c.id, label: channelName(c), hint: kindOf(c.type).label, color: kindOf(c.type).color }))]} />
+              options={[{ value: '', label: 'Sab channels' }, ...channels.map((c) => ({ value: c.id, label: channelName(c), hint: kindOf(c).label, color: kindOf(c).color }))]} />
           )}
         </FilterBar>
 
@@ -228,10 +245,10 @@ export default function OnlineProductsPage() {
                   {cols.map((c) => (
                     <th key={c.id} className="min-w-[12rem] border-b border-l border-slate-100 bg-slate-50 px-3 py-2">
                       <span className="flex items-center gap-2 normal-case tracking-normal">
-                        <ChannelMark type={c.type} size="sm" />
+                        <ChannelMark channel={c} size="sm" />
                         <span className="min-w-0">
                           <span className="block truncate text-[0.8125rem] font-semibold text-slate-800">{channelName(c)}</span>
-                          <span className="block truncate text-[0.6875rem] font-medium text-slate-500">{c.pushPrice ? ruleText(c.priceRule) : 'Price haath se'}</span>
+                          <span className="block truncate text-[0.6875rem] font-medium text-slate-500">{priceText(c)}</span>
                         </span>
                       </span>
                     </th>
@@ -287,14 +304,14 @@ function ChannelCard({ c, sellable, canManage, syncing, onLink, onSettings, onSy
   c: OnlineChannel; sellable: number; canManage: boolean; syncing: boolean; onLink: () => void; onSettings: () => void; onSync: () => void;
 }) {
   const pct = sellable ? Math.min(100, Math.round(((c.linked ?? 0) / sellable) * 100)) : 0;
-  const k = kindOf(c.type);
+  const k = kindOf(c);
   return (
     <div className="flex flex-col rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
       <div className="flex items-start gap-3">
-        <ChannelMark type={c.type} />
+        <ChannelMark channel={c} />
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold text-slate-900">{channelName(c)}</p>
-          <p className="truncate text-[0.75rem] text-slate-500">{k.label}{c.shopName ? ` · Stock ${c.shopName} se` : ''}</p>
+          <p className="truncate text-[0.75rem] text-slate-500">{k.label}{c.shopName && c.tracksStock ? ` · Stock ${c.shopName} se` : ''}</p>
         </div>
         <span className={cn('inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold',
           c.live ? 'bg-success-50 text-success-700' : c.paused ? 'bg-slate-100 text-slate-600' : 'bg-rose-50 text-rose-700')}>
@@ -306,7 +323,7 @@ function ChannelCard({ c, sellable, canManage, syncing, onLink, onSettings, onSy
       <div className="mt-3">
         <div className="flex items-baseline justify-between text-[0.75rem]">
           <span className="font-semibold text-slate-700">{(c.linked ?? 0).toLocaleString('en-PK')} / {sellable.toLocaleString('en-PK')} jure</span>
-          {(c.failed ?? 0) > 0 ? <span className="font-semibold text-rose-600">{c.failed} masle</span> : <span className="text-slate-500">{c.lastSyncAt ? `Sync ${timeAgo(c.lastSyncAt)}` : ''}</span>}
+          {!c.canPush ? null : (c.failed ?? 0) > 0 ? <span className="font-semibold text-rose-600">{c.failed} masle</span> : <span className="text-slate-500">{c.lastSyncAt ? `Sync ${timeAgo(c.lastSyncAt)}` : ''}</span>}
         </div>
         <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: k.color }} />
@@ -314,19 +331,25 @@ function ChannelCard({ c, sellable, canManage, syncing, onLink, onSettings, onSy
       </div>
 
       <dl className="mb-3 mt-3 space-y-1 text-[0.75rem]">
-        <div className="flex gap-1.5"><dt className="w-12 shrink-0 text-slate-500">Price</dt><dd className={cn('min-w-0 truncate font-medium', c.pushPrice ? 'text-slate-800' : 'text-amber-700')}>{c.pushPrice ? ruleText(c.priceRule) : 'Channel par haath se badlein'}</dd></div>
-        <div className="flex gap-1.5"><dt className="w-12 shrink-0 text-slate-500">Stock</dt><dd className="min-w-0 truncate font-medium text-slate-800">{c.stockBuffer ? `Nafaa se, ${c.stockBuffer} rakh kar` : 'Nafaa se, poora'}</dd></div>
+        <div className="flex gap-1.5"><dt className="w-12 shrink-0 text-slate-500">Price</dt><dd className={cn('min-w-0 truncate font-medium', c.canPush && !c.pushPrice ? 'text-amber-700' : 'text-slate-800')}>{priceText(c)}</dd></div>
+        <div className="flex gap-1.5"><dt className="w-12 shrink-0 text-slate-500">Stock</dt><dd className={cn('min-w-0 truncate font-medium', c.tracksStock ? 'text-slate-800' : 'text-slate-500')}>{stockText(c)}</dd></div>
       </dl>
+      {!c.canFetch && <p className="mb-3 rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200/80">{WEBSITE_LINKS_NOTE}</p>}
 
       {canManage && (
         <div className="mt-auto flex items-center gap-2 border-t border-slate-100 pt-3">
-          <Button size="sm" onClick={onLink} leftIcon={<Link2 className="h-4 w-4" />}>Jorein</Button>
-          <Button size="sm" variant="secondary" onClick={onSettings} leftIcon={<Settings2 className="h-4 w-4" />} className="min-w-0">
-            <span className="truncate">Price aur Stock</span>
-          </Button>
-          <Button size="sm" variant="ghost" loading={syncing} disabled={!c.live} onClick={onSync} leftIcon={<RefreshCw className="h-4 w-4" />} title="Stock aur Price abhi bhejein" className="ml-auto shrink-0">
-            Sync
-          </Button>
+          {c.canFetch && <Button size="sm" onClick={onLink} leftIcon={<Link2 className="h-4 w-4" />}>Jorein</Button>}
+          {/* Indolj keeps no stock and sets its own prices; a custom website only takes the stock buffer. */}
+          {c.mode !== 'indolj' && (
+            <Button size="sm" variant="secondary" onClick={onSettings} leftIcon={<Settings2 className="h-4 w-4" />} className="min-w-0">
+              <span className="truncate">{c.canPush ? 'Price aur Stock' : 'Stock buffer'}</span>
+            </Button>
+          )}
+          {c.canPush && (
+            <Button size="sm" variant="ghost" loading={syncing} disabled={!c.live} onClick={onSync} leftIcon={<RefreshCw className="h-4 w-4" />} title="Stock aur Price abhi bhejein" className="ml-auto shrink-0">
+              Sync
+            </Button>
+          )}
         </div>
       )}
     </div>
@@ -348,7 +371,8 @@ interface RowProps {
   onSync: () => void; onCell: (c: OnlineChannel, cell: GridCell, row: GridRow) => void; onSizeLess: (mappingId: string, c: OnlineChannel) => void;
 }
 
-const anyLinked = (item: GridItem) => item.rows.some((r) => Object.values(r.cells).some((c) => c.linked));
+/** Linked on a channel Nafaa pushes to (only those have "Sync now"). */
+const anyLinked = (item: GridItem, cols: OnlineChannel[]) => item.rows.some((r) => cols.some((c) => c.canPush && r.cells[c.id]?.linked));
 
 function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLess }: RowProps) {
   const sized = item.hasVariants && item.rows.some((r) => r.variantId);
@@ -361,7 +385,7 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
           {sized ? `${item.rows.length} sizes` : <>{item.sku ? <span className="font-mono">{item.sku}</span> : 'SKU nahi'} · Nafaa {rs(item.rows[0]?.price ?? item.price)}</>}
         </p>
       </div>
-      {canManage && anyLinked(item) && (
+      {canManage && anyLinked(item, cols) && (
         <button type="button" onClick={onSync} disabled={syncing} title="Is product ka Stock aur Price abhi bhejein" aria-label="Abhi bhejein"
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50">
           <RefreshCw className={cn('h-4 w-4', syncing && 'animate-spin')} />
@@ -375,7 +399,7 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
     return (
       <tr className="align-middle">
         <td className={firstCell}>{head}</td>
-        {cols.map((c) => <td key={c.id} className="border-b border-l border-slate-100 p-1.5"><Cell cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
+        {cols.map((c) => <td key={c.id} className="border-b border-l border-slate-100 p-1.5"><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
       </tr>
     );
   }
@@ -408,7 +432,7 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
               <span className="min-w-0 truncate text-[0.75rem] text-slate-500">{row.sku ? <span className="font-mono">{row.sku}</span> : null}{row.sku ? ' · ' : ''}{rs(row.price)}</span>
             </div>
           </td>
-          {cols.map((c) => <td key={c.id} className={cn('border-l border-slate-100 p-1.5', i === item.rows.length - 1 ? 'border-b' : 'border-b border-b-slate-50')}><Cell cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
+          {cols.map((c) => <td key={c.id} className={cn('border-l border-slate-100 p-1.5', i === item.rows.length - 1 ? 'border-b' : 'border-b border-b-slate-50')}><Cell c={c} cell={row.cells[c.id]} canManage={canManage} onOpen={() => onCell(c, row.cells[c.id], row)} /></td>)}
         </tr>
       ))}
     </>
@@ -416,18 +440,21 @@ function ProductRows({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
 }
 
 function StatusIcon({ cell }: { cell: LinkedCell }) {
+  if (cell.status === null) return null;
   if (cell.status === 'FAILED') return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-rose-600" aria-label="Masla" />;
   if (cell.status === 'SUCCESS') return <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success-600" aria-label="Barabar" />;
   return <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-label="Abhi nahi bheja" />;
 }
 
-function Cell({ cell, canManage, onOpen }: { cell?: GridCell; canManage: boolean; onOpen: () => void }) {
+function Cell({ c, cell, canManage, onOpen }: { c: OnlineChannel; cell?: GridCell; canManage: boolean; onOpen: () => void }) {
   if (!cell) return null;
   if (!cell.linked) {
+    // A developer-built site links through its orders or CSV, so there is nothing to pick here.
+    const canLink = canManage && c.canFetch;
     return (
-      <button type="button" onClick={onOpen} disabled={!canManage}
+      <button type="button" onClick={onOpen} disabled={!canLink} title={c.canFetch ? undefined : WEBSITE_LINKS_NOTE}
         className="flex w-full items-center justify-between gap-2 rounded-xl border border-dashed border-slate-200 px-2.5 py-2 text-left text-[0.75rem] text-slate-400 transition enabled:hover:border-brand-300 enabled:hover:bg-brand-50 enabled:hover:text-brand-700">
-        <span className="inline-flex items-center gap-1 font-semibold">{canManage ? <><Plus className="h-3.5 w-3.5" /> Jorein</> : 'Jura nahi'}</span>
+        <span className="inline-flex items-center gap-1 font-semibold">{canLink ? <><Plus className="h-3.5 w-3.5" /> Jorein</> : 'Jura nahi'}</span>
         <span className="tabular-nums">{cell.stock !== null ? `Stock ${cell.stock}` : ''}</span>
       </button>
     );
@@ -443,7 +470,7 @@ function Cell({ cell, canManage, onOpen }: { cell?: GridCell; canManage: boolean
         <StatusIcon cell={cell} />
       </span>
       <span className="block text-[0.71875rem] text-slate-500">
-        Stock <b className={cn('tabular-nums', (cell.stock ?? 0) <= 0 ? 'text-rose-600' : 'text-slate-700')}>{cell.stock ?? '—'}</b>
+        {!c.tracksStock ? 'Stock track nahi' : <>Stock <b className={cn('tabular-nums', (cell.stock ?? 0) <= 0 ? 'text-rose-600' : 'text-slate-700')}>{cell.stock ?? '—'}</b></>}
         {cell.lastSyncedAt && cell.status === 'SUCCESS' ? ` · ${timeAgo(cell.lastSyncedAt)}` : ''}
       </span>
       {cell.status === 'FAILED' && cell.error ? (
@@ -467,7 +494,7 @@ function ProductCard({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
           <p className="truncate text-[0.875rem] font-semibold text-slate-900">{item.name}</p>
           <p className="truncate text-[0.75rem] text-slate-500">{sized ? `${item.rows.length} sizes` : <>{item.sku ? `${item.sku} · ` : ''}Nafaa {rs(item.rows[0]?.price ?? item.price)}</>}</p>
         </div>
-        {canManage && anyLinked(item) && (
+        {canManage && anyLinked(item, cols) && (
           <button type="button" onClick={onSync} disabled={syncing} aria-label="Abhi bhejein" className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100">
             <RefreshCw className={cn('h-4 w-4', syncing && 'animate-spin')} />
           </button>
@@ -494,19 +521,19 @@ function ProductCard({ item, cols, canManage, syncing, onSync, onCell, onSizeLes
                 if (!cell) return null;
                 return (
                   <li key={c.id}>
-                    <button type="button" onClick={() => onCell(c, cell, row)} disabled={!cell.linked && !canManage}
+                    <button type="button" onClick={() => onCell(c, cell, row)} disabled={!cell.linked && !(canManage && c.canFetch)}
                       className="flex w-full items-center gap-2 rounded-xl px-1.5 py-1 text-left hover:bg-slate-50">
-                      <ChannelMark type={c.type} size="sm" />
+                      <ChannelMark channel={c} size="sm" />
                       <span className="min-w-0 flex-1 truncate text-[0.75rem] font-medium text-slate-700">{channelName(c)}</span>
                       {cell.linked ? (
                         <>
-                          <span className="text-[0.75rem] tabular-nums text-slate-500">Stock {cell.stock ?? '—'}</span>
+                          <span className="text-[0.75rem] tabular-nums text-slate-500">{c.tracksStock ? `Stock ${cell.stock ?? '—'}` : 'Stock track nahi'}</span>
                           <span className={cn('text-[0.8125rem] font-semibold tabular-nums', cell.priceDiffers ? 'text-amber-700' : 'text-slate-900')}>{rs(cell.price)}</span>
                           <StatusIcon cell={cell} />
                         </>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-lg border border-dashed border-slate-300 px-2 py-0.5 text-[0.71875rem] font-semibold text-slate-500">
-                          {canManage ? <><Plus className="h-3 w-3" /> Jorein</> : 'Jura nahi'}
+                          {canManage && c.canFetch ? <><Plus className="h-3 w-3" /> Jorein</> : 'Jura nahi'}
                         </span>
                       )}
                     </button>

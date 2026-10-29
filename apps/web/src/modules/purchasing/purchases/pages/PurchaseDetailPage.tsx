@@ -17,6 +17,7 @@ import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PurchasePrintModal } from '../components/PurchasePrintModal';
+import { LandedCostPanel } from '../components/LandedCostPanel';
 import { getReceiptSetup } from '@core/receipt/setup';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
@@ -107,6 +108,9 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
                       <p className="text-[0.75rem] text-slate-500">
                         {r !== 1 && `1 ${i.unitName} = ${q3(r)} ${baseUnit(i)} · `}{i.batchNo && `Batch ${i.batchNo} · `}{i.expiryDate && `Expiry ${day(i.expiryDate)}`}
                       </p>
+                      {(i.landedCost ?? 0) > 0 && (
+                        <p className="text-[0.75rem] text-brand-700">+ Landed cost {money((i.landedCost ?? 0) / (i.baseQuantity || i.quantity || 1))} / {baseUnit(i)}</p>
+                      )}
                       {config.itemExtra?.({ item: i, purchase: p })}
                     </Td>
                     <Td align="right" className="px-3 py-2.5">{q3(i.quantity)} {i.unitName}{r !== 1 && <span className="block text-[0.75rem] text-slate-500">{q3(i.baseQuantity ?? i.quantity * r)} {baseUnit(i)}</span>}</Td>
@@ -146,6 +150,8 @@ export default function PurchaseDetailPage({ config = {} }: { config?: PurchaseD
             {p.dueDate && credit > 0 && <KV k="Dena hai tak" v={day(p.dueDate)} />}
             {p.notes && <p className="border-t border-slate-100 pt-2 text-[0.8125rem] text-slate-600">{p.notes}</p>}
           </div>
+
+          <LandedCostPanel p={p} onChanged={refresh} />
 
           {canEdit && p.status !== 'CANCELLED' && (
             <div className="rounded-2xl border border-slate-200 bg-white p-2">

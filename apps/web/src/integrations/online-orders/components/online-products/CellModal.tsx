@@ -46,13 +46,14 @@ export function CellModal({ channel, cell, title, productId, canManage, onRelink
   const ownValue = Number(own);
   const ownOk = own === '' || (Number.isFinite(ownValue) && ownValue > 0);
   const failed = cell.status === 'FAILED';
+  const push = channel.canPush;
 
   return (
     <Modal open onClose={onClose} size="md"
-      title={<span className="flex items-center gap-2"><ChannelMark type={channel.type} size="sm" /><span className="truncate">{title}</span></span>}
+      title={<span className="flex items-center gap-2"><ChannelMark channel={channel} size="sm" /><span className="truncate">{title}</span></span>}
       description={`${channelName(channel)}${cell.externalTitle ? ` · ${cell.externalTitle}` : ''}${cell.externalSku ? ` · SKU ${cell.externalSku}` : ''}`}>
       <div className="space-y-4">
-        <div className={cn('flex items-start gap-2.5 rounded-2xl p-3 ring-1',
+        {push ? <div className={cn('flex items-start gap-2.5 rounded-2xl p-3 ring-1',
           failed ? 'bg-rose-50 text-rose-900 ring-rose-200' : cell.status === 'SUCCESS' ? 'bg-success-50 text-success-800 ring-success-200' : 'bg-slate-50 text-slate-700 ring-slate-200')}>
           {failed ? <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> : cell.status === 'SUCCESS' ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <Clock className="mt-0.5 h-4 w-4 shrink-0" />}
           <div className="min-w-0 text-[0.8125rem]">
@@ -60,24 +61,31 @@ export function CellModal({ channel, cell, title, productId, canManage, onRelink
             {failed && cell.error && <p className="mt-0.5">{cell.error}</p>}
             {cell.lastSyncedAt && <p className="mt-0.5 opacity-80">Aakhri dafa {timeAgo(cell.lastSyncedAt)}</p>}
           </div>
-        </div>
+        </div> : (
+          <p className="rounded-2xl bg-slate-50 p-3 text-[0.8125rem] text-slate-700 ring-1 ring-slate-200">
+            {channel.mode === 'indolj'
+              ? 'Indolj ka har order is product se bill banata hai. Price Indolj panel se badlein; Stock Indolj par track nahi hota.'
+              : 'Website Stock aur Price khud Nafaa se leti hai — yahan se bhejna nahi padta.'}
+          </p>
+        )}
 
         <dl className="grid grid-cols-2 gap-3 text-[0.8125rem]">
           <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200/80">
-            <dt className="text-slate-500">Stock jo channel ko jata hai</dt>
-            <dd className="mt-0.5 text-lg font-bold tabular-nums text-slate-900">{cell.stock ?? '—'}</dd>
-            <dd className="text-[0.75rem] text-slate-500">Nafaa me {cell.nafaaStock}{channel.stockBuffer ? ` · ${channel.stockBuffer} rakh kar` : ''}</dd>
+            <dt className="text-slate-500">{channel.mode === 'website' ? 'Stock jo website ko dikhta hai' : 'Stock jo channel ko jata hai'}</dt>
+            <dd className="mt-0.5 text-lg font-bold tabular-nums text-slate-900">{channel.tracksStock ? cell.stock ?? '—' : 'Track nahi'}</dd>
+            <dd className="text-[0.75rem] text-slate-500">Nafaa me {cell.nafaaStock}{channel.tracksStock && channel.stockBuffer ? ` · ${channel.stockBuffer} rakh kar` : ''}</dd>
           </div>
           <div className="rounded-2xl bg-white p-3 ring-1 ring-slate-200/80">
-            <dt className="text-slate-500">Channel ki Price</dt>
+            <dt className="text-slate-500">{push ? 'Channel ki Price' : 'Nafaa price'}</dt>
             <dd className="mt-0.5 text-lg font-bold tabular-nums text-slate-900">{rs(cell.price)}</dd>
             <dd className={cn('text-[0.75rem]', cell.priceDiffers ? 'font-semibold text-amber-700' : 'text-slate-500')}>
-              {cell.channelPrice === null ? 'Channel par abhi nahi dekhi' : cell.priceDiffers ? `Channel par abhi ${rs(cell.channelPrice)}` : 'Channel par bhi yahi'}
+              {channel.mode === 'website' ? 'Website ko yahi jati hai' : cell.channelPrice === null ? 'Channel par abhi nahi dekhi' : cell.priceDiffers ? `Channel par abhi ${rs(cell.channelPrice)}` : 'Channel par bhi yahi'}
             </dd>
           </div>
         </dl>
 
-        <section className="space-y-2 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/80">
+        {channel.mode === 'indolj' && <p className="text-[0.75rem] font-medium text-amber-700">Price Indolj panel se badlein.</p>}
+        {push && <section className="space-y-2 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200/80">
           <p className="text-[0.8125rem] font-semibold text-slate-800">Is channel par apni Price</p>
           <p className="text-[0.75rem] text-slate-500">Khali chhorein to rule lagega: {ruleText(channel.priceRule)}.</p>
           <div className="flex flex-wrap items-start gap-2">
@@ -86,14 +94,14 @@ export function CellModal({ channel, cell, title, productId, canManage, onRelink
             {canManage && <Button variant="secondary" loading={price.isPending} disabled={!ownOk} onClick={() => price.mutate(own === '' ? null : ownValue)}>Save</Button>}
           </div>
           {!channel.pushPrice && <p className="text-[0.75rem] font-medium text-amber-700">Price is channel par haath se badlein — Price bhejna band hai.</p>}
-        </section>
+        </section>}
 
         {canManage && (
           <div className="flex flex-wrap gap-2">
-            <Button variant="primary" loading={sync.isPending} onClick={() => sync.mutate()} leftIcon={<RefreshCw className="h-4 w-4" />}>Abhi bhejein</Button>
-            <Button variant="secondary" onClick={onRelink} leftIcon={<Link2 className="h-4 w-4" />}>Doosre se jorein</Button>
+            {push && <Button variant="primary" loading={sync.isPending} onClick={() => sync.mutate()} leftIcon={<RefreshCw className="h-4 w-4" />}>Abhi bhejein</Button>}
+            {channel.canFetch && <Button variant="secondary" onClick={onRelink} leftIcon={<Link2 className="h-4 w-4" />}>Doosre se jorein</Button>}
             <Button variant="ghost" className="text-rose-700" loading={unlink.isPending} leftIcon={<Link2Off className="h-4 w-4" />}
-              onClick={async () => { if (await confirmDialog({ title: 'Link hatayein?', text: 'Is product ka Stock aur Price is channel par jana band ho jayega. Channel par product waise hi rahega.', danger: true })) unlink.mutate(); }}>
+              onClick={async () => { if (await confirmDialog({ title: 'Link hatayein?', text: push ? 'Is product ka Stock aur Price is channel par jana band ho jayega. Channel par product waise hi rahega.' : 'Is channel ke orders me ye product khud nahi milega — agle order par dobara jorna hoga.', danger: true })) unlink.mutate(); }}>
               Link hatayein
             </Button>
           </div>

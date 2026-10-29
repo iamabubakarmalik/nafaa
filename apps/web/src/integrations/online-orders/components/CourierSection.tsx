@@ -10,6 +10,7 @@ import { rs, whenText } from '../lib/labels';
 import { BrandLogo, brandForCourier } from '@/assets/brands/BrandLogo';
 
 import { COURIERS_KEY } from './couriers/CourierForms';
+import { CourierHint } from './couriers/CourierHint';
 export { COURIERS_KEY };
 
 /** COD the courier collects: the total less every advance received (payment links and manual), as the API books it. */
@@ -265,6 +266,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
           <Segmented label="Courier" value={courier} onChange={setCourier} className="flex-wrap"
             items={couriers.map((c) => ({ value: c.code, label: <><BrandLogo name={brandForCourier(c.code)} size={18} />{c.name}</> }))} />
         )}
+        <CourierHint orderId={o.id} current={courier} pickable={couriers.map((c) => c.code)} onPick={setCourier} />
 
         <Field label={<>Shehar {o.customerCity ? <span className="font-normal text-slate-400">(customer ne likha: {o.customerCity})</span> : null}</>}>
           {(id) => optsLoading ? (

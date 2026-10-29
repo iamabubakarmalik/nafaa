@@ -14,11 +14,11 @@ import { readWebsiteConfig } from './website-config';
 import { StatusWebhookService } from './status-webhook.service';
 import { COURIERS, courierHoldsCash, courierName } from './couriers';
 import { mappingKey } from './mapping-key';
-import { CustomerRisk, blockedRisk, emptyHistory, phoneKey, riskOf } from './customer-risk';
+import { CustomerRisk, OrderSignals, blockedRisk, emptyHistory, phoneKey, riskOf, withSignals } from './customer-risk';
 import { OrderToolsService } from './order-tools.service';
-import { emitOrderAccepted } from './order-events';
+import { emitOrderAccepted, emitOrderStatus } from './order-events';
 import { shopDue } from './shop-due';
-import { buildManualAdvance, orderMoney, paidAdvance } from './order-money';
+import { DeliveryMode, buildManualAdvance, orderMoney, paidAdvance } from './order-money';
 import { randomBytes } from 'crypto';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
@@ -156,6 +156,15 @@ export class OnlineOrdersService implements OnModuleInit {
     const config = readWebsiteConfig(integration.config);
     // Block kiye number ka order khud accept nahi — malik khud dekhe
     if (!config.autoAccept || order.orderStatus !== 'PENDING' || blocked) return;
+    // A risky COD order waits for an advance when the shop set that rule.
+    const rule = await this.tools.riskSettings(order.tenantId).catch(() => null);
+    if (rule?.askAdvance && (order.metadata as any)?.cod) {
+      const r = (await this.customerRisk(order.tenantId, [order.customerPhone], [order.id]).catch(() => null))?.get(phoneKey(order.customerPhone) ?? '');
+      if (r && (r.level === 'HIGH' || r.level === 'BLOCKED')) {
+        await this.mergeMetadata(order.id, { autoAcceptError: `RTO khatra — pehle ${rule.advancePct}% advance maangein, phir accept karein` });
+        return;
+      }
+    }
 
     try {
       const actor = await this.systemActor(order.tenantId);
@@ -185,6 +194,8 @@ export class OnlineOrdersService implements OnModuleInit {
     from?: string; to?: string;
     /** COD = cash on delivery orders, PAID = money already received. */
     pay?: 'COD' | 'PAID';
+    /** Customer confirmation: CONFIRMED, NO_ANSWER, REFUSED, or NONE (not asked yet). */
+    confirm?: 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED' | 'NONE';
   }) {
     // Channel chuna ho to ginti (tabs, aaj, COD) bhi usi channel ki
     const base: Prisma.ChannelOrderWhereInput = {
@@ -204,6 +215,8 @@ export class OnlineOrdersService implements OnModuleInit {
     }
     if (q.pay === 'COD') and.push({ metadata: { path: ['cod'], equals: true } });
     if (q.pay === 'PAID') and.push({ paymentStatus: 'PAID' });
+    if (q.confirm === 'NONE') and.push({ metadata: { path: ['confirmation', 'result'], equals: Prisma.AnyNull } });
+    else if (q.confirm) and.push({ metadata: { path: ['confirmation', 'result'], equals: q.confirm } });
     const range = q.from && q.to && DAY_KEY.test(q.from) && DAY_KEY.test(q.to)
       ? await periodRange(this.tzService, user.tenantId, q.from, q.to)
       : null;
@@ -226,7 +239,8 @@ export class OnlineOrdersService implements OnModuleInit {
        dukaan ke liye raat 1 baje ka order abhi "aaj" ka hai */
     const { tz, dayStartHour } = await this.tzService.clock(user.tenantId);
     const today = startOfBusinessDayTz(new Date(), tz, dayStartHour);
-    const notTest: Prisma.ChannelOrderWhereInput = { NOT: { metadata: { path: ['test'], equals: true } } };
+    // NOT on a JSON path drops rows that lack the key (SQL NULL), so test orders are left out this way.
+    const notTest: Prisma.ChannelOrderWhereInput = { OR: [{ metadata: { path: ['test'], equals: Prisma.AnyNull } }, { metadata: { path: ['test'], equals: false } }] };
     const staleBefore = new Date(Date.now() - STALE_PENDING_MS);
     const alertSelect = { id: true, externalOrderNumber: true, externalOrderId: true, customerName: true, receivedAt: true, orderStatus: true } as const;
     const [items, total, counts, rangeCounts, todayAgg, codDue, stale, staleCount, cancelAsked, cancelAskedCount] = await Promise.all([
@@ -279,7 +293,11 @@ export class OnlineOrdersService implements OnModuleInit {
       externalOrderNumber: o.externalOrderNumber ? String(o.externalOrderNumber).replace(/^#+/, '') : o.externalOrderNumber,
     });
 
-    const risks = await this.customerRisk(user.tenantId, items.map((o) => o.customerPhone)).catch(() => new Map<string, CustomerRisk>());
+    const times = new Map<string, Array<{ id: string; at: Date }>>();
+    const [risks, avgOrder] = await Promise.all([
+      this.customerRisk(user.tenantId, items.map((o) => o.customerPhone), [], times).catch(() => new Map<string, CustomerRisk>()),
+      this.avgOrderValue(user.tenantId),
+    ]);
 
     return {
       items: items.map((o) => {
@@ -288,7 +306,7 @@ export class OnlineOrdersService implements OnModuleInit {
         const isTest = !!(o.metadata as any)?.test;
         if (!r || isTest) return { ...this.present(o), risk: null };
         const self = minusSelf(r, o.orderStatus, Number(o.total));
-        const risk = r.level === 'BLOCKED' ? { ...r, ...self } : riskOf(self);
+        const risk = withSignals(r.level === 'BLOCKED' ? { ...r, ...self } : riskOf(self), this.signals(o, avgOrder, times, null));
         return { ...this.present(o), risk: { ...risk, duplicateOpen: !CLOSED.includes(o.orderStatus) && o.orderStatus !== 'DELIVERED' ? self.open : 0 } };
       }),
       total,
@@ -341,7 +359,11 @@ export class OnlineOrdersService implements OnModuleInit {
    * Phone se customer ki history (is dukaan ke saare channels, 1 saal) —
    * ek hi query me kai phones. excludeIds = jin orders ko ginti me na lo.
    */
-  async customerRisk(tenantId: string, phones: (string | null | undefined)[], excludeIds: string[] = []): Promise<Map<string, CustomerRisk>> {
+  async customerRisk(
+    tenantId: string, phones: (string | null | undefined)[], excludeIds: string[] = [],
+    /** Filled with every order time per phone key, for the duplicate-order check. */
+    times?: Map<string, Array<{ id: string; at: Date }>>,
+  ): Promise<Map<string, CustomerRisk>> {
     const keys = [...new Set(phones.map(phoneKey).filter((k): k is string => !!k))].slice(0, 100);
     const out = new Map<string, CustomerRisk>();
     if (!keys.length) return out;
@@ -352,7 +374,7 @@ export class OnlineOrdersService implements OnModuleInit {
         OR: keys.map((k) => ({ customerPhone: { endsWith: k.slice(-7) } })),
         ...(excludeIds.length ? { id: { notIn: excludeIds } } : {}),
       },
-      select: { id: true, customerPhone: true, orderStatus: true, total: true, metadata: true },
+      select: { id: true, customerPhone: true, orderStatus: true, total: true, metadata: true, receivedAt: true },
       take: 5000,
     });
     const hist = new Map(keys.map((k) => [k, emptyHistory()]));
@@ -360,6 +382,7 @@ export class OnlineOrdersService implements OnModuleInit {
       const k = phoneKey(o.customerPhone);
       const h = k ? hist.get(k) : undefined;
       if (!h || (o.metadata as any)?.test) continue;
+      if (times) times.set(k!, [...(times.get(k!) ?? []), { id: o.id, at: o.receivedAt }]);
       h.total++;
       if (o.orderStatus === 'DELIVERED') { h.delivered++; h.spent += Number(o.total); }
       else if (o.orderStatus === 'RETURNED') h.returned++;
@@ -420,12 +443,29 @@ export class OnlineOrdersService implements OnModuleInit {
         })
       : null;
 
-    const baseRisk = (await this.customerRisk(order.tenantId, [order.customerPhone], [order.id]).catch(() => null))?.get(phoneKey(order.customerPhone) ?? '') ?? null;
-    const risk = baseRisk ? { ...baseRisk, duplicateOpen: !CLOSED.includes(order.orderStatus) && order.orderStatus !== 'DELIVERED' ? baseRisk.open : 0 } : null;
+    const times = new Map<string, Array<{ id: string; at: Date }>>();
+    const [riskMap, avgOrder, covered, riskRule] = await Promise.all([
+      this.customerRisk(order.tenantId, [order.customerPhone], [order.id], times).catch(() => null),
+      this.avgOrderValue(order.tenantId),
+      this.cityCheck && order.customerCity && !CLOSED.includes(order.orderStatus) && !order.dispatchedAt
+        ? this.cityCheck(order.tenantId, order.customerCity).catch(() => null) : Promise.resolve(null),
+      this.tools.riskSettings(order.tenantId).catch(() => null),
+    ]);
+    const baseRisk = riskMap?.get(phoneKey(order.customerPhone) ?? '') ?? null;
+    const isTest = !!(order.metadata as any)?.test;
+    const risk = baseRisk && !isTest
+      ? { ...withSignals(baseRisk, this.signals(order, avgOrder, times, covered)), duplicateOpen: !CLOSED.includes(order.orderStatus) && order.orderStatus !== 'DELIVERED' ? baseRisk.open : 0 }
+      : null;
+    // Ask for an advance on a risky COD order, when the shop set that rule.
+    const due = orderMoney(order).codDue;
+    const riskAdvice = risk && riskRule?.askAdvance && (risk.level === 'HIGH' || risk.level === 'BLOCKED') && (order.metadata as any)?.cod && due > 0 && !order.dispatchedAt
+      ? { pct: riskRule.advancePct, amount: Math.max(1, Math.round((Number(order.total) * riskRule.advancePct) / 100)) }
+      : null;
 
     return {
       ...this.present(order),
       risk,
+      riskAdvice,
       integration: { id: order.integration.id, type: order.integration.type, displayName: order.integration.displayName },
       autoPrint: config.autoPrint,
       fulfilShopId: shopId,
@@ -548,8 +588,9 @@ export class OnlineOrdersService implements OnModuleInit {
       const meta = (order.metadata ?? {}) as any;
       const paymentMethod = mapPaymentMethod(order.paymentMethod ?? undefined);
       const deliveryFee = Number(order.deliveryFee);
-      // Bahar ka rider (Indolj / Foodpanda / Bykea) delivery khud leta hai — bill me shamil nahi
-      const riderKeepsDelivery = config.deliveryFeeMode === 'RIDER';
+      // Bahar ka rider (Indolj / Foodpanda / Bykea) delivery khud leta hai — bill me shamil nahi.
+      // A choice made on this order wins over the channel setting.
+      const riderKeepsDelivery = meta.deliveryChoice ? meta.deliveryChoice === 'RIDER' : config.deliveryFeeMode === 'RIDER';
       const discount = Number(order.discount) || 0;
       const billTotal = await this.expectedBillTotal(items, matched, config.priceSource, discount, riderKeepsDelivery ? 0 : deliveryFee);
       const source = SOURCE_BY_TYPE[order.integration.type] ?? 'WEBSITE';
@@ -711,6 +752,7 @@ export class OnlineOrdersService implements OnModuleInit {
 
     const updated = await this.prisma.channelOrder.update({ where: { id }, data, include: { integration: true } });
     this.statusHook.send(updated.integration, updated, 'order.status_changed');
+    if (status !== order.orderStatus) emitOrderStatus({ tenantId: updated.tenantId, orderId: updated.id, status });
     return this.present(updated);
   }
 
@@ -873,6 +915,52 @@ export class OnlineOrdersService implements OnModuleInit {
   }
 
   /**
+   * Who pays the delivery on this order: the customer (in the bill and COD),
+   * nobody (free, the shop bears it) or the outside rider (keeps it; not in
+   * the bill). Changed before the bill is made; the order's delivery charge
+   * and total follow, and the website's own figures stay in
+   * metadata.deliveryOriginal. Once the bill exists it is not changed here:
+   * there is no safe way to edit a bill, so the shop is told what to do.
+   */
+  async setDeliveryMode(user: AuthenticatedUser, scope: ShopScope, id: string, body: { mode?: string }) {
+    const mode = String(body?.mode ?? '').toUpperCase() as DeliveryMode;
+    if (!['CUSTOMER', 'FREE', 'RIDER'].includes(mode)) throw new BadRequestException('Delivery ka tareeqa chunein');
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) }, include: { integration: true } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (CLOSED.includes(order.orderStatus) || order.orderStatus === 'DELIVERED') throw new BadRequestException('Band ya deliver ho chuke order ki delivery nahi badalti');
+    if (order.dispatchedAt || (order.courierBookedAt && order.courierStatus !== 'CANCELLED')) {
+      throw new BadRequestException('Parcel courier ko ja chuka ya book ho chuka — ab delivery nahi badalti');
+    }
+    if (order.nafaaSaleId || order.orderStatus === ACCEPTING) {
+      throw new BadRequestException('Bill ban chuka hai, is liye delivery yahan se nahi badalti. Farq ho to customer se baqi paisa advance me likhein, ya order cancel karke naya order lein.');
+    }
+    const meta = (order.metadata ?? {}) as any;
+    const fee = Number(meta.deliveryOriginal?.fee ?? (Number(order.deliveryFee) || Number(meta.riderDelivery) || 0));
+    if (!(fee > 0)) throw new BadRequestException('Is order par delivery charge hai hi nahi');
+    const inTotal = Number(order.deliveryFee) || 0;
+    const goods = Math.max(0, Number(order.total) - inTotal);
+    const total = mode === 'FREE' ? goods : goods + fee;
+    if (paidAdvance(meta) > total + 0.5) throw new BadRequestException('Customer is se zyada advance de chuka — pehle advance theek karein');
+    const { riderDelivery: _r, ...rest } = meta;
+    const updated = await this.prisma.channelOrder.update({
+      where: { id },
+      data: {
+        deliveryFee: mode === 'FREE' ? 0 : fee,
+        total,
+        metadata: {
+          ...rest,
+          deliveryOriginal: meta.deliveryOriginal ?? { fee, total: Number(order.total) },
+          deliveryChoice: mode,
+          deliveryChoiceBy: { by: user.id, at: new Date().toISOString() },
+          ...(mode === 'RIDER' && { riderDelivery: fee }),
+        },
+      },
+      include: { integration: true },
+    });
+    return this.present(updated);
+  }
+
+  /**
    * RTO — customer ne parcel nahi liya, courier wapas le aaya. Bill void
    * (stock khud wapas), order "Wapas aaya". COD ka paisa kabhi aana hi nahi.
    */
@@ -907,6 +995,7 @@ export class OnlineOrdersService implements OnModuleInit {
       include: { integration: true },
     });
     this.statusHook.send(updated.integration, updated, 'order.returned');
+    emitOrderStatus({ tenantId: updated.tenantId, orderId: updated.id, status: 'RETURNED' });
     return this.present(updated);
   }
 
@@ -930,6 +1019,8 @@ export class OnlineOrdersService implements OnModuleInit {
         codSettlementRef: body.reference?.trim().slice(0, 120) || null,
       },
     });
+    // The selling-cost expense follows the settlement (it skips orders that did not change).
+    for (const id of ids) emitOrderStatus({ tenantId: user.tenantId, orderId: id, status: 'SETTLED' });
     return { settled: res.count };
   }
 
@@ -965,12 +1056,15 @@ export class OnlineOrdersService implements OnModuleInit {
       take: 2000,
     });
 
-    type Bucket = { code: string; name: string; inTransit: number; inTransitValue: number; withCourier: number; withCourierValue: number; settledMonth: number; settledMonthValue: number; dispatched30: number; returned30: number };
+    type Bucket = { code: string; name: string; inTransit: number; inTransitValue: number; withCourier: number; withCourierValue: number; settledMonth: number; settledMonthValue: number; dispatched30: number; returned30: number; age: number[] };
+    // Money with the courier by days since delivery: 0–7, 8–15, 16–30, 30+.
+    const AGE_MAX = [7, 15, 30, Infinity];
+    const ageIndex = (days: number) => AGE_MAX.findIndex((m) => days <= m);
     const buckets = new Map<string, Bucket>();
     const bucket = (code: string | null, name: string | null) => {
       const k = code ?? 'NONE';
       if (!buckets.has(k)) {
-        buckets.set(k, { code: k, name: courierName(code) ?? name ?? 'Courier nahi likha', inTransit: 0, inTransitValue: 0, withCourier: 0, withCourierValue: 0, settledMonth: 0, settledMonthValue: 0, dispatched30: 0, returned30: 0 });
+        buckets.set(k, { code: k, name: courierName(code) ?? name ?? 'Courier nahi likha', inTransit: 0, inTransitValue: 0, withCourier: 0, withCourierValue: 0, settledMonth: 0, settledMonthValue: 0, dispatched30: 0, returned30: 0, age: [0, 0, 0, 0] });
       }
       return buckets.get(k)!;
     };
@@ -990,6 +1084,7 @@ export class OnlineOrdersService implements OnModuleInit {
       if (o.orderStatus === 'OUT_FOR_DELIVERY') { b.inTransit++; b.inTransitValue += total; }
       if (o.orderStatus === 'DELIVERED') {
         b.withCourier++; b.withCourierValue += total;
+        b.age[ageIndex(o.deliveredAt ? Math.floor((Date.now() - o.deliveredAt.getTime()) / 86_400_000) : 0)] += total;
         withCourier.push({
           ...o,
           externalOrderNumber: o.externalOrderNumber ? String(o.externalOrderNumber).replace(/^#+/, '') : o.externalOrderNumber,
@@ -1012,7 +1107,9 @@ export class OnlineOrdersService implements OnModuleInit {
         settledMonth: sum('settledMonth'), settledMonthValue: sum('settledMonthValue'),
         rtoRate: dispatched30 ? Math.round((sum('returned30') / dispatched30) * 100) : 0,
         returned30: sum('returned30'), dispatched30,
+        age: [0, 1, 2, 3].map((i) => couriers.reduce((t, c) => t + c.age[i], 0)),
       },
+      ageLabels: ['0–7 din', '8–15 din', '16–30 din', '30+ din'],
       couriers,
       withCourier,
       courierList: COURIERS,
@@ -1301,6 +1398,38 @@ export class OnlineOrdersService implements OnModuleInit {
       shopId: null, permissions: [],
     };
   }
+
+  /** Order-level warning signs for the risk badge (customer-risk.withSignals). */
+  private signals(
+    o: { id: string; customerPhone: string | null; customerCity: string | null; receivedAt: Date; total: unknown; paymentStatus: string; metadata: unknown },
+    avgOrder: number | null, times: Map<string, Array<{ id: string; at: Date }>>, cityCovered: boolean | null,
+  ): OrderSignals {
+    const k = phoneKey(o.customerPhone);
+    const others = (k ? times.get(k) ?? [] : []).filter((t) => t.id !== o.id);
+    const nearest = others.length ? Math.min(...others.map((t) => Math.abs(t.at.getTime() - o.receivedAt.getTime()) / 60_000)) : null;
+    return {
+      cod: (o.metadata as any)?.cod ? orderMoney(o as any).codDue : 0,
+      avgOrder, nearestOrderMinutes: nearest, cityCovered, city: o.customerCity,
+    };
+  }
+
+  private readonly avgCache = new Map<string, { at: number; value: number | null }>();
+  /** The shop's average delivered online order over 90 days (cached 10 minutes). */
+  private async avgOrderValue(tenantId: string): Promise<number | null> {
+    const hit = this.avgCache.get(tenantId);
+    if (hit && Date.now() - hit.at < 10 * 60_000) return hit.value;
+    const a = await this.prisma.channelOrder.aggregate({
+      where: { tenantId, orderStatus: 'DELIVERED', receivedAt: { gte: new Date(Date.now() - 90 * 86_400_000) } },
+      _avg: { total: true }, _count: { _all: true },
+    }).catch(() => null);
+    const value = a && a._count._all >= 5 ? Math.round(Number(a._avg.total ?? 0)) : null;
+    this.avgCache.set(tenantId, { at: Date.now(), value });
+    return value;
+  }
+
+  /** Whether a city is in a connected courier's city list; set by the courier service (it depends on this one). */
+  private cityCheck?: (tenantId: string, city: string) => Promise<boolean | null>;
+  setCityCheck(fn: (tenantId: string, city: string) => Promise<boolean | null>) { this.cityCheck = fn; }
 
   private async mergeMetadata(id: string, patch: Record<string, any>) {
     const row = await this.prisma.channelOrder.findUnique({ where: { id }, select: { metadata: true } });

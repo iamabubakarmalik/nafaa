@@ -15,8 +15,9 @@ import { Button, Input, Segmented, confirmDialog } from '@/design-system/compone
 import { BrandLogo, brandForPayment, type BrandName } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import {
-  apiErrorMessage, onlineOrdersApi, type AdvanceMethod, type OnlineOrder, type OnlineOrderDetail, type OrderMoney, type OrderPaymentLink,
+  apiErrorMessage, onlineOrdersApi, type AdvanceMethod, type DeliveryMode, type OnlineOrder, type OnlineOrderDetail, type OrderMoney, type OrderPaymentLink,
 } from '../../api/online-orders.api';
+import { orderMoneyApi } from '../../api/order-money.api';
 import { PAYMENT_LABEL, rs, whenText } from '../../lib/labels';
 
 const METHODS: Array<{ value: AdvanceMethod; label: string; brand?: BrandName; icon?: typeof Wallet }> = [
@@ -84,7 +85,7 @@ export function OrderMoneyCard({ order: o, onChanged, onPaid, paying }: {
     <section className="rounded-2xl bg-white p-4 ring-1 ring-slate-200/80">
       <div className="flex flex-wrap items-center gap-3">
         <Wallet className="h-5 w-5 text-slate-400" />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[12rem] flex-1">
           <div className="text-sm font-bold text-slate-900">{o.metadata?.paymentTitle ?? o.paymentMethod ?? 'Cash on Delivery'}</div>
           <div className="text-xs text-slate-500">
             {o.paymentStatus === 'PAID'
@@ -106,6 +107,7 @@ export function OrderMoneyCard({ order: o, onChanged, onPaid, paying }: {
           <delivery.icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
           <div className="min-w-0 flex-1"><Line label={delivery.label} value={delivery.value} hint={delivery.hint} /></div>
         </div>
+        <DeliveryChoice order={o} mode={m.deliveryMode} fee={m.originalFee ?? m.deliveryFee} onChanged={onChanged} />
 
         {links.map((l) => {
           const manual = l.provider === 'MANUAL';
@@ -148,6 +150,39 @@ export function OrderMoneyCard({ order: o, onChanged, onPaid, paying }: {
       )}
       {canAdvance && open && <AdvanceForm order={o} due={m.codDue} onDone={() => { setOpen(false); onChanged(); }} onCancel={() => setOpen(false)} />}
     </section>
+  );
+}
+
+const DELIVERY_ITEMS: Array<{ value: DeliveryMode; label: string; icon: typeof Truck }> = [
+  { value: 'CUSTOMER', label: 'Customer se', icon: Truck },
+  { value: 'FREE', label: 'Free (dukaan degi)', icon: Gift },
+  { value: 'RIDER', label: 'Rider rakhega', icon: Bike },
+];
+
+/**
+ * Who pays the delivery on this order. Before the bill is made the shop can
+ * switch it (the order total and COD follow); after that the bill is fixed,
+ * so the choice is shown with the reason it cannot change.
+ */
+function DeliveryChoice({ order: o, mode, fee, onChanged }: { order: OnlineOrderDetail; mode: DeliveryMode; fee: number; onChanged: () => void }) {
+  const set = useMutation({
+    mutationFn: (m: DeliveryMode) => orderMoneyApi.setDelivery(o.id, m),
+    onSuccess: (_r, m) => { onChanged(); toast.success(m === 'FREE' ? `Delivery free — total ${rs(fee)} kam` : m === 'RIDER' ? 'Delivery rider rakhega — bill me shamil nahi' : 'Delivery customer se — total me shamil'); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  if (!(fee > 0) || CLOSED.includes(o.orderStatus) || o.orderStatus === 'DELIVERED' || o.dispatchedAt) return null;
+  const locked = !!o.nafaaSaleId || o.orderStatus === 'ACCEPTING' || !!o.courierBooked;
+  return (
+    <div className="rounded-xl border border-dashed border-slate-200 px-3 py-2">
+      <div className="mb-1.5 text-[0.6875rem] font-semibold text-slate-500">Is order ki delivery ({rs(fee)})</div>
+      <Segmented label="Delivery kaun dega" value={mode} onChange={(m) => { if (m !== mode && !locked) set.mutate(m); }} className="flex-wrap"
+        items={DELIVERY_ITEMS.map((x) => ({ value: x.value, disabled: locked || set.isPending, label: <><x.icon className="h-3.5 w-3.5" />{x.label}</> }))} />
+      <p className="mt-1.5 text-[0.6875rem] text-slate-500">
+        {locked
+          ? 'Bill ban chuka hai — delivery ab yahan se nahi badalti.'
+          : 'Accept se pehle chunein — bill aur COD isi hisaab se banenge.'}
+      </p>
+    </div>
   );
 }
 

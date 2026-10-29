@@ -17,6 +17,7 @@ import { CourierAccountsService } from './courier-accounts.service';
 import { OrderToolsService } from './order-tools.service';
 import { CourierSettings } from './courier-api/types';
 import { PiiAccessLogService } from './pii-access-log.service';
+import { OrderCostsService } from './order-costs.service';
 
 // ═══════════════════════════════════════════════════════════════
 // ONLINE ORDERS — dukandar ka order manage karne ka safha
@@ -31,6 +32,7 @@ export class OnlineOrdersController {
     private readonly tools: OrderToolsService,
     private readonly setup: WebsiteSetupService,
     private readonly piiLog: PiiAccessLogService,
+    private readonly costs: OrderCostsService,
   ) {}
 
   @Get('report')
@@ -94,12 +96,14 @@ export class OnlineOrdersController {
     @Query('from') from?: string,
     @Query('to') to?: string,
     @Query('pay') pay?: string,
+    @Query('confirm') confirm?: string,
     @Ip() ip?: string,
   ) {
     this.piiLog.record(user, { kind: 'ORDER_LIST', filters: { status, integrationId, search } }, ip);
     return this.svc.list(user, scope, {
       status, integrationId, search, payment, from, to,
       pay: pay === 'COD' || pay === 'PAID' ? pay : undefined,
+      confirm: confirm === 'CONFIRMED' || confirm === 'NO_ANSWER' || confirm === 'REFUSED' || confirm === 'NONE' ? confirm : undefined,
       limit: limit ? +limit : 50,
       offset: offset ? +offset : 0,
     });
@@ -139,7 +143,9 @@ export class OnlineOrdersController {
   async detail(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Ip() ip?: string) {
     const order = await this.svc.detail(user, scope, id);
     this.piiLog.record(user, { kind: 'ORDER_DETAIL', orderId: id }, ip);
-    return order;
+    // Selling costs and true profit; `profit` is taken out for users without cost.view.
+    const money = await this.costs.forOrder(user.tenantId, order as any).catch(() => null);
+    return { ...order, ...(money && { sellingCosts: money.costs, profit: money.profit, costPosting: money.posting }) };
   }
 
   @Post(':id/accept')

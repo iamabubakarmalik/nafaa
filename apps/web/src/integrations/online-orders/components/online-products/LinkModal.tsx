@@ -103,7 +103,7 @@ export function LinkModal({ channel, focus, canManage, onClose }: { channel: Onl
 
   return (
     <Modal open onClose={onClose} size="xl"
-      title={<span className="flex items-center gap-2"><ChannelMark type={channel.type} size="sm" />{focus ? `${focus.title} — ${name} par jorein` : `${name} — products jorein`}</span>}
+      title={<span className="flex items-center gap-2"><ChannelMark channel={channel} size="sm" />{focus ? `${focus.title} — ${name} par jorein` : `${name} — products jorein`}</span>}
       description={d?.fetchedAt && d.stats.variants ? `${d.stats.products} products · ${d.stats.linked} / ${d.stats.variants} jure · list ${timeAgo(d.fetchedAt)} ki` : d ? name : `${name} ki list aa rahi hai…`}>
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

@@ -226,4 +226,6 @@ export interface MorningSummary {
     lowStock: { out: number; low: number };
     topItem: string | null;
   } | null;
+  /** Online orders block, for shops with an online channel (growth/ecommerce-summary). */
+  ecommerce?: import('../growth/ecommerce-summary').EcommerceBlock | null;
 }

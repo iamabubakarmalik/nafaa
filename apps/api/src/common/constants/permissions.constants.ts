@@ -171,6 +171,10 @@ export const PERMISSIONS = {
   ONLINE_PRODUCTS_MANAGE: 'online_products.manage',
   CATALOG_VIEW: 'catalog.view',
   CATALOG_MANAGE: 'catalog.manage',
+  /** Ads spend log and the ROAS report: see them. Profit columns also need cost.view and profit_report.view. */
+  ADS_VIEW: 'ads.view',
+  /** Ads spend: add, edit, delete and import. Writing it to expenses also needs expenses.create. */
+  ADS_MANAGE: 'ads.manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -203,6 +207,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
     PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
     PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
+    PERMISSIONS.ADS_VIEW, PERMISSIONS.ADS_MANAGE,
     PERMISSIONS.POS_USE,
     PERMISSIONS.POS_PRICE_TIER,
     PERMISSIONS.SALES_VIEW,

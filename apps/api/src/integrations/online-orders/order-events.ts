@@ -37,3 +37,16 @@ export function emitChannelStatus(e: ChannelStatus) {
     try { channelStatusEvents.emit('status', e); } catch { /* sunne wale ki ghalti */ }
   });
 }
+
+/**
+ * An order moved on: a new status (READY, DELIVERED, RETURNED, …) or its COD
+ * money came in ("SETTLED"). Courier auto-booking and the selling-cost
+ * expense listen to it.
+ */
+export interface OrderStatusEvent { tenantId: string; orderId: string; status: string }
+
+export function emitOrderStatus(e: OrderStatusEvent) {
+  setImmediate(() => {
+    try { orderEvents.emit('status', e); } catch { /* a listener's error never blocks the order */ }
+  });
+}

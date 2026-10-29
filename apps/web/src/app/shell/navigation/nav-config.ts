@@ -5,7 +5,7 @@ import {
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
-  Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck,
+  Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck, Calculator, BadgePercent,
 } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -92,8 +92,13 @@ export const posNavGroups: NavGroup[] = [
     items: [
       { to: '/online-orders', label: 'Online orders', icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz' },
       { to: '/online-store/products', label: 'Online products', icon: PackageCheck, permission: P.ONLINE_PRODUCTS_VIEW, keywords: 'daraz shopify woocommerce products link jorna sku price stock sync channel' },
+      { to: '/online-store/price-calculator', label: 'Price calculator', icon: BadgePercent, permission: P.COST_VIEW, keywords: 'price nikalein calculator margin break even daraz commission shopify fee cod rto ads profit qeemat' },
+      { to: '/online-store/ads', label: 'Ads & ROAS', icon: Megaphone, permission: P.ADS_VIEW, keywords: 'ads kharcha facebook instagram meta tiktok google roas marketing campaign csv' },
+      { to: '/online-orders/pack', label: 'Packing', icon: ScanLine, permission: P.SALES_VIEW, keywords: 'pack scan barcode packing slip label ready parcel' },
+      { to: '/online-orders/returns-scan', label: 'RTO returns', icon: PackageX, permission: P.SALES_VIEW, keywords: 'rto return wapas parcel scan damaged kharab restock' },
       { to: '/online-orders/cod', label: 'COD & courier', icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier tcs leopards postex rto settlement paisa' },
       { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SALES_VIEW, keywords: 'courier postex leopards tcs trax booking label cn tracking connect' },
+      { to: '/online-store/costs', label: 'Selling costs', icon: Calculator, permission: P.SALES_VIEW, keywords: 'courier charge rate card cod fee packaging gateway fee profit expense rto' },
       { to: '/online-orders/customers', label: 'Online customers', icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab whatsapp broadcast remarketing' },
       { to: '/online-orders/reports', label: 'Online reports', icon: TrendingUp, permission: P.SALES_VIEW, keywords: 'online report rto city channel courier csv export excel block' },
       // Jore hue channels (WooCommerce, Shopify, apni website, Daraz…) yahan

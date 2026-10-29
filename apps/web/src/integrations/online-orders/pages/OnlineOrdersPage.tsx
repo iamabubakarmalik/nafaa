@@ -12,7 +12,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, BarChart3, Bell, CheckCircle2, CheckSquare, Download, Globe, GraduationCap, ListChecks, MousePointerClick,
+  AlertTriangle, BarChart3, Bell, PhoneCall, CheckCircle2, CheckSquare, Download, Globe, GraduationCap, ListChecks, MousePointerClick,
   RefreshCw, ShoppingBag, Timer, Trophy, Truck, Wallet, XCircle, Zap,
 } from 'lucide-react';
 import {
@@ -45,6 +45,14 @@ import { ordersDoc } from '../lib/print';
 
 type View = OrderTab | 'analytics';
 type Pay = '' | 'COD' | 'PAID';
+type Confirm = '' | 'CONFIRMED' | 'NO_ANSWER' | 'REFUSED' | 'NONE';
+const CONFIRM_OPTIONS: Array<{ value: Confirm; label: string; hint?: string }> = [
+  { value: '', label: 'Sab' },
+  { value: 'NONE', label: 'Abhi poocha nahi', hint: 'Confirm karwana baqi' },
+  { value: 'CONFIRMED', label: 'Confirm ho gaya', hint: 'Customer ne haan kaha' },
+  { value: 'NO_ANSWER', label: 'Jawab nahi', hint: 'Dobara koshish karein' },
+  { value: 'REFUSED', label: 'Mana kiya' },
+];
 const PAGE = 50;
 const YEAR_BACK = 364;
 
@@ -67,6 +75,7 @@ export default function OnlineOrdersPage() {
   const [query, setQuery] = useState(() => (params.get('search') ?? '').trim());
   const [range, setRange] = useReportRange('month');
   const [pay, setPay] = useState<Pay>('');
+  const [confirm, setConfirm] = useState<Confirm>('');
   const [selecting, setSelecting] = useState(false);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [cancelTarget, setCancelTarget] = useState<OnlineOrder | null>(null);
@@ -110,6 +119,7 @@ export default function OnlineOrdersPage() {
     payment: tab === 'COD_DUE' ? 'COD_DUE' : undefined,
     search: query || undefined,
     pay: pay || undefined,
+    confirm: confirm || undefined,
     ...(dated ? { from: period!.from, to: period!.to } : {}),
   };
   const listQ = useInfiniteQuery({
@@ -163,12 +173,12 @@ export default function OnlineOrdersPage() {
     open(orders[next].id);
   }, [orders, selectedId, open]);
 
-  const hasFilters = !!query || !!pay;
-  const clear = () => { setSearch(''); setPay(''); };
+  const hasFilters = !!query || !!pay || !!confirm;
+  const clear = () => { setSearch(''); setPay(''); setConfirm(''); };
   const goTab = (v: View) => { setView(v); stopSelecting(); };
   const refresh = () => { void listQ.refetch(); void countsQ.refetch(); void reportQ.refetch(); };
   const listName = view === 'analytics' ? 'Analytics' : ORDER_TABS.find((x) => x.id === tab)?.label ?? '';
-  const filterText = [channel?.displayName, pay === 'COD' ? 'Sirf COD' : pay === 'PAID' ? 'Sirf paid' : '', query && `"${query}"`].filter(Boolean).join(' · ');
+  const filterText = [channel?.displayName, pay === 'COD' ? 'Sirf COD' : pay === 'PAID' ? 'Sirf paid' : '', confirm && CONFIRM_OPTIONS.find((c) => c.value === confirm)?.label, query && `"${query}"`].filter(Boolean).join(' · ');
 
   /** Every order for the current filter, page by page (up to 1,000). */
   const fetchAll = async () => {
@@ -298,6 +308,7 @@ export default function OnlineOrdersPage() {
             placeholder="Order #, naam, phone ya CN…" label="Order search" />}
           chips={hasFilters ? <>
             {pay && <FilterChip onRemove={() => setPay('')}>{pay === 'COD' ? 'Sirf COD' : 'Sirf paid'}</FilterChip>}
+            {confirm && <FilterChip onRemove={() => setConfirm('')}>{CONFIRM_OPTIONS.find((c) => c.value === confirm)?.label}</FilterChip>}
             {query && <FilterChip onRemove={() => setSearch('')}>"{query}" · har date</FilterChip>}
           </> : undefined}
           onClear={clear}>
@@ -312,6 +323,7 @@ export default function OnlineOrdersPage() {
           )}
           <FilterMenu icon={Wallet} label="Paisa" value={pay} active={!!pay} onChange={setPay} align="right"
             options={[{ value: '' as Pay, label: 'Sab' }, { value: 'COD', label: 'Sirf COD', hint: 'Delivery par cash' }, { value: 'PAID', label: 'Sirf paid', hint: 'Paisa mil chuka' }]} />
+          <FilterMenu icon={PhoneCall} label="Confirm" value={confirm} active={!!confirm} onChange={setConfirm} align="right" options={CONFIRM_OPTIONS} />
         </FilterBar>
 
         <ViewTabs value={view} onChange={goTab}

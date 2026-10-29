@@ -5,7 +5,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
-import type { CreatePurchasePayload } from '../api/purchases.api';
+import type { CreatePurchasePayload, LandedMethod } from '../api/purchases.api';
+import { toPayload, type LandedDraft } from '../components/LandedCostEditor';
 import type { Source, UnitChoice } from './sources';
 
 export interface DraftLine {
@@ -20,6 +21,8 @@ export interface DraftLine {
   salePrice: number | null;
   batchNo: string;
   expiry: string;
+  /** Total weight of the line in kg, for landed cost by weight. */
+  weightKg?: number | null;
 }
 
 export interface DraftBill {
@@ -37,13 +40,16 @@ export interface DraftBill {
   dueDate: string;
   mode: 'receive' | 'order';
   expectedAt: string;
+  /** Freight, customs, clearing, transport paid to others (landed cost). */
+  landed: LandedDraft[];
+  landedMethod: LandedMethod;
 }
 
 const STORE = 'nafaa-purchase-draft';
 const today = () => new Date().toISOString().slice(0, 10);
 export const EMPTY_BILL: DraftBill = {
   supplierId: '', supplierName: '', invoiceNo: '', date: today(), notes: '', discount: 0, otherCharges: 0, taxAmount: 0,
-  paymentMethod: 'CASH', paid: null, dueDate: '', mode: 'receive', expectedAt: '',
+  paymentMethod: 'CASH', paid: null, dueDate: '', mode: 'receive', expectedAt: '', landed: [], landedMethod: 'VALUE',
 };
 
 const lineKey = () => `l${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
@@ -104,6 +110,7 @@ export function usePurchaseDraft(initialMode: 'receive' | 'order') {
     dueDate: due > 0 && bill.dueDate ? bill.dueDate : undefined,
     expectedAt: bill.mode === 'order' && bill.expectedAt ? bill.expectedAt : undefined,
     receive: bill.mode === 'receive',
+    ...(toPayload(bill.landed).length && { landedCosts: toPayload(bill.landed), landedCostMethod: bill.landedMethod }),
     items: lines.map((l) => ({
       ...(l.source.kind === 'product' ? { productId: l.source.id } : { ingredientId: l.source.id }),
       variantId: l.variant?.id,
@@ -113,6 +120,7 @@ export function usePurchaseDraft(initialMode: 'receive' | 'order') {
       salePrice: l.salePrice ?? undefined,
       batchNo: l.batchNo.trim() || undefined,
       expiryDate: l.expiry || undefined,
+      weightKg: l.weightKg != null && l.weightKg > 0 ? l.weightKg : undefined,
     })),
   });
 

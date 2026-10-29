@@ -85,7 +85,7 @@ export function OrderRow({ order: o, now, money, staleMinutes, branchName, selec
                 ? <span className={cn(pill, 'bg-rose-50 text-rose-700')}>Mana kiya</span>
                 : <span className={cn(pill, 'bg-amber-50 text-amber-800')}>{o.confirmation?.result === 'NO_ANSWER' ? `Jawab nahi (${o.confirmation.attempts})` : 'Confirm baqi'}</span>
             )}
-            {o.isCod && o.confirmation?.result === 'CONFIRMED' && !o.dispatchedAt && !closed && <span className={cn(pill, 'bg-success-50 text-success-700')}>Confirm</span>}
+            {o.isCod && o.confirmation?.result === 'CONFIRMED' && !o.dispatchedAt && !closed && <span className={cn(pill, 'bg-success-50 text-success-700')}>Confirm ho gaya</span>}
             {o.metadata?.cancelRequested && o.orderStatus !== 'CANCELLED' && <span className={cn(pill, 'bg-rose-600 text-white')}>Customer ne cancel maanga</span>}
             {late && <span className={cn(pill, 'bg-rose-50 text-rose-700')}><Timer className="h-3 w-3" />{waitText(wait)} se ruka</span>}
           </div>

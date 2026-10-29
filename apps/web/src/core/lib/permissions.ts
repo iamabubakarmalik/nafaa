@@ -114,6 +114,10 @@ export const PERMISSIONS = {
   ONLINE_PRODUCTS_MANAGE: 'online_products.manage',
   CATALOG_VIEW: 'catalog.view',
   CATALOG_MANAGE: 'catalog.manage',
+  /** Ads spend log and ROAS report. Profit columns also need cost.view and profit_report.view. */
+  ADS_VIEW: 'ads.view',
+  /** Ads spend: add, edit, delete, import. Writing it to expenses also needs expenses.create. */
+  ADS_MANAGE: 'ads.manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -171,6 +175,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
     PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
     PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
+    PERMISSIONS.ADS_VIEW, PERMISSIONS.ADS_MANAGE,
     PERMISSIONS.POS_USE,
     PERMISSIONS.POS_PRICE_TIER,
     PERMISSIONS.SALES_VIEW,
@@ -386,6 +391,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'online_orders.view': 'Online order dekhein', 'online_orders.manage': 'Online order chalayein',
   'online_products.view': 'Online products dekhein (link, price, stock)', 'online_products.manage': 'Online products jorein, Price aur Stock bhejein',
   'catalog.view': 'Online catalog dekhein', 'catalog.manage': 'Online catalog badlein',
+  'ads.view': 'Ads ka kharcha aur ROAS dekhein', 'ads.manage': 'Ads ka kharcha likhein / import karein',
 };
 
 export function getPermissionLabel(key: string): string {
@@ -583,6 +589,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
       PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
       PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
+      PERMISSIONS.ADS_VIEW, PERMISSIONS.ADS_MANAGE,
     ],
   },
   {

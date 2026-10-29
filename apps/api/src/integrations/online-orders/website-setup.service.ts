@@ -176,6 +176,8 @@ export class WebsiteSetupService {
       shopId,
       platform: PLATFORM_OF[body.type],
       siteUrl: body.siteUrl ?? null,
+      // New channels link exact SKU/barcode matches by themselves; older channels keep it off.
+      autoLink: true,
     };
     const fallbackName = body.type === 'WOOCOMMERCE' ? 'WooCommerce store' : body.type === 'SHOPIFY' ? 'Shopify store' : body.type === 'DARAZ' ? 'Daraz store' : body.type === 'FOODPANDA' ? 'Foodpanda' : 'Meri website';
 

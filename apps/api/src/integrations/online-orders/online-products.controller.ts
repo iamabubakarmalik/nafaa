@@ -44,6 +44,24 @@ export class OnlineProductsController {
     return this.svc.summary(user, channelId || undefined);
   }
 
+  @Get('issues')
+  @ApiOperation({ summary: 'What needs attention per channel, each with one fix (Masle panel)' })
+  issues(@GetUser() user: AuthenticatedUser) {
+    return this.svc.issues(user);
+  }
+
+  @Post('channels/:id/link-sure')
+  @ApiOperation({ summary: 'Link every exact SKU/barcode match on this channel' })
+  linkSure(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.svc.linkSure(user, id);
+  }
+
+  @Post('channels/:id/fix-size-less')
+  @ApiOperation({ summary: 'Remove links made without a size on products that have sizes' })
+  fixSizeLess(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.svc.fixSizeLess(user, id);
+  }
+
   @Get('channels/:id/suggestions')
   @ApiOperation({ summary: 'Channel list with suggested Nafaa matches (SKU, name, similar name)' })
   suggestions(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('refresh') refresh?: string) {
@@ -64,7 +82,7 @@ export class OnlineProductsController {
 
   @Put('channels/:id/settings')
   @ApiOperation({ summary: 'Channel price rule, price push and stock buffer' })
-  settings(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number }) {
+  settings(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean }) {
     return this.svc.saveSettings(user, id, body ?? {});
   }
 

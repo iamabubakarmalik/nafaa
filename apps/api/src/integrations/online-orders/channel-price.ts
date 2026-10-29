@@ -52,3 +52,35 @@ export function channelPrice(base: number, rule: PriceRule, override?: number | 
 /** Prices are compared in whole rupees: paisa differences are not a mismatch. */
 export const samePrice = (a: number | null | undefined, b: number | null | undefined) =>
   a !== null && a !== undefined && b !== null && b !== undefined && Math.abs(Number(a) - Number(b)) < 1;
+
+const DRIFT_FIRST_WAIT_MS = 30 * 60_000;
+const DRIFT_MAX_WAIT_MS = 24 * 3600_000;
+
+/**
+ * Should Nafaa send this price now?
+ *  - 'push': Nafaa's price changed since it last sent one.
+ *  - 'drift': Nafaa already sent this price but the channel list shows another
+ *    (changed on the channel). Re-sent with backoff: 30 min, 1 h, 2 h … up to 24 h.
+ *  - 'skip': the channel already has it, or the backoff has not run out.
+ */
+export function priceAction(
+  data: { pushedPrice?: unknown; channelPrice?: unknown; driftPushes?: unknown; driftPushedAt?: unknown } | null | undefined,
+  price: number,
+  now: number,
+  force = false,
+): 'push' | 'drift' | 'skip' {
+  if (!(price > 0)) return 'skip';
+  if (force) return 'push';
+  const d = data ?? {};
+  const pushed = d.pushedPrice === undefined || d.pushedPrice === null ? null : Number(d.pushedPrice);
+  const seen = d.channelPrice === undefined || d.channelPrice === null ? null : Number(d.channelPrice);
+  if (!samePrice(pushed, price)) {
+    // Never sent, or Nafaa's price moved. If the channel already shows it, nothing to do.
+    return seen !== null && samePrice(seen, price) && pushed === null ? 'skip' : 'push';
+  }
+  if (seen === null || samePrice(seen, price)) return 'skip';
+  const n = Math.max(0, Number(d.driftPushes) || 0);
+  const at = Date.parse(String(d.driftPushedAt ?? ''));
+  const wait = Math.min(DRIFT_MAX_WAIT_MS, DRIFT_FIRST_WAIT_MS * 2 ** n);
+  return Number.isFinite(at) && now - at < wait ? 'skip' : 'drift';
+}

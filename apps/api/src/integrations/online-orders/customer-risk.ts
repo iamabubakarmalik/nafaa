@@ -21,6 +21,8 @@ export interface CustomerRisk extends CustomerHistory {
   reason: string;
   /** Isi customer ke abhi khule (deliver/cancel nahi hue) doosre orders — dobara order? */
   duplicateOpen?: number;
+  /** Every reason behind the level, in Roman Urdu, most serious first. */
+  reasons?: string[];
 }
 
 /** Block list me ho to sab se upar */
@@ -47,3 +49,59 @@ export function riskOf(h: CustomerHistory): CustomerRisk {
 }
 
 export const emptyHistory = (): CustomerHistory => ({ total: 0, delivered: 0, returned: 0, cancelled: 0, open: 0, spent: 0 });
+
+/** Signals about one order beyond the customer's history. */
+export interface OrderSignals {
+  /** COD the customer pays on delivery. */
+  cod: number;
+  /** The shop's average delivered order value (last 90 days); null when unknown. */
+  avgOrder: number | null;
+  /** Minutes to the nearest other order from the same phone; null when none. */
+  nearestOrderMinutes: number | null;
+  /** Customer city is in a connected courier's city list: true, false, or null when unknown. */
+  cityCovered: boolean | null;
+  city: string | null;
+}
+
+const RANK: Record<RiskLevel, number> = { TRUSTED: 0, OK: 1, NEW: 2, WATCH: 3, HIGH: 4, BLOCKED: 5 };
+/** A same-phone order this close is likely a repeat by mistake or a fake. */
+export const DUPLICATE_MINUTES = 30;
+const rs = (n: number) => `Rs ${Math.round(n).toLocaleString('en-PK')}`;
+
+/**
+ * Adds the order's own warning signs to the customer's history risk: returns
+ * and repeated cancellations on this phone, a city no connected courier
+ * serves, a very high COD from a new customer, and another order from the
+ * same phone within minutes. The level only goes up; a blocked number stays
+ * blocked. Two warning signs on a new customer make it HIGH.
+ */
+export function withSignals(base: CustomerRisk, s: OrderSignals): CustomerRisk {
+  const reasons: string[] = [];
+  let level = base.level;
+  const raise = (to: RiskLevel) => { if (RANK[to] > RANK[level]) level = to; };
+  if (base.level === 'BLOCKED') reasons.push(base.reason);
+  if (base.returned > 0) reasons.push(`Is number se ${base.returned} parcel pehle wapas aaye${base.delivered ? `, ${base.delivered} liye` : ', ek bhi nahi liya'}`);
+  if (base.cancelled >= 2) {
+    reasons.push(`${base.cancelled} order pehle cancel hue`);
+    if (base.delivered === 0) raise('WATCH');
+  }
+  let warnings = 0;
+  if (s.nearestOrderMinutes !== null && s.nearestOrderMinutes <= DUPLICATE_MINUTES) {
+    reasons.push(`Isi number se ${Math.max(1, Math.round(s.nearestOrderMinutes))} minute ke farq se doosra order bhi aaya — dobara to nahi?`);
+    raise('WATCH'); warnings++;
+  }
+  if (s.cityCovered === false && s.city) {
+    reasons.push(`"${s.city}" jure courier ki shehar list me nahi — address aur shehar dobara poochein`);
+    raise('WATCH'); warnings++;
+  }
+  const high = Math.max(15_000, (s.avgOrder ?? 0) * 3);
+  if (base.total === 0 && s.cod >= high) {
+    reasons.push(`Naya customer aur COD bahut zyada (${rs(s.cod)})${s.avgOrder ? ` — aap ka ausat order ${rs(s.avgOrder)}` : ''}`);
+    raise(s.cod >= Math.max(30_000, (s.avgOrder ?? 0) * 5) ? 'HIGH' : 'WATCH'); warnings++;
+  }
+  if (base.level === 'NEW' && warnings >= 2) raise('HIGH');
+  if (!reasons.length) return { ...base, reasons: [base.reason] };
+  if (base.level !== 'BLOCKED' && base.returned === 0 && base.cancelled < 2) reasons.push(base.reason);
+  const label = level === base.level ? base.label : level === 'HIGH' ? 'RTO khatra' : 'Dhyan se';
+  return { ...base, level, label, reason: reasons[0], reasons };
+}

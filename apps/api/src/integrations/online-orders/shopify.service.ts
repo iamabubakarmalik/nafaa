@@ -10,7 +10,7 @@ import { WebsiteSetupService } from './website-setup.service';
 import { readWebsiteConfig } from './website-config';
 import { SHOPIFY_SCOPES, ShopifyClient, ShopifyError, numericId, orderGid } from './shopify.client';
 import { mappingKey } from './mapping-key';
-import { linkScope, trackLinks } from './link-sync';
+import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
 import { lookupShopFromDomain, normalizeShopifySiteUrl, parseShopAddress, shopAddressError } from './shopify-shop';
 
 /**
@@ -462,7 +462,7 @@ export class ShopifyService {
       const list = await this.prisma.integration.findMany({ where: { type: 'SHOPIFY', isActive: true, status: IntegrationStatus.CONNECTED } });
       for (const i of list) {
         if (!this.isConnected(i)) continue;
-        await this.syncStock(i).catch((e) => this.logger.warn(`Shopify stock sync ${i.displayName}: ${e?.message}`));
+        await this.syncAllStock(i).catch((e) => this.logger.warn(`Shopify stock sync ${i.displayName}: ${e?.message}`));
       }
     } finally {
       this.running = false;
@@ -501,7 +501,23 @@ export class ShopifyService {
 
   /** Nafaa → Shopify stock. onlySkus / onlyLinks = sirf badle hue (POS sale ke baad tez push) */
   async syncStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] } = {}) {
+    // Stock push switched off for this channel: nothing goes out, from any path.
+    if (!readWebsiteConfig(integration.config).pushStock) return { updated: 0, checked: 0, missing: 0, off: true };
     return trackLinks(this.prisma, integration.id, linkScope(opts), () => this.pushStock(integration, opts));
+  }
+
+  /** Full sync: every link page by page (no listing cap), then the listing pass for SKU-only matches. */
+  async syncAllStock(integration: Integration) {
+    if (!readWebsiteConfig(integration.config).pushStock) return { updated: 0, checked: 0, missing: 0, off: true };
+    let updated = 0;
+    let checked = 0;
+    await forEachLinkPage(this.prisma, integration.id, 100, async (onlyLinks) => {
+      const r = await this.syncStock(integration, { onlyLinks });
+      updated += r.updated;
+      checked += r.checked;
+    }, PAGE_DELAY_MS.SHOPIFY);
+    const rest = await this.syncStock(integration);
+    return { updated: updated + rest.updated, checked: checked + rest.checked, missing: rest.missing };
   }
 
   private async pushStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] }) {

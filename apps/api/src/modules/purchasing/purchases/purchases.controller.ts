@@ -1,10 +1,10 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { CurrentShop, ShopScope } from '../../../common/shop-scope';
 import {
-  CancelPurchaseDto, CreatePurchaseDto, ListPurchasesDto, ReceivePurchaseDto, ReturnPurchaseDto,
+  AddLandedCostsDto, CancelPurchaseDto, CreatePurchaseDto, ListPurchasesDto, ReceivePurchaseDto, ReturnPurchaseDto,
 } from './dto/create-purchase.dto';
 import { PurchasesService } from './purchases.service';
 import { PurchaseAnalyticsService } from './purchase-analytics.service';
@@ -58,6 +58,17 @@ export class PurchasesController {
   @Post(':id/return')
   returnGoods(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() dto: ReturnPurchaseDto) {
     return this.purchasesService.returnGoods(user, shop, id, dto);
+  }
+
+  /** Freight, customs, clearing, transport: spread over the lines into stock cost (purchases.create). */
+  @Post(':id/landed-costs')
+  addLandedCosts(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Body() dto: AddLandedCostsDto) {
+    return this.purchasesService.addLandedCosts(user, shop, id, dto);
+  }
+
+  @Delete(':id/landed-costs/:costId')
+  removeLandedCost(@GetUser() user: AuthenticatedUser, @CurrentShop() shop: ShopScope, @Param('id') id: string, @Param('costId') costId: string) {
+    return this.purchasesService.removeLandedCost(user, shop, id, costId);
   }
 
   @Post(':id/cancel')

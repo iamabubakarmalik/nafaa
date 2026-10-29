@@ -72,3 +72,45 @@ export function linkScope(opts: { onlySkus?: string[]; onlyLinks?: { externalPro
     ],
   };
 }
+
+export type LinkRef = { externalProductId: string; externalVariantId: string | null };
+
+/** Pause between pages so a big catalog does not hit a platform's rate limit. */
+export const PAGE_DELAY_MS = { WOOCOMMERCE: 400, SHOPIFY: 800, DARAZ: 300 } as const;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Every link of a channel, a page at a time (id order, cursor paging), with a
+ * pause between pages. Used by the full stock syncs and "Sync now", so a shop
+ * with thousands of linked products is covered without one giant request.
+ */
+export async function forEachLinkPage(
+  prisma: PrismaService,
+  integrationId: string,
+  size: number,
+  run: (links: LinkRef[], productIds: string[]) => Promise<void>,
+  delayMs = 0,
+  maxPages = 200,
+): Promise<number> {
+  let cursor: string | undefined;
+  let pages = 0;
+  for (; pages < maxPages; pages++) {
+    const rows = await prisma.productChannelMapping.findMany({
+      where: { integrationId, externalProductId: { not: null } },
+      select: { id: true, productId: true, externalProductId: true, externalVariantId: true },
+      orderBy: { id: 'asc' },
+      take: size,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    });
+    if (!rows.length) break;
+    cursor = rows[rows.length - 1].id;
+    if (pages > 0 && delayMs) await sleep(delayMs);
+    await run(
+      rows.map((r) => ({ externalProductId: String(r.externalProductId), externalVariantId: r.externalVariantId ? String(r.externalVariantId) : null })),
+      [...new Set(rows.map((r) => r.productId))],
+    );
+    if (rows.length < size) { pages++; break; }
+  }
+  return pages;
+}

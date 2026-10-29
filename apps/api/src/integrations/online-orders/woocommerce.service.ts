@@ -10,7 +10,7 @@ import { WebsiteSetupService } from './website-setup.service';
 import { assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 import { WooClient, WooError } from './woocommerce.client';
 import { mappingKey } from './mapping-key';
-import { linkScope, trackLinks } from './link-sync';
+import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
 
 /**
  * WooCommerce — ek click me jorna (Shopify jaisa):
@@ -262,7 +262,7 @@ export class WooCommerceService {
       });
       for (const i of list) {
         if (!this.isConnected(i)) continue;
-        await this.syncStock(i).catch((e) => this.logger.warn(`Woo stock sync ${i.displayName}: ${e?.message}`));
+        await this.syncAllStock(i).catch((e) => this.logger.warn(`Woo stock sync ${i.displayName}: ${e?.message}`));
       }
     } finally {
       this.running = false;
@@ -274,7 +274,23 @@ export class WooCommerceService {
    * sirf badle hue (POS sale ke foran baad ka tez push).
    */
   async syncStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] } = {}) {
+    // Stock push switched off for this channel: nothing goes out, from any path.
+    if (!readWebsiteConfig(integration.config).pushStock) return { updated: 0, checked: 0, missing: 0, off: true };
     return trackLinks(this.prisma, integration.id, linkScope(opts), () => this.pushStock(integration, opts));
+  }
+
+  /** Full sync: every link page by page (no listing cap), then the listing pass for SKU-only matches. */
+  async syncAllStock(integration: Integration) {
+    if (!readWebsiteConfig(integration.config).pushStock) return { updated: 0, checked: 0, missing: 0, off: true };
+    let updated = 0;
+    let checked = 0;
+    await forEachLinkPage(this.prisma, integration.id, 100, async (onlyLinks) => {
+      const r = await this.syncStock(integration, { onlyLinks });
+      updated += r.updated;
+      checked += r.checked;
+    }, PAGE_DELAY_MS.WOOCOMMERCE);
+    const rest = await this.syncStock(integration);
+    return { updated: updated + rest.updated, checked: checked + rest.checked, missing: rest.missing };
   }
 
   private async pushStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] }) {
@@ -298,7 +314,7 @@ export class WooCommerceService {
       }
       const byParent = new Map<string, string[]>();
       for (const l of links.filter((x) => x.externalVariantId)) byParent.set(l.externalProductId, [...(byParent.get(l.externalProductId) ?? []), l.externalVariantId!]);
-      for (const [parent, vids] of [...byParent].slice(0, 40)) {
+      for (const [parent, vids] of [...byParent].slice(0, 100)) {
         const found = await client.request<any[]>('GET', `/products/${parent}/variations`, { query: { include: vids.slice(0, 100).join(','), per_page: '100', _fields: 'id,sku,manage_stock,stock_quantity' } }).catch(() => []);
         for (const v of found ?? []) add({ id: v.id, parentId: Number(parent), sku: v.sku ?? '', stock: v.stock_quantity, manage: !!v.manage_stock });
       }

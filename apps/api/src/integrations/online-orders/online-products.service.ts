@@ -2,7 +2,8 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { Integration, IntegrationStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
-import { ChannelCatalogService, LinkInput, RemoteProduct } from './channel-catalog.service';
+import { ChannelCatalogService, LinkInput, RemoteProduct, RemoteVariant } from './channel-catalog.service';
+import { pickSureLinks, ScanResult } from './catalog-watch';
 import { WebsiteSetupService } from './website-setup.service';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
@@ -15,17 +16,34 @@ import { friendlySyncError } from './link-sync';
 import { mappingKey } from './mapping-key';
 
 /** Channels whose products Nafaa links, prices and keeps in stock. */
-export const PRODUCT_CHANNEL_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] as const;
+export const PRODUCT_CHANNEL_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'CUSTOM_WEBSITE'] as const;
+/** Channels Nafaa pushes stock and prices to. Custom websites and Indolj never get a push. */
+const PUSH_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] as const;
+
+/**
+ * How a channel works with products:
+ *  - woocommerce / shopify / daraz: Nafaa reads its list, pushes stock and (optionally) prices.
+ *  - indolj: a CUSTOM_WEBSITE with Indolj menu keys. Nafaa reads the menu for linking;
+ *    prices are set in the Indolj panel and Indolj does not track stock.
+ *  - website: a developer-built site. Nafaa cannot read it; it pulls stock and price
+ *    (Nafaa price, no rule) from the website API, and links come from orders or CSV.
+ */
+export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
 
 export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out';
 
 const PRICE_SCAN_LIMIT = 50_000;
 
-interface Col {
+export interface Col {
   integration: Integration;
   cfg: WebsiteConfig;
   shopId: string | null;
+  mode: ChannelMode;
 }
+
+const WEBSITE_LINKS_NOTE = 'Ye website apne products khud bhejti hai — order aane par ya CSV se jurte hain';
+
+const isPush = (mode: ChannelMode) => mode === 'woocommerce' || mode === 'shopify' || mode === 'daraz';
 
 /**
  * "Online products": every Nafaa product (and size) against every connected
@@ -55,21 +73,54 @@ export class OnlineProductsService {
       where: { tenantId, type: { in: [...PRODUCT_CHANNEL_TYPES] }, apiKey: { not: null }, status: { not: IntegrationStatus.PENDING } },
       orderBy: { createdAt: 'asc' },
     });
-    return list.map((integration) => {
-      const cfg = readWebsiteConfig(integration.config);
-      return { integration, cfg, shopId: cfg.shopId ?? integration.shopId };
-    });
+    return list.map((integration) => this.col(integration));
+  }
+
+  col(integration: Integration): Col {
+    const cfg = readWebsiteConfig(integration.config);
+    return { integration, cfg, shopId: cfg.shopId ?? integration.shopId, mode: this.modeOf(integration) };
+  }
+
+  private modeOf(i: Integration): ChannelMode {
+    switch (i.type) {
+      case 'WOOCOMMERCE': return 'woocommerce';
+      case 'SHOPIFY': return 'shopify';
+      case 'DARAZ': return 'daraz';
+      default: return this.catalog.kind(i) === 'indolj' ? 'indolj' : 'website';
+    }
+  }
+
+  /** Price this link should have on the channel: rule and own price only where Nafaa pushes prices. */
+  private wantPrice(c: Col, base: number, override?: number | null) {
+    return isPush(c.mode) ? channelPrice(base, c.cfg.priceRule, override) : Math.round(base * 100) / 100;
+  }
+
+  /** Stock shown for the channel: after the buffer, or null where the channel has no stock (Indolj). */
+  private shownStock(c: Col, stock: number | undefined) {
+    if (c.mode === 'indolj' || !c.shopId) return null;
+    return Math.max(0, Math.floor(Number(stock ?? 0)) - c.cfg.stockBuffer);
   }
 
   private async requireCol(tenantId: string, id: string): Promise<Col> {
     const integration = await this.setup.requireChannel(tenantId, id);
     if (!(PRODUCT_CHANNEL_TYPES as readonly string[]).includes(integration.type)) throw new NotFoundException('Ye channel products ke liye nahi');
-    const cfg = readWebsiteConfig(integration.config);
-    return { integration, cfg, shopId: cfg.shopId ?? integration.shopId };
+    return this.col(integration);
   }
 
-  private connected(i: Integration) {
-    return i.type === 'WOOCOMMERCE' ? this.woo.isConnected(i) : i.type === 'SHOPIFY' ? this.shopify.isConnected(i) : this.daraz.isConnected(i);
+  /** Can Nafaa push to this channel right now? Custom websites and Indolj: never. */
+  connected(i: Integration) {
+    switch (i.type) {
+      case 'WOOCOMMERCE': return this.woo.isConnected(i);
+      case 'SHOPIFY': return this.shopify.isConnected(i);
+      case 'DARAZ': return this.daraz.isConnected(i);
+      default: return false;
+    }
+  }
+
+  private live(c: Col) {
+    const i = c.integration;
+    if (!i.isActive || i.status !== IntegrationStatus.CONNECTED) return false;
+    return isPush(c.mode) ? this.connected(i) : true;
   }
 
   private info(c: Col, shops: Map<string, string>) {
@@ -79,13 +130,23 @@ export class OnlineProductsService {
       type: i.type,
       name: i.displayName,
       siteUrl: c.cfg.siteUrl,
-      live: i.isActive && i.status === IntegrationStatus.CONNECTED && this.connected(i),
+      platform: c.cfg.platform,
+      mode: c.mode,
+      /** Nafaa sends stock and prices ("Sync now", price rule). */
+      canPush: isPush(c.mode),
+      /** Nafaa can read the channel's product list (suggestions, import). */
+      canFetch: c.mode !== 'website',
+      /** The channel keeps stock (Indolj does not). */
+      tracksStock: c.mode !== 'indolj',
+      live: this.live(c),
       paused: !i.isActive,
       shopId: c.shopId,
       shopName: c.shopId ? shops.get(c.shopId) ?? null : null,
-      pushPrice: c.cfg.pushPrice,
-      priceRule: c.cfg.priceRule,
+      pushPrice: isPush(c.mode) && c.cfg.pushPrice,
+      priceRule: isPush(c.mode) ? c.cfg.priceRule : readPriceRule(undefined),
       stockBuffer: c.cfg.stockBuffer,
+      pushStock: isPush(c.mode) && c.cfg.pushStock,
+      autoLink: c.mode !== 'website' && c.cfg.autoLink,
       priceSource: c.cfg.priceSource,
       lastSyncAt: i.lastSyncAt,
       lastSyncStatus: i.lastSyncStatus,
@@ -117,21 +178,31 @@ export class OnlineProductsService {
     return new Map(shops.map((s) => [s.id, s.name]));
   }
 
-  async saveSettings(user: AuthenticatedUser, channelId: string, body: { priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number }) {
+  async saveSettings(user: AuthenticatedUser, channelId: string, body: { priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean }) {
     const c = await this.requireCol(user.tenantId, channelId);
     const fresh = await this.prisma.integration.findUniqueOrThrow({ where: { id: c.integration.id }, select: { config: true } });
     const raw = ((fresh.config as any) ?? {}) as Record<string, unknown>;
     const next = { ...raw };
-    if (body.priceRule !== undefined) next.priceRule = readPriceRule(body.priceRule);
-    if (body.pushPrice !== undefined) next.pushPrice = !!body.pushPrice;
+    if (c.mode === 'indolj') throw new BadRequestException('Indolj par Price Indolj panel se badlein; Stock wahan track nahi hota');
+    // Price rule and price push only where Nafaa sends prices; a custom website only takes the stock buffer.
+    if (isPush(c.mode) && body.priceRule !== undefined) next.priceRule = readPriceRule(body.priceRule);
+    if (isPush(c.mode) && body.pushPrice !== undefined) next.pushPrice = !!body.pushPrice;
     if (body.stockBuffer !== undefined) next.stockBuffer = Math.min(10_000, Math.max(0, Math.floor(Number(body.stockBuffer) || 0)));
+    if (isPush(c.mode) && body.pushStock !== undefined) next.pushStock = !!body.pushStock;
+    if (isPush(c.mode) && body.autoLink !== undefined) {
+      next.autoLink = !!body.autoLink;
+      // Switched on: the catalog watch picks the channel up within five minutes.
+      if (next.autoLink && !c.cfg.autoLink) next.catalogWatch = { ...((raw.catalogWatch as any) ?? {}), scan: null };
+    }
     const updated = await this.prisma.integration.update({ where: { id: c.integration.id }, data: { config: next as any } });
-    // New prices / buffer go out in the background.
-    this.background(async () => {
-      await this.push.pushPricesFor(updated);
-      if (body.stockBuffer !== undefined) await this.syncStock(updated);
-    }, `settings ${updated.displayName}`);
-    return this.info({ integration: updated, cfg: readWebsiteConfig(updated.config), shopId: readWebsiteConfig(updated.config).shopId ?? updated.shopId }, await this.shopNames(user.tenantId));
+    // New prices / buffer go out in the background (a custom website reads them on its next pull).
+    if (isPush(c.mode)) {
+      this.background(async () => {
+        await this.push.pushPricesFor(updated);
+        if (body.stockBuffer !== undefined || body.pushStock === true) await this.syncStock(updated);
+      }, `settings ${updated.displayName}`);
+    }
+    return this.info(this.col(updated), await this.shopNames(user.tenantId));
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -200,7 +271,7 @@ export class OnlineProductsService {
       const branch = await this.branchPrices(c.shopId, [...new Set(known.map((m) => m.productId))]);
       for (const m of known) {
         const base = branch.get(mappingKey(m.productId, m.variantId)) ?? Number(m.variantId ? m.variant?.price ?? m.product.price : m.product.price);
-        if (!samePrice(channelPrice(base, c.cfg.priceRule, m.priceOverride), knownPrice(m.externalData))) out.add(m.productId);
+        if (!samePrice(this.wantPrice(c, base, m.priceOverride), knownPrice(m.externalData))) out.add(m.productId);
       }
     }
     return out;
@@ -263,9 +334,9 @@ export class OnlineProductsService {
         for (const c of cols) {
           const ss = stocks.find((s) => s.shopId === c.shopId && (s.variantId ?? null) === variantId);
           const base = Number(ss?.shopPrice ?? price);
-          const stock = c.shopId ? Math.max(0, Math.floor(Number(ss?.stock ?? 0)) - c.cfg.stockBuffer) : null;
+          const stock = this.shownStock(c, ss?.stock);
           const m = p.channelMappings.find((x) => x.integrationId === c.integration.id && (x.variantId ?? null) === variantId);
-          const want = channelPrice(base, c.cfg.priceRule, m?.priceOverride);
+          const want = this.wantPrice(c, base, m?.priceOverride);
           if (!m) {
             cells[c.integration.id] = { linked: false, price: want, stock, nafaaStock: Number(ss?.stock ?? 0) };
             continue;
@@ -277,13 +348,14 @@ export class OnlineProductsService {
             externalTitle: m.externalTitle,
             externalSku: m.externalSku,
             price: want,
-            override: m.priceOverride,
+            override: isPush(c.mode) ? m.priceOverride : null,
             channelPrice: seen,
             priceDiffers: seen !== null && !samePrice(want, seen),
             stock,
             nafaaStock: Number(ss?.stock ?? 0),
-            status: m.syncStatus,
-            error: m.syncStatus === 'FAILED' ? m.syncError ?? 'Sync nahi hua' : null,
+            // Nothing is pushed to a custom website or Indolj, so there is no sync status to show.
+            status: isPush(c.mode) ? m.syncStatus : null,
+            error: isPush(c.mode) && m.syncStatus === 'FAILED' ? m.syncError ?? 'Sync nahi hua' : null,
             lastSyncedAt: m.lastSyncedAt,
           };
         }
@@ -321,19 +393,21 @@ export class OnlineProductsService {
   // SUGGESTIONS (channel list → Nafaa)
   // ═══════════════════════════════════════════════════════════
 
-  async suggestions(user: AuthenticatedUser, channelId: string, refresh = false) {
-    const c = await this.requireCol(user.tenantId, channelId);
+  /**
+   * Reads a channel's product list, remembers the price it shows on linked
+   * items (for "Price farq" and drift re-sends), and matches the open items
+   * against the Nafaa catalog. Used by the link screen and the catalog watch.
+   */
+  async scan(c: Col, refresh = false): Promise<ScanResult> {
     const i = c.integration;
-    const kind = this.catalog.kind(i);
-    if (!kind || kind === 'indolj') {
-      return { canFetch: false, remoteError: 'Channel jura nahi — pehle channel ka safha khol kar jorein', fetchedAt: null, stats: emptyStats(), sure: [], maybe: [], unmatched: [] };
-    }
     let remote: RemoteProduct[] = [];
     let remoteError: string | null = null;
+    let remoteFailure: unknown = null;
     try {
       remote = await this.catalog.remoteProducts(i, refresh);
     } catch (e) {
       remoteError = friendlySyncError(e);
+      remoteFailure = e;
     }
 
     const mappings = await this.prisma.productChannelMapping.findMany({
@@ -342,20 +416,20 @@ export class OnlineProductsService {
     });
     const byVariant = new Map(mappings.filter((m) => m.externalVariantId).map((m) => [String(m.externalVariantId), m]));
     const byProduct = new Map(mappings.filter((m) => !m.externalVariantId && m.externalProductId).map((m) => [String(m.externalProductId), m]));
-    const isLinked = (p: RemoteProduct, v: RemoteProduct['variants'][number]) =>
+    const isLinked = (p: RemoteProduct, v: RemoteVariant) =>
       (v.externalVariantId ? byVariant.get(v.externalVariantId) : byProduct.get(p.externalProductId));
 
     // Remember what the channel shows as price, for "price differs".
     const now = new Date().toISOString();
     const priceUpdates: Array<{ id: string; data: any }> = [];
-    const open: Array<{ p: RemoteProduct; v: RemoteProduct['variants'][number] }> = [];
+    const open: Array<{ p: RemoteProduct; v: RemoteVariant }> = [];
     let linked = 0;
     for (const p of remote) {
       for (const v of p.variants) {
         const m = isLinked(p, v);
         if (!m) { open.push({ p, v }); continue; }
         linked++;
-        if (v.price > 0 && knownPrice(m.externalData) !== v.price) {
+        if (v.price > 0 && Number((m.externalData as any)?.channelPrice) !== v.price) {
           priceUpdates.push({ id: m.id, data: { ...((m.externalData as any) ?? {}), channelPrice: v.price, channelPriceAt: now } });
         }
       }
@@ -364,21 +438,35 @@ export class OnlineProductsService {
       await this.prisma.productChannelMapping.update({ where: { id: u.id }, data: { externalData: u.data } }).catch(() => null);
     }
 
-    const products = await this.prisma.product.findMany({
-      where: { tenantId: user.tenantId, isActive: true },
-      select: {
-        id: true, name: true, sku: true, barcode: true, hasVariants: true, price: true,
-        variants: { where: { isActive: true }, select: { id: true, name: true, size: true, color: true, sku: true, barcode: true, price: true } },
-      },
-    });
+    const products = open.length
+      ? await this.prisma.product.findMany({
+          where: { tenantId: i.tenantId, isActive: true },
+          select: {
+            id: true, name: true, sku: true, barcode: true, hasVariants: true, price: true,
+            variants: { where: { isActive: true }, select: { id: true, name: true, size: true, color: true, sku: true, barcode: true, price: true } },
+          },
+        })
+      : [];
     const index = new MatchIndex(products as unknown as MatchProduct[]);
     const taken = new Set(mappings.map((m) => m.linkKey));
     const results = suggestAll(open.map(({ p, v }) => ({
       title: p.title, variantTitle: v.title, hasVariants: p.hasVariants, sku: v.sku, barcode: v.barcode, p, v,
     })), index, taken);
+    return { at: now, remote, remoteError, remoteFailure, linked, open, results, products: new Map(products.map((p) => [p.id, p])), isLinked };
+  }
 
-    const byId = new Map(products.map((p) => [p.id, p]));
-    const view = (p: RemoteProduct, v: RemoteProduct['variants'][number]) => ({
+  async suggestions(user: AuthenticatedUser, channelId: string, refresh = false) {
+    const c = await this.requireCol(user.tenantId, channelId);
+    // Indolj: its menu (sizes = prices[]) comes through the Indolj keys. A developer-built site cannot be read.
+    if (c.mode === 'website') {
+      return { canFetch: false, remoteError: WEBSITE_LINKS_NOTE, fetchedAt: null, stats: emptyStats(), sure: [], maybe: [], unmatched: [] };
+    }
+    if (!this.catalog.kind(c.integration)) {
+      return { canFetch: false, remoteError: 'Channel jura nahi — pehle channel ka safha khol kar jorein', fetchedAt: null, stats: emptyStats(), sure: [], maybe: [], unmatched: [] };
+    }
+    const sc = await this.scan(c, refresh);
+    const { remote, open, linked, isLinked } = sc;
+    const view = (p: RemoteProduct, v: RemoteVariant) => ({
       externalProductId: p.externalProductId, externalVariantId: v.externalVariantId,
       title: p.title, variantTitle: p.hasVariants ? v.title : null, hasVariants: p.hasVariants,
       sku: v.sku, price: v.price, stock: v.stock, image: v.image ?? p.image,
@@ -386,9 +474,9 @@ export class OnlineProductsService {
     const sure: any[] = [];
     const maybe: any[] = [];
     const unmatchedBy = new Map<string, { externalProductId: string; title: string; image: string | null; hasVariants: boolean; anyLinked: boolean; variants: any[] }>();
-    for (const { item, match } of results) {
+    for (const { item, match } of sc.results) {
       if (match) {
-        const np = byId.get(match.productId)!;
+        const np = sc.products.get(match.productId)!;
         const nv = match.variantId ? np.variants.find((x) => x.id === match.variantId) : null;
         const row = {
           ...view(item.p, item.v),
@@ -416,13 +504,93 @@ export class OnlineProductsService {
 
     return {
       canFetch: true,
-      remoteError,
-      fetchedAt: now,
+      remoteError: sc.remoteError,
+      fetchedAt: sc.at,
       stats: { products: remote.length, variants: linked + open.length, linked, sure: sure.length, maybe: maybe.length, unmatched: open.length - sure.length - maybe.length },
       sure,
       maybe,
       unmatched,
     };
+  }
+
+  /**
+   * Links every "Pakka" (SKU/barcode) match of a scan and records it in the
+   * channel activity. Shayad matches are never linked this way.
+   */
+  async linkSureFor(c: Col, sc: ScanResult, auto: boolean) {
+    const links = pickSureLinks(sc.results);
+    if (!links.length) return { saved: 0, errors: [] as string[] };
+    const res = await this.catalog.saveLinksFor(c.integration, c.integration.tenantId, links);
+    if (res.saved) {
+      await this.prisma.syncLog.create({
+        data: {
+          integrationId: c.integration.id, tenantId: c.integration.tenantId, operation: 'PRODUCT_LINK', direction: 'INBOUND', status: 'SUCCESS',
+          recordsSuccess: res.saved, recordsFailed: res.errors.length,
+          details: { auto, how: 'sku', items: links.slice(0, 200).map((l) => l.externalTitle ?? l.externalSku ?? l.externalProductId) } as any,
+          completedAt: new Date(),
+        },
+      }).catch(() => null);
+      const productIds = [...new Set(links.map((l) => l.productId))];
+      this.background(() => this.syncProducts(c.integration, productIds), `auto link ${c.integration.displayName}`);
+    }
+    return res;
+  }
+
+  /** "Sab pakke jod dein" from the Masle panel. */
+  async linkSure(user: AuthenticatedUser, channelId: string) {
+    const c = await this.requireCol(user.tenantId, channelId);
+    if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
+    const sc = await this.scan(c, false);
+    if (sc.remoteError && !sc.remote.length) throw new BadRequestException(sc.remoteError);
+    const res = await this.linkSureFor(c, sc, false);
+    await this.patchWatch(c.integration.id, (w) => ({ ...w, scan: w.scan ? { ...w.scan, sure: 0 } : w.scan }));
+    return res;
+  }
+
+  /** Removes links made without a size on products that have sizes (they bill "Available: 0"). */
+  async fixSizeLess(user: AuthenticatedUser, channelId: string) {
+    const c = await this.requireCol(user.tenantId, channelId);
+    const res = await this.prisma.productChannelMapping.deleteMany({ where: { integrationId: c.integration.id, variantId: null, product: { hasVariants: true } } });
+    this.catalog.forget(c.integration.id);
+    return { removed: res.count };
+  }
+
+  /** Read-modify-write of the catalog watch state in the channel config. */
+  async patchWatch(integrationId: string, fn: (w: any) => any) {
+    const fresh = await this.prisma.integration.findUnique({ where: { id: integrationId }, select: { config: true } });
+    const cfg = ((fresh?.config as any) ?? {}) as Record<string, any>;
+    await this.prisma.integration.update({ where: { id: integrationId }, data: { config: { ...cfg, catalogWatch: fn(cfg.catalogWatch ?? {}) } as any } });
+  }
+
+  /** What needs attention, per channel, each with one fix. */
+  async issues(user: AuthenticatedUser) {
+    const cols = await this.cols(user.tenantId);
+    if (!cols.length) return { issues: [] };
+    const ids = cols.map((c) => c.integration.id);
+    const [sizeLess, failed] = await Promise.all([
+      this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, variantId: null, product: { hasVariants: true } }, _count: { _all: true } }),
+      this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
+    ]);
+    const n = (rows: Array<{ integrationId: string; _count: { _all: number } }>, id: string) => rows.find((r) => r.integrationId === id)?._count._all ?? 0;
+    const issues: Array<{ id: string; channelId: string; tone: 'danger' | 'warning' | 'info'; kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link'; text: string; detail?: string | null; count?: number }> = [];
+    for (const c of cols) {
+      const i = c.integration;
+      if (!i.isActive) continue;
+      const name = i.displayName;
+      const watch = ((i.config as any)?.catalogWatch ?? {}) as any;
+      if (isPush(c.mode) && (!this.connected(i) || i.status === IntegrationStatus.ERROR)) {
+        issues.push({ id: `${i.id}:reconnect`, channelId: i.id, tone: 'danger', kind: 'reconnect', text: `${name} jura nahi — dobara jorein`, detail: (i.config as any)?.darazError ?? watch.scan?.error ?? null });
+      }
+      const bad = n(sizeLess, i.id);
+      if (bad) issues.push({ id: `${i.id}:size`, channelId: i.id, tone: 'danger', kind: 'fix-size-less', count: bad, text: `${name}: ${bad} size wale ${bad === 1 ? 'product' : 'products'} bina size jure — theek karein` });
+      const f = isPush(c.mode) ? n(failed, i.id) : 0;
+      if (f) issues.push({ id: `${i.id}:errors`, channelId: i.id, tone: 'warning', kind: 'errors', count: f, text: `${name}: ${f} ${f === 1 ? 'product' : 'products'} ka Stock/Price nahi ja raha` });
+      const sure = Number(watch.scan?.sure ?? 0);
+      if (sure && c.mode !== 'website') issues.push({ id: `${i.id}:sure`, channelId: i.id, tone: 'info', kind: 'link-sure', count: sure, text: `${name}: ${sure} products jorna baqi — sab pakke jod dein` });
+      const fresh = Number(watch.scan?.newUnlinked ?? 0);
+      if (fresh && c.mode !== 'website') issues.push({ id: `${i.id}:new`, channelId: i.id, tone: 'info', kind: 'link', count: fresh, text: `${name}: ${fresh} naye products Nafaa se jure nahi` });
+    }
+    return { issues };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -431,6 +599,7 @@ export class OnlineProductsService {
 
   async link(user: AuthenticatedUser, channelId: string, links: LinkInput[]) {
     const c = await this.requireCol(user.tenantId, channelId);
+    if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
     const res = await this.catalog.saveLinksFor(c.integration, user.tenantId, (links ?? []).slice(0, 1000));
     if (res.saved) {
       const productIds = [...new Set((links ?? []).map((l) => l.productId))];
@@ -441,6 +610,7 @@ export class OnlineProductsService {
 
   async importItems(user: AuthenticatedUser, channelId: string, externalProductIds: string[]) {
     const c = await this.requireCol(user.tenantId, channelId);
+    if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
     if (!Array.isArray(externalProductIds) || !externalProductIds.length) throw new BadRequestException('Koi product nahi chuna');
     return this.catalog.importFor(c.integration, user.tenantId, externalProductIds.map(String).slice(0, 200));
   }
@@ -463,6 +633,8 @@ export class OnlineProductsService {
 
   async setPrice(user: AuthenticatedUser, mappingId: string, priceOverride: number | null) {
     const m = await this.mapping(user.tenantId, mappingId);
+    if (this.modeOf(m.integration) === 'indolj') throw new BadRequestException('Indolj par Price Indolj panel se badlein');
+    if (this.modeOf(m.integration) === 'website') throw new BadRequestException('Website ko Nafaa wali Price jati hai — product ki Price Nafaa me badlein');
     const value = priceOverride === null || priceOverride === undefined || (priceOverride as any) === '' ? null : Number(priceOverride);
     if (value !== null && (!Number.isFinite(value) || value <= 0 || value > 100_000_000)) throw new BadRequestException('Price sahi nahi');
     await this.prisma.productChannelMapping.update({ where: { id: m.id }, data: { priceOverride: value === null ? null : Math.round(value * 100) / 100 } });
@@ -473,8 +645,10 @@ export class OnlineProductsService {
   /** "Sync now" for one channel: all stock, then prices that changed. */
   async syncChannel(user: AuthenticatedUser, channelId: string) {
     const c = await this.requireCol(user.tenantId, channelId);
+    if (c.mode === 'indolj') throw new BadRequestException('Indolj par Stock track nahi hota aur Price Indolj panel se badalti hai — bhejne ko kuch nahi');
+    if (c.mode === 'website') throw new BadRequestException('Website Stock aur Price khud Nafaa se leti hai — yahan se bhejne ki zaroorat nahi');
     if (!this.connected(c.integration)) throw new BadRequestException('Channel jura nahi — pehle channel ka safha khol kar jorein');
-    const out: { stock: unknown; prices: number; error: string | null } = { stock: null, prices: 0, error: null };
+    const out: { stock: unknown; prices: number; error: string | null; stockOff: boolean } = { stock: null, prices: 0, error: null, stockOff: !c.cfg.pushStock };
     try {
       out.stock = await this.syncStock(c.integration);
       out.prices = (await this.push.pushPricesFor(c.integration)).sent;
@@ -490,7 +664,8 @@ export class OnlineProductsService {
     if (!product) throw new NotFoundException('Product nahi mila');
     const cols = await this.cols(user.tenantId);
     const results: Array<{ channelId: string; name: string; ok: boolean; error: string | null }> = [];
-    for (const c of cols) {
+    // Only channels Nafaa pushes to; custom websites pull, Indolj keeps no stock.
+    for (const c of cols.filter((x) => isPush(x.mode))) {
       const linked = await this.prisma.productChannelMapping.count({ where: { integrationId: c.integration.id, productId } });
       if (!linked) continue;
       try {
@@ -506,17 +681,21 @@ export class OnlineProductsService {
 
   private async syncStock(i: Integration) {
     if (!this.connected(i)) return null;
-    if (i.type === 'WOOCOMMERCE') return this.woo.syncStock(i);
-    if (i.type === 'SHOPIFY') return this.shopify.syncStock(i);
-    return this.daraz.syncStock(i);
+    switch (i.type) {
+      // Every link, page by page with a pause per platform, then the SKU listing pass.
+      case 'WOOCOMMERCE': return this.woo.syncAllStock(i);
+      case 'SHOPIFY': return this.shopify.syncAllStock(i);
+      case 'DARAZ': return this.daraz.syncStock(i);
+      default: return null;
+    }
   }
 
   /** Stock and price for some products on one channel (after linking, or "Sync now"). */
-  private async syncProducts(i: Integration, productIds: string[], force = false) {
-    if (!this.connected(i) || !productIds.length) return;
+  async syncProducts(i: Integration, productIds: string[], force = false) {
+    if (!(PUSH_TYPES as readonly string[]).includes(i.type) || !this.connected(i) || !productIds.length) return;
     if (i.type === 'DARAZ') {
       await this.daraz.syncStock(i, { productIds });
-    } else {
+    } else if (i.type === 'WOOCOMMERCE' || i.type === 'SHOPIFY') {
       const links = await this.prisma.productChannelMapping.findMany({
         where: { integrationId: i.id, productId: { in: productIds }, externalProductId: { not: null } },
         select: { externalProductId: true, externalVariantId: true },
@@ -524,7 +703,7 @@ export class OnlineProductsService {
       const onlyLinks = links.map((l) => ({ externalProductId: String(l.externalProductId), externalVariantId: l.externalVariantId ? String(l.externalVariantId) : null }));
       if (onlyLinks.length) {
         if (i.type === 'WOOCOMMERCE') await this.woo.syncStock(i, { onlyLinks });
-        else await this.shopify.syncStock(i, { onlyLinks });
+        else if (i.type === 'SHOPIFY') await this.shopify.syncStock(i, { onlyLinks });
       }
     }
     await this.push.pushPricesFor(i, { productId: { in: productIds } }, force);

@@ -226,6 +226,11 @@ export const ROUTE_RULES: RouteRule[] = [
 
   { match: /(^|\/)online-orders?(\/|$)/, GET: P.ONLINE_ORDERS_VIEW, write: P.ONLINE_ORDERS_MANAGE },
   { match: /^online-products(\/|$)/, GET: P.ONLINE_PRODUCTS_VIEW, write: P.ONLINE_PRODUCTS_MANAGE },
+  /* Ads spend and ROAS. The posting setting is a settings change; writing to expenses also needs expenses.create (checked in AdsService). */
+  { match: /^ads\/settings(\/|$)/, GET: P.ADS_VIEW, write: P.SETTINGS_EDIT },
+  { match: /^ads(\/|$)/, GET: P.ADS_VIEW, write: P.ADS_MANAGE },
+  /* Price calculator shows cost and profit; the controller adds products.view and settings.edit where needed. */
+  { match: /^price-calculator(\/|$)/, GET: P.COST_VIEW, write: P.COST_VIEW },
   { match: /(^|\/)marketplace/, GET: P.CATALOG_VIEW, write: P.CATALOG_MANAGE },
 
   /* ── PIN ka nizam ──

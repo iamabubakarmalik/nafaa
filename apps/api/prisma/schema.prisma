@@ -510,6 +510,7 @@ model Tenant {
 
   productionRecipes ProductionRecipe[]
   productionRuns    ProductionRun[]
+  adSpends          AdSpend[]
 }
 
 model Referral {
@@ -1669,6 +1670,11 @@ model Purchase {
   supplierInvoiceNo String?
   /// Freight, loading and similar costs added to the bill.
   otherCharges   Float          @default(0)
+  /// Landed cost paid to others (freight, customs, clearing, transport), Rs.
+  /// Part of the stock cost of the lines, never of the supplier's bill.
+  landedCost       Float   @default(0)
+  /// How landed cost is spread over the lines: VALUE, QTY or WEIGHT.
+  landedCostMethod String?
   taxAmount      Float          @default(0)
   /// Value of what has been received (orders can arrive in parts).
   receivedValue  Float          @default(0)
@@ -1688,6 +1694,7 @@ model Purchase {
   createdBy User?          @relation("UserPurchases", fields: [createdById], references: [id], onDelete: SetNull)
   items     PurchaseItem[]
   returns   PurchaseReturn[]
+  landedCosts PurchaseLandedCost[]
 
   @@unique([tenantId, purchaseNumber])
   @@index([tenantId])
@@ -1719,6 +1726,10 @@ model PurchaseItem {
   returnedQty    Float     @default(0)
   batchNo        String?
   expiryDate     DateTime?
+  /// This line's share of the purchase's landed cost, Rs (for all its units).
+  landedCost     Float     @default(0)
+  /// Total weight of the line in kg, for spreading landed cost by weight.
+  weightKg       Float?
   createdAt      DateTime  @default(now())
 
   purchase   Purchase          @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
@@ -1729,6 +1740,33 @@ model PurchaseItem {
   @@index([purchaseId])
   @@index([productId])
   @@index([ingredientId])
+}
+
+/// One landed cost of a purchase: freight, customs, clearing agent, local
+/// transport or other, in Rs (with the foreign amount and rate when paid in a
+/// foreign currency). `soldShare` is the part that fell on units already sold
+/// when the cost was added after receipt; it is not in any stock cost.
+model PurchaseLandedCost {
+  id            String   @id @default(uuid())
+  tenantId      String
+  purchaseId    String
+  kind          String
+  label         String?
+  amount        Float
+  currency      String?
+  foreignAmount Float?
+  exchangeRate  Float?
+  paidTo        String?
+  method        String   @default("VALUE")
+  afterReceipt  Boolean  @default(false)
+  soldShare     Float    @default(0)
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([purchaseId])
+  @@index([tenantId, createdAt])
 }
 
 /// Goods sent back to the supplier from one purchase.
@@ -17394,6 +17432,15 @@ model ChannelOrder {
   courierLabelUrl   String?
   courierStatus     String?
   courierStatusAt   DateTime?
+  // Selling costs once known (booking, statement, by hand, or frozen when
+  // posted); null = not known, screens estimate from the shop's rate card.
+  courierCharge     Float?
+  codFee            Float?
+  gatewayFee        Float?
+  packagingCost     Float?
+  rtoCost           Float?
+  // Posted as an "Online selling costs" expense (P&L) at this time.
+  costsPostedAt     DateTime?
 
   @@unique([integrationId, externalOrderId])
   @@index([tenantId, orderStatus])
@@ -17401,6 +17448,7 @@ model ChannelOrder {
   @@index([tenantId, receivedAt])
   @@index([tenantId, courierCode])
   @@index([tenantId, courierBookedAt])
+  @@index([tenantId, trackingNumber])
   @@map("channel_orders")
 }
 
@@ -23558,4 +23606,38 @@ model AiUsageDaily {
   @@unique([tenantId, date])
   @@index([date])
   @@map("ai_usage_daily")
+}
+
+/// One day's ads spend on one platform (META, TIKTOK, GOOGLE, OTHER), typed in
+/// or imported from an ads manager CSV. `day` is the business day. With
+/// `postExpense` the spend reaches the P&L through one expense per day,
+/// platform and branch (sourceType AD_SPEND), kept in `expenseId`.
+model AdSpend {
+  id            String   @id @default(uuid())
+  tenantId      String
+  shopId        String?
+  day           String
+  platform      String
+  amount        Float
+  campaign      String?
+  /// Sales channel the ad promoted (Integration id).
+  integrationId String?
+  /// Products the ad promoted.
+  productIds    String[] @default([])
+  /// Orders the ads manager reported, when the CSV had them.
+  orders        Int?
+  source        String   @default("MANUAL")
+  importKey     String?
+  postExpense   Boolean  @default(true)
+  expenseId     String?
+  note          String?
+  createdById   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, importKey])
+  @@index([tenantId, day])
+  @@index([tenantId, platform, day])
 }

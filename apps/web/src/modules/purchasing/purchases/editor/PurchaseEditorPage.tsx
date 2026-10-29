@@ -29,6 +29,7 @@ import { PayoutWarning } from '@modules/finance/cash-register/components/PayoutW
 import { suppliersApi, type Supplier } from '../../suppliers/api/suppliers.api';
 import { purchasesApi } from '../api/purchases.api';
 import { QuickProductModal, QuickSupplierModal } from '../components/QuickAddModals';
+import { LandedCostEditor, landedTotal, newLanded } from '../components/LandedCostEditor';
 import { usePurchaseDraft, type DraftLine } from './draft';
 import { searchSources, usePurchaseSources, type Source, type UnitChoice } from './sources';
 
@@ -165,6 +166,7 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
     !lines.length && 'Kam se kam ek cheez jorein',
     lines.some((l) => !(l.qty > 0)) && 'Har line ki quantity likhein',
     bill.discount > d.subtotal && 'Discount bill se zyada hai',
+    bill.landed.some((c) => c.currency !== 'PKR' && c.amount > 0 && !(c.rate > 0)) && 'Landed cost: currency ka rate (Rs me) likhein',
   ].filter(Boolean) as string[];
 
   const save = useMutation({
@@ -336,6 +338,8 @@ export function PurchaseEditorPage({ config = {} }: { config?: PurchaseEditorCon
             )}
           </div>
 
+          <LandedCard d={d} />
+
           {!order && (
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
               <p className="mb-2 text-[0.8125rem] font-semibold text-slate-800">Payment</p>
@@ -430,6 +434,37 @@ function Row({ k, v }: { k: string; v: string }) {
 
 function Hint({ children }: { children: ReactNode }) {
   return <span className="mt-1 block text-[0.6875rem] leading-snug text-slate-400">{children}</span>;
+}
+
+/** Import / landed cost: costs paid to others that go into stock cost, not the supplier's bill. */
+function LandedCard({ d }: { d: ReturnType<typeof usePurchaseDraft> }) {
+  const { bill, setBill, lines } = d;
+  const [open, setOpen] = useState(bill.landed.length > 0);
+  const total = landedTotal(bill.landed);
+  if (!open) {
+    return (
+      <button type="button" onClick={() => { setOpen(true); if (!bill.landed.length) setBill({ ...bill, landed: [newLanded()] }); }}
+        className="flex w-full items-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-3 text-left text-[0.8125rem] hover:border-brand-400 hover:bg-brand-50/40">
+        <Truck className="h-4 w-4 text-brand-600" />
+        <span className="flex-1"><span className="font-semibold text-slate-900">Import / landed cost jorein</span>
+          <span className="block text-[0.6875rem] text-slate-500">Freight, customs, clearing agent — dusron ko diye, maal ki Cost me jurenge</span></span>
+        <Plus className="h-4 w-4 text-slate-400" />
+      </button>
+    );
+  }
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <p className="text-[0.8125rem] font-semibold text-slate-800">Landed cost (import)</p>
+        <span className="text-[0.8125rem] font-bold tabular-nums text-slate-900">{formatPKR(total)}</span>
+      </div>
+      <LandedCostEditor
+        costs={bill.landed} onCosts={(landed) => setBill({ ...bill, landed })}
+        method={bill.landedMethod} onMethod={(landedMethod) => setBill({ ...bill, landedMethod })}
+        lines={lines.map((l) => ({ id: l.key, name: l.variant ? `${l.source.name} (${l.variant.name})` : l.source.name, value: l.qty * l.cost, qty: l.qty * l.unit.rate, unit: l.source.baseUnit, weightKg: l.weightKg ?? null }))}
+        onWeight={(key, kg) => d.patch(key, { weightKg: kg })} />
+    </div>
+  );
 }
 
 function MoneyRow({ label, hint, value, onChange, sign }: { label: string; hint?: string; value: number; onChange: (v: number) => void; sign: string }) {

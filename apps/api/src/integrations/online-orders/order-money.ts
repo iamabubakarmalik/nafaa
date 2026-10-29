@@ -50,9 +50,15 @@ export function orderMoney(
   const meta = (o.metadata ?? {}) as any;
   const advance = Math.round(paidAdvance(o.metadata) * 100) / 100;
   const riderDelivery = Number(meta.riderDelivery ?? 0) || 0;
-  const deliveryMode: DeliveryMode = riderDelivery > 0 || (deliveryFeeMode === 'RIDER' && fee > 0) ? 'RIDER' : fee > 0 ? 'CUSTOMER' : 'FREE';
+  // A choice made on the order (before its bill) wins over the channel setting.
+  const choice = meta.deliveryChoice as DeliveryMode | undefined;
+  const deliveryMode: DeliveryMode = choice === 'FREE' ? 'FREE'
+    : choice === 'CUSTOMER' ? (fee > 0 ? 'CUSTOMER' : 'FREE')
+      : riderDelivery > 0 || (deliveryFeeMode === 'RIDER' && fee > 0) ? 'RIDER' : fee > 0 ? 'CUSTOMER' : 'FREE';
+  // The website's delivery charge, also when the shop made it free here.
+  const originalFee = Number(meta.deliveryOriginal?.fee ?? fee) || 0;
   const codDue = o.paymentStatus === 'PAID' ? 0 : Math.max(0, Math.round((total - advance) * 100) / 100);
-  return { advance, codDue, deliveryMode, deliveryFee: fee };
+  return { advance, codDue, deliveryMode, deliveryFee: fee, originalFee };
 }
 
 /**

@@ -43,7 +43,11 @@ export function RiskCard({ risk }: { risk?: CustomerRisk | null }) {
           : risk.level === 'TRUSTED' ? 'bg-success-50 text-success-900'
             : 'bg-slate-50 text-slate-700')}>
       <div className="flex items-center gap-2 font-bold"><Icon className="h-4 w-4" /> {risk.label}</div>
-      <div className="mt-0.5 text-xs font-semibold opacity-90">{risk.reason}</div>
+      {(risk.reasons?.length ?? 0) > 1 ? (
+        <ul className="mt-1 list-disc space-y-0.5 pl-5 text-xs font-semibold opacity-90">
+          {risk.reasons!.map((r) => <li key={r}>{r}</li>)}
+        </ul>
+      ) : <div className="mt-0.5 text-xs font-semibold opacity-90">{risk.reason}</div>}
       {(risk.duplicateOpen ?? 0) > 0 && (
         <div className="mt-1 text-xs font-bold">Dhyan: isi customer ke {risk.duplicateOpen} aur order abhi khule hain — dobara to nahi bheja?</div>
       )}

@@ -5,15 +5,16 @@
  */
 
 import { Alert, Table, THead, TBody, Tr, Th, Td } from '@/design-system/components';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Boxes, CalendarClock, ClipboardList, Layers, Lock, Package, Plus, Tag, Trash2, Wallet } from 'lucide-react';
+import { BadgePercent, Boxes, CalendarClock, ClipboardList, Layers, Lock, Package, Plus, Tag, Trash2, Wallet } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { COST_PRICE_LABEL, PRICE_TIER_FIELD, marginPct } from '@core/lib/priceTiers';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import { BrandField, CategoryField, Chip, CodeFields, ImagesField, MarginCard, NumberField, Section, TagsField, TextField, Tiles, Toggle, inputClass } from './fields';
+import { PriceCalculatorModal } from '@modules/growth/price-calculator/PriceCalculatorModal';
 import { openingStock } from './save';
 import type { BatchDraft, CoreOptions, Errors, StepContext, StepDef, UnitDraft, VariantDraft } from './types';
 
@@ -253,6 +254,7 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
                     })}
                   </div>
                 )}
+                <PriceCalcButton productId={ctx.productId} name={c.name} cost={c.costPrice} onUse={(price) => ctx.setCore({ price })} />
                 {(belowCost(c.wholesalePrice, c.costPrice) || belowCost(c.creditPrice, c.costPrice)) && (
                   <Alert tone="warning">
                     {[belowCost(c.wholesalePrice, c.costPrice) && 'Wholesale price', belowCost(c.creditPrice, c.costPrice) && 'Credit price'].filter(Boolean).join(' aur ')} Cost ({formatPKR(c.costPrice)}) se kam hai — is rate par har sale par loss hoga.
@@ -272,6 +274,23 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
       );
     },
   };
+}
+
+/** "Price nikalein": the price calculator for online selling, filled with this product. Needs cost.view. */
+function PriceCalcButton({ productId, name, cost, onUse }: { productId?: string; name: string; cost: number; onUse: (price: number) => void }) {
+  const canCost = usePermission(PERMISSIONS.COST_VIEW);
+  const [open, setOpen] = useState(false);
+  if (!canCost) return null;
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)}
+        className="inline-flex min-h-9 items-center gap-1.5 rounded-xl bg-brand-50 px-3 text-[0.8125rem] font-semibold text-brand-800 ring-1 ring-brand-200 transition hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500">
+        <BadgePercent className="h-4 w-4" /> Price nikalein
+        <span className="font-normal text-brand-700/80">— courier, COD, Daraz fees, ads ke baad</span>
+      </button>
+      {open && <PriceCalculatorModal productId={productId} name={name} cost={cost} onUse={onUse} onClose={() => setOpen(false)} />}
+    </>
+  );
 }
 
 /* ─────────────────────────── Step 3: stock ─────────────────────────── */

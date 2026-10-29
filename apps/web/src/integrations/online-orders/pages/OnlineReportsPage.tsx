@@ -4,7 +4,7 @@
  * hours and weekdays, products, customers and how long COD sits with
  * couriers. CSV of every order (owner and manager) and a printable summary.
  *
- * Keys: 1–5 tabs · G guide.
+ * Keys: 1–6 tabs · G guide.
  */
 
 import { useEffect, useState } from 'react';
@@ -13,7 +13,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   ArrowDownRight, ArrowUpRight, BarChart3, Clock, Download, Globe, GraduationCap, LayoutDashboard, MapPin, Package, PackageCheck, RotateCcw,
-  ShieldBan, ShoppingBag, Timer, Truck, Users, XCircle,
+  ShieldBan, ShoppingBag, Timer, TrendingUp, Truck, Users, XCircle,
 } from 'lucide-react';
 import {
   Button, DateRangeMenu, FilterBar, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, Skeleton, ViewTabs, heroButton, heroIconButton,
@@ -33,11 +33,15 @@ import { useSalesChannels } from '../hooks/useSalesChannels';
 import { brandIcon } from '../lib/labels';
 import { brandForChannel, brandLabel } from '@/assets/brands/BrandLogo';
 import { reportDoc } from '../lib/print';
+import { OnlineProfit } from '../components/analytics/OnlineProfit';
+import { usePermission } from '@core/hooks/usePermission';
+import { PERMISSIONS } from '@core/lib/permissions';
 
-type Tab = 'summary' | 'channels' | 'couriers' | 'products' | 'aging';
+type Tab = 'summary' | 'profit' | 'channels' | 'couriers' | 'products' | 'aging';
 
 const TABS: Array<{ id: Tab; label: string; icon: typeof Globe; sections: AnalyticsSection[] }> = [
   { id: 'summary', label: 'Khulasa', icon: LayoutDashboard, sections: ['pipeline', 'trend', 'payment', 'time'] },
+  { id: 'profit', label: 'Asli profit', icon: TrendingUp, sections: [] },
   { id: 'channels', label: 'Channel & shehar', icon: MapPin, sections: ['channels', 'cities'] },
   { id: 'couriers', label: 'Courier & RTO', icon: Truck, sections: ['couriers', 'cities'] },
   { id: 'products', label: 'Products & customers', icon: Package, sections: ['products', 'customers'] },
@@ -51,6 +55,8 @@ export default function OnlineReportsPage() {
   const { sales: money } = useMasked();
   const guide = usePageGuide();
   const [tab, setTab] = useState<Tab>('summary');
+  const seesProfit = usePermission(PERMISSIONS.COST_VIEW);
+  const tabs = TABS.filter((x) => x.id !== 'profit' || seesProfit);
   const [range, setRange] = useReportRange('month');
   const [channelId, setChannelId] = useState('');
   const { data: channels } = useSalesChannels();
@@ -75,11 +81,12 @@ export default function OnlineReportsPage() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
-      if (/^[1-5]$/.test(e.key)) setTab(TABS[Number(e.key) - 1].id);
+      const t = tabs[Number(e.key) - 1];
+      if (/^[1-6]$/.test(e.key) && t) setTab(t.id);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [seesProfit]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const t = data?.totals;
   const p = data?.previous;
@@ -140,8 +147,8 @@ export default function OnlineReportsPage() {
         )}
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>5</Kbd> tabs</>}
-        tabs={TABS.map(({ id, label, icon }) => ({ id, label, icon }))} />
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>-<Kbd>{tabs.length}</Kbd> tabs</>}
+        tabs={tabs.map(({ id, label, icon }) => ({ id, label, icon }))} />
 
       {isLoading ? (
         <div className="grid gap-4 lg:grid-cols-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}</div>
@@ -151,6 +158,8 @@ export default function OnlineReportsPage() {
           <p className="mt-1 text-[0.8125rem] text-slate-500">{apiErrorMessage(error)}</p>
           <Button className="mt-3" variant="secondary" onClick={() => refetch()}>Dobara koshish</Button>
         </div>
+      ) : tab === 'profit' ? (
+        <OnlineProfit q={{ ...period, integrationId: channelId || undefined }} money={money} />
       ) : data.totals.orders === 0 && tab !== 'aging' ? (
         <div className="flex flex-col items-center rounded-3xl bg-white px-6 py-16 text-center ring-1 ring-slate-200/80">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><ShoppingBag className="h-6 w-6" /></span>
@@ -166,13 +175,14 @@ export default function OnlineReportsPage() {
           steps={[
             { icon: BarChart3, color: '#2563eb', title: 'Period chunein', text: 'Aaj, 7 din, 30 din, mahina ya apni date. Upar ke number pichli itni hi period se milaye jate hain.' },
             { icon: ShoppingBag, color: '#16a34a', title: 'Sale ka hisaab', text: 'Sale me sirf woh orders jo cancel ya wapas nahi hue. "Orders aaye" me har order ginta hai.' },
+            { icon: TrendingUp, color: '#16a34a', title: 'Asli profit', text: 'Har order ka profit courier charge, COD fee, packaging aur RTO nikal kar — channel, courier, shehar aur product ke hisaab se.' },
             { icon: MapPin, color: '#7c3aed', title: 'Channel aur shehar', text: 'Kahan se zyada order aata hai, aur kis shehar me RTO zyada — wahan COD call karke confirm karein.' },
             { icon: Truck, color: '#0284c7', title: 'Courier aur RTO', text: 'Kaun sa courier zyada deliver karta hai aur kis ke parcel wapas aate hain.' },
             { icon: Package, color: '#d97706', title: 'Products aur customers', text: 'Sab se zyada bikne wali cheezein aur sab se qeemti customer.' },
             { icon: Download, color: '#0891b2', title: 'CSV aur print', text: 'CSV me har order ki line (malik ya manager). Print me khulasa, channel, shehar, courier aur products.' },
           ]}
           tips={['Test order kisi report me nahi aata.', 'Din dukaan ke apne waqt par badalta hai (Settings → karobari din).', 'COD tab ka "kitne din se" poore account ka hai, date ka nahi.']}
-          shortcuts={[['1', 'khulasa'], ['2', 'channel'], ['3', 'courier'], ['4', 'products'], ['5', 'COD'], ['G', 'guide']]}
+          shortcuts={[['1', 'khulasa'], ['2', 'asli profit'], ['3', 'channel'], ['4', 'courier'], ['5', 'products'], ['6', 'COD'], ['G', 'guide']]}
         />
       )}
     </PageShell>

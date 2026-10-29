@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import {
-  AlertTriangle, BarChart3, ChevronRight, Filter, GraduationCap, KeyRound, LayoutGrid, PackageCheck, PenLine, PlugZap, Printer, RefreshCw,
+  AlertTriangle, BarChart3, Calculator, ChevronRight, Filter, GraduationCap, KeyRound, LayoutGrid, PackageCheck, PenLine, PlugZap, Printer, RefreshCw,
   Truck, Wallet, Zap,
 } from 'lucide-react';
 import {
@@ -86,7 +86,9 @@ export default function CouriersPage() {
         loading={isLoading}
         actions={<>
           <button type="button" onClick={() => refetch()} title="Taaza" className={heroIconButton}><RefreshCw className={isFetching ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} /></button>
-          <Link to="/online-orders/cod" className={heroButton}><Wallet className="h-4 w-4" /> COD hisaab</Link>
+          <Link to="/online-store/couriers/rules" className={heroButton}><Zap className="h-4 w-4" /> <span className="hidden sm:inline">Auto booking</span></Link>
+          <Link to="/online-store/costs" className={heroButton}><Calculator className="h-4 w-4" /> <span className="hidden sm:inline">Rates</span></Link>
+          <Link to="/online-orders/cod" className={heroButton}><Wallet className="h-4 w-4" /> <span className="hidden sm:inline">COD hisaab</span></Link>
           <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={data ? [

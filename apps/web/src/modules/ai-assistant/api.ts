@@ -193,6 +193,19 @@ export interface MorningSummary {
     lowStock: { out: number; low: number };
     topItem: string | null;
   } | null;
+  /** Online orders block, for shops with an online channel. */
+  ecommerce?: {
+    orders: number;
+    sales: number;
+    rto: number;
+    codWithCouriers: number | null;
+    codOrders: number | null;
+    adsSpend: number | null;
+    roas: number | null;
+    profitAfterAds: number | null;
+    /** Short WhatsApp text of the block. */
+    text: string;
+  } | null;
 }
 
 /** The one message shop users see when an answer fails for a technical reason. */

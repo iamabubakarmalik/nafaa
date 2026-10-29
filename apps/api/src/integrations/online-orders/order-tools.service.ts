@@ -12,6 +12,9 @@ import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 const blockKey = (tenantId: string) => `online_orders_blocklist:${tenantId}`;
+const riskKey = (tenantId: string) => `online_order_risk:${tenantId}`;
+
+export interface RiskSettings { askAdvance: boolean; advancePct: number }
 
 export interface BlockEntry {
   key: string;
@@ -88,6 +91,35 @@ export class OrderToolsService {
     const list = await this.blocklist(user.tenantId);
     await this.saveBlocklist(user.tenantId, list.filter((b) => b.key !== k));
     return { ok: true };
+  }
+
+  /**
+   * Risky-order rule: when a customer's risk is HIGH, ask for an advance of
+   * `advancePct` % before sending (and do not accept the order by itself).
+   */
+  async riskSettings(tenantId: string): Promise<RiskSettings> {
+    const row = await this.prisma.systemSetting.findUnique({ where: { key: riskKey(tenantId) } });
+    let raw: any = {};
+    try { raw = row?.value ? JSON.parse(row.value) : {}; } catch { raw = {}; }
+    const pct = Number(raw?.advancePct);
+    return { askAdvance: raw?.askAdvance === true, advancePct: Number.isFinite(pct) && pct >= 5 && pct <= 100 ? Math.round(pct) : 30 };
+  }
+
+  async saveRiskSettings(user: AuthenticatedUser, body: Partial<RiskSettings>) {
+    const ok: string[] = ['OWNER', 'MANAGER', 'SUPER_ADMIN'];
+    if (!ok.includes(user.role)) throw new BadRequestException('Ye setting sirf malik ya manager badal sakta hai');
+    const before = await this.riskSettings(user.tenantId);
+    const pct = Number(body?.advancePct ?? before.advancePct);
+    const next: RiskSettings = {
+      askAdvance: typeof body?.askAdvance === 'boolean' ? body.askAdvance : before.askAdvance,
+      advancePct: Number.isFinite(pct) && pct >= 5 && pct <= 100 ? Math.round(pct) : before.advancePct,
+    };
+    await this.prisma.systemSetting.upsert({
+      where: { key: riskKey(user.tenantId) },
+      create: { key: riskKey(user.tenantId), value: JSON.stringify(next), category: 'online_orders', isPublic: false },
+      update: { value: JSON.stringify(next) },
+    });
+    return next;
   }
 
   private async saveBlocklist(tenantId: string, list: BlockEntry[]) {
@@ -360,7 +392,7 @@ export class OrderToolsService {
       { label: '30+ din', min: 31, max: Infinity, count: 0, value: 0 },
     ];
     for (const o of collected) {
-      const days = o.deliveredAt ? Math.floor((Date.now() - o.deliveredAt.getTime()) / 86_400_000) : 0;
+      const days = o.deliveredAt ? Math.max(0, Math.floor((Date.now() - o.deliveredAt.getTime()) / 86_400_000)) : 0;
       const b = aging.find((a) => days >= a.min && days <= a.max)!;
       b.count++; b.value += shopDue(o);
     }

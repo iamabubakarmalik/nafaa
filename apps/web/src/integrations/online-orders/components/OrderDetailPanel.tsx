@@ -15,6 +15,7 @@ import { LIVE_ORDERS_KEY } from '../hooks/useLiveOnlineOrders';
 import { COURIER_OPTIONS, NEXT_ACTION, STATUS_LABEL, rs, sourceOf, waNumber, whenText } from '../lib/labels';
 import { MatchItemsModal, type Matches } from './MatchItemsModal';
 import { CourierSection } from './CourierSection';
+import { CourierHint } from './couriers/CourierHint';
 import { RiskCard } from './RiskBadge';
 import { ConfirmCard } from './ConfirmCard';
 import { OrderExtras } from './OrderExtras';
@@ -22,6 +23,8 @@ import { OrderBranchPicker } from './OrderBranchPicker';
 import { DarazOrderSection } from './daraz/Daraz';
 import { PaymentLinkSection } from './PaymentLinkSection';
 import { OrderMoneyCard, moneyOf } from './orders/OrderMoneyCard';
+import { OrderProfitCard } from './orders/OrderProfitCard';
+import { RiskAdvice } from './orders/RiskAdvice';
 import { CancelOrderModal } from './orders/CancelOrderModal';
 import { cn } from '@core/lib/cn';
 
@@ -217,6 +220,7 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
             </div>
           )}
           <RiskCard risk={o.risk} />
+          <RiskAdvice order={o} onChanged={refresh} />
           {o.notes && (
             <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">
               <span className="font-semibold">Note:</span> {o.notes}
@@ -284,6 +288,8 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
 
         {/* ─── Money: delivery, advance, COD ─── */}
         <OrderMoneyCard order={o} onChanged={refresh} onPaid={() => paid.mutate()} paying={paid.isPending} />
+
+        <OrderProfitCard order={o} onChanged={refresh} />
 
         {o.integration?.type !== 'DARAZ' && <PaymentLinkSection order={o} onChanged={refresh} />}
 
@@ -501,6 +507,7 @@ function DispatchModal({ open, order, loading, onClose, onConfirm }: {
           </button>
         ))}
       </div>
+      <div className="mt-3"><CourierHint orderId={order.id} current={code} pickable={COURIER_OPTIONS.map((c) => c.code)} onPick={setCode} /></div>
       {code === 'OTHER' && (
         <input value={other} onChange={(e) => setOther(e.target.value)} placeholder="Courier ka naam"
           className={cn(controlClass(), 'mt-3 h-10 px-3 text-sm')} />

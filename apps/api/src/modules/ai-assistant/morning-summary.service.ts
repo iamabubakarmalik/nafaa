@@ -19,6 +19,10 @@
  * the owner and active users with ai.use and reports.view, narrowed to the
  * recipients chosen in Settings → Reports. WhatsApp: there is no server-side
  * WhatsApp sender in the app, so delivery is in-app only.
+ *
+ * Shops with an online channel also get an e-commerce block (online orders,
+ * sales, RTO, COD with couriers, ads spend, ROAS, profit after ads) from
+ * growth/ecommerce-summary, with its own short WhatsApp text.
  */
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -37,6 +41,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { AI_MORNING_FALLBACK_TIME } from './ai.config';
 import { money } from './ai-render';
 import type { MorningSummary } from './ai.types';
+import { ecommerceBlock } from '../growth/ecommerce-summary';
 
 const KIND = 'ai-morning-summary';
 const SEND_WINDOW_MINUTES = 120;
@@ -158,13 +163,17 @@ export class MorningSummaryService {
     const scope = { tenantId, shopId };
     const win = { gte: yesterdayStart, lt: todayStart };
 
-    const [f, prevSales, top, stock, owed, got] = await Promise.all([
+    const [f, prevSales, top, stock, owed, got, online] = await Promise.all([
       profitFigures(this.prisma, scope, win),
       saleFigures(this.prisma, scope, { gte: dayBeforeStart, lt: yesterdayStart }),
       this.topItem(tenantId, shopId, yesterdayStart, todayStart),
       this.stockCounts(viewer, shopId),
       seesKhata ? this.outstanding(tenantId, shopId) : Promise.resolve(0),
       seesKhata ? this.collected(tenantId, shopId, yesterdayStart, todayStart) : Promise.resolve(0),
+      ecommerceBlock(this.prisma, {
+        tenantId, shopId, day, dayText: dayLabel(day), window: win, tz, dayStartHour, shopName: s.shop,
+        can: { orders: can(PERMISSIONS.ONLINE_ORDERS_VIEW), ads: can(PERMISSIONS.ADS_VIEW), profit: seesProfit },
+      }).catch((e) => { this.logger.warn(`E-commerce summary failed for ${tenantId}: ${e?.message}`); return null; }),
     ]);
     const sales = f.sales;
     const average = sales.bills ? r2(sales.net / sales.bills) : 0;
@@ -202,7 +211,8 @@ export class MorningSummaryService {
     if (seesKhata) lines.push(`• Udhaar: ${money(sales.credit)} diya, ${money(got)} wapas aaya — kul baqi ${money(owed)}`);
     if (stock.out || stock.low) lines.push(`• Stock: ${stock.out} cheezein khatam, ${stock.low} kam`);
     if (top && sales.bills) lines.push(`• Sab se zyada bika: ${top}`);
-    return { allowed: true, day, title, text: lines.join('\n'), figures };
+    if (online) lines.push('', online.text);
+    return { allowed: true, day, title, text: lines.join('\n'), figures, ecommerce: online };
   }
 
   /** GET /ai/morning-summary for the signed-in user and their branch view. */
@@ -272,7 +282,7 @@ export class MorningSummaryService {
       const summary = await this.build({ tenantId, role: u.role, permissions: u.permissions, shopId: u.shopId }, u.role === 'OWNER' ? null : u.shopId, info);
       if (!summary.allowed || !summary.figures) continue;
       // A closed shop gets nothing: no bills and nothing owed changes.
-      if (!summary.figures.bills && !summary.figures.expenses) continue;
+      if (!summary.figures.bills && !summary.figures.expenses && !summary.ecommerce) continue;
       await this.notifications.create({
         tenantId, userId: u.id, type: NotificationType.INFO,
         title: summary.title, message: summary.text, link: '/ai',

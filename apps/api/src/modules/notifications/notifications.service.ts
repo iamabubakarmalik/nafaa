@@ -31,7 +31,7 @@ export type NotificationGroup = (typeof NOTIFICATION_GROUPS)[number];
 const GROUP_WHERE: Record<NotificationGroup, Prisma.NotificationWhereInput> = {
   summary: { metadata: { path: ['kind'], equals: 'daily-summary' } },
   sales: { type: { in: ['NEW_SALE', 'PAYMENT_RECEIVED', 'RETURN_PROCESSED', 'REGISTER_OPENED', 'REGISTER_CLOSED'] } },
-  online: { OR: [{ metadata: { path: ['kind'], equals: 'ONLINE_ORDER' } }, { link: { startsWith: '/online-orders' } }] },
+  online: { OR: [{ metadata: { path: ['kind'], equals: 'ONLINE_ORDER' } }, { link: { startsWith: '/online-orders' } }, { link: { startsWith: '/online-store' } }] },
   stock: { OR: [{ type: 'LOW_STOCK' }, { link: { startsWith: '/transfers' } }, { link: { startsWith: '/low-stock' } }] },
   alerts: { type: { in: ['WARNING', 'ERROR', 'CREDIT_ALERT', 'PAYMENT_REJECTED', 'SUBSCRIPTION_EXPIRING'] } },
 };

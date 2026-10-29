@@ -5,7 +5,8 @@ import { Search, ShieldBan, Trash2 } from 'lucide-react';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
 import { whenText } from '../lib/labels';
 import { cn } from '@core/lib/cn';
-import { Button, Card, controlClass, EmptyState, Input, PageHero, PageShell } from '@/design-system/components';
+import { Button, Card, controlClass, EmptyState, Input, PageHero, PageShell, Switch } from '@/design-system/components';
+import { scanApi } from '../api/order-money.api';
 
 /* ═════════════════════════════════════════════════════════════
    BLOCK LIST — fake / baar baar RTO karne wale numbers. Is number se
@@ -39,6 +40,8 @@ export default function BlocklistPage() {
     <PageShell className="max-w-3xl">
       <PageHero back="/online-orders/reports" backLabel="Online reports" title="Block list"
         subtitle="Fake ya RTO karne wale numbers. In se aane wale order khud accept nahi hote — 'Blocked' ke nishan ke saath 'Naye' me rukte hain." />
+      <RiskRuleCard />
+
       <Card title="Number block karein">
         <div className="grid gap-3 sm:grid-cols-3">
           <Input size="sm" label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="03xxxxxxxxx" />
@@ -77,5 +80,30 @@ export default function BlocklistPage() {
         </div>
       </Card>
     </PageShell>
+  );
+}
+
+/** "Risk HIGH ho to advance maangein": the shop's rule for risky COD orders. */
+function RiskRuleCard() {
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ['risk-settings'], queryFn: scanApi.riskSettings });
+  const [pct, setPct] = useState<string | null>(null);
+  const save = useMutation({
+    mutationFn: (body: { askAdvance?: boolean; advancePct?: number }) => scanApi.saveRiskSettings(body),
+    onSuccess: (r) => { qc.setQueryData(['risk-settings'], r); setPct(null); toast.success('Setting save ho gayi'); qc.invalidateQueries({ queryKey: ['online-order'] }); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  if (!data) return null;
+  const value = pct ?? String(data.advancePct);
+  return (
+    <Card title="Fake / risky orders" description="Nafaa har order par pichhle RTO, baar baar cancel, shehar jo courier nahi jaata, naye customer ka bahut bara COD aur kuch minute me dobara order dekhta hai.">
+      <Switch checked={data.askAdvance} disabled={save.isPending} onChange={(e) => save.mutate({ askAdvance: e.target.checked })}
+        label="Risk HIGH ho to advance maangein"
+        description="Aise COD order khud accept nahi honge, aur order par advance maangne ke button aayenge (WhatsApp, payment link, block)." />
+      <div className="mt-3 flex flex-wrap items-end gap-2">
+        <Input size="sm" type="number" min={5} max={100} label="Kitna advance (% order ka)" value={value} onChange={(e) => setPct(e.target.value)} className="w-44" />
+        <Button size="sm" variant="secondary" disabled={pct === null || !(Number(value) >= 5 && Number(value) <= 100)} loading={save.isPending} onClick={() => save.mutate({ advancePct: Number(value) })}>Save</Button>
+      </div>
+    </Card>
   );
 }
