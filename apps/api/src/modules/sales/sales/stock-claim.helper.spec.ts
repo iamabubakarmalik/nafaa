@@ -6,7 +6,7 @@ describe('POS stock — minus me nahi jata', () => {
   it('ek hi product do lines me: jor kar check (4 + 4 > 5)', () => {
     const want = new Map<string, number>();
     expect(addCartNeed(want, 'p1:null', 4, 5, label)).toBe(4);
-    expect(() => addCartNeed(want, 'p1:null', 4, 5, label)).toThrow(/cart me kul: 8/);
+    expect(() => addCartNeed(want, 'p1:null', 4, 5, label)).toThrow(/cart me kul 8/);
   });
 
   it('alag products alag gine jate hain', () => {
