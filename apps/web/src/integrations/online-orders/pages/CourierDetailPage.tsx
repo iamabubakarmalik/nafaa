@@ -10,18 +10,22 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, CheckCircle2, ExternalLink, KeyRound, ListFilter, PackageCheck, PenLine, Power, Printer, RefreshCw, Truck, Unplug, UserX,
+  BookOpen, CheckCircle2, ExternalLink, KeyRound, ListFilter, PackageCheck, PenLine, Power, Printer, RefreshCw, Truck, Undo2, Unplug, UserX,
   Wallet, Zap,
 } from 'lucide-react';
-import { Alert, Badge, Button, Card, confirmDialog, FilterBar, FilterMenu, heroButton, heroIconButton, KpiCard, KpiRow, PageHero, PageShell, SearchField, Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr, type BadgeVariant, ViewTabs } from '@/design-system/components';
+import { Alert, Badge, Button, Card, confirmDialog, FilterBar, FilterMenu, heroButton, KpiCard, KpiRow, Modal, PageHero, PageShell, SearchField, Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr, type BadgeVariant, ViewTabs } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { apiErrorMessage, couriersApi, type CourierAccount, type CourierShipment } from '../api/online-orders.api';
 import { COURIERS_KEY, ConnectForm, CourierLogo, CourierSettingsForm } from '../components/couriers/CourierForms';
 import { OrderDrawer } from '../components/orders/OrderDrawer';
 import { STATUS_LABEL, timeAgo, whenText } from '../lib/labels';
+import { GuideBody, GuideCard } from '../components/guides/Guide';
+import { courierGuide } from '../components/guides/courierGuides';
 
 type Tab = 'overview' | 'book' | 'parcels' | 'settings' | 'connection';
+
+const CARD = 'rounded-3xl border-0 ring-1 ring-slate-200/80';
 
 const COURIER_STATE: Record<string, { label: string; tone: BadgeVariant }> = {
   BOOKING: { label: 'Book ho raha', tone: 'default' },
@@ -107,11 +111,13 @@ export default function CourierDetailPage() {
   return (
     <PageShell>
       <PageHero
-        title={<span className="inline-flex items-center gap-3"><span className="rounded-lg bg-white p-0.5"><CourierLogo c={c} size={32} /></span>{c.name}</span>}
+        back="/online-store/couriers"
+        backLabel="Sab couriers"
+        title={<span className="inline-flex items-center gap-3"><span className="inline-flex rounded-[28%] bg-white"><CourierLogo c={c} size={32} /></span>{c.name}</span>}
         chip={<><Truck />{statusText}</>}
         meta={c.connected
           ? `Key ${c.maskedKey ?? ''}${c.lastSyncAt ? ` · aakhri sync ${timeAgo(c.lastSyncAt)}` : ''}`
-          : isApi ? 'API key paste karein — booking, label, tracking aur RTO sab khud' : 'CN khud likhein — tracking link, COD hisaab aur RTO Nafaa sambhalta hai'}
+          : isApi ? `${c.name} ki details paste karein — booking, label, tracking aur RTO sab khud` : c.code === 'RIDER' ? 'Order ka safar aur COD ka paisa Nafaa sambhalta hai' : 'CN khud likhein — tracking link, COD hisaab aur RTO Nafaa sambhalta hai'}
         busy={isFetching}
         actions={<HeaderActions c={c} />}
         stats={[
@@ -122,12 +128,20 @@ export default function CourierDetailPage() {
         ]}
       />
 
-      <KpiRow cols={4}>
-        <KpiCard icon={Zap} color="#2563eb" label="Book (30 din)" value={s.booked30} hint="Nafaa se book hue" />
-        <KpiCard icon={Printer} color="#d97706" label="Pickup ka intezar" value={s.awaitingPickup} hint="Label print karke parcel dein" onClick={() => showParcels('booked')} />
-        <KpiCard icon={UserX} color="#e11d48" label="Customer nahi mila" value={s.attempted} hint="Call karein warna RTO" onClick={() => showParcels('attempted')} />
-        <KpiCard icon={Wallet} color="#ea580c" label="COD paas" value={money(s.codPendingValue)} hint={`${s.codPending} parcel · dabayein`} onClick={() => showParcels('cod')} />
-      </KpiRow>
+      {isApi ? (
+        <KpiRow cols={4}>
+          <KpiCard icon={Zap} color="#2563eb" label="Book (30 din)" value={s.booked30} hint="Nafaa se book hue" />
+          <KpiCard icon={Printer} color="#d97706" label="Pickup ka intezar" value={s.awaitingPickup} hint="Label print karke parcel dein" onClick={() => showParcels('booked')} />
+          <KpiCard icon={UserX} color="#e11d48" label="Customer nahi mila" value={s.attempted} hint="Call karein warna RTO" onClick={() => showParcels('attempted')} />
+          <KpiCard icon={Wallet} color="#ea580c" label="COD paas" value={money(s.codPendingValue)} hint={`${s.codPending} parcel · dabayein`} onClick={() => showParcels('cod')} />
+        </KpiRow>
+      ) : (
+        <KpiRow cols={3}>
+          <KpiCard icon={UserX} color="#e11d48" label="Customer nahi mila" value={s.attempted} hint="Call karein warna RTO" onClick={() => showParcels('attempted')} />
+          <KpiCard icon={Wallet} color="#ea580c" label="COD paas" value={money(s.codPendingValue)} hint={`${s.codPending} parcel · dabayein`} onClick={() => showParcels('cod')} />
+          <KpiCard icon={Undo2} color="#c026d3" label="Wapas (30 din)" value={s.returned30} hint={`${s.dispatched30} bheje · dabayein`} onClick={() => showParcels('returned')} />
+        </KpiRow>
+      )}
 
       {c.connected && c.lastError && (
         <Alert tone="danger" title={`${c.name} se rabta nahi ho raha`} action={<Button size="sm" variant="secondary" onClick={() => setTab('connection')}>Key check karein</Button>}>
@@ -145,7 +159,7 @@ export default function CourierDetailPage() {
       {tab === 'overview' && <Overview c={c} onTab={setTab} onParcels={showParcels} />}
       {tab === 'book' && <BookTab c={c} money={money} onOpen={setOrderId} />}
       {tab === 'parcels' && <ParcelsTab c={c} money={money} filter={parcelFilter} setFilter={setParcelFilter} onOpen={setOrderId} />}
-      {tab === 'settings' && <Card className="rounded-2xl" title="Booking settings" description="Har nayi booking par yahi lagengi — booking ke waqt badal bhi sakte hain."><CourierSettingsForm c={c} /></Card>}
+      {tab === 'settings' && <Card className={CARD} title="Booking settings" description="Har nayi booking par yahi lagengi — booking ke waqt badal bhi sakte hain."><CourierSettingsForm c={c} /></Card>}
       {tab === 'connection' && <ConnectionTab c={c} onConnected={() => setTab('overview')} />}
 
       {orderId && <OrderDrawer orderId={orderId} onClose={() => setOrderId(null)} />}
@@ -172,7 +186,7 @@ function HeaderActions({ c }: { c: CourierAccount }) {
   });
   return (
     <>
-      <Link to="/online-store/couriers" title="Sab couriers" className={heroIconButton}><ArrowLeft className="h-4 w-4" /></Link>
+      <HeroGuideButton c={c} />
       {c.site && <a href={c.site} target="_blank" rel="noreferrer" className={heroButton}><ExternalLink className="h-4 w-4" /> <span className="hidden sm:inline">Website</span></a>}
       {c.connected && (
         <>
@@ -189,6 +203,20 @@ function HeaderActions({ c }: { c: CourierAccount }) {
   );
 }
 
+/** "Guide" in the header: the courier's step-by-step guide in a dialog. */
+function HeroGuideButton({ c }: { c: CourierAccount }) {
+  const [open, setOpen] = useState(false);
+  const guide = courierGuide(c);
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className={heroButton}><BookOpen className="h-4 w-4" /> Guide</button>
+      <Modal open={open} onClose={() => setOpen(false)} size="lg" title={<span className="flex items-center gap-2.5"><CourierLogo c={c} size={28} />{guide.title}</span>}>
+        <GuideBody guide={guide} />
+      </Modal>
+    </>
+  );
+}
+
 function Overview({ c, onTab, onParcels }: { c: CourierAccount; onTab: (t: Tab) => void; onParcels: (f: string) => void }) {
   const s = c.stats;
   const isApi = c.mode === 'api';
@@ -200,7 +228,7 @@ function Overview({ c, onTab, onParcels }: { c: CourierAccount; onTab: (t: Tab) 
         </Alert>
       )}
       {isApi ? (
-        <Card className="rounded-2xl" title="Kya kya khud hota hai">
+        <Card className={CARD} title="Kya kya khud hota hai">
           <ul className="grid gap-2 text-[0.8125rem] text-slate-700 sm:grid-cols-2">
             <Li>Order par &quot;{c.name} par book&quot; — CN khud</Li>
             {c.connect?.features.label
@@ -220,15 +248,7 @@ function Overview({ c, onTab, onParcels }: { c: CourierAccount; onTab: (t: Tab) 
           </div>
         </Card>
       ) : (
-        <Card className="rounded-2xl" title={`${c.name} kaise chalayein`}>
-          <ol className="space-y-2 text-[0.8125rem] text-slate-700">
-            <li>1. {c.name} ke portal par parcel book karein, CN lein</li>
-            <li>2. Nafaa me order kholein → &quot;Rider/courier ko de diya&quot; → {c.name} chunein, CN daalein</li>
-            <li>3. Deliver ho to &quot;Deliver ho gaya&quot;, wapas aaye to &quot;Wapas aaya (RTO)&quot; — stock khud wapas</li>
-            <li>4. {c.name} paisa jama karwaye → COD safhe par chun kar &quot;Paisa mil gaya&quot;</li>
-          </ol>
-          <p className="mt-3 text-[0.8125rem] text-slate-500">{c.name} ka merchant API account hai? Hamein batayein — isay bhi ek click wala bana denge.</p>
-        </Card>
+        <GuideCard guide={courierGuide(c)} />
       )}
     </div>
   );
@@ -514,37 +534,40 @@ function ConnectionTab({ c, onConnected }: { c: CourierAccount; onConnected: () 
   const since = useMemo(() => (c.connectedAt ? whenText(c.connectedAt) : null), [c.connectedAt]);
 
   return (
-    <div className="space-y-4">
-      {c.connected && (
-        <Card className="rounded-2xl" title="Connection" description={[since && `Jura: ${since}`, c.lastTestedAt && `aakhri check ${timeAgo(c.lastTestedAt)}`].filter(Boolean).join(' · ')}>
-          <div className="flex flex-wrap items-center gap-3">
-            <KeyRound className="h-4 w-4 text-slate-400" />
-            <span className="font-mono text-[0.8125rem] text-slate-700">{c.maskedKey}</span>
-            <span className="flex-1" />
-            <Button size="sm" variant="secondary" loading={test.isPending} leftIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>Check karein</Button>
-            <Button size="sm" variant="ghost" leftIcon={<KeyRound className="h-3.5 w-3.5" />} onClick={() => setReplace((v) => !v)}>{replace ? 'Rehne dein' : 'Nayi key'}</Button>
-            <Button size="sm" variant="critical" loading={disconnect.isPending} leftIcon={<Unplug className="h-3.5 w-3.5" />}
-              onClick={async () => { if ((await confirmDialog({ title: `${c.name} hatayein?`, text: 'Book parcels ki tracking ruk jayegi (orders waise hi rahenge).', danger: true }))) disconnect.mutate(); }}>
-              Hatayein
-            </Button>
-          </div>
-        </Card>
-      )}
-      {replace && (
-        <Card className="rounded-2xl" title={c.connected ? 'Nayi key lagayein' : `${c.name} jorein`} description="Nafaa key ko usi waqt courier se check karta hai — ghalat key save nahi hoti.">
-          <ConnectForm c={c} onDone={() => { setReplace(false); if (!c.connected) onConnected(); }} />
-        </Card>
-      )}
-      {!c.connected && c.connect && (
-        <Card className="rounded-2xl" title="Jurne ke baad kya milega">
-          <ul className="grid gap-2 text-[0.8125rem] text-slate-700 sm:grid-cols-2">
-            <Li>Ek click booking aur CN</Li>
-            <Li>{c.connect.features.label ? 'Label print' : 'Tracking khud'}</Li>
-            <Li>Deliver aur RTO par order khud update</Li>
-            <Li>{c.connect.features.settlement ? 'COD settlement khud' : 'COD hisaab ek jagah'}</Li>
-          </ul>
-        </Card>
-      )}
+    <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="min-w-0 space-y-4">
+        {c.connected && (
+          <Card className={CARD} title="Connection" description={[since && `Jura: ${since}`, c.lastTestedAt && `aakhri check ${timeAgo(c.lastTestedAt)}`].filter(Boolean).join(' · ')}>
+            <div className="flex flex-wrap items-center gap-2">
+              <KeyRound className="h-4 w-4 text-slate-400" />
+              <span className="font-mono text-[0.8125rem] text-slate-700">{c.maskedKey}</span>
+              <span className="flex-1" />
+              <Button size="sm" variant="secondary" loading={test.isPending} leftIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>Check karein</Button>
+              <Button size="sm" variant="ghost" leftIcon={<KeyRound className="h-3.5 w-3.5" />} onClick={() => setReplace((v) => !v)}>{replace ? 'Rehne dein' : 'Nayi key'}</Button>
+              <Button size="sm" variant="critical" loading={disconnect.isPending} leftIcon={<Unplug className="h-3.5 w-3.5" />}
+                onClick={async () => { if ((await confirmDialog({ title: `${c.name} hatayein?`, text: 'Book parcels ki tracking ruk jayegi (orders waise hi rahenge).', danger: true }))) disconnect.mutate(); }}>
+                Hatayein
+              </Button>
+            </div>
+          </Card>
+        )}
+        {replace && (
+          <Card className={CARD} title={c.connected ? 'Nayi key lagayein' : `${c.name} jorein`} description="Nafaa details usi waqt courier se check karta hai — ghalat details save nahi hotin.">
+            <ConnectForm c={c} onDone={() => { setReplace(false); if (!c.connected) onConnected(); }} />
+          </Card>
+        )}
+        {!c.connected && c.connect && (
+          <Card className={CARD} title="Jurne ke baad kya milega">
+            <ul className="grid gap-2 text-[0.8125rem] text-slate-700 sm:grid-cols-2">
+              <Li>Ek click booking aur CN</Li>
+              <Li>{c.connect.features.label ? 'Label print' : 'Tracking khud'}</Li>
+              <Li>Deliver aur RTO par order khud update</Li>
+              <Li>{c.connect.features.settlement ? 'COD settlement khud' : 'COD hisaab ek jagah'}</Li>
+            </ul>
+          </Card>
+        )}
+      </div>
+      <GuideCard guide={courierGuide(c)} className="min-w-0" />
     </div>
   );
 }

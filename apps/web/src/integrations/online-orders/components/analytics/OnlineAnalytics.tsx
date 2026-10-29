@@ -20,7 +20,8 @@ import { formatPKR } from '@core/lib/format';
 import { axisMoney } from '@modules/dashboard/engine/parts';
 import { useChartTheme } from '@modules/dashboard/engine/useChartTheme';
 import type { OnlineReport } from '../../api/online-orders.api';
-import { channelMeta } from '../../hooks/useSalesChannels';
+import { BrandLogo, brandColor, brandForChannel, type BrandName } from '@/assets/brands/BrandLogo';
+import { courierBrand } from '../../lib/labels';
 import type { OrderTab } from '../../lib/orders';
 
 export type AnalyticsSection = 'pipeline' | 'trend' | 'payment' | 'time' | 'channels' | 'cities' | 'couriers' | 'products' | 'customers' | 'codAging';
@@ -142,13 +143,13 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
                         <YAxis type="category" dataKey="name" tick={theme.axis} axisLine={false} tickLine={false} width={110} />
                         <Tooltip formatter={(v) => [formatPKR(Number(v)), 'Sale']} {...tip} />
                         <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={16}>
-                          {data.byChannel.map((c, i) => <Cell key={c.name} fill={channelMeta(c.type).color ?? PALETTE[i % PALETTE.length]} />)}
+                          {data.byChannel.map((c, i) => <Cell key={c.name} fill={brandForChannel(c.type) === 'other' ? PALETTE[i % PALETTE.length] : brandColor(brandForChannel(c.type))} />)}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                   <RateTable head={['Channel', 'Orders', 'Sale', 'Deliver', 'RTO']}
-                    rows={data.byChannel.map((c) => ({ key: c.name, cells: [`${channelMeta(c.type).emoji} ${c.name}`, String(c.orders), money(c.value), `${c.deliveryRate}%`], rto: c.rtoRate, n: c.dispatched }))} />
+                    rows={data.byChannel.map((c) => ({ key: c.name, brand: brandForChannel(c.type), cells: [c.name, String(c.orders), money(c.value), `${c.deliveryRate}%`], rto: c.rtoRate, n: c.dispatched }))} />
                 </>
               )}
             </Card>
@@ -236,7 +237,7 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
                     </ResponsiveContainer>
                   </div>
                   <RateTable head={['Courier', 'Bheje', 'Deliver', 'Wapas', 'RTO']}
-                    rows={data.byCourier.map((c) => ({ key: c.code, cells: [c.name, String(c.dispatched), String(c.delivered), String(c.returned)], rto: c.rtoRate, n: c.dispatched }))} />
+                    rows={data.byCourier.map((c) => ({ key: c.code, brand: courierBrand(c.code || c.name), cells: [c.name, String(c.dispatched), String(c.delivered), String(c.returned)], rto: c.rtoRate, n: c.dispatched }))} />
                 </>
               )}
             </Card>
@@ -367,7 +368,7 @@ function RankList({ rows }: { rows: Array<{ key: string; title: string; meta: st
   );
 }
 
-function RateTable({ head, rows }: { head: string[]; rows: Array<{ key: string; cells: string[]; rto: number; n: number }> }) {
+function RateTable({ head, rows }: { head: string[]; rows: Array<{ key: string; cells: string[]; rto: number; n: number; brand?: BrandName }> }) {
   return (
     <div className="mt-3 overflow-x-auto">
       <Table minWidth="26rem" className="[&_table]:text-[0.8125rem]">
@@ -377,7 +378,11 @@ function RateTable({ head, rows }: { head: string[]; rows: Array<{ key: string; 
         <TBody className="divide-y divide-slate-100">
           {rows.map((r) => (
             <Tr key={r.key}>
-              {r.cells.map((c, i) => <Td key={i} className={cn('py-1.5', i === 0 ? 'max-w-[12rem] truncate font-medium text-slate-900' : 'text-right tabular-nums text-slate-700')}>{c}</Td>)}
+              {r.cells.map((c, i) => (
+                <Td key={i} className={cn('py-1.5', i === 0 ? 'max-w-[12rem] truncate font-medium text-slate-900' : 'text-right tabular-nums text-slate-700')}>
+                  {i === 0 && r.brand ? <span className="inline-flex min-w-0 max-w-full items-center gap-2"><BrandLogo name={r.brand} size={20} /><span className="truncate">{c}</span></span> : c}
+                </Td>
+              ))}
               <Td className="py-1.5 text-right">{r.n ? <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', rateTone(r.rto))}>{r.rto}%</span> : <span className="text-slate-400">—</span>}</Td>
             </Tr>
           ))}

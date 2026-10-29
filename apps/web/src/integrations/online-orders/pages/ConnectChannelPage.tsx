@@ -10,7 +10,10 @@ import { CHANNELS_KEY, channelMeta, channelPath, useSalesChannels } from '../hoo
 import { HttpsNotice, ManualKeysForm } from '../components/website/ManualKeysForm';
 import { Badge, Btn, Card, Field, Page, inputCls } from '../components/ui/kit';
 import { cn } from '@core/lib/cn';
+import { BrandLogo, type BrandName } from '@/assets/brands/BrandLogo';
 import { DarazConnectCard } from '../components/daraz/Daraz';
+import { ShopifyConnectFlow } from '../components/website/ShopifyConnectFlow';
+import type { ShopifyPath } from '../components/website/ShopifySetup';
 
 /* ═════════════════════════════════════════════════════════════
    SALES CHANNEL JOREIN — Google Search Console jaisa:
@@ -19,6 +22,8 @@ import { DarazConnectCard } from '../components/daraz/Daraz';
 
 type Platform = 'woocommerce' | 'shopify' | 'custom' | 'daraz';
 type Method = 'auto' | 'manual';
+
+const BRAND_OF: Record<Platform, BrandName> = { woocommerce: 'woocommerce', shopify: 'shopify', custom: 'website', daraz: 'daraz' };
 
 const PLATFORMS: { key: Platform; type: WebsiteType; name: string; desc: string }[] = [
   { key: 'woocommerce', type: 'WOOCOMMERCE', name: 'WordPress / WooCommerce', desc: 'WordPress par bani dukaan' },
@@ -34,6 +39,7 @@ export default function ConnectChannelPage() {
   const initial = params.get('platform') as Platform | null;
   const [platform, setPlatform] = useState<Platform>(initial && PLATFORMS.some((p) => p.key === initial) ? initial : 'woocommerce');
   const [method, setMethod] = useState<Method>('auto');
+  const [shopifyPath, setShopifyPath] = useState<ShopifyPath>(params.get('method') === 'manual' ? 'manual' : 'auto');
   const [site, setSite] = useState(params.get('shop')?.replace('.myshopify.com', '') ?? '');
   const [name, setName] = useState('');
   const [shopId, setShopId] = useState('');
@@ -74,6 +80,7 @@ export default function ConnectChannelPage() {
   };
 
   const busy = conn.phase === 'starting' || create.isPending;
+  const asideAuto = platform === 'shopify' ? shopifyPath === 'auto' : effectiveMethod === 'auto';
   const showForm = !['waiting', 'denied', 'connected', 'manual'].includes(conn.phase);
 
   return (
@@ -95,15 +102,14 @@ export default function ConnectChannelPage() {
         <div className="min-w-0 space-y-4">
           {/* ─── 1. Platform ─── */}
           <Card title={<Step n={1}>Kahan bechte hain?</Step>}>
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-2">
               {PLATFORMS.map((p) => {
-                const m = channelMeta(p.type);
                 const on = platform === p.key;
                 return (
                   <button key={p.key} onClick={() => setPlatform(p.key)}
                     className={cn('flex items-start gap-3 rounded-lg border p-3 text-left transition',
                       on ? 'border-slate-900 ring-1 ring-slate-900 dark:border-ink-white dark:ring-ink-white' : 'border-slate-200 hover:border-slate-400 dark:border-ink-700')}>
-                    <span className="text-xl">{m.emoji}</span>
+                    <BrandLogo name={BRAND_OF[p.key]} size="md" />
                     <span className="min-w-0">
                       <span className="block text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{p.name}</span>
                       <span className="block text-[0.75rem] text-slate-500">{p.desc}</span>
@@ -116,20 +122,22 @@ export default function ConnectChannelPage() {
 
           {platform === 'daraz' && <DarazConnectCard shopList={shopList} />}
 
-          {platform !== 'daraz' && <>
+          {platform === 'shopify' && (
+            <ShopifyConnectFlow path={shopifyPath} onPath={setShopifyPath} shopList={shopList} initialShop={params.get('shop') ?? undefined} />
+          )}
+
+          {platform !== 'daraz' && platform !== 'shopify' && <>
           {/* ─── 2. Tareeqa ─── */}
           <Card title={<Step n={2}>Kaise jorna hai?</Step>}>
             <div className="grid gap-2 sm:grid-cols-2">
               <MethodCard active={effectiveMethod === 'auto'} disabled={!autoAvailable} onClick={() => setMethod('auto')}
                 icon={<Zap className="h-4 w-4" />} title="Automatic" badge={autoAvailable ? <Badge tone="success">Recommended</Badge> : undefined}
                 desc={platform === 'custom' ? 'Apni banayi website ke liye automatic nahi hota'
-                  : platform === 'shopify' && !conn.shopifyOAuth ? 'Server par Shopify app ki keys nahi lagi'
-                    : `Popup me ${shortName} khulega, ${platform === 'shopify' ? 'Install' : 'Approve'} dabayein — keys, webhooks aur stock sync Nafaa khud karta hai.`} />
+                  : `Popup me ${shortName} khulega, Approve dabayein — keys, webhooks aur stock sync Nafaa khud karta hai.`} />
               <MethodCard active={effectiveMethod === 'manual'} onClick={() => setMethod('manual')}
                 icon={<KeyRound className="h-4 w-4" />} title="Manual"
                 desc={platform === 'custom' ? 'Developer ko tayyar code aur key dein — 15 minute ka kaam.'
-                  : platform === 'shopify' ? 'Shopify admin me webhook URL khud paste karein.'
-                    : 'REST keys, Nafaa plugin, ya WooCommerce webhook khud lagayein.'} />
+                  : 'REST keys, Nafaa plugin, ya WooCommerce webhook khud lagayein.'} />
             </div>
           </Card>
 
@@ -141,7 +149,7 @@ export default function ConnectChannelPage() {
               <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-4 dark:border-ink-700">
                 <Loader2 className="h-5 w-5 animate-spin text-slate-500" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{shortName} window me "{platform === 'shopify' ? 'Install' : 'Approve'}" dabayein</div>
+                  <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{shortName} window me "Approve" dabayein</div>
                   <div className="text-[0.78125rem] text-slate-500">Login nahi hain to pehle {shortName} login maangega. Window khud band hogi.</div>
                 </div>
                 <Btn size="sm" onClick={() => conn.reopen()} icon={<ExternalLink className="h-3.5 w-3.5" />}>Window dobara</Btn>
@@ -164,14 +172,12 @@ export default function ConnectChannelPage() {
               <div className="space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <Field label={platform === 'shopify' ? 'Store ka naam' : 'Website ka address'}
-                      help={platform === 'shopify' ? 'Shopify admin URL me jo naam hai: admin.shopify.com/store/<naam>' : platform === 'custom' ? 'Optional — sirf pehchan ke liye' : undefined}>
+                    <Field label="Website ka address" help={platform === 'custom' ? 'Optional — sirf pehchan ke liye' : undefined}>
                       <div className="relative">
                         <input autoFocus value={site} onChange={(e) => setSite(e.target.value)}
                           onKeyDown={(e) => { if (e.key === 'Enter' && !busy) submit(); }}
-                          placeholder={platform === 'shopify' ? 'nafaa-test' : 'ahmedstore.pk'}
-                          className={cn(inputCls, 'h-10', platform === 'shopify' && 'pr-32')} />
-                        {platform === 'shopify' && <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.78125rem] text-slate-400">.myshopify.com</span>}
+                          placeholder="ahmedstore.pk"
+                          className={cn(inputCls, 'h-10')} />
                       </div>
                     </Field>
                   </div>
@@ -205,9 +211,11 @@ export default function ConnectChannelPage() {
         </div>
 
         <aside className="space-y-4">
-          <Card title={effectiveMethod === 'auto' ? 'Jorne ke baad khud' : 'Manual me'}>
+          <Card title={asideAuto ? 'Jorne ke baad khud' : 'Manual me'}>
             <ul className="space-y-2.5 text-[0.8125rem] text-slate-600 dark:text-ink-300">
-              {(effectiveMethod === 'auto'
+              {(platform === 'shopify' && !asideAuto
+                ? ['Apni app ka Admin API token — encrypt karke', 'Shopify products dekhna aur Nafaa se jorna', 'Stock aur qeemat Shopify par', 'Webhooks ek click me, ya hath se', '"Check karein" har hissa alag batata hai']
+                : asideAuto
                 ? ['Webhooks khud lagte hain — har naya order Nafaa me', 'Naye order par ghanti aur sidebar me ginti', 'Accept → bill, receipt, stock kam', `Status wapas ${shortName} par${platform === 'shopify' ? ' (fulfillment + tracking)' : ''}`, 'Stock har 15 minute, accept/cancel par foran', 'Products tab me har variant jorna']
                 : ['Aap ko Key aur Secret milte hain', platform === 'custom' ? 'Developer ke liye PHP/Node/Python code' : platform === 'shopify' ? 'Shopify me webhook URL paste' : 'Plugin, REST keys ya webhook', 'Test order se poora flow check', 'Baad me Automatic par badal sakte hain']
               ).map((t) => (

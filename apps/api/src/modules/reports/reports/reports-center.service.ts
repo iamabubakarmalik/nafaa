@@ -17,7 +17,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import {
   BILL_CASH_IN, BILL_NET, KEPT_QTY, LINE_COST, LINE_COST_JOINS, LINE_FALLBACK, LINE_NO_COST, LINE_REVENUE, RETURN_LINE_COST,
   billMathCte, emptySaleFigures, foldWriteOffs, netProfit, paidExpenseSql, paidExpenseWhere, saleFiguresBy, writeOffRows,
-  type SaleFigures, creditProfit, creditProfitRows, foldCreditProfit, otherIncome, otherIncomeRows, profitBasis, profitSplit,
+  type SaleFigures, creditProfit, creditProfitRows, foldCreditProfit, noCostSales, otherIncome, otherIncomeRows, profitBasis, profitSplit,
 } from '../../../common/helpers/business-math.helper';
 import { foldTierSplit, tierSplitRowsSafe, type TierSplitRow } from '../../../common/helpers/price-tier-split.helper';
 import { ShopScope } from '../../../common/shop-scope';
@@ -540,7 +540,7 @@ export class ReportsCenterService {
     const mathScope = { tenantId: user.tenantId, shopId: scope.shopId };
     const dayKey = (at: Prisma.Sql) => Prisma.sql`to_char(${bizTime(at, r)}, 'YYYY-MM-DD')`;
 
-    const [cur, prev, exp, prevExp, losses, prevLosses, saleDays, expDays, first, tierRows, credit, prevCredit, creditDays, income, prevIncome, incomeDays, basis] = await Promise.all([
+    const [cur, prev, exp, prevExp, losses, prevLosses, saleDays, expDays, first, tierRows, credit, prevCredit, creditDays, income, prevIncome, incomeDays, basis, bare] = await Promise.all([
       this.saleTotals(user, scope, r),
       r.prev ? this.saleTotals(user, scope, r.prev) : Promise.resolve(null),
       this.prisma.expense.aggregate({ where: paidExpenseWhere(mathScope, r), _sum: { amount: true } }),
@@ -561,6 +561,7 @@ export class ReportsCenterService {
       r.prev ? otherIncome(this.prisma, mathScope, r.prev) : Promise.resolve(null),
       otherIncomeRows(this.prisma, mathScope, r, { key: (at) => dayKey(at) }),
       profitBasis(this.prisma, user.tenantId),
+      noCostSales(this.prisma, mathScope, r),
     ]);
 
     const rows = new Map(bucketKeys(r, first).map((k) => [k, { key: k, sales: 0, cost: 0, expenses: 0, damage: 0, realised: 0, income: 0 }]));
@@ -579,8 +580,8 @@ export class ReportsCenterService {
     for (const [day, list] of creditBy) bucket(day).realised += foldCreditProfit(list).realised;
 
     // Headline gross profit follows the shop's khata basis; both figures are always sent.
-    const summary = (t: SaleFigures, expenses: number, w: ReturnType<typeof foldWriteOffs>, c: Awaited<ReturnType<typeof creditProfit>>, income: number) => {
-      const split = profitSplit(c, basis);
+    const summary = (t: SaleFigures, expenses: number, w: ReturnType<typeof foldWriteOffs>, c: Awaited<ReturnType<typeof creditProfit>>, income: number, noCost?: typeof bare) => {
+      const split = profitSplit(c, basis, noCost);
       const gross = split.headline;
       const net = netProfit(gross, expenses, w.net, income);
       return {
@@ -597,7 +598,7 @@ export class ReportsCenterService {
     return {
       ...this.meta(r, first),
       totals: {
-        ...summary(cur, num(exp._sum.amount), w, credit, income.amount), damageCount: w.count,
+        ...summary(cur, num(exp._sum.amount), w, credit, income.amount, bare), damageCount: w.count,
         fallbackLines: cur.fallbackLines, noCostLines: cur.noCostLines,
       },
       previous: prev && prevCredit ? summary(prev, num(prevExp?._sum.amount), foldWriteOffs(prevLosses), prevCredit, prevIncome?.amount ?? 0) : null,

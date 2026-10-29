@@ -10,6 +10,8 @@ import { WebsiteSetupService } from './website-setup.service';
 import { readWebsiteConfig } from './website-config';
 import { SHOPIFY_SCOPES, ShopifyClient, ShopifyError, numericId, orderGid } from './shopify.client';
 import { mappingKey } from './mapping-key';
+import { linkScope, trackLinks } from './link-sync';
+import { lookupShopFromDomain, normalizeShopifySiteUrl, parseShopAddress, shopAddressError } from './shopify-shop';
 
 /**
  * Shopify — ek click me jorna (OAuth, "legacy install flow"):
@@ -52,17 +54,9 @@ export class ShopifyService {
   // ═══════════════════════════════════════════════════════════
 
   normalizeShop(raw: string): string {
-    let s = String(raw ?? '').trim().toLowerCase();
-    if (!s) throw new BadRequestException('Shopify store ka naam daalein — jaise nafaa-test');
-    // admin.shopify.com/store/nafaa-test → nafaa-test
-    const admin = s.match(/admin\.shopify\.com\/store\/([a-z0-9-]+)/);
-    if (admin) s = admin[1];
-    s = s.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-    if (!s.endsWith('.myshopify.com')) s = `${s.replace(/\.myshopify\.com$/, '')}.myshopify.com`;
-    if (!/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(s)) {
-      throw new BadRequestException('Store ka naam sahi nahi — Shopify admin ke URL wala naam daalein (jaise nafaa-test)');
-    }
-    return s;
+    const parsed = parseShopAddress(raw);
+    if (!parsed.ok) throw new BadRequestException(shopAddressError(parsed));
+    return parsed.shop;
   }
 
   async start(user: AuthenticatedUser, body: { shop: string; displayName?: string; shopId?: string; channelId?: string; returnOrigin?: string }) {
@@ -232,7 +226,7 @@ export class ShopifyService {
   }
 
   /** Webhooks, store ka naam, location, pehla stock sync */
-  async afterConnect(id: string) {
+  async afterConnect(id: string, opts: { webhooks?: boolean } = {}) {
     const integration = await this.prisma.integration.findUniqueOrThrow({ where: { id } });
     const client = await this.mustClient(integration);
 
@@ -267,8 +261,10 @@ export class ShopifyService {
       await this.log(integration, 'SHOPIFY_SHOP_INFO', false, e?.message);
     }
 
-    const res = await this.installWebhooks(integration);
-    await this.log(integration, 'SHOPIFY_CONNECT', res.ok, res.error, { installed: res.installed });
+    if (opts.webhooks !== false) {
+      const res = await this.installWebhooks(integration);
+      await this.log(integration, 'SHOPIFY_CONNECT', res.ok, res.error, { installed: res.installed });
+    }
     const fresh = await this.prisma.integration.findUniqueOrThrow({ where: { id } });
     this.syncStock(fresh).catch(() => null);
   }
@@ -505,6 +501,10 @@ export class ShopifyService {
 
   /** Nafaa → Shopify stock. onlySkus / onlyLinks = sirf badle hue (POS sale ke baad tez push) */
   async syncStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] } = {}) {
+    return trackLinks(this.prisma, integration.id, linkScope(opts), () => this.pushStock(integration, opts));
+  }
+
+  private async pushStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] }) {
     const client = await this.mustClient(integration);
     const cfg = readWebsiteConfig(integration.config) as any;
     const locationId: string | null = cfg.shopifyLocationId;
@@ -547,7 +547,7 @@ export class ShopifyService {
       await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'Koi variant jora hua nahi, na SKU mila' });
       return { updated: 0, checked: 0, missing: 0 };
     }
-    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, cfg.shopId ?? integration.shopId, integration.id, skus) : {};
+    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, cfg.shopId ?? integration.shopId, integration.id, skus, cfg.stockBuffer) : {};
 
     const changes: { inventoryItemId: string; locationId: string; quantity: number; changeFromQuantity: number | null }[] = [];
     let missing = 0;
@@ -710,6 +710,339 @@ export class ShopifyService {
   }
 
   // ═══════════════════════════════════════════════════════════
+  // MANUAL — merchant's own app (no Nafaa app install)
+  //   token:  legacy custom app, Admin API access token (shpat_…)
+  //   client: Dev Dashboard app, client ID + secret (24 hour tokens)
+  // ═══════════════════════════════════════════════════════════
+
+  /** 'app' = Nafaa App Store install, 'token' / 'client' = merchant's own app. */
+  mode(integration: Integration): ShopifyMode | null {
+    const c = (integration.credentials ?? {}) as any;
+    if (!c.shopifyToken && !c.shopifyClientSecret) return null;
+    return c.shopifyMode === 'token' || c.shopifyMode === 'client' ? c.shopifyMode : 'app';
+  }
+
+  /** Address check before connecting: any pasted form, custom domains looked up. */
+  async resolveAddress(raw: string) {
+    const parsed = parseShopAddress(raw);
+    let shop: string | null = parsed.ok ? parsed.shop : null;
+    let via: 'typed' | 'domain' = 'typed';
+    if (!parsed.ok && parsed.reason === 'custom-domain' && parsed.domain) {
+      shop = await lookupShopFromDomain(parsed.domain);
+      via = 'domain';
+    }
+    if (!shop) {
+      return { ok: false, shop: null, via, error: parsed.ok ? 'Store nahi mila' : parsed.reason === 'custom-domain'
+        ? `${parsed.domain} se Shopify store ka address nahi mila. Shopify admin → Settings → Domains me ".myshopify.com" wala address copy karein.`
+        : shopAddressError(parsed) };
+    }
+    const exists = await this.storeExists(shop);
+    if (exists === false) {
+      return { ok: false, shop, via, error: `${shop} naam ka koi Shopify store nahi mila. Spelling check karein — Shopify admin → Settings → Domains me sahi address likha hota hai.` };
+    }
+    return { ok: true, shop, via, error: null as string | null };
+  }
+
+  /** Public storefront answers 404 for a handle that does not exist. Null = could not tell. */
+  private async storeExists(shop: string): Promise<boolean | null> {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 6000);
+    try {
+      const res = await fetch(`https://${shop}/`, { method: 'GET', redirect: 'manual', signal: ctrl.signal, headers: { 'User-Agent': 'Nafaa-POS/1.0' } });
+      res.body?.cancel().catch(() => null);
+      return res.status === 404 ? false : true;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  /**
+   * Connects a channel with the merchant's own app. Nothing is saved unless
+   * Shopify accepts the credentials, so a failure always leaves the channel
+   * as it was.
+   */
+  async connectCustom(user: AuthenticatedUser, channelId: string | null, body: {
+    shop?: string; token?: string; apiSecret?: string; clientId?: string; clientSecret?: string; displayName?: string; shopId?: string;
+  }) {
+    this.setup.assertCanManage(user);
+    const existing = channelId ? await this.setup.requireChannel(user.tenantId, channelId) : null;
+    if (existing && existing.type !== 'SHOPIFY') throw new BadRequestException('Ye Shopify channel nahi. Sales channels → "Channel jorein" se naya Shopify channel banayein.');
+    const prior = (existing?.credentials ?? {}) as any;
+    const shop = this.normalizeShop(body.shop || prior.shopifyShop || readWebsiteConfig(existing?.config).siteUrl || '');
+
+    const token = String(body.token ?? '').trim();
+    const clientId = String(body.clientId ?? '').trim();
+    const clientSecret = String(body.clientSecret ?? '').trim();
+    const apiSecret = String(body.apiSecret ?? '').trim();
+    const mode: 'token' | 'client' = clientId || clientSecret ? 'client' : 'token';
+
+    let accessToken: string;
+    let expiresIn: number | null = null;
+    if (mode === 'client') {
+      if (!clientId || !clientSecret) throw new BadRequestException('Client ID aur Client secret dono daalein (Dev Dashboard → app → Settings).');
+      const tok = await this.clientCredentials(shop, clientId, clientSecret);
+      accessToken = tok.access_token;
+      expiresIn = Number(tok.expires_in) || null;
+    } else {
+      if (!token) throw new BadRequestException('Admin API access token daalein — "shpat_" se shuru hota hai.');
+      if (token.startsWith('shpss_')) throw new BadRequestException('Ye "API secret key" hai, token nahi. Token "shpat_" se shuru hota hai — app → API credentials → Admin API access token.');
+      if (/\s/.test(token) || token.length < 20) throw new BadRequestException('Token poora copy nahi hua — "shpat_" se le kar aakhir tak copy karein.');
+      accessToken = token;
+    }
+
+    const check = await new ShopifyClient(shop, accessToken).accessScopes();
+    if (check.status !== 200) throw new BadRequestException(this.tokenProblem(check.status, check.error, mode));
+
+    const missing = missingScopes(check.scopes);
+    const core = missing.filter((x) => CORE_SCOPES.includes(x));
+    if (core.length) {
+      throw new BadRequestException(`Token chal raha hai magar ye permissions nahi di gayin: ${core.join(', ')}. App → Configuration → Admin API scopes me tick karke Save karein, phir app dobara install karein${mode === 'token' ? ' aur naya token lagayein' : ''}.`);
+    }
+
+    // Verified: now attach to this channel, an existing channel for the same store, or a new one.
+    const integration = existing
+      ?? (await this.prisma.integration.findMany({ where: { tenantId: user.tenantId, type: 'SHOPIFY', apiKey: { not: null } } }))
+        .find((i) => normalizeShopifySiteUrl(readWebsiteConfig(i.config).siteUrl) === `https://${shop}` && !this.isConnected(i))
+      ?? await this.setup.createChannel(user, {
+        type: 'SHOPIFY',
+        displayName: body.displayName?.trim() || shop.replace('.myshopify.com', ''),
+        shopId: body.shopId,
+        siteUrl: `https://${shop}`,
+      });
+    if (!existing && this.isConnected(integration)) throw new BadRequestException('Ye store pehle se jura hua hai.');
+    const creds = (integration.credentials ?? {}) as any;
+    const cfg = readWebsiteConfig(integration.config);
+
+    const now = new Date();
+    await this.prisma.integration.update({
+      where: { id: integration.id },
+      data: {
+        credentials: {
+          shopifyMode: mode,
+          shopifyShop: shop,
+          shopifyToken: encrypt(accessToken),
+          shopifyRefreshToken: null,
+          shopifyTokenExpiresAt: expiresIn ? new Date(now.getTime() + expiresIn * 1000).toISOString() : null,
+          shopifyClientId: mode === 'client' ? clientId : null,
+          shopifyClientSecret: mode === 'client' ? encrypt(clientSecret) : null,
+          // Webhooks registered through the Admin API are signed with the app's secret.
+          shopifyApiSecret: mode === 'token' && apiSecret ? encrypt(apiSecret) : (mode === 'token' ? creds.shopifyApiSecret ?? null : null),
+          shopifyScopes: check.scopes.join(','),
+          shopifyConnectedAt: now.toISOString(),
+          shopifyReauth: false,
+        },
+        config: { ...cfg, platform: 'shopify', siteUrl: `https://${shop}` } as any,
+        status: IntegrationStatus.CONNECTED,
+        isActive: true,
+      },
+    });
+    await this.log(integration, 'SHOPIFY_CUSTOM_CONNECT', true, undefined, { mode, scopes: check.scopes, missing });
+    await this.afterConnect(integration.id, { webhooks: false }).catch((e) => this.logger.warn(`Shopify custom setup: ${e?.message}`));
+    return { ok: true, channelId: integration.id, shop, mode, missingScopes: missing };
+  }
+
+  /** Registers order webhooks through the Admin API (merchant's own app). */
+  async customWebhooks(user: AuthenticatedUser, channelId: string) {
+    this.setup.assertCanManage(user);
+    const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    if (!this.isConnected(integration)) throw new BadRequestException('Pehle Admin API token lagayein, phir webhooks khud lagenge.');
+    const res = await this.installWebhooks(integration);
+    await this.log(integration, 'SHOPIFY_WEBHOOKS', res.ok, res.error, { installed: res.installed });
+    if (!res.ok) {
+      throw new BadRequestException(/access denied|scope/i.test(res.error ?? '')
+        ? 'Shopify ne webhooks lagane ki ijazat nahi di — app ke scopes me read_orders tick hai? Warna neeche wale steps se khud lagayein.'
+        : `Webhooks nahi lage: ${res.error ?? 'pata nahi kyun'}. Neeche wale steps se khud bhi laga sakte hain.`);
+    }
+    return res;
+  }
+
+  /** Removes the merchant's own app credentials; orders and links stay. */
+  async disconnectCustom(user: AuthenticatedUser, channelId: string) {
+    this.setup.assertCanManage(user);
+    const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    const mode = this.mode(integration);
+    if (mode !== 'token' && mode !== 'client') throw new BadRequestException('Ye channel Nafaa app se jura hai — Shopify admin se app hatayein.');
+    await this.prisma.integration.update({ where: { id: integration.id }, data: { credentials: {} } });
+    await this.log(integration, 'SHOPIFY_CUSTOM_DISCONNECT', true);
+    return { ok: true };
+  }
+
+  /** Secrets that may sign this channel's webhooks (empty list = cannot verify). */
+  webhookSecrets(integration: Integration): string[] {
+    const c = (integration.credentials ?? {}) as any;
+    const cfg = readWebsiteConfig(integration.config);
+    const mode = this.mode(integration);
+    if (mode === 'app') return process.env.SHOPIFY_CLIENT_SECRET ? [process.env.SHOPIFY_CLIENT_SECRET] : [];
+    const list = [
+      mode === 'client' ? decrypt(c.shopifyClientSecret) : null,
+      mode === 'token' ? decrypt(c.shopifyApiSecret) : null,
+      cfg.shopifySecret,
+    ];
+    return list.filter((x): x is string => !!x);
+  }
+
+  /** Every check the setup screen shows, in plain words. */
+  async check(user: AuthenticatedUser, channelId: string) {
+    this.setup.assertCanManage(user);
+    const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    const cfg = readWebsiteConfig(integration.config) as any;
+    const creds = (integration.credentials ?? {}) as any;
+    const out: CheckItem[] = [];
+    const add = (c: CheckItem) => out.push(c);
+
+    const parsed = parseShopAddress(creds.shopifyShop || cfg.siteUrl || '');
+    add(parsed.ok
+      ? { key: 'address', ok: true, title: 'Store ka address', detail: parsed.shop }
+      : { key: 'address', ok: false, title: 'Store ka address', detail: shopAddressError(parsed), fix: 'Setup me sahi ".myshopify.com" address daal kar dobara jorein.' });
+
+    const lastOrder = await this.prisma.channelOrder.findFirst({
+      where: { integrationId: integration.id, NOT: { externalOrderId: { startsWith: 'TEST-' } } },
+      orderBy: { receivedAt: 'desc' }, select: { receivedAt: true },
+    });
+    const lastFail = await this.prisma.webhookLog.findFirst({
+      where: { integrationId: integration.id, processed: false, receivedAt: { gte: new Date(Date.now() - 7 * 86400e3) } },
+      orderBy: { receivedAt: 'desc' }, select: { errorMessage: true },
+    });
+
+    const mode = this.mode(integration);
+    if (!mode || !creds.shopifyToken) {
+      add({ key: 'token', ok: false, warn: true, title: 'Admin API token', detail: 'Nahi laga. Orders webhook se aa sakte hain, magar products, stock aur status ke liye token zaroori hai.', fix: 'Setup → Manual → "Admin API token" wale steps.' });
+      add(this.ordersCheck(lastOrder?.receivedAt ?? null, integration.webhookVerified, lastFail?.errorMessage ?? null));
+      return { ok: out.every((c) => c.ok || c.warn), mode: null, checks: out };
+    }
+
+    const client = await this.client(integration).catch(() => null);
+    const scopes = client ? await client.accessScopes() : { status: 401, scopes: [] as string[], error: 'token nahi mila' };
+    if (scopes.status !== 200) {
+      add({ key: 'token', ok: false, title: mode === 'app' ? 'Nafaa app' : 'Admin API token', detail: this.tokenProblem(scopes.status, scopes.error, mode === 'client' ? 'client' : 'token'),
+        fix: mode === 'app' ? 'Connection card par "Dobara install" dabayein.' : 'Shopify me app kholein, naya token / secret lein aur Setup me dobara lagayein.' });
+      add(this.ordersCheck(lastOrder?.receivedAt ?? null, integration.webhookVerified, lastFail?.errorMessage ?? null));
+      return { ok: false, mode, checks: out };
+    }
+    add({ key: 'token', ok: true, title: mode === 'app' ? 'Nafaa app' : 'Admin API token', detail: 'Shopify ne qabool kiya' });
+
+    const missing = missingScopes(scopes.scopes);
+    add(missing.length
+      ? { key: 'scopes', ok: false, warn: !missing.some((m) => CORE_SCOPES.includes(m)), title: 'Permissions (scopes)', detail: `Kam hain: ${missing.join(', ')}`,
+          fix: mode === 'app' ? '"Dobara install" dabayein.' : 'App → Configuration → Admin API scopes me tick karein, Save, app dobara install karein.' }
+      : { key: 'scopes', ok: true, title: 'Permissions (scopes)', detail: 'Sab maujood' });
+
+    try {
+      const data = await client!.graphql<any>(`{ productsCount { count } locations(first: 20) { nodes { id name isActive fulfillsOnlineOrders } } }`);
+      const count = data?.productsCount?.count ?? 0;
+      add({ key: 'products', ok: true, title: 'Products', detail: `${count} products Shopify par dikh rahe hain` });
+      const locs: any[] = data?.locations?.nodes ?? [];
+      const loc = locs.find((l) => l.id === cfg.shopifyLocationId && l.isActive)
+        ?? locs.find((l) => l.isActive && l.fulfillsOnlineOrders) ?? locs.find((l) => l.isActive);
+      if (loc && loc.id !== cfg.shopifyLocationId) {
+        await this.prisma.integration.update({ where: { id: integration.id }, data: { config: { ...cfg, shopifyLocationId: loc.id, shopifyLocationName: loc.name } as any } });
+      }
+      add(loc
+        ? { key: 'location', ok: true, title: 'Stock location', detail: loc.name }
+        : { key: 'location', ok: false, title: 'Stock location', detail: 'Koi active location nahi mili', fix: 'Shopify → Settings → Locations me kam az kam ek location active karein.' });
+    } catch (e: any) {
+      add({ key: 'products', ok: false, title: 'Products', detail: e?.message ?? 'Products nahi parh sake', fix: 'read_products aur read_locations scopes check karein.' });
+    }
+
+    const hook = this.setup.urls(integration.apiKey).hook;
+    try {
+      const subs = await client!.paginate<any>(`query($after: String) {
+        webhookSubscriptions(first: 100, after: $after) {
+          nodes { topic endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } } }
+          pageInfo { hasNextPage endCursor }
+        }
+      }`, 'webhookSubscriptions', {}, 3);
+      const have = new Set(subs.filter((w) => w.endpoint?.callbackUrl === hook).map((w) => w.topic));
+      const need = ['ORDERS_CREATE', 'ORDERS_UPDATED', 'ORDERS_CANCELLED'];
+      const lacking = need.filter((t) => !have.has(t));
+      if (!lacking.length) add({ key: 'webhooks', ok: true, title: 'Webhooks', detail: `${have.size} lage hue hain` });
+      else if (lastOrder || integration.webhookVerified) add({ key: 'webhooks', ok: true, warn: mode !== 'app', title: 'Webhooks', detail: 'Hath se lage webhooks se orders aa rahe hain' });
+      else add({ key: 'webhooks', ok: false, title: 'Webhooks', detail: `Nahi lage: ${lacking.map(topicLabel).join(', ')}`,
+        fix: mode === 'app' ? '"Check" dabayein — Nafaa khud lagata hai.' : '"Webhooks khud lagayein" dabayein, ya steps dekh kar hath se lagayein.' });
+    } catch {
+      add(this.ordersCheck(lastOrder?.receivedAt ?? null, integration.webhookVerified, lastFail?.errorMessage ?? null));
+    }
+
+    if (lastFail?.errorMessage && /signature/i.test(lastFail.errorMessage)) {
+      add({ key: 'signature', ok: false, title: 'Webhook signature', detail: 'Pichle hafte kuch orders signature ki wajah se ruk gaye',
+        fix: mode === 'token' ? 'Setup me app ki "API secret key" lagayein (hath se bane webhooks ke liye Notifications wali key).' : 'Setup me signing key dobara check karein.' });
+    }
+    return { ok: out.every((c) => c.ok || c.warn), mode, checks: out };
+  }
+
+  private ordersCheck(lastOrderAt: Date | null, verified: boolean, lastError: string | null): CheckItem {
+    if (lastOrderAt || verified) return { key: 'orders', ok: true, title: 'Orders', detail: lastOrderAt ? `Aakhri order ${lastOrderAt.toISOString().slice(0, 10)}` : 'Webhook pahunch raha hai' };
+    return { key: 'orders', ok: false, warn: true, title: 'Orders', detail: lastError ? `Aakhri ghalti: ${lastError}` : 'Abhi tak koi order nahi aaya',
+      fix: 'Shopify par ek test order karein. Na aaye to webhooks ka URL dobara copy karein.' };
+  }
+
+  /** Shopify's answer to a token check, in plain words. */
+  private tokenProblem(status: number, error: string | undefined, mode: 'token' | 'client') {
+    if (status === 401) {
+      return mode === 'client'
+        ? 'Shopify ne token qabool nahi kiya — app is store par install nahi, ya hata di gayi.'
+        : 'Shopify ne token qabool nahi kiya — ghalat copy hua, ya app uninstall / token band ho gaya. App kholein aur naya token lein.';
+    }
+    if (status === 403) return 'Token sahi hai magar is kaam ki ijazat nahi — app ke Admin API scopes check karein.';
+    if (status === 404) return 'Is address par Shopify store nahi mila — ".myshopify.com" wala address check karein.';
+    if (status === 402 || status === 423) return 'Shopify store band hai (plan khatam ya lock). Store chalu karein, phir jorein.';
+    if (status === 0) return `Shopify tak nahi pahunch sake${error ? ` (${error})` : ''}. Thori der baad dobara koshish karein.`;
+    return `Shopify ne ${status} diya${error ? `: ${error}` : ''}`;
+  }
+
+  /** Client credentials grant (Dev Dashboard apps). Token lasts about 24 hours. */
+  private async clientCredentials(shop: string, clientId: string, clientSecret: string) {
+    let res: Response;
+    try {
+      res = await fetch(`https://${shop}/admin/oauth/access_token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+        body: new URLSearchParams({ grant_type: 'client_credentials', client_id: clientId, client_secret: clientSecret }).toString(),
+        signal: AbortSignal.timeout(20_000),
+      });
+    } catch (e: any) {
+      throw new BadRequestException(`Shopify tak nahi pahunch sake (${e?.message ?? 'network'}). Thori der baad dobara koshish karein.`);
+    }
+    const tok: any = await res.json().catch(() => null);
+    if (res.ok && tok?.access_token) return tok as { access_token: string; expires_in?: number; scope?: string };
+    const why = String(tok?.error_description ?? tok?.error ?? tok?.errors ?? '').slice(0, 160);
+    if (res.status === 404) throw new BadRequestException('Is address par Shopify store nahi mila — ".myshopify.com" wala address check karein.');
+    if (/invalid_client|client/i.test(why) || res.status === 401) {
+      throw new BadRequestException(`Client ID ya Client secret ghalat hai${why ? ` (${why})` : ''}. Dev Dashboard → app → Settings se dobara copy karein.`);
+    }
+    throw new BadRequestException(`Shopify ne token nahi diya${why ? `: ${why}` : ''}. App is store par install hai? Store aur app ek hi organization me hone chahiye.`);
+  }
+
+  /** Fresh client credentials token for a Dev Dashboard channel. */
+  private async refreshClientToken(integration: Integration): Promise<string | null> {
+    const fresh = await this.prisma.integration.findUnique({ where: { id: integration.id } });
+    const c = (fresh?.credentials ?? {}) as any;
+    const exp = c.shopifyTokenExpiresAt ? new Date(c.shopifyTokenExpiresAt).getTime() : 0;
+    if (c.shopifyToken && exp - Date.now() > 5 * 60_000) return decrypt(c.shopifyToken);
+    try {
+      const tok = await this.clientCredentials(c.shopifyShop, c.shopifyClientId, decrypt(c.shopifyClientSecret) ?? '');
+      await this.prisma.integration.update({
+        where: { id: integration.id },
+        data: {
+          credentials: {
+            ...c,
+            shopifyToken: encrypt(tok.access_token),
+            shopifyTokenExpiresAt: new Date(Date.now() + (Number(tok.expires_in) || 86_399) * 1000).toISOString(),
+            shopifyReauth: false,
+          },
+          status: IntegrationStatus.CONNECTED,
+        },
+      });
+      return tok.access_token;
+    } catch (e: any) {
+      await this.log(integration, 'SHOPIFY_TOKEN_REFRESH', false, e?.response?.message ?? e?.message);
+      return null;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
   // HELPERS
   // ═══════════════════════════════════════════════════════════
 
@@ -738,6 +1071,13 @@ export class ShopifyService {
     const c = (integration.credentials ?? {}) as any;
     if (!c.shopifyToken || !c.shopifyShop) return null;
     const exp = c.shopifyTokenExpiresAt ? new Date(c.shopifyTokenExpiresAt).getTime() : null;
+    if (c.shopifyMode === 'client' && (!exp || exp - Date.now() <= 5 * 60_000)) {
+      const running = this.refreshing.get(integration.id);
+      if (running) return running;
+      const job = this.refreshClientToken(integration).finally(() => this.refreshing.delete(integration.id));
+      this.refreshing.set(integration.id, job);
+      return job;
+    }
     // Purana (non-expiring) token ya abhi zinda token
     if (!exp || exp - Date.now() > 5 * 60_000) return decrypt(c.shopifyToken);
     if (!c.shopifyRefreshToken) return decrypt(c.shopifyToken);
@@ -887,3 +1227,28 @@ export class ShopifyService {
 }
 
 export { ShopifyError };
+
+export type ShopifyMode = 'app' | 'token' | 'client';
+
+export interface CheckItem {
+  key: string;
+  ok: boolean;
+  /** Not blocking: shown in amber. */
+  warn?: boolean;
+  title: string;
+  detail: string;
+  fix?: string;
+}
+
+/** Needed for products, stock and orders; without these manual mode is refused. */
+export const CORE_SCOPES = ['read_products', 'write_products', 'read_inventory', 'write_inventory', 'read_locations', 'read_orders'];
+
+/** Scopes Nafaa uses that the token does not have. write_x implies read_x. */
+export function missingScopes(granted: string[]): string[] {
+  const have = new Set(granted);
+  for (const g of granted) if (g.startsWith('write_')) have.add(`read_${g.slice(6)}`);
+  return SHOPIFY_SCOPES.split(',').filter((x) => !have.has(x));
+}
+
+const TOPIC_LABEL: Record<string, string> = { ORDERS_CREATE: 'Order creation', ORDERS_UPDATED: 'Order update', ORDERS_CANCELLED: 'Order cancellation', ORDERS_PAID: 'Order payment' };
+const topicLabel = (t: string) => TOPIC_LABEL[t] ?? t;

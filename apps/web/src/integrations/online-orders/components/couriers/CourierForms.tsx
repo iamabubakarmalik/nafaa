@@ -5,25 +5,19 @@ import { ExternalLink, Lock, Zap } from 'lucide-react';
 import { apiErrorMessage, couriersApi, type CourierAccount, type CourierSettingField } from '../../api/online-orders.api';
 import { cn } from '@core/lib/cn';
 import { Button, controlClass, Field } from '@/design-system/components';
+import { BrandLogo, brandForCourier } from '@/assets/brands/BrandLogo';
 
 export const COURIERS_KEY = ['courier-accounts'];
 
-/** Courier ka "logo" — naam ke pehle harf, courier ke rang me */
-export function CourierLogo({ c, size = 40 }: { c: Pick<CourierAccount, 'name' | 'color'>; size?: number }) {
-  const initials = c.name.replace(/[^A-Za-z& ]/g, '').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase() || '?';
-  return (
-    <span
-      className="inline-flex shrink-0 items-center justify-center rounded-lg font-semibold"
-      style={{ width: size, height: size, backgroundColor: `${c.color}1a`, color: c.color, fontSize: size * 0.36 }}
-    >
-      {initials}
-    </span>
-  );
+/** Courier logo (real logo or brand lettermark), by courier code. */
+export function CourierLogo({ c, size = 40 }: { c: Pick<CourierAccount, 'code' | 'name'>; size?: number }) {
+  return <BrandLogo name={brandForCourier(c.code)} size={size} title={c.name} />;
 }
 
 /**
- * Connect: qadam + khane (courier ke hisaab se) → "Check karke jorein".
- * Nafaa courier se usi waqt check karta hai — ghalat key save nahi hoti.
+ * Connect: the courier's own fields, then "Check karke jorein". The API
+ * checks the details with the courier at once, so wrong ones are not saved.
+ * The step-by-step guide sits next to this form (courierGuides).
  */
 export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => void }) {
   const qc = useQueryClient();
@@ -46,21 +40,11 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
 
   return (
     <div className="space-y-4">
-      <ol className="space-y-1.5 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-ink-800/40 dark:text-ink-200">
-        {(c.connect?.steps ?? []).map((s, i) => (
-          <li key={i} className="flex gap-2">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[0.6875rem] font-semibold text-white dark:bg-ink-white dark:text-ink-900">{i + 1}</span>
-            <span>{s}</span>
-          </li>
-        ))}
-        {c.connect?.portalUrl && (
-          <li className="pl-7">
-            <a href={c.connect.portalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-brand-700 hover:underline">
-              {c.name} portal kholein <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          </li>
-        )}
-      </ol>
+      {c.connect?.portalUrl && (
+        <a href={c.connect.portalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
+          {c.name} portal kholein <ExternalLink className="h-3.5 w-3.5" />
+        </a>
+      )}
       <div className={cn('grid gap-3', fields.length > 1 && 'sm:grid-cols-2')}>
         {fields.map((f) => (
           <Field key={f.key} label={<>{f.label}{f.optional && <span className="font-normal text-slate-400"> (optional)</span>}</>} hint={f.help}>
@@ -90,7 +74,7 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
   );
 }
 
-/** Settings — courier ki list se khud banta hai (pickup, origin city, service, wazan…) */
+/** Booking settings, built from the courier's own field list (pickup, origin city, service, weight…). */
 export function CourierSettingsForm({ c }: { c: CourierAccount }) {
   const qc = useQueryClient();
   const defs = c.connect?.settings ?? [];
@@ -116,11 +100,11 @@ export function CourierSettingsForm({ c }: { c: CourierAccount }) {
   if (!defs.length) return <p className="text-[0.8125rem] text-slate-500">Is courier ki koi setting nahi.</p>;
 
   return (
-    <div className="divide-y divide-slate-100 dark:divide-ink-800">
+    <div className="divide-y divide-slate-100">
       {defs.map((d) => (
-        <div className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
-          <div className="min-w-0"><p className="text-sm font-medium text-slate-800">{<>{d.label}{d.required && <span className="text-rose-600"> *</span>}</>}</p><p className="mt-0.5 text-xs text-slate-500">{d.help}</p></div>
-          <div className="shrink-0"><SettingControl d={d} value={c.settings?.[d.key]} opts={opts} loading={isLoading} onSave={(v) => save.mutate({ [d.key]: v })} /></div></div>
+        <div key={d.key} className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 py-3 first:pt-0 last:pb-0">
+          <div className="min-w-0 flex-1 basis-56"><p className="text-sm font-medium text-slate-800">{<>{d.label}{d.required && <span className="text-rose-600"> *</span>}</>}</p>{d.help && <p className="mt-0.5 text-xs text-slate-500">{d.help}</p>}</div>
+          <div className="max-w-full shrink-0"><SettingControl d={d} value={c.settings?.[d.key]} opts={opts} loading={isLoading} onSave={(v) => save.mutate({ [d.key]: v })} /></div></div>
       ))}
     </div>
   );
@@ -143,7 +127,7 @@ function SettingControl({ d, value, opts, loading, onSave }: {
         : d.type === 'service' ? (opts?.services ?? []).map((x) => ({ value: x.code, label: x.name }))
           : d.options ?? [];
     return (
-      <select value={current} disabled={loading && d.type !== 'select'} onChange={(e) => onSave(e.target.value || null)} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] w-60')}>
+      <select value={current} disabled={loading && d.type !== 'select'} onChange={(e) => onSave(e.target.value || null)} className={cn(controlClass(), 'h-9 w-60 max-w-full px-3 text-[0.8125rem]')}>
         <option value="">{loading && d.type !== 'select' ? 'Aa raha hai…' : d.placeholder ?? 'Default'}</option>
         {current && !list.some((o) => o.value === current) && <option value={current}>{current}</option>}
         {list.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -156,7 +140,7 @@ function SettingControl({ d, value, opts, loading, onSave }: {
       value={draft} placeholder={d.placeholder ?? '(khali)'} maxLength={200}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={() => draft !== current && onSave(draft === '' ? null : d.type === 'number' ? Number(draft) : draft)}
-      className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]', d.type === 'number' ? 'w-24' : 'w-60')}
+      className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem]', d.type === 'number' ? 'w-24' : 'w-60 max-w-full')}
     />
   );
 }

@@ -10,6 +10,7 @@ import { WebsiteSetupService } from './website-setup.service';
 import { assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 import { WooClient, WooError } from './woocommerce.client';
 import { mappingKey } from './mapping-key';
+import { linkScope, trackLinks } from './link-sync';
 
 /**
  * WooCommerce — ek click me jorna (Shopify jaisa):
@@ -273,6 +274,10 @@ export class WooCommerceService {
    * sirf badle hue (POS sale ke foran baad ka tez push).
    */
   async syncStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] } = {}) {
+    return trackLinks(this.prisma, integration.id, linkScope(opts), () => this.pushStock(integration, opts));
+  }
+
+  private async pushStock(integration: Integration, opts: { onlySkus?: string[]; onlyLinks?: { externalProductId: string; externalVariantId: string | null }[] }) {
     const client = this.client(integration);
     if (!client) throw new BadRequestException('WooCommerce jura nahi — pehle connect karein');
     const cfg = readWebsiteConfig(integration.config);
@@ -322,7 +327,7 @@ export class WooCommerceService {
       await this.log(integration, 'STOCK_SYNC', true, undefined, { updated: 0, note: 'Koi product jora hua nahi, na SKU mila' });
       return { updated: 0, checked: 0, missing: 0 };
     }
-    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, shopId, integration.id, skus) : {};
+    const stock = skus.length ? await this.catalog.stockBySku(integration.tenantId, shopId, integration.id, skus, cfg.stockBuffer) : {};
 
     const simple: any[] = [];
     const byParent = new Map<number, any[]>();

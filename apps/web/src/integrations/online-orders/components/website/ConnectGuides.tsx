@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Download, ExternalLink, KeyRound, Loader2, MessageCircle, Sparkles, Wrench, Zap } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Button } from '@/design-system/components';
+import { Alert, Button } from '@/design-system/components';
+import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { CodeBlock } from '@integrations/_core/components/CodeBlock';
 import { apiErrorMessage, onlineOrdersApi, type WebsiteOverview } from '../../api/online-orders.api';
 import { useShopifyConnect, useWooConnect } from '../../hooks/useWooConnect';
@@ -10,12 +11,17 @@ import { HttpsNotice, ManualKeysForm } from './ManualKeysForm';
 import { developerGuide, snippets } from '../../lib/snippets';
 import { CopyField } from './CopyField';
 import { cn } from '@core/lib/cn';
+import { useShopifyAddress } from '../../lib/shopifyAddress';
+import {
+  FindAddressHelp, NoTokenNotice, SetupStep, ShopifyAddressField, ShopifyAppGuide, ShopifyCheckPanel, ShopifyCredentialsStep,
+  ShopifyErrorsHelp, ShopifyManualConnected, ShopifyManualStatus, ShopifyPathCards, ShopifyWebhooksStep, type ShopifyPath,
+} from './ShopifySetup';
 
 export type Platform = 'woocommerce' | 'shopify' | 'custom';
 
 export const PLATFORM_CARDS: { key: Platform; title: string; emoji: string; sub: string }[] = [
   { key: 'woocommerce', title: 'WordPress / WooCommerce', emoji: '🟣', sub: 'Plugin install karo, key paste karo' },
-  { key: 'shopify', title: 'Shopify', emoji: '🟢', sub: 'Shopify admin me ek URL paste' },
+  { key: 'shopify', title: 'Shopify', emoji: '🟢', sub: 'Nafaa app install, ya apni app ka token' },
   { key: 'custom', title: 'Apni banayi website', emoji: '💻', sub: 'Developer ke liye tayyar code' },
 ];
 
@@ -58,7 +64,7 @@ export function ConnectGuide({ platform, overview, shopName, channelId, onChange
   }
   if (platform === 'shopify') {
     return <ShopifyGuide hook={u.hook!} channelId={channelId} isShopifyChannel={i.type === 'SHOPIFY'} shopify={i.shopify ?? null}
-      siteUrl={i.config.siteUrl} name={i.displayName} onChange={onChange} />;
+      siteUrl={i.config.siteUrl} name={i.displayName} onChange={onChange} overview={overview} />;
   }
   return <CustomGuide overview={overview} shopName={shopName} />;
 }
@@ -250,82 +256,99 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
   );
 }
 
-function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteUrl, name, onChange }: {
+/**
+ * Shopify setup for one channel: Automatic (Nafaa app) or Manual (own app
+ * token / webhooks). Picking a path shows only that path's steps. Exported so
+ * the channel page can render it for own-app channels too.
+ */
+export function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteUrl, name, onChange, overview }: {
   hook: string; channelId: string; isShopifyChannel: boolean;
-  shopify: { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null } | null;
-  siteUrl: string | null; name: string; onChange: (d: WebsiteOverview) => void;
+  shopify: NonNullable<WebsiteOverview['integration']>['shopify'] | null;
+  siteUrl: string | null; name: string; onChange: (d: WebsiteOverview) => void; overview?: WebsiteOverview;
 }) {
-  const [mode, setMode] = useState<'oneclick' | 'webhook'>(isShopifyChannel ? 'oneclick' : 'webhook');
+  const ownApp = shopify?.connected && (shopify.mode === 'token' || shopify.mode === 'client');
+  const [path, setPath] = useState<ShopifyPath>(ownApp || !isShopifyChannel ? 'manual' : 'auto');
+  const [kind, setKind] = useState<'token' | 'client'>(shopify?.mode === 'client' ? 'client' : 'token');
+  const [store, setStore] = useState(shopify?.shop ?? siteUrl ?? '');
+  const address = useShopifyAddress(store);
+  const connect = useShopifyConnect(() => { onlineOrdersApi.channel(channelId).then(onChange).catch(() => null); });
+
+  if (ownApp && overview) {
+    return (
+      <div className="space-y-4">
+        <ShopifyManualStatus channelId={channelId} overview={overview} onChange={onChange} />
+        <ShopifyManualConnected channelId={channelId} overview={overview} />
+        <ShopifyCheckPanel channelId={channelId} />
+        <ShopifyErrorsHelp />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {isShopifyChannel && (
-        <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1 dark:bg-ink-900">
-          <button onClick={() => setMode('oneclick')} className={tab(mode === 'oneclick')}><Zap className="h-3.5 w-3.5" /> Ek click (sab se aasaan)</button>
-          <button onClick={() => setMode('webhook')} className={tab(mode === 'webhook')}>Webhook URL (purana)</button>
+        <ShopifyPathCards value={path} onChange={setPath}
+          autoNote={!connect.shopifyOAuth ? 'Server par Nafaa app ki keys nahi lagi — abhi Manual istemal karein.' : null} />
+      )}
+      {path === 'auto' && isShopifyChannel ? (
+        <ShopifyOneClick channelId={channelId} shopify={shopify} store={store} setStore={setStore} address={address} name={name} connect={connect} />
+      ) : (
+        <div className="space-y-5">
+          {isShopifyChannel ? <NoTokenNotice /> : (
+            <p className="text-[0.8125rem] text-slate-600">Ye channel sirf webhook se orders leta hai. Products aur stock ke liye "Sales channels → Channel jorein → Shopify" se Shopify channel banayein.</p>
+          )}
+          <ol className="space-y-5">
+            {isShopifyChannel && (
+              <>
+                <SetupStep n={1} title="Store ka address">
+                  <ShopifyAddressField value={store} onChange={setStore} address={address} />
+                  <FindAddressHelp />
+                </SetupStep>
+                <ShopifyAppGuide kind={kind} onKind={setKind} first={2} />
+                <ShopifyCredentialsStep n={4} kind={kind} channelId={channelId} shop={address.shop}
+                  onConnected={() => { onlineOrdersApi.channel(channelId).then(onChange).catch(() => null); }} />
+              </>
+            )}
+            <ShopifyWebhooksStep n={isShopifyChannel ? 5 : 1} channelId={channelId} hook={hook} canAuto={false} signingKey={overview?.integration?.config.shopifySecret ?? null} />
+          </ol>
+          {isShopifyChannel && <ShopifyCheckPanel channelId={channelId} />}
+          <ShopifyErrorsHelp />
         </div>
       )}
-      {mode === 'oneclick'
-        ? <ShopifyOneClick channelId={channelId} shopify={shopify} siteUrl={siteUrl} name={name} onChange={onChange} />
-        : <ShopifyWebhookGuide hook={hook} />}
     </div>
   );
 }
 
-function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
-  channelId: string; shopify: { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null } | null;
-  siteUrl: string | null; name: string; onChange: (d: WebsiteOverview) => void;
+function ShopifyOneClick({ channelId, shopify, store, setStore, address, name, connect }: {
+  channelId: string; shopify: NonNullable<WebsiteOverview['integration']>['shopify'] | null;
+  store: string; setStore: (v: string) => void; address: ReturnType<typeof useShopifyAddress>; name: string;
+  connect: ReturnType<typeof useShopifyConnect>;
 }) {
   const qc = useQueryClient();
-  const [store, setStore] = useState((siteUrl ?? '').replace(/^https?:\/\//, '').replace('.myshopify.com', ''));
-  const connect = useShopifyConnect(() => { onlineOrdersApi.channel(channelId).then(onChange).catch(() => null); });
   const repair = useMutation({
     mutationFn: () => onlineOrdersApi.shopifyRepair(channelId),
     onSuccess: (r) => { toast.success(r.ok ? 'Webhooks aur location theek hain ✅' : 'Kuch masla hai — Activity dekhein'); qc.invalidateQueries({ queryKey: ['sales-channel', channelId] }); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
+  const target = address.shop ?? store.trim();
 
   if (shopify?.connected && connect.phase !== 'waiting') {
     return (
       <div className="space-y-3">
         {shopify.needsReinstall && (
-          <div className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-4 flex flex-wrap items-center gap-3">
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-black text-amber-900 dark:text-amber-200">⚠️ Shopify ko ek dafa dobara install karein</div>
-              <div className="text-[0.75rem] font-bold text-amber-800 dark:text-amber-300">
-                Shopify ab naya (khud-refresh hone wala) token maangta hai. Dobara install se orders, stock aur status chalne lagenge — koi data nahi mitega.
-              </div>
-            </div>
-            <Button size="sm" variant="primary" loading={connect.phase === 'starting'}
-              onClick={() => connect.start({ siteUrl: shopify.shop ?? store, channelId })} leftIcon={<span>🟢</span>}>
-              Dobara install
-            </Button>
-          </div>
+          <Alert tone="warning" title="Shopify ko ek dafa dobara install karein"
+            action={<Button size="sm" loading={connect.phase === 'starting'} onClick={() => connect.start({ siteUrl: shopify.shop ?? target, channelId })}>Dobara install</Button>}>
+            Shopify ab naya (khud-refresh hone wala) token maangta hai. Dobara install se orders, stock aur status chalne lagenge — koi data nahi mitega.
+          </Alert>
         )}
-        <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-lime-50 dark:from-emerald-500/10 dark:to-lime-500/5 p-4 flex flex-wrap items-center gap-4">
-          <span className="h-12 w-12 rounded-2xl bg-white dark:bg-ink-900 shadow flex items-center justify-center text-2xl shrink-0">🟢</span>
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-success-200 bg-success-50 p-3">
+          <BrandLogo name="shopify" size="md" />
           <div className="min-w-0 flex-1">
-            <div className="font-black text-slate-900 dark:text-ink-white">Shopify se jura hai ✓</div>
-            <div className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300 truncate">
-              {shopify.shop}{shopify.locationName ? ` · stock location: ${shopify.locationName}` : ''}
-            </div>
+            <div className="text-[0.875rem] font-semibold text-slate-900">Shopify se jura hai ✓</div>
+            <div className="truncate text-[0.75rem] text-slate-600">{shopify.shop}{shopify.locationName ? ` · stock location: ${shopify.locationName}` : ''}</div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" loading={repair.isPending} onClick={() => repair.mutate()} leftIcon={<Wrench className="h-4 w-4" />}>Webhooks check</Button>
-            <Button size="sm" variant="ghost" loading={connect.phase === 'starting'} onClick={() => connect.start({ siteUrl: shopify.shop ?? store, channelId })}>Dobara install</Button>
-          </div>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-3">
-          {[
-            ['🔔', 'Orders khud aate hain', 'Bana / badla / cancel / paid'],
-            ['🚚', 'Fulfillment + tracking', 'Customer ko Shopify email'],
-            ['📦', 'Stock har 15 minute', 'Accept/cancel par foran'],
-          ].map(([e, t, d]) => (
-            <div key={t} className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
-              <div className="text-lg">{e}</div>
-              <div className="mt-1 text-xs font-black text-slate-800 dark:text-ink-100">{t}</div>
-              <div className="text-[0.6875rem] font-bold text-slate-500">{d}</div>
-            </div>
-          ))}
+          <Button size="sm" variant="secondary" loading={repair.isPending} onClick={() => repair.mutate()} leftIcon={<Wrench className="h-4 w-4" />}>Webhooks check</Button>
+          <Button size="sm" variant="ghost" loading={connect.phase === 'starting'} onClick={() => connect.start({ siteUrl: shopify.shop ?? target, channelId })}>Dobara install</Button>
         </div>
       </div>
     );
@@ -333,61 +356,42 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
 
   if (connect.phase === 'waiting') {
     return (
-      <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4">
-        <div className="flex items-center gap-2 font-black text-slate-900 dark:text-ink-white">
-          <Loader2 className="h-4 w-4 animate-spin text-emerald-600" /> Shopify window me "Install" dabayein…
-        </div>
-        <Button className="mt-3" size="sm" variant="outline" onClick={() => connect.reopen()} leftIcon={<ExternalLink className="h-4 w-4" />}>Window dobara kholo</Button>
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-4">
+        <Loader2 className="h-5 w-5 animate-spin text-brand-600" />
+        <div className="min-w-0 flex-1 text-[0.875rem] font-semibold text-slate-900">Shopify window me "Install" dabayein…</div>
+        <Button size="sm" variant="secondary" onClick={() => connect.reopen()} leftIcon={<ExternalLink className="h-4 w-4" />}>Window dobara kholo</Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-4">
-        <div className="text-sm font-black text-slate-900 dark:text-ink-white">Shopify store ka naam</div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <div className="relative flex min-w-[220px] flex-1 items-center">
-            <input value={store} onChange={(e) => setStore(e.target.value)} placeholder="nafaa-test"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-3 pr-32 text-sm font-semibold outline-none focus:border-emerald-500 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-white" />
-            <span className="pointer-events-none absolute right-3 text-xs font-bold text-slate-400">.myshopify.com</span>
-          </div>
-          <Button variant="success" loading={connect.phase === 'starting'} disabled={!store.trim() || !connect.oneClickReady}
-            onClick={() => connect.start({ siteUrl: store.trim(), channelId, displayName: name })} leftIcon={<span>🟢</span>}>
+    <ol className="space-y-5">
+      <SetupStep n={1} title="Store ka address">
+        <ShopifyAddressField value={store} onChange={setStore} address={address}
+          onEnter={() => { if (address.shop && connect.oneClickReady) connect.start({ siteUrl: address.shop, channelId, displayName: name }); }} />
+        <FindAddressHelp />
+      </SetupStep>
+      <SetupStep n={2} title={'"Shopify se jorein" dabayein'}>
+        <p>Chhoti window me Shopify khulega → login → <b>Install</b>. Token, webhooks aur stock Nafaa khud lagata hai.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button loading={connect.phase === 'starting'} disabled={!address.shop || !connect.oneClickReady}
+            onClick={() => connect.start({ siteUrl: address.shop!, channelId, displayName: name })} leftIcon={<BrandLogo name="shopify" size={18} />}>
             Shopify se jorein
           </Button>
         </div>
-        <p className="mt-2 text-[0.6875rem] font-bold text-slate-500">
-          Chhoti window me Shopify khulega → login → <b>Install</b>. Token aur webhooks Nafaa khud lagata hai.
-        </p>
-        {connect.phase === 'denied' && <p className="mt-2 text-[0.75rem] font-bold text-rose-600">Install nahi hua — dobara koshish karein.</p>}
-        {connect.error && <p className="mt-2 text-[0.75rem] font-bold text-rose-600">{connect.error}</p>}
-      </div>
-      {!connect.oneClickReady && (
-        <HttpsNotice compact
-          reason={!connect.shopifyOAuth ? 'Shopify app ki keys (SHOPIFY_CLIENT_ID / SECRET) server par nahi lagi.' : connect.publicApi?.reason}
-          fix={connect.shopifyOAuth ? connect.publicApi?.fix : 'apps/api/.env me SHOPIFY_CLIENT_ID aur SHOPIFY_CLIENT_SECRET daal kar API restart karein.'} />
-      )}
-      {connect.phase === 'manual' && <HttpsNotice reason={connect.hint?.reason} fix={connect.hint?.fix} />}
-    </div>
-  );
-}
-
-function ShopifyWebhookGuide({ hook }: { hook: string }) {
-  return (
-    <Steps>
-      <StepItem n={1} title="Shopify Admin → Settings → Notifications → Webhooks → Create webhook" />
-      <StepItem n={2} title="Event: Order creation · Format: JSON · URL:">
-        <CopyField label="Webhook URL" value={hook} />
-      </StepItem>
-      <StepItem n={3} title="Isi URL se 2 aur webhook banayein">
-        <b>Order cancellation</b> aur <b>Order payment</b> — taake cancel aur paisa aane ki khabar bhi Nafaa me aaye.
-      </StepItem>
-      <StepItem n={4} title="Signing key Nafaa me daalein (safety ke liye)">
-        Webhooks list ke neeche likha hota hai "Your webhooks will be signed with …" — wo key copy karke neeche <b>Settings → Shopify signing key</b> me paste karein.
-      </StepItem>
-      <StepItem n={5} title="Products: neeche se Shopify CSV download karke Shopify → Products → Import me daalein" />
-    </Steps>
+        {connect.phase === 'denied' && <p className="text-[0.78125rem] font-medium text-rose-600">Install nahi hua — dobara koshish karein.</p>}
+        {connect.error && <p className="text-[0.78125rem] font-medium text-rose-600">{connect.error}</p>}
+        {!connect.oneClickReady && (
+          <HttpsNotice compact
+            reason={!connect.shopifyOAuth ? 'Shopify app ki keys (SHOPIFY_CLIENT_ID / SECRET) server par nahi lagi.' : connect.publicApi?.reason}
+            fix={connect.shopifyOAuth ? connect.publicApi?.fix : 'apps/api/.env me SHOPIFY_CLIENT_ID aur SHOPIFY_CLIENT_SECRET daal kar API restart karein.'} />
+        )}
+        {connect.phase === 'manual' && <HttpsNotice reason={connect.hint?.reason} fix={connect.hint?.fix} />}
+      </SetupStep>
+      <SetupStep n={3} title="Products jorein aur test order karein">
+        <p>Jurte hi Products tab me har Shopify product ko Nafaa product se jorein, phir Shopify par ek test order karein.</p>
+      </SetupStep>
+    </ol>
   );
 }
 

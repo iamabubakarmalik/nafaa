@@ -6,6 +6,7 @@ import { X, Check, Loader2, Sparkles, ExternalLink } from 'lucide-react';
 import { integrationsApi, type AvailableIntegration } from '../api/integrations.api';
 import { Button, Input, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { AppMark } from './AppMark';
 
 const CATEGORY_LABELS: Record<string, string> = {
   SALES_CHANNEL: 'Sales Channel',
@@ -150,12 +151,7 @@ export function ConnectIntegrationModal({
                     }}
                     className="group p-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-brand-400 dark:hover:border-brand-600 transition text-left"
                   >
-                    <div
-                      className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition"
-                      style={{ backgroundColor: `${avail.color}20` }}
-                    >
-                      {avail.icon}
-                    </div>
+                    <div className="mb-3"><AppMark type={avail.type} category={avail.category} size={44} /></div>
                     <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">
                       {avail.name}
                     </div>
@@ -182,12 +178,7 @@ export function ConnectIntegrationModal({
         <div className="space-y-4">
           {/* Selected integration header */}
           <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-ink-800 dark:to-ink-900 flex items-center gap-3">
-            <div
-              className="h-14 w-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-              style={{ backgroundColor: `${selected.color}20` }}
-            >
-              {selected.icon}
-            </div>
+            <AppMark type={selected.type} category={selected.category} size={52} />
             <div className="flex-1 min-w-0">
               <div className="font-black text-base text-slate-900 dark:text-ink-white">
                 {selected.name}

@@ -4,12 +4,12 @@ import { rs } from '../lib/labels';
 import { cn } from '@core/lib/cn';
 
 const TONE: Record<CustomerRisk['level'], string> = {
-  NEW: 'bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300',
-  TRUSTED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300',
-  OK: 'bg-slate-100 text-slate-700 dark:bg-ink-800 dark:text-ink-300',
-  WATCH: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300',
+  NEW: 'bg-sky-100 text-sky-800',
+  TRUSTED: 'bg-success-100 text-success-800',
+  OK: 'bg-slate-100 text-slate-700',
+  WATCH: 'bg-amber-100 text-amber-800',
   HIGH: 'bg-rose-600 text-white',
-  BLOCKED: 'bg-slate-900 text-white dark:bg-ink-white dark:text-ink-900',
+  BLOCKED: 'bg-slate-900 text-white',
 };
 
 /** List ki chhoti badge — sirf jahan kuch batane layak ho */
@@ -18,12 +18,12 @@ export function RiskBadge({ risk }: { risk?: CustomerRisk | null }) {
   return (
     <>
       {risk.level !== 'OK' && (
-        <span title={risk.reason} className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-black', TONE[risk.level])}>
-          {risk.level === 'HIGH' ? '⚠ ' : risk.level === 'TRUSTED' ? '★ ' : risk.level === 'BLOCKED' ? '⛔ ' : ''}{risk.label}
+        <span title={risk.reason} className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-bold', TONE[risk.level])}>
+          {risk.label}
         </span>
       )}
       {(risk.duplicateOpen ?? 0) > 0 && (
-        <span title="Isi customer ka pehle se ek order khula hai" className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[0.6875rem] font-black text-violet-800 dark:bg-violet-500/15 dark:text-violet-300">
+        <span title="Isi customer ka pehle se ek order khula hai" className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[0.6875rem] font-bold text-violet-800">
           Dobara order ({risk.duplicateOpen})
         </span>
       )}
@@ -37,15 +37,15 @@ export function RiskCard({ risk }: { risk?: CustomerRisk | null }) {
   const Icon = risk.level === 'HIGH' || risk.level === 'WATCH' || risk.level === 'BLOCKED' ? ShieldAlert : risk.level === 'NEW' ? ShieldQuestion : ShieldCheck;
   return (
     <div className={cn('mt-3 rounded-xl px-3 py-2.5 text-sm',
-      risk.level === 'BLOCKED' ? 'bg-slate-900 text-white dark:bg-ink-white dark:text-ink-900'
-        : risk.level === 'HIGH' ? 'bg-rose-50 text-rose-900 dark:bg-rose-500/10 dark:text-rose-200'
-        : risk.level === 'WATCH' ? 'bg-amber-50 text-amber-900 dark:bg-amber-500/10 dark:text-amber-200'
-          : risk.level === 'TRUSTED' ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-200'
-            : 'bg-slate-50 text-slate-700 dark:bg-ink-800/60 dark:text-ink-200')}>
-      <div className="flex items-center gap-2 font-black"><Icon className="h-4 w-4" /> {risk.label}</div>
+      risk.level === 'BLOCKED' ? 'bg-slate-900 text-white'
+        : risk.level === 'HIGH' ? 'bg-rose-50 text-rose-900'
+        : risk.level === 'WATCH' ? 'bg-amber-50 text-amber-900'
+          : risk.level === 'TRUSTED' ? 'bg-success-50 text-success-900'
+            : 'bg-slate-50 text-slate-700')}>
+      <div className="flex items-center gap-2 font-bold"><Icon className="h-4 w-4" /> {risk.label}</div>
       <div className="mt-0.5 text-xs font-semibold opacity-90">{risk.reason}</div>
       {(risk.duplicateOpen ?? 0) > 0 && (
-        <div className="mt-1 text-xs font-black">⚠ Isi customer ke {risk.duplicateOpen} aur order abhi khule hain — dobara to nahi bheja?</div>
+        <div className="mt-1 text-xs font-bold">Dhyan: isi customer ke {risk.duplicateOpen} aur order abhi khule hain — dobara to nahi bheja?</div>
       )}
       {risk.total > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-x-3 text-[0.6875rem] font-bold opacity-80">

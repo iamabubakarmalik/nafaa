@@ -573,19 +573,41 @@ export async function customerKhataProfit(db: Db, tenantId: string, customerId: 
 /** The gross profit a basis puts in the headline. */
 export const headlineGross = (c: CreditProfit, basis: ProfitBasis) => (basis === 'BILL' ? c.billProfit : c.realised);
 
+/**
+ * Sale lines with no cost anywhere (LINE_NO_COST): their whole sale counts as
+ * profit. `products` is how many different products they are.
+ */
+export interface NoCostSales { products: number; lines: number; revenue: number }
+
+export async function noCostSales(db: Db, scope: MathScope, r: MathRange): Promise<NoCostSales> {
+  const where = liveSaleSql(scope, r);
+  const [row] = await db.$queryRaw<Array<{ products: number; lines: number; revenue: number }>>`
+    WITH ${billMathCte(where)}
+    SELECT COUNT(DISTINCT si."productId")::int AS products, COUNT(*)::int AS lines, COALESCE(SUM(${LINE_REVENUE}), 0)::float8 AS revenue
+    FROM "SaleItem" si JOIN "Sale" s ON s.id = si."saleId" JOIN bm ON bm.id = s.id
+    ${LINE_COST_JOINS}
+    WHERE ${where} AND ${LINE_NO_COST} AND ${KEPT_QTY} > 0`;
+  return { products: n(row?.products), lines: n(row?.lines), revenue: r2(n(row?.revenue)) };
+}
+
 /** Khata profit with the shop's basis and the headline it picks. Sent to the app as-is. */
 export interface ProfitSplit extends CreditProfit {
   basis: ProfitBasis;
   /** Gross profit in the headline: `realised` ('PAID') or `billProfit` ('BILL'). */
   headline: number;
+  /** Lines in scope sold with no cost (their sale counted as profit), when the caller looked them up. */
+  noCost?: NoCostSales;
 }
 
-export const profitSplit = (c: CreditProfit, basis: ProfitBasis): ProfitSplit => ({ ...c, basis, headline: headlineGross(c, basis) });
+export const profitSplit = (c: CreditProfit, basis: ProfitBasis, noCost?: NoCostSales): ProfitSplit =>
+  ({ ...c, basis, headline: headlineGross(c, basis), ...(noCost && { noCost }) });
 
 /** Khata profit split and other income for a window: what a screen adds to its own sale and expense figures. */
 export async function profitParts(db: Db, scope: MathScope, r: MathRange): Promise<{ split: ProfitSplit; otherIncome: number; otherIncomeCount: number }> {
-  const [credit, basis, income] = await Promise.all([creditProfit(db, scope, r), profitBasis(db, scope.tenantId), otherIncome(db, scope, r)]);
-  return { split: profitSplit(credit, basis), otherIncome: income.amount, otherIncomeCount: income.count };
+  const [credit, basis, income, bare] = await Promise.all([
+    creditProfit(db, scope, r), profitBasis(db, scope.tenantId), otherIncome(db, scope, r), noCostSales(db, scope, r),
+  ]);
+  return { split: profitSplit(credit, basis, bare), otherIncome: income.amount, otherIncomeCount: income.count };
 }
 
 /* ───────────────────────── profit ───────────────────────── */
@@ -618,14 +640,14 @@ export interface ProfitFigures {
 
 /** Sales, expenses, write-offs, other income, khata profit and net profit for a tenant, branch and window. */
 export async function profitFigures(db: Db, scope: MathScope, r: MathRange): Promise<ProfitFigures> {
-  const [sales, expenses, w, income, credit, basis] = await Promise.all([
+  const [sales, expenses, w, income, credit, basis, bare] = await Promise.all([
     saleFigures(db, scope, r), paidExpenses(db, scope, r), writeOffs(db, scope, r), otherIncome(db, scope, r),
-    creditProfit(db, scope, r), profitBasis(db, scope.tenantId),
+    creditProfit(db, scope, r), profitBasis(db, scope.tenantId), noCostSales(db, scope, r),
   ]);
   const gross = headlineGross(credit, basis);
   return {
     sales, expenses: expenses.amount, expenseCount: expenses.count, writeOffs: w,
-    otherIncome: income.amount, otherIncomeCount: income.count, credit, split: profitSplit(credit, basis), basis, grossProfit: gross,
+    otherIncome: income.amount, otherIncomeCount: income.count, credit, split: profitSplit(credit, basis, bare), basis, grossProfit: gross,
     netProfit: netProfit(gross, expenses.amount, w.net, income.amount),
     billNetProfit: netProfit(sales.grossProfit, expenses.amount, w.net, income.amount),
   };

@@ -74,7 +74,7 @@ export function ProductPicker({ onPick, initialSearch, placeholder = 'Nafaa prod
       </button>
       {open && pos && createPortal(
         <div ref={panel} style={{ top: pos.top, left: pos.left, width: pos.width }}
-          className="fixed z-[90] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-ink-700 dark:bg-ink-900">
+          className="fixed z-[100] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-ink-700 dark:bg-ink-900">
           <div className="border-b border-slate-100 p-2 dark:border-ink-800">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

@@ -94,6 +94,7 @@ const RULES: Array<[RegExp, PermissionKey]> = [
 
   // Online dukaan
   [/^\/online-orders/, P.ONLINE_ORDERS_VIEW],
+  [/^\/online-store\/products/, P.ONLINE_PRODUCTS_VIEW],
   [/^\/catalog/, P.CATALOG_VIEW],
 
   // Maal — banane/badalne ke apne darje

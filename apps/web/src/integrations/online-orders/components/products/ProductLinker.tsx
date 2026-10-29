@@ -87,8 +87,8 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
         </div>
         <p className="mt-3 text-[0.78125rem] text-slate-500">
           {data.kind === 'indolj'
-            ? <>🍪 <b>Indolj ka menu</b> — har item ko Nafaa product se jorein, phir Indolj ka har order khud bill banata aur stock kam karta hai. Menu / qeemat Indolj ke panel se badalti hai.</>
-            : <>📦 <b>Stock ka malik Nafaa hai</b> — jora hua har variant ka stock Nafaa (branch) se {siteName} par jata hai: har 15 minute, aur har accept/cancel par foran.</>}
+            ? <><b>Indolj ka menu</b> — har item ko Nafaa product se jorein, phir Indolj ka har order khud bill banata aur stock kam karta hai. Menu / qeemat Indolj ke panel se badalti hai.</>
+            : <><b>Stock ka malik Nafaa hai</b> — jora hua har variant ka stock Nafaa (branch) se {siteName} par jata hai: har 15 minute, aur har accept/cancel par foran.</>}
           {data.canFetch && ` · List ${timeAgo(data.fetchedAt)} ki`}
         </p>
       </Card>
@@ -101,15 +101,9 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
       {data.orphans.length > 0 && <Orphans channelId={channelId} orphans={data.orphans} onDone={invalidate} />}
 
       {!data.canFetch ? (
-        <>
-          <IndoljConnect channelId={channelId} onDone={invalidate} />
-          <CustomLinks channelId={channelId} links={data.links} onDone={invalidate} />
-        </>
+        <CustomLinks channelId={channelId} links={data.links} onDone={invalidate} />
       ) : data.kind === 'indolj' ? (
-        <>
-          <WebsiteList channelId={channelId} products={data.products} onDone={invalidate} />
-          <IndoljConnect channelId={channelId} onDone={invalidate} connected />
-        </>
+        <WebsiteList channelId={channelId} products={data.products} onDone={invalidate} />
       ) : (
         <>
           <Segmented value={view} onChange={setView} items={[
@@ -317,7 +311,7 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
       <div className="col-start-2 text-[0.78125rem] text-slate-600 dark:text-ink-300 md:col-start-auto">
         <span className="font-mono text-[0.75rem]">{v.sku || '— SKU nahi'}</span>
         <span className="text-slate-400"> · </span>{rs(v.price)}
-        <span className="text-slate-400"> · </span>{v.stock === null ? 'stock track nahi' : `stock ${v.stock}`}
+        <span className="text-slate-400"> · </span>{v.stock === null ? 'stock track nahi' : <StockText n={v.stock} />}
       </div>
       <ArrowRight className="hidden h-4 w-4 text-slate-300 md:block" />
 
@@ -330,8 +324,8 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
                 {v.link.name}{v.link.variantName ? <span className="text-slate-500"> — {v.link.variantName}</span> : null}
               </span>
               <span className="text-[0.75rem] text-slate-500">
-                Nafaa stock <b className={cn(v.link.stock <= 0 && 'text-rose-600')}>{v.link.stock}</b>
-                {v.stock !== null && v.stock !== v.link.stock && <span className="text-amber-600"> · website par {v.stock} (agli sync me barabar)</span>}
+                Nafaa <StockText n={v.link.stock} />
+                {v.stock !== null && v.stock !== Math.max(0, v.link.stock) && <span className="text-amber-600"> · website par {v.stock} (agli sync me barabar)</span>}
                 {v.link.inactive && <span className="text-rose-600"> · Nafaa me band</span>}
               </span>
             </span>
@@ -398,7 +392,7 @@ function AcceptAll({ channelId, products, onDone }: { channelId: string; product
 
 /* ═════════════════════ Nafaa → website ═════════════════════ */
 
-function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; siteName: string; onDone: () => void }) {
+export function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; siteName: string; onDone: () => void }) {
   const [q, setQ] = useState('');
   const [debounced, setDebounced] = useState('');
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -463,7 +457,7 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
                       {p.variants.length > 0 && ` · ${p.variants.length} variants (${p.variants.slice(0, 4).map((v) => v.name).join(', ')}${p.variants.length > 4 ? '…' : ''})`}
                     </span>
                   </span>
-                  <span className={cn('w-28 text-right text-[0.8125rem] tabular-nums', p.stock <= 0 ? 'text-rose-600' : 'text-slate-700 dark:text-ink-200')}>{p.stock}</span>
+                  <span className="w-28 text-right text-[0.8125rem] tabular-nums"><StockText n={p.stock} bare /></span>
                   <span className="w-24 text-right text-[0.8125rem] font-medium tabular-nums text-slate-900 dark:text-ink-white">{rs(p.price)}</span>
                 </label>
               </li>
@@ -476,6 +470,21 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
 }
 
 /* ═════════════════════ Chhote hisse ═════════════════════ */
+
+/**
+ * Stock as a person reads it: a negative count (sold more than recorded)
+ * shows as "khatam" with the shortfall in the tooltip, never as "-26".
+ */
+function StockText({ n, bare }: { n: number; bare?: boolean }) {
+  if (n <= 0) {
+    return (
+      <span className="font-semibold text-rose-600" title={n < 0 ? `Nafaa me ${Math.abs(n)} zyada bik chuke — stock theek karein` : undefined}>
+        {bare ? 'Khatam' : 'stock khatam'}
+      </span>
+    );
+  }
+  return <span>{bare ? n : `stock ${n}`}</span>;
+}
 
 function Thumb({ src }: { src: string | null }) {
   return (
@@ -501,13 +510,13 @@ function Orphans({ channelId, orphans, onDone }: { channelId: string; orphans: {
 }
 
 /** Apni banayi website: us ke products hum nahi dekh sakte — bane hue links + orders se khud bante hain */
-function CustomLinks({ channelId, links, onDone }: { channelId: string; links: { mappingId: string; externalProductId: string | null; externalSku: string | null; externalTitle: string | null; name: string; variantName: string | null; stock: number }[]; onDone: () => void }) {
+export function CustomLinks({ channelId, links, onDone }: { channelId: string; links: { mappingId: string; externalProductId: string | null; externalSku: string | null; externalTitle: string | null; name: string; variantName: string | null; stock: number }[]; onDone: () => void }) {
   const unlink = useMutation({
     mutationFn: (id: string) => onlineOrdersApi.removeLink(channelId, id),
     onSuccess: () => { onDone(); toast.success('Link hata diya'); },
   });
   return (
-    <Card title="Jore hue products" description="Apni banayi website ke products hum khud nahi dekh sakte. Order me pehli dafa product jorte hi yahan aa jata hai — ya Developer tab se CSV import karein.">
+    <Card title="Jore hue products" description="Website ka har product jo Nafaa product se jura hai. Naya link pehle order ko accept karte waqt banta hai, ya neeche CSV se ek saath.">
       {links.length === 0 ? (
         <EmptyState icon={<Link2 className="h-5 w-5" />} title="Abhi koi link nahi" description="Website se order aaye ya CSV import karein — products khud jurte jayenge." />
       ) : (
@@ -518,53 +527,12 @@ function CustomLinks({ channelId, links, onDone }: { channelId: string; links: {
                 <span className="font-medium text-slate-900 dark:text-ink-white">{l.externalTitle ?? l.externalSku ?? l.externalProductId}</span>
                 <span className="text-slate-400"> → </span>
                 <span className="text-slate-700 dark:text-ink-200">{l.name}{l.variantName ? ` — ${l.variantName}` : ''}</span>
-                <span className="text-slate-500"> · stock {l.stock}</span>
+                <span className="text-slate-500"> · </span><StockText n={l.stock} />
               </span>
               <Button size="xs" variant="ghost" loading={unlink.isPending && unlink.variables === l.mappingId} onClick={() => unlink.mutate(l.mappingId)} leftIcon={<Link2Off className="h-3.5 w-3.5" />} />
             </li>
           ))}
         </ul>
-      )}
-    </Card>
-  );
-}
-
-/** Indolj (restaurant ordering) par bani website — menu ki keys se products yahan */
-function IndoljConnect({ channelId, onDone, connected }: { channelId: string; onDone: () => void; connected?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ activationToken: '', merchantId: '', secret: '', baseUrl: '', branchId: '' });
-  const save = useMutation({
-    mutationFn: () => onlineOrdersApi.connectIndolj(channelId, { ...f, baseUrl: f.baseUrl || undefined, branchId: f.branchId || undefined }),
-    onSuccess: (r) => { toast.success(`Indolj se ${r.items} items aa gaye ✓`); setOpen(false); onDone(); },
-    onError: (e) => toast.error(apiErrorMessage(e)),
-  });
-  const off = useMutation({ mutationFn: () => onlineOrdersApi.disconnectIndolj(channelId), onSuccess: () => { toast.success('Indolj menu hata diya'); onDone(); } });
-  if (connected) {
-    return (
-      <p className="text-[0.78125rem] text-slate-500">
-        Indolj menu jura hai. <button type="button" className="font-semibold text-rose-600 hover:underline" onClick={async () => { if ((await confirmDialog({ title: 'Indolj ka menu link hatayein?', text: 'Jore hue products waise hi rahenge.', danger: true }))) off.mutate(); }}>Hatayein</button>
-      </p>
-    );
-  }
-  return (
-    <Card title="Website Indolj par bani hai?" description="Indolj ki keys daalein — aap ka poora menu (sizes ke saath) yahan aa jayega aur har item Nafaa product se jur jayega, bilkul WooCommerce ki tarah."
-      actions={!open ? <Button size="xs" onClick={() => setOpen(true)}>Indolj jorein</Button> : undefined}>
-      {open && (
-        <div className="space-y-3">
-          <p className="text-[0.78125rem] text-slate-500">Indolj ki team ye deti hai: <b>activation token</b> aur <b>JWT secret key</b> (Merchant Menu API key). Merchant ID ho to wo bhi.</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {([['activationToken', 'Activation token'], ['merchantId', 'Merchant ID (optional)'], ['secret', 'JWT secret key'], ['branchId', 'Branch ID (optional)'], ['baseUrl', 'API URL (khali = console.indolj.io)']] as const).map(([k, label]) => (
-              <label key={k} className="block text-[0.78125rem] font-medium text-slate-700 dark:text-ink-200">
-                {label}
-                <input type={k === 'secret' ? 'password' : 'text'} autoComplete="off" value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value }))} className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] mt-1 font-mono')} />
-              </label>
-            ))}
-          </div>
-          <div className="flex justify-end gap-2">
-            <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>Rehne dein</Button>
-            <Button size="sm" variant="primary" loading={save.isPending} disabled={!f.activationToken || !f.secret} onClick={() => save.mutate()}>Menu check karke jorein</Button>
-          </div>
-        </div>
       )}
     </Card>
   );

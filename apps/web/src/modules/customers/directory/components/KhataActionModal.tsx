@@ -1,15 +1,21 @@
 /**
  * Take a payment, add credit, or bring in old credit from a paper register,
- * for one customer. Shows the balance before and after.
+ * for one customer. Shows the balance before and after, and for a payment the
+ * bills it clears (oldest first, as the server counts it) with the profit it
+ * brings in; the same figures show again once it is saved.
  */
 
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { HandCoins, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { POS_PAYMENT_METHODS } from '@modules/pos/lib/posCart';
+import { formatPKR } from '@core/lib/format';
+import { customerLedgerApi, type PaymentPreview } from '@modules/customers/khata/api/customer-ledger.api';
+import { NoCostWarning } from '@modules/reports/ProfitSplit';
 import { runKhataAction } from '../offlineKhataActions';
 
 export type KhataAction = 'payment' | 'udhaar' | 'opening';
@@ -34,10 +40,22 @@ export function KhataActionModal({ action, customer, money, onClose, onDone }: {
   const after = action === 'payment' ? customer.balance - n : customer.balance + n;
   const tooMuch = action === 'payment' && n > customer.balance + 0.009;
   const t = TITLES[action];
+  // Preview of the bills this payment clears, a moment after typing stops.
+  const [asked, setAsked] = useState(0);
+  useEffect(() => { const id = setTimeout(() => setAsked(n), 350); return () => clearTimeout(id); }, [n]);
+  const preview = useQuery({
+    queryKey: ['khata-payment-preview', customer.id, asked],
+    queryFn: () => customerLedgerApi.paymentPreview(customer.id, asked),
+    enabled: action === 'payment' && asked > 0 && !tooMuch && navigator.onLine,
+    staleTime: 15_000,
+    retry: false,
+  });
   const save = useMutation({
     mutationFn: () => runKhataAction(action, customer.id, n, note || undefined, action === 'payment' ? method : undefined),
-    onSuccess: (queued) => {
-      toast.success(`${customer.name}: ${t.title} — ${money(n)}${queued ? ' (internet aate hi server par jayega)' : ''}`);
+    onSuccess: ({ queued, settles }) => {
+      const profit = settles && !settles.costHidden && settles.profit != null ? ` · Is payment se Profit ${formatPKR(settles.profit)}` : '';
+      toast.success(`${customer.name}: ${t.title} — ${money(n)}${queued ? ' (internet aate hi server par jayega)' : profit}`,
+        settles?.bills.length ? { description: billsLine(settles, money) } : undefined);
       onDone(); onClose();
     },
     onError: (e: { response?: { data?: { message?: string } }; message?: string }) => toast.error(e?.response?.data?.message || e.message || 'Nahi hua'),
@@ -86,8 +104,58 @@ export function KhataActionModal({ action, customer, money, onClose, onDone }: {
           <div><p className="text-[0.6875rem] text-slate-500">Is ke baad</p><p className={cn('font-bold tabular-nums', after > 0 ? 'text-rose-700' : 'text-success-700')}>{money(after)}</p></div>
         </div>
         {tooMuch && <p className="text-[0.8125rem] font-medium text-rose-700">Baqi sirf {money(customer.balance)} hai — is se zyada receive nahi ho sakta.</p>}
+        {action === 'payment' && n > 0 && !tooMuch && (
+          <PreviewCard data={asked === n ? preview.data : undefined} loading={preview.isFetching || asked !== n} money={money} />
+        )}
         <button type="submit" hidden />
       </form>
     </Modal>
+  );
+}
+
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' });
+
+/** "NF-123 (12 Oct) 1,500 · NF-130 poora" for the toast after saving. */
+function billsLine(p: PaymentPreview, money: (n: number) => string) {
+  const parts = p.bills.slice(0, 3).map((b) => `${b.saleNumber} ${b.leftAfter <= 0.5 ? 'poora' : money(b.amount)}`);
+  return `${p.bills.length} bill${p.bills.length > 1 ? 's' : ''}: ${parts.join(' · ')}${p.bills.length > 3 ? ' …' : ''}${p.toOther > 0.5 ? ` · purana khata / advance ${money(p.toOther)}` : ''}`;
+}
+
+/** The bills a payment clears, oldest first, with the profit each part brings in. */
+function PreviewCard({ data, loading, money }: { data?: PaymentPreview; loading: boolean; money: (n: number) => string }) {
+  if (!data) {
+    return loading
+      ? <p className="flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Loader2 className="h-3.5 w-3.5 animate-spin" />Kaun se bill clear honge…</p>
+      : null;
+  }
+  const showProfit = !data.costHidden && data.profit != null;
+  return (
+    <div className="space-y-2 rounded-2xl border border-success-200 bg-success-50/50 p-3">
+      {showProfit && (
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-700"><HandCoins className="h-4 w-4 text-success-700" />Is payment se Profit</span>
+          <span className="text-lg font-bold tabular-nums text-success-700">{formatPKR(data.profit ?? 0)}</span>
+        </div>
+      )}
+      {data.bills.length > 0 ? (
+        <ul className="max-h-40 space-y-1 overflow-auto text-[0.75rem]">
+          {data.bills.map((b) => (
+            <li key={b.saleId} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-lg bg-white px-2.5 py-1.5 ring-1 ring-slate-200/70">
+              <span className="min-w-0 truncate text-slate-700">
+                <b className="text-slate-900">{b.saleNumber}</b> · {shortDate(b.soldAt)} · {money(b.amount)}
+                {b.leftAfter <= 0.5 ? <span className="ml-1 font-semibold text-success-700">poora clear</span> : <span className="ml-1 text-slate-500">baqi {money(b.leftAfter)}</span>}
+              </span>
+              {showProfit && <span className="tabular-nums font-semibold text-slate-800">+{formatPKR(b.profit ?? 0)}</span>}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-[0.75rem] text-slate-600">Ye payment kisi bill par nahi jayegi.</p>
+      )}
+      {data.toOther > 0.5 && (
+        <p className="text-[0.75rem] text-slate-600">{money(data.toOther)} purane khate / bina bill ke udhaar ya advance mein — is par Profit nahi.</p>
+      )}
+      {showProfit && <NoCostWarning count={data.noCostLines ?? 0} />}
+    </div>
   );
 }

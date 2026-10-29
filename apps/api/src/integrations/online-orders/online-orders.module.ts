@@ -25,6 +25,8 @@ import { PaymentLinksService } from './payment-links.service';
 import { PaymentLinksController, PaymentLinksPublicController } from './payment-links.controller';
 import { DarazController, DarazPublicController, DarazPushController } from './daraz.controller';
 import { StorefrontAdminController, StorefrontPublicController } from './storefront.controller';
+import { OnlineProductsController } from './online-products.controller';
+import { OnlineProductsService } from './online-products.service';
 import {
   BlocklistController,
   ChannelsController,
@@ -58,8 +60,9 @@ import {
     PaymentLinksPublicController,
     FoodpandaPluginController,
     FoodpandaController,
+    OnlineProductsController,
   ],
-  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService],
+  providers: [TenantTimezoneService, OnlineOrdersService, WebsiteCatalogService, WebsiteSetupService, StatusWebhookService, WooCommerceService, ShopifyService, ChannelCatalogService, DataRetentionService, PiiAccessLogService, CourierAccountsService, StockPushService, OrderToolsService, StorefrontService, DarazService, PaymentLinksService, FoodpandaService, OnlineProductsService],
   exports: [OnlineOrdersService, WebsiteCatalogService],
 })
 export class OnlineOrdersModule {}

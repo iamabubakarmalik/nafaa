@@ -1,17 +1,20 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { Integration, IntegrationStatus } from '@prisma/client';
+import { Integration, IntegrationStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StockChanged, stockEvents } from '../../common/shop-scope/stock-events';
 import { readWebsiteConfig } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { DarazService } from './daraz.service';
+import { channelPrice, samePrice } from './channel-price';
+import { trackLinks } from './link-sync';
 
 const DEBOUNCE_MS = 15_000;
 /** Pehli dafa (server start) kitna pichhe dekhna hai */
 const FIRST_LOOKBACK_MS = 3 * 60_000;
 const MAX_PRODUCTS_PER_PUSH = 200;
+const PRICE_PAGE = 500;
 
 /**
  * POS par sale / purchase / adjustment → website ka stock FORAN (15 second
@@ -100,41 +103,90 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
   }
 
   /**
-   * Nafaa qeemat → website (sirf pushPrice chalu ho). Product.updatedAt har
-   * sale par bhi badalta hai (stock cache) — is liye aakhri bheji qeemat
-   * mapping me yaad rakhte hain aur sirf asal farq par bhejte hain.
+   * Nafaa price → channel (only when pushPrice is on). Product.updatedAt also
+   * moves on every sale (stock cache), so the last price sent is kept on the
+   * link and only a real difference is sent.
    */
   private async pushChannelPrices(ch: Integration) {
-    if (ch.type === 'DARAZ' || !this.connected(ch)) return; // Daraz qeemat Seller Center se
+    if (!this.connected(ch)) return;
     const now = new Date();
     const since = this.priceWatermark.get(ch.id) ?? new Date(now.getTime() - FIRST_LOOKBACK_MS);
-    const maps = await this.prisma.productChannelMapping.findMany({
-      where: {
-        integrationId: ch.id,
-        externalProductId: { not: null },
-        OR: [{ product: { updatedAt: { gt: since } } }, { variant: { updatedAt: { gt: since } } }],
-      },
-      select: {
-        id: true, externalProductId: true, externalVariantId: true, externalData: true, variantId: true,
-        product: { select: { price: true } }, variant: { select: { price: true } },
-      },
-      take: 300,
-    });
     this.priceWatermark.set(ch.id, new Date(now.getTime() - 30_000));
-    const changed = maps
-      .map((m) => ({ m, price: Number(m.variantId ? m.variant?.price ?? m.product.price : m.product.price) }))
-      .filter(({ m, price }) => price > 0 && Number((m.externalData as any)?.pushedPrice) !== price);
-    if (!changed.length) return;
+    await this.pushPricesFor(ch, { OR: [{ product: { updatedAt: { gt: since } } }, { variant: { updatedAt: { gt: since } } }] });
+  }
 
-    const items = changed.map(({ m, price }) => ({ externalProductId: String(m.externalProductId), externalVariantId: m.externalVariantId ? String(m.externalVariantId) : null, price }));
-    if (ch.type === 'WOOCOMMERCE') await this.woo.pushPrices(ch, items);
-    else await this.shopify.pushPrices(ch, items);
+  /**
+   * Sends the channel price (link price, else the channel rule on the Nafaa
+   * price) for the links matching `where` that differ from what was last sent.
+   * `force` sends even when unchanged ("Sync now").
+   */
+  async pushPricesFor(ch: Integration, where: Prisma.ProductChannelMappingWhereInput = {}, force = false) {
+    const cfg = readWebsiteConfig(ch.config);
+    if (!cfg.pushPrice || !this.connected(ch)) return { sent: 0 };
+    const shopId = cfg.shopId ?? ch.shopId;
+    let sent = 0;
+    let cursor: string | undefined;
+    // Pages of 500 links; a rule change can touch every link of a big shop.
+    for (let pageNo = 0; pageNo < 40; pageNo++) {
+      const maps = await this.prisma.productChannelMapping.findMany({
+        where: { ...where, integrationId: ch.id, externalProductId: { not: null } },
+        select: {
+          id: true, productId: true, externalProductId: true, externalVariantId: true, externalSku: true, externalData: true, variantId: true, priceOverride: true,
+          product: { select: { price: true } }, variant: { select: { price: true } },
+        },
+        orderBy: { id: 'asc' },
+        take: PRICE_PAGE,
+        ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      });
+      if (!maps.length) break;
+      cursor = maps[maps.length - 1].id;
+      sent += await this.pushPricePage(ch, cfg, shopId, maps, force);
+      if (maps.length < PRICE_PAGE) break;
+    }
+    return { sent };
+  }
+
+  private async pushPricePage(ch: Integration, cfg: ReturnType<typeof readWebsiteConfig>, shopId: string | null, maps: Array<{
+    id: string; productId: string; externalProductId: string | null; externalVariantId: string | null; externalSku: string | null; externalData: unknown;
+    variantId: string | null; priceOverride: number | null; product: { price: number }; variant: { price: number } | null;
+  }>, force: boolean) {
+    const branchPrices = shopId
+      ? await this.prisma.shopStock.findMany({
+          where: { shopId, productId: { in: [...new Set(maps.map((m) => m.productId))] }, shopPrice: { not: null } },
+          select: { productId: true, variantId: true, shopPrice: true },
+        })
+      : [];
+    const changed = maps
+      .map((m) => {
+        const branch = branchPrices.find((b) => b.productId === m.productId && (b.variantId ?? null) === (m.variantId ?? null))?.shopPrice;
+        const base = Number(branch ?? (m.variantId ? m.variant?.price ?? m.product.price : m.product.price));
+        return { m, price: channelPrice(base, cfg.priceRule, m.priceOverride) };
+      })
+      .filter(({ m, price }) => {
+        if (!(price > 0)) return false;
+        if (force) return true;
+        // Compare with the latest price known on the channel: what Nafaa sent, or what the channel list showed since.
+        const d = (m.externalData ?? {}) as any;
+        return !samePrice(Number(d.channelPrice ?? d.pushedPrice), price);
+      });
+    if (!changed.length) return 0;
+
+    const items = changed.map(({ m, price }) => ({
+      externalProductId: String(m.externalProductId), externalVariantId: m.externalVariantId ? String(m.externalVariantId) : null, externalSku: m.externalSku, price,
+    }));
+    await trackLinks(this.prisma, ch.id, { id: { in: changed.map(({ m }) => m.id) } }, async () => {
+      if (ch.type === 'WOOCOMMERCE') await this.woo.pushPrices(ch, items);
+      else if (ch.type === 'SHOPIFY') await this.shopify.pushPrices(ch, items);
+      else await this.daraz.pushPrices(ch, items);
+    });
+    const at = new Date().toISOString();
     for (const { m, price } of changed) {
       await this.prisma.productChannelMapping.update({
         where: { id: m.id },
-        data: { externalData: { ...((m.externalData as any) ?? {}), pushedPrice: price, pushedPriceAt: now.toISOString() } },
+        data: { externalData: { ...((m.externalData as any) ?? {}), pushedPrice: price, pushedPriceAt: at, channelPrice: price, channelPriceAt: at } },
       }).catch(() => null);
     }
+    return changed.length;
   }
 
   private connected(ch: Integration) {

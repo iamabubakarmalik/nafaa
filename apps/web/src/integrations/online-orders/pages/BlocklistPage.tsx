@@ -9,7 +9,7 @@ import { Button, Card, controlClass, EmptyState, Input, PageHero, PageShell } fr
 
 /* ═════════════════════════════════════════════════════════════
    BLOCK LIST — fake / baar baar RTO karne wale numbers. Is number se
-   order aaye to khud accept nahi hota aur ⛔ nishan lagta hai.
+   order aaye to khud accept nahi hota aur 'Blocked' nishan lagta hai.
    ═════════════════════════════════════════════════════════════ */
 
 export default function BlocklistPage() {
@@ -38,7 +38,7 @@ export default function BlocklistPage() {
   return (
     <PageShell className="max-w-3xl">
       <PageHero back="/online-orders/reports" backLabel="Online reports" title="Block list"
-        subtitle="Fake ya RTO karne wale numbers. In se aane wale order khud accept nahi hote — ⛔ nishan ke saath 'Naya' me rukte hain." />
+        subtitle="Fake ya RTO karne wale numbers. In se aane wale order khud accept nahi hote — 'Blocked' ke nishan ke saath 'Naye' me rukte hain." />
       <Card title="Number block karein">
         <div className="grid gap-3 sm:grid-cols-3">
           <Input size="sm" label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="03xxxxxxxxx" />
@@ -57,16 +57,16 @@ export default function BlocklistPage() {
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Number ya naam…" className={cn(controlClass(), 'h-9 px-3 text-[0.8125rem] pl-8')} />
           </div>
         </div>
-        <div className="mt-3 border-t border-slate-100 dark:border-ink-800">
-          {isLoading ? <div className="p-5"><div className="h-16 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" /></div>
+        <div className="mt-3 border-t border-slate-100">
+          {isLoading ? <div className="p-5"><div className="h-16 animate-pulse rounded-lg bg-slate-100" /></div>
             : error ? <EmptyState title="List nahi khuli" description={apiErrorMessage(error)} />
             : rows.length === 0 ? <EmptyState icon={<ShieldBan className="h-5 w-5" />} title="Koi number block nahi" description={<>Order ke andar "Number block" se bhi block kar sakte hain.</>} />
             : (
-              <ul className="divide-y divide-slate-100 dark:divide-ink-800">
+              <ul className="divide-y divide-slate-100">
                 {rows.map((b) => (
                   <li key={b.key} className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
                     <div className="min-w-0 flex-1">
-                      <div className="font-mono text-[0.8125rem] font-semibold text-slate-900 dark:text-ink-white">{b.phone}{b.name ? <span className="ml-2 font-sans font-normal text-slate-500">{b.name}</span> : null}</div>
+                      <div className="font-mono text-[0.8125rem] font-semibold text-slate-900">{b.phone}{b.name ? <span className="ml-2 font-sans font-normal text-slate-500">{b.name}</span> : null}</div>
                       <div className="text-[0.75rem] text-slate-500">{b.reason ?? 'Wajah nahi likhi'} · {whenText(b.at)}</div>
                     </div>
                     <Button size="xs" variant="ghost" loading={remove.isPending && remove.variables === b.phone} onClick={() => remove.mutate(b.phone)} leftIcon={<Trash2 className="h-3.5 w-3.5" />}>Unblock</Button>

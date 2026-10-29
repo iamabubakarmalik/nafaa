@@ -15,11 +15,12 @@ import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndus
 import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
 import { useIsAllShops } from '@core/stores/auth.store';
 import { channelMeta, channelPath, useSalesChannels } from '@integrations/online-orders/hooks/useSalesChannels';
+import { BrandLogo, brandForChannel, type BrandName } from '@/assets/brands/BrandLogo';
 import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
 import { cn } from '@core/lib/cn';
 import { allShopsNavGroups, canSeeSettingsItem, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
 
-type Channel = { id: string; type: string; displayName: string; isWebsite: boolean; live: boolean; pendingOrders: number };
+type Channel = { id: string; type: string; platform?: string | null; displayName: string; isWebsite: boolean; live: boolean; pendingOrders: number };
 
 export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const industry = useCurrentIndustry();
@@ -70,7 +71,7 @@ function channelItems(channels?: Channel[]): NavItem[] {
   const list: NavItem[] = (channels ?? []).map((c) => ({
     to: channelPath(c),
     label: c.displayName,
-    icon: emojiIcon(channelMeta(c.type).emoji),
+    icon: brandIcon(brandForChannel(c.type, { platform: c.platform })),
     count: c.pendingOrders,
     dim: !c.live,
     keywords: `${channelMeta(c.type).label} channel`,
@@ -85,14 +86,14 @@ function channelItems(channels?: Channel[]): NavItem[] {
   return list;
 }
 
-const emojiCache = new Map<string, ComponentType<{ className?: string }>>();
+const brandCache = new Map<BrandName, ComponentType<{ className?: string }>>();
 
-/** Wraps an emoji in an icon-shaped component so nav rows can render it like a Lucide icon. */
-function emojiIcon(emoji: string) {
-  const cached = emojiCache.get(emoji);
+/** Wraps a partner logo in an icon-shaped component so nav rows can render it like a Lucide icon. */
+function brandIcon(name: BrandName) {
+  const cached = brandCache.get(name);
   if (cached) return cached;
-  const EmojiIcon = ({ className }: { className?: string }) =>
-    createElement('span', { className: cn('inline-flex items-center justify-center text-[0.8125rem] leading-none', className), 'aria-hidden': true }, emoji);
-  emojiCache.set(emoji, EmojiIcon);
-  return EmojiIcon;
+  const LogoIcon = ({ className }: { className?: string }) =>
+    createElement('span', { className: cn('inline-flex items-center justify-center', className), 'aria-hidden': true }, createElement(BrandLogo, { name, size: 18 }));
+  brandCache.set(name, LogoIcon);
+  return LogoIcon;
 }

@@ -10,6 +10,7 @@ import { queueGenericMutation } from '@core/lib/offline/syncEngine';
 import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import type { KhataAction } from './components/KhataActionModal';
+import type { PaymentPreview } from '@modules/customers/khata/api/customer-ledger.api';
 
 const isNetFail = (e: unknown) => {
   const s = (e as { response?: { status?: number } })?.response?.status;
@@ -18,14 +19,21 @@ const isNetFail = (e: unknown) => {
 
 const ENDPOINT: Record<KhataAction, string> = { payment: 'payment', udhaar: 'udhaar', opening: 'opening-balance' };
 
-/** Runs the action online, or queues it and updates the saved data offline. Returns true when queued. */
-export async function runKhataAction(action: KhataAction, customerId: string, amount: number, note?: string, method?: PaymentMethod): Promise<boolean> {
+/**
+ * Runs the action online, or queues it and updates the saved data offline.
+ * `queued` is true when it waits for the internet; `settles` is what an online
+ * payment cleared (bills and profit), when the server sent it.
+ */
+export async function runKhataAction(action: KhataAction, customerId: string, amount: number, note?: string, method?: PaymentMethod): Promise<{ queued: boolean; settles?: PaymentPreview | null }> {
   const payload = action === 'opening' ? { balance: amount, note } : action === 'payment' ? { amount, note, paymentMethod: method } : { amount, note };
   try {
-    if (action === 'payment') await customerLedgerApi.receivePayment(customerId, payload as { amount: number; note?: string; paymentMethod?: PaymentMethod });
-    else if (action === 'udhaar') await customerLedgerApi.addUdhaar(customerId, payload as { amount: number; note?: string });
+    if (action === 'payment') {
+      const res = await customerLedgerApi.receivePayment(customerId, payload as { amount: number; note?: string; paymentMethod?: PaymentMethod });
+      return { queued: false, settles: (res as { settles?: PaymentPreview | null })?.settles ?? null };
+    }
+    if (action === 'udhaar') await customerLedgerApi.addUdhaar(customerId, payload as { amount: number; note?: string });
     else await customerLedgerApi.setOpeningBalance(customerId, payload as { balance: number; note?: string });
-    return false;
+    return { queued: false };
   } catch (e) {
     if (!isNetFail(e)) throw e;
   }
@@ -50,5 +58,5 @@ export async function runKhataAction(action: KhataAction, customerId: string, am
   }, ...entry.ledgers];
   all[customerId] = entry;
   await db.meta.put({ key: LEDGER_CACHE_KEY, value: all, updatedAt: Date.now() });
-  return true;
+  return { queued: true };
 }

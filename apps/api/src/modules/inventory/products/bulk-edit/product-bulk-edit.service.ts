@@ -152,6 +152,8 @@ export class ProductBulkEditService {
         const lowKids = children.filter(low);
         if (children.length ? !lowKids.length : !low(base)) continue;
       } else if (q.lowStock) continue;
+      // Missing cost: keep the product when it, or one of its variants, has no cost.
+      if (q.noCost && (children.length ? !children.some((c) => c.costPrice <= 0) : base.costPrice > 0)) continue;
       rows.push(base, ...children);
     }
 

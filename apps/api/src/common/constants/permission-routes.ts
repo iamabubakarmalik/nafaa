@@ -225,6 +225,7 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /(^|\/)(bookings|appointments)(\/|$)/, GET: P.SERVICE_BOOKINGS_VIEW, write: P.SERVICE_BOOKINGS_MANAGE },
 
   { match: /(^|\/)online-orders?(\/|$)/, GET: P.ONLINE_ORDERS_VIEW, write: P.ONLINE_ORDERS_MANAGE },
+  { match: /^online-products(\/|$)/, GET: P.ONLINE_PRODUCTS_VIEW, write: P.ONLINE_PRODUCTS_MANAGE },
   { match: /(^|\/)marketplace/, GET: P.CATALOG_VIEW, write: P.CATALOG_MANAGE },
 
   /* ── PIN ka nizam ──

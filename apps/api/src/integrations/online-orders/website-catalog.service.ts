@@ -162,7 +162,7 @@ export class WebsiteCatalogService {
    * unka maal "reserved" hai — warna sync website ka stock wapas bara kar
    * deta aur wahi cheez dobara bik jati.
    */
-  async stockBySku(tenantId: string, shopId: string | null, integrationId: string, skus: string[]) {
+  async stockBySku(tenantId: string, shopId: string | null, integrationId: string, skus: string[], buffer = 0) {
     const stock: Record<string, number> = {};
     for (let i = 0; i < skus.length; i += 500) {
       const res = await this.exportProducts(tenantId, shopId, { skus: skus.slice(i, i + 500), limit: 500 });
@@ -184,6 +184,8 @@ export class WebsiteCatalogService {
         }
       }
     }
+    // Stock buffer: keep some units back from the channel.
+    if (buffer > 0) for (const k of Object.keys(stock)) stock[k] = Math.max(0, stock[k] - buffer);
     return stock;
   }
 
@@ -224,6 +226,8 @@ export class WebsiteCatalogService {
         if (key && out.has(String(key))) out.set(String(key), Math.max(0, out.get(String(key))! - Number(it.quantity ?? 0)));
       }
     }
+    // Stock buffer: keep some units back from the channel.
+    if (cfg.stockBuffer > 0) for (const [k, v] of out) out.set(k, Math.max(0, v - cfg.stockBuffer));
     return out;
   }
 

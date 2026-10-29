@@ -165,6 +165,10 @@ export const PERMISSIONS = {
   // Online dukaan
   ONLINE_ORDERS_VIEW: 'online_orders.view',
   ONLINE_ORDERS_MANAGE: 'online_orders.manage',
+  /** Online products: see links, channel prices, stock sent and sync errors. */
+  ONLINE_PRODUCTS_VIEW: 'online_products.view',
+  /** Online products: link and unlink, create channel items in Nafaa, set channel prices and stock buffer, sync now. */
+  ONLINE_PRODUCTS_MANAGE: 'online_products.manage',
   CATALOG_VIEW: 'catalog.view',
   CATALOG_MANAGE: 'catalog.manage',
 } as const;
@@ -197,6 +201,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.SERVICE_BOOKINGS_VIEW, PERMISSIONS.SERVICE_BOOKINGS_MANAGE,
     PERMISSIONS.CLINIC_RECORDS_VIEW, PERMISSIONS.CLINIC_RECORDS_MANAGE,
     PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
+    PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
     PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
     PERMISSIONS.POS_USE,
     PERMISSIONS.POS_PRICE_TIER,

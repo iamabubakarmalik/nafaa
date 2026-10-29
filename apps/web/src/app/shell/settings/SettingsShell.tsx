@@ -19,7 +19,7 @@ import {
   ArrowUpRight, ChevronDown, ChevronRight, CornerDownLeft, Menu, PanelLeftClose, PanelLeftOpen, Search, SearchX, Settings, X,
 } from 'lucide-react';
 import { cn } from '@core/lib/cn';
-import { Avatar, IconButton, PAGE_WIDTH_CLASS } from '@/design-system/components';
+import { Avatar, IconButton, PAGE_WIDTH_CLASS, PageFrameContext } from '@/design-system/components';
 import { SETTING_FIND_KEY, SettingsHeaderSlot } from '@modules/organization/settings/components/SettingsFrame';
 import {
   LAST_APP_PATH_KEY, SETTINGS_HOME, canSeeSettingsItem, searchSettings, settingsGroupFor, settingsItemFor,
@@ -199,7 +199,7 @@ export function SettingsShell({ role, permissions, tenantName, tenantSlug, userN
         </header>
 
         <div ref={contentRef} className={cn(PAGE_WIDTH_CLASS, 'flex-1 px-4 pb-16 pt-5 sm:px-6 lg:px-8')}>
-          <SettingsHeaderSlot.Provider value={slot}>{children}</SettingsHeaderSlot.Provider>
+          <SettingsHeaderSlot.Provider value={slot}><PageFrameContext.Provider value>{children}</PageFrameContext.Provider></SettingsHeaderSlot.Provider>
         </div>
       </div>
     </div>

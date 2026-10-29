@@ -10,6 +10,7 @@ function setup(opts: { changed: { productId: string; variantId: string | null }[
     productChannelMapping: {
       findMany: async (q: any) => (q.where.productId ? opts.links ?? [] : opts.maps ?? []),
       update: async () => ({}),
+      updateMany: async () => ({ count: 0 }),
     },
     product: { findMany: async () => opts.products ?? [] },
   };

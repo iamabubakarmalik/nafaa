@@ -117,6 +117,25 @@ export interface OpeningBalancePayload {
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
+/** One bill a khata payment clears (FIFO, as the server's settlement rows). */
+export interface PaymentPreviewBill {
+  saleId: string; saleNumber: string; soldAt: string; amount: number; billNet: number; leftAfter: number;
+  /** Missing when the user may not see cost. */
+  profit?: number; billProfit?: number; noCostLines?: number;
+}
+
+/** What a payment would settle and the profit it brings in. Profit fields are missing when cost is hidden. */
+export interface PaymentPreview {
+  amount: number;
+  bills: PaymentPreviewBill[];
+  /** Goes to the old register balance, credit without a bill, or stays as an advance. */
+  toOther: number;
+  costHidden: boolean;
+  profit?: number;
+  noCostBills?: number;
+  noCostLines?: number;
+}
+
 export const customerLedgerApi = {
   summary: () =>
     apiClient.get<{ data: LedgerSummary }>('/customer-ledger/summary').then(unwrap),
@@ -127,6 +146,11 @@ export const customerLedgerApi = {
   receivePayment: (customerId: string, payload: ReceivePaymentPayload) =>
     apiClient
       .post<{ data: any }>(`/customer-ledger/${customerId}/payment`, payload)
+      .then(unwrap),
+  /** Bills a payment would clear and its profit; writes nothing. */
+  paymentPreview: (customerId: string, amount: number, reference?: string) =>
+    apiClient
+      .get<{ data: PaymentPreview }>(`/customer-ledger/${customerId}/payment-preview`, { params: { amount, reference } })
       .then(unwrap),
   // 🤝 Quick Udhaar — bina sale ke
   addUdhaar: (customerId: string, payload: AddUdhaarPayload) =>

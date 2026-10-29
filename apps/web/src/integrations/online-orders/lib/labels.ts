@@ -1,3 +1,6 @@
+import { createElement } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { BrandLogo, brandForChannel, brandForCourier, type BrandName } from '@/assets/brands/BrandLogo';
 import type { OnlineOrderStatus } from '../api/online-orders.api';
 
 export const STATUS_LABEL: Record<OnlineOrderStatus, { label: string; short: string; tone: string; dot: string }> = {
@@ -33,14 +36,28 @@ export const SOURCE_BY_TYPE: Record<string, { label: string; emoji: string }> = 
   DARAZ:          { label: 'Daraz', emoji: '🛒' },
   FOODPANDA:      { label: 'Foodpanda', emoji: '🍔' },
   SHOPIFY:        { label: 'Shopify', emoji: '🟢' },
+  WOOCOMMERCE:    { label: 'WooCommerce', emoji: '🟣' },
 };
 
-export function sourceOf(o: { platform?: string; integration?: { type: string } }) {
+export function sourceOf(o: { platform?: string; integration?: { type: string }; metadata?: { platform?: string } | null }): { label: string; emoji: string; brand: BrandName } {
+  const platform = o.platform ?? o.metadata?.platform;
+  const brand = brandForChannel(o.integration?.type, { platform });
   if (o.integration?.type && o.integration.type !== 'CUSTOM_WEBSITE') {
-    return SOURCE_BY_TYPE[o.integration.type] ?? { label: o.integration.type, emoji: '🔌' };
+    return { ...(SOURCE_BY_TYPE[o.integration.type] ?? { label: o.integration.type, emoji: '🔌' }), brand };
   }
-  const p = PLATFORM[o.platform ?? 'custom'] ?? PLATFORM.custom;
-  return { label: p.label, emoji: p.emoji };
+  const p = PLATFORM[platform ?? 'custom'] ?? PLATFORM.custom;
+  return { label: p.label, emoji: p.emoji, brand };
+}
+
+const brandIcons = new Map<BrandName, LucideIcon>();
+/** A brand logo shaped like a Lucide icon, for FilterMenu / MoreFilters options. */
+export function brandIcon(name: BrandName): LucideIcon {
+  let icon = brandIcons.get(name);
+  if (!icon) {
+    icon = (() => createElement(BrandLogo, { name, size: 24 })) as unknown as LucideIcon;
+    brandIcons.set(name, icon);
+  }
+  return icon;
 }
 
 export const rs = (n: number) => `Rs ${Math.round(Number(n) || 0).toLocaleString('en-PK')}`;
@@ -95,3 +112,22 @@ export const COURIER_OPTIONS = [
   { code: 'TPL_RIDER', name: 'Rider (TPL)' },
   { code: 'OTHER', name: 'Doosra' },
 ];
+
+/** Courier code or the name shown on an order (e.g. "TCS", "M&P", "Apna rider") → logo. */
+export function courierBrand(nameOrCode?: string | null): BrandName {
+  const direct = brandForCourier(nameOrCode);
+  if (direct !== 'other') return direct;
+  const k = String(nameOrCode ?? '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (!k) return 'other';
+  if (k.startsWith('TCS')) return 'tcs';
+  if (k.includes('LEOPARD')) return 'leopards';
+  if (k.includes('POSTEX')) return 'postex';
+  if (k.includes('TRAX')) return 'trax';
+  if (k === 'MP' || k.startsWith('MNP') || k.includes('MULLER')) return 'mnp';
+  if (k.includes('CALLCOURIER')) return 'callcourier';
+  if (k.includes('BLUEEX') || k === 'BLUEX') return 'blueex';
+  if (k.includes('DAEWOO')) return 'daewoo';
+  if (k.includes('TPL')) return 'tpl';
+  if (k.includes('RIDER')) return 'rider';
+  return 'other';
+}

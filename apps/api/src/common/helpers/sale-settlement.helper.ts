@@ -242,15 +242,91 @@ async function fingerprints(db: Db, tenantId: string, customerId?: string) {
     LEFT JOIN "SaleSettlementSync" y ON y."customerId" = l.c`;
 }
 
-/** Bill net and gross profit by the shared rules, for the profit snapshot on each row. */
-export async function billProfits(db: Db, saleIds: string[]): Promise<Map<string, { net: number; profit: number }>> {
+/**
+ * Bill net and gross profit by the shared rules, for the profit snapshot on
+ * each row, with the bill's lines sold with no cost anywhere.
+ */
+export async function billProfits(db: Db, saleIds: string[]): Promise<Map<string, { net: number; profit: number; noCostLines: number; noCostRevenue: number }>> {
   if (!saleIds.length) return new Map();
   const where = Prisma.sql`s.id IN (${Prisma.join(saleIds)})`;
-  const rows = await db.$queryRaw<Array<{ id: string; net: number; profit: number }>>`
+  const rows = await db.$queryRaw<Array<{ id: string; net: number; profit: number; bare: number; bareRev: number }>>`
     WITH ${billMathCte(where)}
-    SELECT s.id, (s.total - s."refundedAmount")::float8 AS net, (s.total - s."refundedAmount" - bm.cost)::float8 AS profit
+    SELECT s.id, (s.total - s."refundedAmount")::float8 AS net, (s.total - s."refundedAmount" - bm.cost)::float8 AS profit,
+      bm."noCostLines"::int AS bare, bm."noCostRevenue"::float8 AS "bareRev"
     FROM "Sale" s JOIN bm ON bm.id = s.id`;
-  return new Map(rows.map((x) => [x.id, { net: n(x.net), profit: n(x.profit) }]));
+  return new Map(rows.map((x) => [x.id, { net: n(x.net), profit: n(x.profit), noCostLines: n(x.bare), noCostRevenue: n(x.bareRev) }]));
+}
+
+/* ───────────────────────── payment preview ───────────────────────── */
+
+export interface PaymentPreviewBill {
+  saleId: string;
+  saleNumber: string;
+  soldAt: Date;
+  /** Part of this payment that goes to the bill. */
+  amount: number;
+  /** Profit that part brings in (amount × bill profit ÷ bill net). */
+  profit: number;
+  billNet: number;
+  billProfit: number;
+  /** Still owed on the bill after this payment. */
+  leftAfter: number;
+  /** Lines of the bill sold with no cost: their whole sale counts as profit. */
+  noCostLines: number;
+}
+
+export interface PaymentPreview {
+  amount: number;
+  /** Profit this payment brings in, over every bill it clears. */
+  profit: number;
+  bills: PaymentPreviewBill[];
+  /** Goes to old register balance, credit without a bill, or stays as an advance: no profit. */
+  toOther: number;
+  noCostBills: number;
+  noCostLines: number;
+}
+
+const PREVIEW_ID = '__payment_preview__';
+
+/**
+ * What a khata payment would settle, without writing anything: the same
+ * allocation as rebuildCustomerSettlements with the payment added as the
+ * newest khata line (a payment naming a bill pays that bill first).
+ */
+export async function previewPayment(db: Db, tenantId: string, customerId: string, amount: number, reference?: string | null): Promise<PaymentPreview> {
+  const input = await loadAllocationInput(db, tenantId, customerId);
+  const last = input.lines.reduce((m, l) => Math.max(m, l.createdAt.getTime()), 0);
+  const at = new Date(Math.max(Date.now(), last + 1));
+  const rows = allocateSettlements({
+    ...input,
+    lines: [...input.lines, { id: PREVIEW_ID, type: 'PAYMENT_RECEIVED', amount: -amount, reference: reference ?? null, createdAt: at }],
+  });
+  const mine = rows.filter((r) => r.customerLedgerId === PREVIEW_ID);
+  const ids = [...new Set(mine.map((r) => r.saleId))];
+  const profits = await billProfits(db, ids);
+  const billOf = new Map([...input.bills.values()].map((b) => [b.id, b]));
+  const settled = new Map<string, number>();
+  for (const r of rows) settled.set(r.saleId, (settled.get(r.saleId) ?? 0) + r.amount);
+  const bills = ids.map((id) => {
+    const part = r2(mine.filter((r) => r.saleId === id).reduce((s, r) => s + r.amount, 0));
+    const b = billOf.get(id);
+    const p = profits.get(id) ?? { net: 0, profit: 0, noCostLines: 0, noCostRevenue: 0 };
+    return {
+      saleId: id, saleNumber: b?.saleNumber ?? '', soldAt: b?.soldAt ?? at, amount: part,
+      profit: p.net > EPS ? r2((part * p.profit) / p.net) : 0,
+      billNet: r2(p.net), billProfit: r2(p.profit), leftAfter: r2(Math.max(0, p.net - (settled.get(id) ?? 0))),
+      noCostLines: p.noCostLines,
+    };
+  }).sort((a, b) => a.soldAt.getTime() - b.soldAt.getTime());
+  const toBills = bills.reduce((s, b) => s + b.amount, 0);
+  return {
+    amount: r2(amount),
+    profit: r2(bills.reduce((s, b) => s + b.profit, 0)),
+    bills,
+    toOther: r2(Math.max(0, amount - toBills)),
+    noCostBills: bills.filter((b) => b.noCostLines > 0).length,
+    noCostLines: bills.reduce((s, b) => s + b.noCostLines, 0),
+  };
 }
 
 /** Reads one customer's khata and the bills and returns it names. */

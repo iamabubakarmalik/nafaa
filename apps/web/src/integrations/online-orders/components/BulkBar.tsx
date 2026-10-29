@@ -79,7 +79,7 @@ export function BulkBar({ orders, picked, onClear, onKeep }: {
   return (
     <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-3 print:hidden">
       <div className="flex max-w-full flex-wrap items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2.5 text-white shadow-2xl ring-1 ring-white/10">
-        <span className="px-1 text-sm font-black">{picked.size} chune</span>
+        <span className="px-1 text-sm font-bold">{picked.size} chune</span>
         {cancelOpen ? (
           <>
             <input autoFocus value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Cancel ki wajah (jaise: Fake order)"
@@ -119,7 +119,7 @@ function Pill({ tone, className, ...rest }: React.ButtonHTMLAttributes<HTMLButto
   return (
     <button {...rest}
       className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-bold transition disabled:opacity-50',
-        tone === 'success' ? 'bg-emerald-500 hover:bg-emerald-400' : tone === 'danger' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-white/10 hover:bg-white/20',
+        tone === 'success' ? 'bg-success-600 hover:bg-success-500' : tone === 'danger' ? 'bg-rose-600 hover:bg-rose-500' : 'bg-white/10 hover:bg-white/20',
         className)} />
   );
 }

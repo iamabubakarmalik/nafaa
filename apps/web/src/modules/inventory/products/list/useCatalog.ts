@@ -28,7 +28,7 @@ function readPrefs(): Prefs {
 const EMPTY: Omit<CatalogFilters, 'sort'> = { stock: 'all', active: 'active' };
 
 /** `initial` sets the first filters, e.g. from a link like /products?categoryId=… */
-export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandId' | 'tagId'>) {
+export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandId' | 'tagId' | 'noCost'>) {
   const qc = useQueryClient();
   const saved = useMemo(readPrefs, []);
   const [view, setView] = useState<View>(saved.view);
@@ -54,7 +54,7 @@ export function useCatalog(initial?: Pick<CatalogFilters, 'categoryId' | 'brandI
 
   const set = <K extends keyof typeof f>(key: K, value: (typeof f)[K]) => { setF((cur) => ({ ...cur, [key]: value })); setSelected(new Set()); };
   const hasFilters = !!query || f.stock !== 'all' || f.active !== 'active' || !!f.categoryId || !!f.brandId || !!f.featured
-    || !!f.tagId || !!f.condition || !!f.etype || !!f.serial || !!f.kind || !!f.kindOf;
+    || !!f.tagId || !!f.condition || !!f.etype || !!f.serial || !!f.kind || !!f.kindOf || !!f.noCost;
 
   return {
     filters, f, set, search, setSearch, sort, setSort, view, setView,

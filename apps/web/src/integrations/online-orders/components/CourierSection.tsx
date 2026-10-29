@@ -2,14 +2,24 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Copy, ExternalLink, Loader2, Printer, RefreshCw, Truck, X, Zap } from 'lucide-react';
+import { Copy, ExternalLink, Loader2, Printer, RefreshCw, X, Zap } from 'lucide-react';
 import { Alert, Badge, Button, Card, confirmDialog, controlClass, Field, Input, Modal, Segmented, type BadgeVariant } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage, couriersApi, type CourierState, type OnlineOrderDetail } from '../api/online-orders.api';
 import { rs, whenText } from '../lib/labels';
+import { BrandLogo, brandForCourier } from '@/assets/brands/BrandLogo';
 
 import { COURIERS_KEY } from './couriers/CourierForms';
 export { COURIERS_KEY };
+
+/** COD the courier collects: the total less every advance received (payment links and manual), as the API books it. */
+const codDue = (o: OnlineOrderDetail) => {
+  if (o.money) return Math.round(o.money.codDue);
+  if (o.paymentStatus === 'PAID') return 0;
+  const paid = (((o.metadata as any)?.payments ?? []) as Array<{ status: string; amount: number }>)
+    .filter((l) => l.status === 'PAID').reduce((s, l) => s + (Number(l.amount) || 0), 0);
+  return Math.max(0, Math.round(o.total - paid));
+};
 
 const STATE_LABEL: Record<CourierState | 'BOOKING', { label: string; tone: BadgeVariant }> = {
   BOOKING: { label: 'Book ho raha…', tone: 'default' },
@@ -26,8 +36,9 @@ const STATE_LABEL: Record<CourierState | 'BOOKING', { label: string; tone: Badge
 };
 
 /**
- * Order ke andar courier: jura hua courier ho to "PostEx par book karein"
- * (CN + label khud), book ho chuka ho to status, label, refresh, cancel.
+ * Courier inside an order: "Book on <courier>" when a courier is connected
+ * (CN and label from the courier); once booked, its status, label, refresh
+ * and cancel.
  */
 export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDetail; onChanged: () => void }) {
   const qc = useQueryClient();
@@ -62,7 +73,7 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
     return (
       <Card>
         <div className="flex items-start gap-3">
-          <Truck className="mt-0.5 h-5 w-5 text-slate-400" />
+          <BrandLogo name={brandForCourier(o.courierCode)} size={36} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-bold text-slate-900">{o.courierLabel ?? 'Courier'}</span>
@@ -128,12 +139,14 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
 
   if (!connected.length) {
     return (
-      <section className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 p-4">
-        <Zap className="h-5 w-5 text-slate-400" />
-        <div className="flex-1 text-xs text-slate-500">
-          <span className="font-bold text-slate-700">PostEx ya Leopards jorein</span> — phir yahin se ek click me booking, CN aur label.
+      <section className="flex flex-wrap items-center gap-3 rounded-xl border border-dashed border-slate-300 p-4">
+        <span className="flex gap-1">
+          {(['postex', 'leopards', 'tcs'] as const).map((b) => <BrandLogo key={b} name={b} size={26} />)}
+        </span>
+        <div className="min-w-0 flex-1 text-xs text-slate-500">
+          <span className="font-bold text-slate-700">Courier jorein</span> — phir yahin se ek click me booking, CN aur label.
         </div>
-        <Link to="/online-store/couriers" className="text-xs font-bold text-brand-700 hover:underline">Jorein →</Link>
+        <Link to="/online-store/couriers" className="text-xs font-bold text-brand-700 hover:underline">Couriers →</Link>
       </section>
     );
   }
@@ -142,10 +155,12 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
     <>
       <Card>
         <div className="flex flex-wrap items-center gap-3">
-        <Truck className="h-5 w-5 text-slate-400" />
-        <div className="min-w-0 flex-1">
+        {connected.length === 1
+          ? <BrandLogo name={brandForCourier(connected[0].code)} size={36} />
+          : <span className="flex gap-1">{connected.slice(0, 3).map((c) => <BrandLogo key={c.code} name={brandForCourier(c.code)} size={28} />)}</span>}
+        <div className="min-w-[11rem] flex-1">
           <div className="text-sm font-bold text-slate-900">Courier par book karein</div>
-          <div className="text-xs text-slate-500">CN aur label khud banega · COD {o.paymentStatus === 'PAID' ? 'nahi (paid)' : rs(o.total)}</div>
+          <div className="text-xs text-slate-500">CN khud banega · COD {codDue(o) ? rs(codDue(o)) : 'nahi (paid)'}</div>
         </div>
         <Button size="sm" variant="primary" onClick={() => setBookOpen(true)} leftIcon={<Zap className="h-3.5 w-3.5" />}>
           {connected.length === 1 ? `${connected[0].name} par book` : 'Book karein'}
@@ -183,7 +198,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
   const pieces0 = o.lines.reduce((s, l) => s + (Number(l.quantity) || 0), 0) || 1;
   const [weight, setWeight] = useState(String(current.defaultWeightKg ?? 0.5));
   const [pieces, setPieces] = useState(String(pieces0));
-  const [cod, setCod] = useState(String(o.paymentStatus === 'PAID' ? 0 : Math.round(o.total)));
+  const [cod, setCod] = useState(String(codDue(o)));
   const [notes, setNotes] = useState('');
   const [cityId, setCityId] = useState('');
   const [cityQ, setCityQ] = useState('');
@@ -247,7 +262,8 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
           </Alert>
         )}
         {couriers.length > 1 && (
-          <Segmented label="Courier" value={courier} onChange={setCourier} items={couriers.map((c) => ({ value: c.code, label: c.name }))} />
+          <Segmented label="Courier" value={courier} onChange={setCourier} className="flex-wrap"
+            items={couriers.map((c) => ({ value: c.code, label: <><BrandLogo name={brandForCourier(c.code)} size={18} />{c.name}</> }))} />
         )}
 
         <Field label={<>Shehar {o.customerCity ? <span className="font-normal text-slate-400">(customer ne likha: {o.customerCity})</span> : null}</>}>
@@ -272,8 +288,11 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
           <Input size="sm" label="Pieces" type="number" min="1" step="1" value={pieces} onChange={(e) => setPieces(e.target.value)} />
           <Input size="sm" label="COD (Rs)" type="number" min="0" step="1" value={cod} onChange={(e) => setCod(e.target.value)} />
         </div>
-        {Number(cod) !== Math.round(o.total) && o.paymentStatus !== 'PAID' && (
-          <p className="-mt-2 text-[0.6875rem] font-semibold text-amber-700">Order ka total {rs(o.total)} hai — COD alag rakh rahe hain</p>
+        {Number(cod) !== codDue(o) && (
+          <p className="-mt-2 text-[0.6875rem] font-semibold text-amber-700">Customer se lena {rs(codDue(o))} hai — COD alag rakh rahe hain</p>
+        )}
+        {codDue(o) > 0 && codDue(o) < Math.round(o.total) && (
+          <p className="-mt-2 text-[0.6875rem] text-slate-500">Advance {rs(Math.round(o.total) - codDue(o))} mil chuka — COD utna kam</p>
         )}
 
         <Input size="sm" label="Courier ke liye note (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Fragile, call karke aayein…" maxLength={200} />

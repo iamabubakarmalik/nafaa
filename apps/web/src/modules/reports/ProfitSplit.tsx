@@ -12,7 +12,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { HandCoins, Hourglass } from 'lucide-react';
+import { AlertTriangle, HandCoins, Hourglass } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 
@@ -24,6 +24,31 @@ export interface ProfitSplit {
   pending: number;
   writtenOff: number;
   headline: number;
+  /** Lines sold with no cost anywhere: their whole sale was counted as profit. */
+  noCost?: { products: number; lines: number; revenue: number };
+}
+
+/** Products page filtered to products with no cost price. */
+export const NO_COST_LINK = '/products?noCost=1';
+
+/** Number of products sold with no cost in the split, or 0. */
+export const noCostCount = (s: ProfitSplit | null | undefined) => s?.noCost?.products ?? 0;
+
+/**
+ * Short warning when sold items had no cost: their whole sale was counted as
+ * profit, so the profit looks bigger than it is. Renders nothing for 0.
+ */
+export function NoCostWarning({ count, className }: { count: number; className?: string }) {
+  if (!(count > 0)) return null;
+  return (
+    <p className={cn('flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[0.75rem] leading-snug text-amber-900', className)}>
+      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+      <span>
+        {count.toLocaleString('en-PK')} {count === 1 ? 'cheez' : 'cheezon'} ki Cost nahi likhi — un ki poori sale Profit gini gayi.{' '}
+        <Link to={NO_COST_LINK} className="whitespace-nowrap font-semibold underline-offset-2 hover:underline">Cost bharein →</Link>
+      </span>
+    </p>
+  );
 }
 
 export const BASIS_LABEL: Record<ProfitSplit['basis'], string> = {
@@ -41,6 +66,8 @@ export function splitMatters(s: ProfitSplit | null | undefined): s is ProfitSpli
 /** One-line hint, e.g. for a KPI: "Haath mein Rs 5,000 · udhaar mein Rs 1,200". */
 export function splitHint(s: ProfitSplit | null | undefined, money: Money = formatPKR): string | null {
   if (!s) return null;
+  const bare = noCostCount(s);
+  if (bare > 0) return `${bare} cheezon ki Cost nahi likhi — Profit zyada dikh raha hai`;
   if (!splitMatters(s)) return null;
   return `Haath mein ${money(s.realised)} · udhaar mein ${money(s.pending)}`;
 }
@@ -60,7 +87,8 @@ interface Props {
 /** The two figures side by side with the line that ties them to the bill profit. */
 export function ProfitSplitCard({ split, money = formatPKR, periodLabel = 'is period', compact, always, className }: Props) {
   if (!split) return null;
-  if (!always && !splitMatters(split)) return null;
+  const bare = noCostCount(split);
+  if (!always && !splitMatters(split)) return bare > 0 ? <NoCostWarning count={bare} className={className} /> : null;
   const onPeriodBills = split.realised - split.fromOlderBills;
   const headlineIs = split.basis === 'PAID' ? 'realised' : 'bill';
   return (
@@ -76,6 +104,7 @@ export function ProfitSplitCard({ split, money = formatPKR, periodLabel = 'is pe
           note="Abhi aana hai — customer ke paisa dene par haath mein aayega"
         />
       </div>
+      <NoCostWarning count={bare} />
       <div className="space-y-1 rounded-lg bg-slate-50 px-3 py-2 text-[0.75rem] leading-relaxed text-slate-600">
         <p>
           <span className="font-semibold text-slate-800">Bill ka profit {money(split.billProfit)}</span>

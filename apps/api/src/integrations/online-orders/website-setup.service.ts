@@ -7,6 +7,7 @@ import { ShopScope } from '../../common/shop-scope';
 import { startOfBusinessDayTz } from '../../common/helpers/business-time.helper';
 import { WebsiteConfig, assertSafeWebhookUrl, readWebsiteConfig } from './website-config';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
+import { normalizeShopifySiteUrl } from './shopify-shop';
 
 /** Website jaise channels — har ek ki apni key, settings aur safha */
 export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'FOODPANDA'];
@@ -81,6 +82,22 @@ export class WebsiteSetupService {
     };
   }
 
+  /** Shopify channels always read as https://<handle>.myshopify.com (older saves may hold an admin URL). */
+  siteFixed<T extends { siteUrl: string | null; platform: WebsiteConfig['platform'] }>(type: IntegrationType, cfg: T): T {
+    if (type !== 'SHOPIFY' && cfg.platform !== 'shopify') return cfg;
+    const siteUrl = normalizeShopifySiteUrl(cfg.siteUrl);
+    return siteUrl === cfg.siteUrl ? cfg : { ...cfg, siteUrl };
+  }
+
+  /** Saves the normalised Shopify address the first time a bad one is read. */
+  async repairShopifyAddress(integration: Integration): Promise<Integration> {
+    const cfg = readWebsiteConfig(integration.config);
+    const fixed = this.siteFixed(integration.type, cfg);
+    if (fixed === cfg) return integration;
+    const raw = (integration.config as any) ?? {};
+    return this.prisma.integration.update({ where: { id: integration.id }, data: { config: { ...raw, siteUrl: fixed.siteUrl } as any } });
+  }
+
   // ═══════════════════════════════════════════════════════════
   // LIST — sidebar aur hub ke liye
   // ═══════════════════════════════════════════════════════════
@@ -115,7 +132,7 @@ export class WebsiteSetupService {
     });
 
     return visible.map((c) => {
-      const cfg = readWebsiteConfig(c.config);
+      const cfg = this.siteFixed(c.type, readWebsiteConfig(c.config));
       return {
         id: c.id,
         type: c.type,
@@ -183,7 +200,7 @@ export class WebsiteSetupService {
 
   async channelOverview(user: AuthenticatedUser, id: string, scope?: ShopScope) {
     this.assertCanManage(user);
-    const integration = await this.requireChannel(user.tenantId, id);
+    const integration = await this.repairShopifyAddress(await this.requireChannel(user.tenantId, id));
 
     /* Dukaan ka apna karobari din — raat 12 baje band hone wali
        dukaan ke liye raat 1 baje ka order abhi "aaj" ka hai */
@@ -290,14 +307,23 @@ export class WebsiteSetupService {
           ? { connected: true, connectedAt: indoljCfg.connectedAt ?? null, baseUrl: indoljCfg.baseUrl ?? null }
           : null,
         shopify: integration.type === 'SHOPIFY'
-          ? {
-              connected: !!creds.shopifyToken,
-              // Purana (non-expiring) token ya refresh bhi mar gaya → dobara install
-              needsReinstall: !!creds.shopifyReauth || (!!creds.shopifyToken && !creds.shopifyRefreshToken),
-              shop: creds.shopifyShop ?? null,
-              connectedAt: creds.shopifyConnectedAt ?? null,
-              locationName: (integration.config as any)?.shopifyLocationName ?? null,
-            }
+          ? (() => {
+              const own = creds.shopifyMode === 'token' || creds.shopifyMode === 'client';
+              return {
+                connected: !!creds.shopifyToken,
+                // 'app' = Nafaa App Store install; 'token' / 'client' = merchant's own app (manual)
+                mode: creds.shopifyToken ? (own ? creds.shopifyMode : 'app') : null,
+                // Nafaa app only: an old non-expiring token or a dead refresh token needs a reinstall
+                needsReinstall: !own && (!!creds.shopifyReauth || (!!creds.shopifyToken && !creds.shopifyRefreshToken)),
+                shop: creds.shopifyShop ?? null,
+                connectedAt: creds.shopifyConnectedAt ?? null,
+                locationName: (integration.config as any)?.shopifyLocationName ?? null,
+                scopes: typeof creds.shopifyScopes === 'string' ? creds.shopifyScopes.split(',').filter(Boolean) : [],
+                // Masked hints only; secrets never leave the server
+                clientId: creds.shopifyMode === 'client' && creds.shopifyClientId ? `${String(creds.shopifyClientId).slice(0, 6)}…` : null,
+                hasApiSecret: !!creds.shopifyApiSecret || !!creds.shopifyClientSecret || !!readWebsiteConfig(integration.config).shopifySecret,
+              };
+            })()
           : null,
         woo: integration.type === 'WOOCOMMERCE'
           ? { connected: !!creds.wooKey, connectedAt: creds.wooConnectedAt ?? null, permissions: creds.wooPermissions ?? null }
@@ -362,6 +388,7 @@ export class WebsiteSetupService {
     if (body.deliveryFeeMode !== undefined) next.deliveryFeeMode = body.deliveryFeeMode === 'RIDER' ? 'RIDER' : 'SHOP';
     if (body.platform !== undefined) next.platform = body.platform;
     if (body.siteUrl !== undefined) next.siteUrl = body.siteUrl ? String(body.siteUrl).slice(0, 300) : null;
+    if (integration.type === 'SHOPIFY' || next.platform === 'shopify') next.siteUrl = normalizeShopifySiteUrl(next.siteUrl);
     if (body.shopifySecret !== undefined) next.shopifySecret = body.shopifySecret ? String(body.shopifySecret).trim() : null;
     if (body.shopId !== undefined) next.shopId = await this.validShopId(tenantId, body.shopId ?? undefined);
     if (body.statusWebhookUrl !== undefined) {

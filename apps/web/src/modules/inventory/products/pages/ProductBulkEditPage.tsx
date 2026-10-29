@@ -10,7 +10,9 @@
  * under the stock adjustment permission. Phones (IMEI), services and variant
  * parents keep their stock cell locked.
  *
- * Filters: branch, category, low stock, products of one import, search.
+ * Filters: branch, category, low stock, missing cost, products of one import, search.
+ * "Cost = Sale price ka %" fills the Cost cells of the chosen lines (or every
+ * line with no cost) from their sale price; nothing is saved until the review.
  * Keys: G guide (grid keys are listed in SheetGrid).
  */
 
@@ -19,7 +21,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, Boxes, FileUp, GraduationCap, Loader2, Package, PencilLine, Save, Search, Table2, Tag, Undo2,
+  AlertTriangle, Boxes, FileUp, GraduationCap, Loader2, Package, PencilLine, Percent, Save, Search, Table2, Tag, Undo2,
 } from 'lucide-react';
 import {
   Alert, Button, Checkbox, Input, KpiCard, KpiRow, Modal, PageHero, PageShell, Select, confirmDialog, heroButton,
@@ -123,6 +125,9 @@ export default function ProductBulkEditPage() {
   const jobId = params.get('job') ?? '';
   const categoryId = params.get('category') ?? '';
   const lowStock = params.get('low') === '1';
+  const noCost = params.get('nocost') === '1';
+  const [costTool, setCostTool] = useState(false);
+  const [costPct, setCostPct] = useState('');
   const [search, setSearch] = useState(params.get('q') ?? '');
   const [query, setQuery] = useState(params.get('q') ?? '');
 
@@ -130,8 +135,8 @@ export default function ProductBulkEditPage() {
   const jobs = useMemo(() => (jobsQ.data ?? []).filter((j) => j.jobType === 'PRODUCTS' && (j.productCount ?? 0) > 0), [jobsQ.data]);
 
   const sheetQ = useQuery({
-    queryKey: ['products-bulk-edit', shopId, categoryId, lowStock, jobId, query],
-    queryFn: () => bulkEditApi.rows({ shopId, categoryId, lowStock, jobId, search: query }),
+    queryKey: ['products-bulk-edit', shopId, categoryId, lowStock, noCost, jobId, query],
+    queryFn: () => bulkEditApi.rows({ shopId, categoryId, lowStock, noCost, jobId, search: query }),
     enabled: !!shopId,
     staleTime: 0,
     refetchOnWindowFocus: false,
@@ -323,6 +328,20 @@ export default function ProductBulkEditPage() {
     }
   };
 
+  /** Lines the cost tool fills: the chosen ones, else every line with no cost and a sale price. */
+  const costTargets = useMemo(() => {
+    const pool = selected.size ? viewRows.filter((r) => selected.has(r.id)) : viewRows.filter((r) => !(Number(num(r.cells.costPrice ?? '')) > 0));
+    return pool.filter((r) => Number(num(r.cells.price ?? '')) > 0 && !lockOf('costPrice')(r.id));
+  }, [selected, viewRows, lockOf]);
+  const pct = Number(costPct);
+  const pctOk = pct > 0 && pct <= 100;
+  const applyCostPct = () => {
+    if (!pctOk || !costTargets.length) return;
+    grid.edit(costTargets.map((r) => ({ id: r.id, key: 'costPrice', value: String(Math.round((num(r.cells.price ?? '')! * pct) / 100 * 100) / 100) })));
+    setCostTool(false);
+    toast.success(`${costTargets.length} lines mein Cost bhar di — "Dekh kar save karein" se save karein`);
+  };
+
   const shop = sheetQ.data?.shop;
   const stockUp = plan.stock.reduce((s, x) => s + Math.max(0, x.counted - x.from), 0);
   const stockDown = plan.stock.reduce((s, x) => s + Math.max(0, x.from - x.counted), 0);
@@ -349,7 +368,10 @@ export default function ProductBulkEditPage() {
         <Select label="Import" value={jobId} onChange={(e) => void setFilter('job', e.target.value)}
           options={[{ value: '', label: 'Sab products' }, ...jobs.map((j) => ({ value: j.id, label: `${j.fileName} · ${new Date(j.createdAt).toLocaleDateString('en-PK')} (${j.productCount})` }))]} />
         <div className="flex items-end pb-2">
-          <Checkbox label="Sirf low stock" checked={lowStock} onChange={(e) => void setFilter('low', e.target.checked ? '1' : '')} />
+          <div className="flex flex-col gap-1.5">
+            <Checkbox label="Sirf low stock" checked={lowStock} onChange={(e) => void setFilter('low', e.target.checked ? '1' : '')} />
+            {!costHidden && <Checkbox label="Sirf jin ki Cost nahi" checked={noCost} onChange={(e) => void setFilter('nocost', e.target.checked ? '1' : '')} />}
+          </div>
         </div>
         <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); void doSearch(); }}>
           <Input label="Dhoondein" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Naam, SKU ya barcode" leftIcon={<Search className="h-4 w-4" />} wrapperClassName="flex-1" />
@@ -363,6 +385,14 @@ export default function ProductBulkEditPage() {
         <KpiCard icon={Boxes} color="#7c3aed" label="Stock adjustments" value={plan.stock.length} hint={plan.stock.length ? `+${fmt(stockUp)} / −${fmt(stockDown)}` : shop?.name} />
         <KpiCard icon={AlertTriangle} color="#e11d48" label="Ghalti" value={plan.errors} hint={plan.errors ? 'Laal cells theek karein' : 'Sab theek'} />
       </KpiRow>
+
+      {!costHidden && (noCost || costTargets.length > 0) && (
+        <Alert tone="warning" icon={<Percent className="h-4 w-4" />}
+          title={noCost ? 'In cheezon ki Cost nahi likhi — in ki poori sale Profit gini ja rahi hai' : 'Cost jaldi bharein'}
+          action={<Button size="sm" variant="secondary" leftIcon={<Percent className="h-4 w-4" />} disabled={!costTargets.length} onClick={() => setCostTool(true)}>Cost = Sale price ka %</Button>}>
+          Cost cell me seedha likhein, ya Sale price ka % laga dein ({selected.size ? `${costTargets.length} chuni hui lines` : `${costTargets.length} lines jin ki Cost khaali hai`}).
+        </Alert>
+      )}
 
       {!canStock && <Alert tone="info">Stock column band hai — Stock adjustment ki ijazat wale user hi stock badal sakte hain.</Alert>}
 
@@ -392,6 +422,29 @@ export default function ProductBulkEditPage() {
           <Button leftIcon={<Save className="h-4 w-4" />} disabled={!plan.products || !!saving} onClick={() => setReview(true)}>Dekh kar save karein</Button>
         </div>
       </div>
+
+      <Modal open={costTool} onClose={() => setCostTool(false)} size="sm" title="Cost = Sale price ka %"
+        description={`${costTargets.length} lines: ${selected.size ? 'jo aap ne chuni hain' : 'jin ki Cost khaali hai'}. Save se pehle sab dikhega.`}
+        footer={<>
+          <Button variant="secondary" onClick={() => setCostTool(false)}>Rehne dein</Button>
+          <Button disabled={!pctOk || !costTargets.length} onClick={applyCostPct}>Cost bharein</Button>
+        </>}>
+        <div className="space-y-3">
+          <Input label="Sale price ka kitna % Cost hai" inputMode="decimal" value={costPct} autoFocus
+            onChange={(e) => setCostPct(e.target.value.replace(/[^\d.]/g, ''))} placeholder="Maslan 85" rightIcon={<Percent className="h-4 w-4" />} />
+          <div className="flex flex-wrap gap-1.5">
+            {[70, 75, 80, 85, 90].map((v) => (
+              <button key={v} type="button" onClick={() => setCostPct(String(v))} className="h-8 rounded-lg bg-slate-100 px-2.5 text-[0.8125rem] font-semibold text-slate-700 hover:bg-slate-200">{v}%</button>
+            ))}
+          </div>
+          {pctOk && costTargets[0] && (
+            <p className="rounded-lg bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-600">
+              Maslan <b className="text-slate-800">{costTargets[0].cells.name || 'pehli line'}</b>: Sale price {formatPKR(num(costTargets[0].cells.price ?? '') ?? 0)} → Cost {formatPKR(Math.round((num(costTargets[0].cells.price ?? '')! * pct)) / 100)}
+            </p>
+          )}
+          <p className="text-[0.75rem] text-slate-500">Andaza hai — asal Cost maloom ho to cell me likh dein. Pehle se likhi Cost tab hi badlegi jab line chuni hui ho.</p>
+        </div>
+      </Modal>
 
       <Modal open={review} onClose={() => setReview(false)} size="lg" title={`${plan.products} products badlenge — dekh lein`}
         description={plan.errors ? `${plan.errors} ghalat cells save nahi honge.` : 'Sirf badli hui cheezein save hongi.'}

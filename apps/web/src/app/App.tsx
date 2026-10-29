@@ -28,7 +28,7 @@ import TaxPage from '@modules/tax/TaxPage';
 import FoodpandaPage from '@integrations/online-orders/pages/FoodpandaPage';
 import CustomerDisplayPage from '@core/hardware/CustomerDisplayPage';
 import {
-  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage, OnlineStoreDocsPage,
+  OnlineOrdersPage, WebsiteConnectPage, WebsiteRedirect, ConnectChannelPage, ChannelsListPage, ConnectDonePage, ShopifyAppPage, CodPage, CouriersPage, CourierDetailPage, PrintInvoicesPage, OnlineReportsPage, BlocklistPage, OnlineCustomersPage, PaymentsPage, PublicPayPage, PublicOrderPage, DevInvitePage, PublicTrackPage, OnlineStoreDocsPage, OnlineProductsPage,
 } from '@integrations/online-orders';
 
 // ─── FBR Tax Integration ───────────────────────────────────────
@@ -391,6 +391,7 @@ export default function App() {
                   <Route path="/online-orders/reports" element={secure(PERMISSIONS.SALES_VIEW, <OnlineReportsPage />)} />
                   <Route path="/online-orders/customers" element={secure(PERMISSIONS.SALES_VIEW, <OnlineCustomersPage />)} />
                   <Route path="/online-store/payments" element={secure(PERMISSIONS.SALES_VIEW, <PaymentsPage />)} />
+                  <Route path="/online-store/products" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <OnlineProductsPage />)} />
                   <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />

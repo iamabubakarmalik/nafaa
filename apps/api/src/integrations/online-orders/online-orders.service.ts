@@ -18,6 +18,8 @@ import { CustomerRisk, blockedRisk, emptyHistory, phoneKey, riskOf } from './cus
 import { OrderToolsService } from './order-tools.service';
 import { emitOrderAccepted } from './order-events';
 import { shopDue } from './shop-due';
+import { buildManualAdvance, orderMoney, paidAdvance } from './order-money';
+import { randomBytes } from 'crypto';
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { periodRange } from '../../modules/inventory/taxonomy/taxonomy.helper';
 
@@ -831,6 +833,46 @@ export class OnlineOrdersService implements OnModuleInit {
   }
 
   /**
+   * Records an advance the shop received outside a payment link (JazzCash,
+   * Easypaisa, bank transfer, cash). It is stored with the payment links in
+   * metadata.payments, so courier COD and link amounts drop by the same
+   * amount; when it covers the whole order, the order is marked paid.
+   */
+  async addAdvance(user: AuthenticatedUser, scope: ShopScope, id: string, body: { amount?: unknown; method?: unknown; reference?: unknown }) {
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    if (CLOSED.includes(order.orderStatus)) throw new BadRequestException('Band (cancel / wapas) order par advance nahi likhte');
+    if (order.paymentStatus === 'PAID') throw new BadRequestException('Is order ka poora paisa pehle se mil chuka');
+    const meta = (order.metadata ?? {}) as any;
+    const due = Math.max(0, shopDue(order) - paidAdvance(meta));
+    const built = buildManualAdvance(body ?? {}, { due, ref: `adv_${randomBytes(6).toString('hex')}`, userId: user.id ?? null });
+    if ('error' in built) throw new BadRequestException(built.error);
+    const payments = [...(Array.isArray(meta.payments) ? meta.payments : []), built.entry];
+    const updated = await this.prisma.channelOrder.update({
+      where: { id }, data: { metadata: { ...meta, payments } }, include: { integration: true },
+    });
+    if (paidAdvance(updated.metadata) + 0.5 >= shopDue(updated)) {
+      return this.markPaid(user, scope, id).catch(() => this.present(updated));
+    }
+    return this.present(updated);
+  }
+
+  /** Removes a hand-recorded advance (a typing mistake). Payment links cannot be removed. */
+  async removeAdvance(user: AuthenticatedUser, scope: ShopScope, id: string, ref: string) {
+    const order = await this.prisma.channelOrder.findFirst({ where: { id, ...this.scopeWhere(user, scope) } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    const meta = (order.metadata ?? {}) as any;
+    const list: any[] = Array.isArray(meta.payments) ? meta.payments : [];
+    const row = list.find((p) => p?.ref === ref);
+    if (!row || row.provider !== 'MANUAL') throw new NotFoundException('Ye advance nahi mila');
+    if (order.paymentStatus === 'PAID') throw new BadRequestException('Order paid mark ho chuka — advance ab nahi hatta');
+    const updated = await this.prisma.channelOrder.update({
+      where: { id }, data: { metadata: { ...meta, payments: list.filter((p) => p?.ref !== ref) } }, include: { integration: true },
+    });
+    return this.present(updated);
+  }
+
+  /**
    * RTO — customer ne parcel nahi liya, courier wapas le aaya. Bill void
    * (stock khud wapas), order "Wapas aaya". COD ka paisa kabhi aana hi nahi.
    */
@@ -1294,6 +1336,8 @@ export class OnlineOrdersService implements OnModuleInit {
       courierTrail: meta.courierTrail ?? null,
       confirmation: meta.confirmation ? { result: meta.confirmation.result, at: meta.confirmation.at, attempts: meta.confirmation.attempts ?? 1, note: meta.confirmation.note ?? null } : null,
       autoBookError: meta.autoBookError ?? null,
+      // Advance received, COD the courier still collects, and who keeps the delivery charge.
+      money: orderMoney(o, o.integration?.config ? readWebsiteConfig(o.integration.config).deliveryFeeMode : null),
     };
   }
 }

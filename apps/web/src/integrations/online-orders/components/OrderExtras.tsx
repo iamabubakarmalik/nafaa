@@ -50,9 +50,9 @@ export function OrderExtras({ order: o, onChanged }: { order: OnlineOrderDetail;
   };
 
   return (
-    <Card>
-      <div className="mb-2 flex items-center gap-2">
-        <span className="flex-1 text-[0.6875rem] font-bold uppercase tracking-wider text-slate-400">Staff (customer ko nahi dikhta)</span>
+    <Card className="rounded-2xl border-0 ring-1 ring-slate-200/80">
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <span className="min-w-[10rem] flex-1 text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">Staff ke liye <span className="normal-case tracking-normal">· customer ko nahi dikhta</span></span>
         {canEdit && <Button size="xs" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditOpen(true)}>Details badlein</Button>}
         {o.customerPhone && (blocked
           ? <Button size="xs" variant="ghost" loading={unblock.isPending} onClick={() => unblock.mutate()}>Unblock</Button>

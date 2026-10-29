@@ -187,9 +187,9 @@ export interface BulkEditSaveResult {
 }
 
 export const bulkEditApi = {
-  rows: (q: { shopId?: string; categoryId?: string; lowStock?: boolean; jobId?: string; search?: string }) =>
+  rows: (q: { shopId?: string; categoryId?: string; lowStock?: boolean; noCost?: boolean; jobId?: string; search?: string }) =>
     apiClient.get('/products/bulk-edit/rows', {
-      params: { ...q, lowStock: q.lowStock ? '1' : undefined, categoryId: q.categoryId || undefined, jobId: q.jobId || undefined, search: q.search || undefined },
+      params: { ...q, lowStock: q.lowStock ? '1' : undefined, noCost: q.noCost ? '1' : undefined, categoryId: q.categoryId || undefined, jobId: q.jobId || undefined, search: q.search || undefined },
     }).then(unwrap<BulkEditSheet>),
   save: (changes: BulkEditChange[]) =>
     apiClient.post('/products/bulk-edit/save', { changes }).then(unwrap<BulkEditSaveResult>),

@@ -37,8 +37,9 @@ import { OrderDrawer } from '../components/orders/OrderDrawer';
 import { OrderRow } from '../components/orders/OrderRow';
 import { useOrderActions } from '../components/orders/useOrderActions';
 import { useLiveOnlineOrders } from '../hooks/useLiveOnlineOrders';
-import { channelMeta, useSalesChannels } from '../hooks/useSalesChannels';
-import { sourceOf } from '../lib/labels';
+import { useSalesChannels } from '../hooks/useSalesChannels';
+import { brandIcon, sourceOf, timeAgo } from '../lib/labels';
+import { BrandLogo, brandForChannel, brandLabel } from '@/assets/brands/BrandLogo';
 import { ORDER_TABS, downloadCsv, itemQty, orderNo, statusShort, tabCount, type OrderTab } from '../lib/orders';
 import { ordersDoc } from '../lib/print';
 
@@ -227,7 +228,7 @@ export default function OnlineOrdersPage() {
   return (
     <PageShell>
       <PageHero
-        title={channel ? `${channelMeta(channel.type).emoji} ${channel.displayName}` : 'Online orders'}
+        title={channel ? <span className="inline-flex min-w-0 items-center gap-2.5"><BrandLogo name={brandForChannel(channel.type, { platform: channel.platform })} size={28} /><span className="truncate">{channel.displayName}</span></span> : 'Online orders'}
         chip={<><ShoppingBag />{(counts.PENDING ?? 0) > 0 ? `${counts.PENDING} naye` : periodText}</>}
         meta="Accept karein — bill aur receipt khud banti hai, stock kam ho jata hai"
         busy={fetching}
@@ -279,7 +280,7 @@ export default function OnlineOrdersPage() {
               <Alert tone="rose" icon={Timer}
                 title={`${alerts.stalePending.count} naya order ${alerts.staleMinutes} minute se zyada ruka hai`}
                 text="Der hone par customer cancel kar deta hai — jaldi accept karein."
-                items={alerts.stalePending.oldest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${Math.floor((now - new Date(o.receivedAt).getTime()) / 60_000)}m` }))}
+                items={alerts.stalePending.oldest.map((o) => ({ id: o.id, label: `#${o.externalOrderNumber ?? o.externalOrderId} · ${timeAgo(o.receivedAt)}` }))}
                 onPick={(id) => { goTab('PENDING'); open(id); }} />
             )}
             {alerts.cancelRequests.count > 0 && (
@@ -305,7 +306,8 @@ export default function OnlineOrdersPage() {
             <FilterMenu icon={Globe} label="Channel" value={channelId ?? ''} active={!!channelId} width="w-72"
               onChange={(v) => setParam('channel', v || null)}
               options={[{ value: '', label: 'Sab channels' }, ...channels!.map((ch) => ({
-                value: ch.id, label: `${channelMeta(ch.type).emoji} ${ch.displayName}`, hint: ch.pendingOrders ? `${ch.pendingOrders} naye` : channelMeta(ch.type).label,
+                value: ch.id, label: ch.displayName, icon: brandIcon(brandForChannel(ch.type, { platform: ch.platform })),
+                hint: ch.pendingOrders ? `${ch.pendingOrders} naye` : brandLabel(brandForChannel(ch.type, { platform: ch.platform })),
               }))]} />
           )}
           <FilterMenu icon={Wallet} label="Paisa" value={pay} active={!!pay} onChange={setPay} align="right"
@@ -442,7 +444,9 @@ function FirstRun({ hasChannels }: { hasChannels: boolean }) {
   }
   return (
     <div className="rounded-3xl bg-white px-6 py-12 text-center ring-1 ring-slate-200/80">
-      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-lg"><Globe className="h-6 w-6" /></span>
+      <span className="mx-auto flex w-fit items-center gap-2">
+        {(['shopify', 'woocommerce', 'daraz', 'foodpanda', 'website'] as const).map((b) => <BrandLogo key={b} name={b} size={40} />)}
+      </span>
       <h3 className="mt-4 text-lg font-semibold text-slate-900">Abhi koi online order nahi aaya</h3>
       <p className="mx-auto mt-1 max-w-lg text-[0.875rem] text-slate-500">
         Apni website, Shopify, WooCommerce, Daraz ya Foodpanda Nafaa se jodein — 2 minute ka kaam hai. Phir har order yahan aayega, ghanti bajegi aur ek click me bill banega.
@@ -450,7 +454,7 @@ function FirstRun({ hasChannels }: { hasChannels: boolean }) {
       <div className="mx-auto mt-5 grid max-w-2xl gap-2 text-left sm:grid-cols-3">
         {[['1', 'Channel jodein', 'Plugin, app ya link'], ['2', 'Test order bhejein', 'TEST ka nishan lagta hai'], ['3', 'Accept karein', 'Bill aur stock khud']].map(([n, title, d]) => (
           <div key={n} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-900 text-xs font-bold text-white">{n}</span>
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-brand-50 text-xs font-bold text-brand-700 ring-1 ring-inset ring-brand-100">{n}</span>
             <p className="mt-1.5 text-[0.875rem] font-semibold text-slate-900">{title}</p>
             <p className="text-[0.75rem] text-slate-500">{d}</p>
           </div>

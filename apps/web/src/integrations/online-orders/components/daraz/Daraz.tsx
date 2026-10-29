@@ -5,6 +5,7 @@ import { AlertTriangle, CheckCircle2, ExternalLink, Link2, Package, Printer, Ref
 import { Alert, Badge, Button, Card, Input, Select } from '@/design-system/components';
 import { apiErrorMessage, darazApi, type OnlineOrderDetail, type WebsiteOverview } from '../../api/online-orders.api';
 import { timeAgo, whenText } from '../../lib/labels';
+import { BrandLogo } from '@/assets/brands/BrandLogo';
 
 /* ═════════════════════════════════════════════════════════════
    DARAZ — Shopify jaisa: "Daraz jorein" → Daraz login → Allow.
@@ -79,7 +80,7 @@ export function DarazChannelCard({ id, data, onChange }: { id: string; data: Web
   const expSoon = d.refreshExpiresAt ? Date.parse(d.refreshExpiresAt) - Date.now() < 7 * 86_400_000 : false;
 
   return (
-    <Card title={<span className="flex items-center gap-2">Daraz {d.connected && !d.error ? <Badge size="xs" variant="success" dot>Jura hua</Badge> : <Badge size="xs" variant="danger" dot>Jorna hai</Badge>}</span>}
+    <Card className="rounded-3xl border-0 ring-1 ring-slate-200/80" title={<span className="flex items-center gap-2"><BrandLogo name="daraz" size={28} /> Daraz {d.connected && !d.error ? <Badge size="xs" variant="success" dot>Jura hua</Badge> : <Badge size="xs" variant="danger" dot>Jorna hai</Badge>}</span>}
       description={d.account ? `${d.account}${d.shortCode ? ` · shop ${d.shortCode}` : ''}` : 'Daraz seller account'}
       actions={d.connected ? <Button size="xs" variant="ghost" loading={reconnect.isPending} onClick={() => reconnect.mutate()} leftIcon={<Link2 className="h-3.5 w-3.5" />}>Dobara jorein</Button> : undefined}>
       {(!d.connected || d.error) && (

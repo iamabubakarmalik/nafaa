@@ -14,6 +14,8 @@ export class BulkEditRowsQuery {
   @IsOptional() @IsUUID() shopId?: string;
   @IsOptional() @IsString() @MaxLength(100) categoryId?: string;
   @IsOptional() @IsIn(['1', 'true']) lowStock?: string;
+  /** Only products (or variants) with no cost price. */
+  @IsOptional() @IsIn(['1', 'true']) noCost?: string;
   @IsOptional() @IsUUID() jobId?: string;
   @IsOptional() @IsString() @MaxLength(100) search?: string;
 }

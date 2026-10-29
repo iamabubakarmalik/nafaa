@@ -25,6 +25,8 @@ export interface CatalogQuery extends ExtensionQuery {
   featured?: string;
   /** 'raw' = only raw materials, 'sale' = only things sold at the counter. */
   kindOf?: 'raw' | 'sale';
+  /** 'true' = only products with no cost price (their whole sale counts as profit). */
+  noCost?: string;
   sort?: CatalogSort;
   page?: string | number;
   limit?: string | number;
@@ -189,6 +191,7 @@ export class ProductCatalogService {
       && matchesActive(r)
       && (q.featured !== 'true' || r.isFeatured)
       && (q.kindOf !== 'raw' || r.isRawMaterial) && (q.kindOf !== 'sale' || !r.isRawMaterial)
+      && (q.noCost !== 'true' || r.costPrice <= 0)
       && matchesExtensions(ext, r.id, r.stock, q));
 
     const byStock: Record<CatalogStock, (r: Row) => boolean> = {

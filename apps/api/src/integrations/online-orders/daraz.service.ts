@@ -12,7 +12,9 @@ import { WebsiteSetupService } from './website-setup.service';
 import { WebsiteCatalogService } from './website-catalog.service';
 import { NormalizedOrder } from './order-normalizer';
 import { readWebsiteConfig } from './website-config';
-import { DARAZ_AUTHORIZE, DarazClient, DarazError, readTokenResponse, stockXml } from './daraz.client';
+import { DARAZ_AUTHORIZE, DarazClient, DarazError, priceXml, readTokenResponse, stockXml, darazOptionTitle } from './daraz.client';
+import { trackLinks } from './link-sync';
+import type { RemoteProduct } from './channel-catalog.service';
 
 const CLOSED = ['CANCELLED', 'REJECTED', 'RETURNED'];
 /** Pehli dafa kitne din pichhe ke orders laane hain */
@@ -370,19 +372,62 @@ export class DarazService {
   // PRODUCTS — Daraz ke SellerSku = Nafaa SKU se jorna
   // ═══════════════════════════════════════════════════════════
 
-  async linkProducts(i: Integration) {
+  /** Every Daraz listing with its SKUs, in the shape the linking screens use. */
+  async remoteProducts(i: Integration): Promise<RemoteProduct[]> {
     const client = await this.client(i);
-    const skus: { itemId: string; skuId: string; sellerSku: string; title: string; image: string | null }[] = [];
+    const out: RemoteProduct[] = [];
     for (let offset = 0; offset < 10_000; offset += 50) {
       const r = await client.call('/products/get', { filter: 'all', offset, limit: 50 });
       const page: any[] = r?.data?.products ?? [];
       for (const p of page) {
-        for (const s of (p.skus ?? []) as any[]) {
-          if (!s?.SellerSku) continue;
-          skus.push({ itemId: String(p.item_id), skuId: String(s.SkuId ?? ''), sellerSku: String(s.SellerSku), title: String(p.attributes?.name ?? s.SellerSku), image: p.images?.[0] ?? s.Images?.[0] ?? null });
-        }
+        const skus = ((p.skus ?? []) as any[]).filter((s) => s?.SellerSku);
+        if (!skus.length) continue;
+        const image = p.images?.[0] ?? skus[0]?.Images?.[0] ?? null;
+        out.push({
+          externalProductId: String(p.item_id),
+          title: String(p.attributes?.name ?? skus[0].SellerSku),
+          image,
+          status: String(p.status ?? '').toLowerCase(),
+          hasVariants: skus.length > 1,
+          variants: skus.map((s) => ({
+            externalVariantId: String(s.SkuId ?? ''),
+            title: darazOptionTitle(s) || (skus.length > 1 ? String(s.SellerSku) : 'Default'),
+            sku: String(s.SellerSku),
+            barcode: null,
+            price: Number(s.price ?? 0) || 0,
+            stock: s.quantity === undefined || s.quantity === null ? null : Number(s.quantity),
+            image: s.Images?.[0] ?? image,
+          })),
+        });
       }
       if (page.length < 50) break;
+    }
+    return out;
+  }
+
+  /** Nafaa price → Daraz normal price, for linked SKUs. */
+  async pushPrices(i: Integration, items: { externalProductId: string; externalVariantId: string | null; externalSku: string | null; price: number }[]) {
+    const rows = items
+      .filter((x) => x.externalVariantId && x.externalSku && x.price > 0)
+      .map((x) => ({ itemId: x.externalProductId, skuId: String(x.externalVariantId), sellerSku: String(x.externalSku), price: x.price }));
+    if (!rows.length) return 0;
+    const client = await this.client(i);
+    let sent = 0;
+    for (let k = 0; k < rows.length; k += 20) {
+      const chunk = rows.slice(k, k + 20);
+      await client.call('/product/price_quantity/update', { payload: priceXml(chunk) }, 'POST');
+      sent += chunk.length;
+    }
+    await this.log(i, 'PRICE_PUSH', true, undefined, { updated: sent });
+    return sent;
+  }
+
+  async linkProducts(i: Integration) {
+    const skus: { itemId: string; skuId: string; sellerSku: string; title: string; image: string | null }[] = [];
+    for (const p of await this.remoteProducts(i)) {
+      for (const v of p.variants) {
+        skus.push({ itemId: p.externalProductId, skuId: v.externalVariantId ?? '', sellerSku: v.sku!, title: p.title, image: v.image ?? p.image });
+      }
     }
     const all = [...new Set(skus.map((s) => s.sellerSku))];
     const [variants, products] = await Promise.all([
@@ -421,6 +466,10 @@ export class DarazService {
 
   /** productIds = sirf yeh (POS sale ke baad), warna sab jore hue */
   async syncStock(i: Integration, opts: { productIds?: string[] } = {}) {
+    return trackLinks(this.prisma, i.id, opts.productIds ? { productId: { in: opts.productIds } } : {}, () => this.pushStock(i, opts));
+  }
+
+  private async pushStock(i: Integration, opts: { productIds?: string[] }) {
     const client = await this.client(i);
     const maps = await this.prisma.productChannelMapping.findMany({
       where: { integrationId: i.id, externalProductId: { not: null }, externalVariantId: { not: null }, ...(opts.productIds ? { productId: { in: opts.productIds } } : {}) },

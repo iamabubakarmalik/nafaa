@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { BellRing, CheckCircle2, Eye, Loader2, ShoppingBag, Volume2, VolumeX, X } from 'lucide-react';
+import { BellRing, CheckCircle2, Eye, ShoppingBag, Volume2, VolumeX, X } from 'lucide-react';
+import { Button } from '@/design-system/components';
+import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { useNotificationSound } from '@core/hooks/useNotificationSound';
 import { apiErrorMessage, onlineOrdersApi, type LiveOrders } from '../api/online-orders.api';
 import { useLiveOnlineOrders, LIVE_ORDERS_KEY } from '../hooks/useLiveOnlineOrders';
@@ -145,55 +147,47 @@ export function OnlineOrderAlert() {
           <div
             key={o.id}
             className={cn(
-              'rounded-2xl border-2 border-emerald-400 bg-white shadow-2xl dark:bg-ink-900 dark:border-emerald-500/60 overflow-hidden',
+              'overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200',
               idx === 0 && 'animate-[pulse_1.2s_ease-in-out_2]',
             )}
           >
-            <div className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2 text-white">
-              <BellRing className="h-4 w-4 animate-bounce" />
-              <div className="flex-1 text-sm font-black">Naya online order!</div>
-              <span className="text-[0.6875rem] font-bold opacity-90">{src.emoji} {src.label}</span>
-              <button onClick={() => dismiss(o.id)} className="rounded-md p-1 hover:bg-white/20" aria-label="Band karein">
+            <div className="flex items-center gap-2 border-b border-slate-100 px-3 py-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><BellRing className="h-4 w-4 animate-bounce" /></span>
+              <div className="flex-1 text-sm font-semibold text-slate-900">Naya online order</div>
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-[0.75rem] font-medium text-slate-500">
+                <BrandLogo name={src.brand} size={20} /><span className="max-w-[7rem] truncate">{o.integration?.displayName ?? src.label}</span>
+              </span>
+              <button type="button" onClick={() => dismiss(o.id)} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Band karein">
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
             <div className="p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-500 dark:text-ink-400">
-                    #{o.externalOrderNumber ?? o.externalOrderId} · {timeAgo(o.receivedAt)}
-                    {o.metadata?.test && <span className="ml-1 rounded bg-amber-100 px-1 text-amber-700">TEST</span>}
+                  <div className="text-xs font-medium text-slate-500">
+                    <span className="font-mono">#{o.externalOrderNumber ?? o.externalOrderId}</span> · {timeAgo(o.receivedAt)}
+                    {o.metadata?.test && <span className="ml-1 rounded bg-amber-100 px-1 font-semibold text-amber-800">TEST</span>}
                   </div>
-                  <div className="truncate text-base font-black text-slate-900 dark:text-ink-white">{o.customerName}</div>
-                  <div className="text-xs text-slate-500 dark:text-ink-400">
+                  <div className="truncate text-base font-semibold text-slate-900">{o.customerName}</div>
+                  <div className="text-xs text-slate-500">
                     {o.itemCount} item{o.customerCity ? ` · ${o.customerCity}` : ''}
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-lg font-black text-emerald-700 dark:text-emerald-400">{rs(o.total)}</div>
-                </div>
+                <div className="text-right text-lg font-bold tabular-nums text-slate-900">{rs(o.total)}</div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => accept.mutate(o.id)}
-                  disabled={busy}
-                  className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-emerald-600 text-sm font-black text-white hover:bg-emerald-700 disabled:opacity-60"
-                >
-                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
-                  Accept + Bill
-                </button>
-                <button
-                  onClick={() => { dismiss(o.id); navigate(`/online-orders?order=${o.id}`); }}
-                  className="flex h-10 items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 text-sm font-bold text-slate-800 hover:bg-slate-50 dark:border-ink-700 dark:text-ink-100 dark:hover:bg-ink-800"
-                >
-                  <Eye className="h-4 w-4" /> Dekho
-                </button>
+                <Button variant="success" loading={busy} onClick={() => accept.mutate(o.id)} leftIcon={<CheckCircle2 className="h-4 w-4" />}>
+                  Accept + bill
+                </Button>
+                <Button variant="secondary" onClick={() => { dismiss(o.id); navigate(`/online-orders?order=${o.id}`); }} leftIcon={<Eye className="h-4 w-4" />}>
+                  Dekhein
+                </Button>
               </div>
             </div>
           </div>
         );
       })}
-      <div className="flex items-center justify-between rounded-xl bg-slate-900/90 px-3 py-1.5 text-[0.6875rem] font-bold text-white shadow-lg">
+      <div className="flex items-center justify-between rounded-xl bg-slate-900 px-3 py-1.5 text-[0.6875rem] font-semibold text-white shadow-lg">
         <button onClick={() => { setQueue([]); navigate('/online-orders'); }} className="flex items-center gap-1 hover:underline">
           <ShoppingBag className="h-3.5 w-3.5" />
           {extra > 0 ? `+${extra} aur naye orders` : 'Sab online orders'}

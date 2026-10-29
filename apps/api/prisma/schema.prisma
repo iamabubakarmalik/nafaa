@@ -17469,6 +17469,10 @@ model ProductChannelMapping {
   syncStatus        SyncStatus      @default(PENDING)
   lastSyncedAt      DateTime?
   externalData      Json?
+  // Manual price for this product/size on this channel; null = the channel price rule
+  priceOverride     Float?
+  // Last stock/price push error for this link; null when the last push worked
+  syncError         String?
 
   @@unique([integrationId, linkKey])
   @@index([integrationId, productId])

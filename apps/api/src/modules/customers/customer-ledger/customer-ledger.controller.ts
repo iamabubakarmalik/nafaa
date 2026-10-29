@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
@@ -28,6 +28,17 @@ export class CustomerLedgerController {
     @Param('customerId') customerId: string,
   ) {
     return this.service.list(user, shop, customerId);
+  }
+
+  /** What a payment of `amount` would settle and the profit it brings in. Writes nothing. */
+  @Get(':customerId/payment-preview')
+  paymentPreview(
+    @GetUser() user: AuthenticatedUser,
+    @Param('customerId') customerId: string,
+    @Query('amount') amount: string,
+    @Query('reference') reference?: string,
+  ) {
+    return this.service.paymentPreview(user, customerId, Number(amount), reference);
   }
 
   @Post(':customerId/payment')

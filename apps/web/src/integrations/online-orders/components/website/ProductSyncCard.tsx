@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { toast } from 'sonner';
 import { ArrowDownToLine, ArrowUpFromLine, FileSpreadsheet, Loader2, RefreshCw, Upload } from 'lucide-react';
-import { Button, Switch } from '@/design-system/components';
+import { Alert, Button, Switch } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { apiErrorMessage, onlineOrdersApi, type ImportResult } from '../../api/online-orders.api';
 import { csvToProducts, downloadText, shopifyCsv, wooCsv, type CsvFormat, type ParsedProduct } from '../../lib/csv';
@@ -23,6 +25,14 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
   channelId: string; productLinks: number; platform: string | null; wooConnected?: boolean; shopifyConnected?: boolean;
 }) {
   const qc = useQueryClient();
+  // The channel page does not pass the live connection; read it from the shared channel query.
+  const { data: overview } = useQuery({
+    queryKey: ['sales-channel', channelId], queryFn: () => onlineOrdersApi.channel(channelId),
+    enabled: !!channelId && (wooConnected === undefined || shopifyConnected === undefined), staleTime: 30_000,
+  });
+  const isShopify = overview?.integration?.type === 'SHOPIFY';
+  const shopifyLive = shopifyConnected ?? !!overview?.integration?.shopify?.connected;
+  const wooLive = wooConnected ?? !!overview?.integration?.woo?.connected;
   const fileRef = useRef<HTMLInputElement>(null);
   const [parsed, setParsed] = useState<{ format: CsvFormat; products: ParsedProduct[]; file: string } | null>(null);
   const [updatePrice, setUpdatePrice] = useState(false);
@@ -67,8 +77,14 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
 
   return (
     <div className="space-y-4">
-      {wooConnected && <WooDirect channelId={channelId} kind="woocommerce" />}
-      {shopifyConnected && <WooDirect channelId={channelId} kind="shopify" />}
+      {wooLive && <WooDirect channelId={channelId} kind="woocommerce" />}
+      {shopifyLive && <WooDirect channelId={channelId} kind="shopify" />}
+      {isShopify && !shopifyLive && (
+        <Alert tone="warning" title="Shopify ke products dekhne ke liye Admin API token lagayein"
+          action={<Link to={`/online-store/channels/${channelId}?tab=developer`}><Button size="sm" variant="secondary">Setup kholein</Button></Link>}>
+          Setup → Manual me apni app ka token daalein (ya Automatic se Nafaa app install karein). Phir products yahan aur Online products me jorein.
+        </Alert>
+      )}
     <div className="grid gap-4 lg:grid-cols-2">
       {/* ─── POS → Website ─── */}
       <div className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
@@ -200,7 +216,7 @@ function WooDirect({ channelId, kind }: { channelId: string; kind: 'woocommerce'
       ? 'border-lime-200 dark:border-lime-500/30 bg-gradient-to-br from-lime-50 to-emerald-50 dark:from-lime-500/10 dark:to-emerald-500/5'
       : 'border-violet-200 dark:border-violet-500/30 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-500/10 dark:to-fuchsia-500/5')}>
       <div className="flex items-center gap-2">
-        <span className="text-xl">{shopify ? '🟢' : '🟣'}</span>
+        <BrandLogo name={shopify ? 'shopify' : 'woocommerce'} size="sm" />
         <div className="text-sm font-black text-slate-900 dark:text-ink-white">{shopify ? 'Shopify' : 'WooCommerce'} se seedha — ek click</div>
       </div>
       <p className="mt-1 text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">

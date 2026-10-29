@@ -6,6 +6,7 @@ import { applyStockDelta } from '../../common/shop-scope';
 import { WebsiteSetupService } from './website-setup.service';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
+import { DarazService } from './daraz.service';
 import { readWebsiteConfig } from './website-config';
 import { mappingKey } from './mapping-key';
 import { numericId } from './shopify.client';
@@ -44,6 +45,11 @@ export interface RemoteProduct {
 
 const CACHE_MS = 2 * 60_000;
 
+export interface LinkInput {
+  externalProductId: string; externalVariantId?: string | null; productId: string; variantId?: string | null;
+  externalTitle?: string | null; externalImage?: string | null; externalSku?: string | null;
+}
+
 @Injectable()
 export class ChannelCatalogService {
   private readonly logger = new Logger(ChannelCatalogService.name);
@@ -54,13 +60,20 @@ export class ChannelCatalogService {
     private readonly setup: WebsiteSetupService,
     private readonly woo: WooCommerceService,
     private readonly shopify: ShopifyService,
+    private readonly daraz: DarazService,
   ) {}
 
-  private kind(i: Integration): 'woocommerce' | 'shopify' | 'indolj' | null {
+  kind(i: Integration): 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | null {
     if (this.woo.isConnected(i)) return 'woocommerce';
     if (this.shopify.isConnected(i)) return 'shopify';
+    if (this.daraz.isConnected(i)) return 'daraz';
     if (this.indoljCreds(i)) return 'indolj';
     return null;
+  }
+
+  /** Drop the cached channel list (after links or imports change it). */
+  forget(integrationId: string) {
+    this.cache.delete(integrationId);
   }
 
   /* ─── Indolj (restaurant ordering platform) — menu ke liye keys ─── */
@@ -113,6 +126,7 @@ export class ChannelCatalogService {
     const kind = this.kind(integration);
     const data = kind === 'woocommerce' ? await this.wooProducts(integration)
       : kind === 'shopify' ? await this.shopifyProducts(integration)
+        : kind === 'daraz' ? await this.daraz.remoteProducts(integration)
         : kind === 'indolj' ? await fetchIndoljMenu(this.indoljCreds(integration)!)
           : [];
     this.cache.set(integration.id, { at: Date.now(), data });
@@ -389,13 +403,16 @@ export class ChannelCatalogService {
   // JORNA / HATANA
   // ═══════════════════════════════════════════════════════════
 
-  async saveLinks(user: AuthenticatedUser, channelId: string, links: Array<{
-    externalProductId: string; externalVariantId?: string | null; productId: string; variantId?: string | null;
-    externalTitle?: string | null; externalImage?: string | null; externalSku?: string | null;
-  }>) {
+  async saveLinks(user: AuthenticatedUser, channelId: string, links: LinkInput[]) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    return this.saveLinksFor(integration, user.tenantId, links);
+  }
+
+  /** Link channel items to Nafaa products/sizes. Callers check permission and channel ownership. */
+  async saveLinksFor(integration: Integration, tenantId: string, links: LinkInput[]) {
     if (!Array.isArray(links) || !links.length) throw new BadRequestException('Kuch chuna nahi');
+    const user = { tenantId };
 
     // Sirf apni dukaan ke products/variants
     const productIds = [...new Set(links.map((l) => l.productId))];
@@ -414,6 +431,10 @@ export class ChannelCatalogService {
       if (!p) { errors.push(`${l.externalTitle ?? l.externalProductId}: Nafaa product nahi mila`); continue; }
       if (l.variantId && !okVariants.find((v) => v.id === l.variantId && v.productId === l.productId)) {
         errors.push(`${l.externalTitle ?? l.externalProductId}: variant is product ka nahi`); continue;
+      }
+      // A product with sizes is linked per size; a size-less link bills "Available: 0".
+      if (!l.variantId && p.hasVariants) {
+        errors.push(`${l.externalTitle ?? l.externalProductId}: is product ke sizes hain — size chunein`); continue;
       }
       const externalVariantId = l.externalVariantId || null;
       // Ek website variant ek hi Nafaa cheez se — purana link (agar kisi aur se tha) hatao
@@ -443,6 +464,7 @@ export class ChannelCatalogService {
       });
       saved++;
     }
+    this.cache.delete(integration.id);
     return { saved, errors };
   }
 
@@ -460,6 +482,12 @@ export class ChannelCatalogService {
   async importSelected(user: AuthenticatedUser, channelId: string, externalProductIds: string[]) {
     this.setup.assertCanManage(user);
     const integration = await this.setup.requireChannel(user.tenantId, channelId);
+    return this.importFor(integration, user.tenantId, externalProductIds);
+  }
+
+  /** Channel items → new Nafaa products (with sizes), linked. Negative channel stock starts at 0. */
+  async importFor(integration: Integration, tenantId: string, externalProductIds: string[]) {
+    const user = { tenantId };
     const cfg = readWebsiteConfig(integration.config);
     const shopId = cfg.shopId ?? integration.shopId;
     const remote = await this.remoteProducts(integration);
@@ -541,6 +569,7 @@ export class ChannelCatalogService {
         if (errors.length < 20) errors.push(`${p.title}: ${e?.message ?? 'Error'}`);
       }
     }
+    this.cache.delete(integration.id);
     return { created, linkedExisting, failed: errors.length, errors };
   }
 
@@ -622,6 +651,7 @@ export class ChannelCatalogService {
     const kind = this.kind(integration);
     if (!kind) throw new BadRequestException('Is website par seedha nahi bhej sakte — CSV istemal karein');
     if (kind === 'indolj') throw new BadRequestException('Indolj par menu Indolj ke panel se banta hai — Nafaa se wahan product nahi bhej sakte');
+    if (kind === 'daraz') throw new BadRequestException('Daraz par naya product Seller Center se banta hai — phir yahan jorein');
     if (!productIds?.length) throw new BadRequestException('Koi product nahi chuna');
     const res = kind === 'woocommerce'
       ? await this.woo.exportToWoo(user, channelId, { productIds })

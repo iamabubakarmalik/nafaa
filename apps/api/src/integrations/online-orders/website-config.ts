@@ -1,5 +1,6 @@
 import { isIP } from 'net';
 import * as crypto from 'crypto';
+import { NO_PRICE_RULE, PriceRule, readPriceRule } from './channel-price';
 
 /**
  * Website connection ki settings — `Integration.config` JSON me rehti hain.
@@ -19,6 +20,10 @@ export interface WebsiteConfig {
   deliveryFeeMode: 'SHOP' | 'RIDER';
   /** Nafaa me qeemat badle to website (Woo/Shopify) par bhi — jore hue products */
   pushPrice: boolean;
+  /** Channel price = Nafaa retail price with this rule (a link's own price wins). */
+  priceRule: PriceRule;
+  /** Units kept back: the channel is told stock minus this. */
+  stockBuffer: number;
   /** Status badalne par Nafaa is URL par batata hai (plugin khud set karta hai) */
   statusWebhookUrl: string | null;
   /** Sirf signature wale orders qabool hon */
@@ -36,6 +41,8 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   priceSource: 'WEBSITE',
   deliveryFeeMode: 'SHOP',
   pushPrice: false,
+  priceRule: NO_PRICE_RULE,
+  stockBuffer: 0,
   statusWebhookUrl: null,
   requireSignature: false,
   shopifySecret: null,
@@ -51,6 +58,8 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     priceSource: c.priceSource === 'NAFAA' ? 'NAFAA' : 'WEBSITE',
     deliveryFeeMode: c.deliveryFeeMode === 'RIDER' ? 'RIDER' : 'SHOP',
     pushPrice: c.pushPrice === true,
+    priceRule: readPriceRule(c.priceRule),
+    stockBuffer: Math.min(10_000, Math.max(0, Math.floor(Number(c.stockBuffer) || 0))),
   };
 }
 
@@ -72,7 +81,8 @@ export function verifySignature(opts: {
   rawBody?: Buffer;
   headers: Record<string, any>;
   webhookSecret?: string | null;
-  shopifySecret?: string | null;
+  /** One key, or every key that may sign this channel's Shopify webhooks. */
+  shopifySecret?: string | string[] | null;
 }): SignatureResult {
   const { rawBody, headers, webhookSecret, shopifySecret } = opts;
   const nafaa = headers['x-nafaa-signature'] as string | undefined;
@@ -93,8 +103,9 @@ export function verifySignature(opts: {
   }
   if (shopify) {
     // Shopify ka key set nahi to verify nahi kar sakte — "missing" jaisa samjho
-    if (!shopifySecret) return 'missing';
-    return safeEqual(shopify, hmac(shopifySecret, 'base64')) ? 'valid' : 'invalid';
+    const keys = (Array.isArray(shopifySecret) ? shopifySecret : [shopifySecret]).filter((k): k is string => !!k);
+    if (!keys.length) return 'missing';
+    return keys.some((k) => safeEqual(shopify, hmac(k, 'base64'))) ? 'valid' : 'invalid';
   }
   return 'invalid';
 }

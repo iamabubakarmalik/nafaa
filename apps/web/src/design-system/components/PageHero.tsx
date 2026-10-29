@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { useAppearance } from '../theme/store';
+import { useInPageFrame } from './PageFrame';
 import { PLAIN_HERO_STYLES, type HeroLook, type HeroPattern as HeroPatternName } from '../tokens/hero';
 
 export interface HeroStat {
@@ -81,10 +82,15 @@ export function PageHero({ title, subtitle, back, backLabel = 'Wapas', chip, met
   look?: Partial<HeroLook>;
 }) {
   const a = useAppearance();
-  const style = look?.style ?? a.heroStyle;
+  const inFrame = useInPageFrame() && !look;
+  const style = inFrame ? 'outline' : (look?.style ?? a.heroStyle);
   const pattern = PLAIN_HERO_STYLES.includes(style) ? 'none' : (look?.pattern ?? a.heroPattern);
-  const compact = (look?.size ?? a.heroSize) === 'compact';
+  const compact = inFrame || (look?.size ?? a.heroSize) === 'compact';
   const cards = (look?.stats ?? a.heroStats) === 'cards';
+
+  // Inside the Settings frame the frame shows the title, description and close
+  // button; the header keeps only its chip, actions and numbers as a light bar.
+  if (inFrame && !chip && !meta && !actions && !stats?.length) return null;
 
   return (
     <div
@@ -96,24 +102,24 @@ export function PageHero({ title, subtitle, back, backLabel = 'Wapas', chip, met
       <HeroBackdrop pattern={pattern} />
       <div className={cn('relative flex flex-wrap items-center justify-between', compact ? 'gap-2' : 'gap-3')}>
         <div className={cn('flex min-w-0 flex-1 items-center', compact ? 'gap-2.5' : 'gap-3')}>
-          {typeof back === 'string' && (
+          {!inFrame && typeof back === 'string' && (
             <Link to={back} aria-label={backLabel} title={backLabel} className={heroIconButton}><ArrowLeft className="h-4 w-4" /></Link>
           )}
-          {typeof back === 'function' && (
+          {!inFrame && typeof back === 'function' && (
             <button type="button" onClick={back} aria-label={backLabel} title={backLabel} className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
           )}
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-              <h1 className={cn('nafaa-hero-title min-w-0 truncate font-bold tracking-tight', compact ? 'text-lg sm:text-[1.1875rem]' : 'text-xl sm:text-[1.375rem]')}>{title}</h1>
+              {!inFrame && <h1 className={cn('nafaa-hero-title min-w-0 truncate font-bold tracking-tight', compact ? 'text-lg sm:text-[1.1875rem]' : 'text-xl sm:text-[1.375rem]')}>{title}</h1>}
               {chip && (
                 <span className="nafaa-hero-chip inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.75rem] font-medium ring-1 [&_svg]:h-3.5 [&_svg]:w-3.5">
                   {chip}
                   {busy && <span className="nafaa-hero-dot h-1.5 w-1.5 animate-pulse rounded-full" aria-label="Taaza ho raha hai" />}
                 </span>
               )}
-              {meta && <span className="nafaa-hero-subtle hidden text-[0.75rem] md:inline">{meta}</span>}
+              {meta && <span className={cn('nafaa-hero-subtle text-[0.75rem]', inFrame ? 'inline' : 'hidden md:inline')}>{meta}</span>}
             </div>
-            {subtitle && <p className="nafaa-hero-soft mt-0.5 text-[0.8125rem]">{subtitle}</p>}
+            {subtitle && !inFrame && <p className="nafaa-hero-soft mt-0.5 text-[0.8125rem]">{subtitle}</p>}
           </div>
         </div>
         {actions && <div className="flex flex-wrap items-center gap-1.5">{actions}</div>}

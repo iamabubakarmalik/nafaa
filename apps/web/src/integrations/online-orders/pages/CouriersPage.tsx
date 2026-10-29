@@ -70,11 +70,11 @@ export default function CouriersPage() {
     && (!kind || (kind === 'connected' ? c.connected : kind === 'api' ? c.mode === 'api' && !c.connected : c.mode === 'manual'))), [all, term, kind]);
   const groups = [
     { title: 'Jure hue', hint: 'Booking, label aur tracking khud', rows: shown.filter((c) => c.connected) },
-    { title: 'Ek click se jorein', hint: 'API key paste karein — booking, label, tracking sab khud', rows: shown.filter((c) => c.mode === 'api' && !c.connected) },
+    { title: 'Ek click se jorein', hint: 'Courier ki details paste karein — booking, tracking aur RTO sab khud', rows: shown.filter((c) => c.mode === 'api' && !c.connected) },
     { title: 'Manual', hint: 'CN khud likhein — tracking link, COD hisaab aur RTO Nafaa sambhalta hai', rows: shown.filter((c) => c.mode === 'manual') },
   ].filter((g) => g.rows.length);
   const compare = all.filter((c) => c.stats.dispatched30 > 0 || c.stats.active > 0)
-    .map((c) => ({ name: c.name, delivered: c.stats.delivered30, returned: c.stats.returned30, active: c.stats.active, rto: c.stats.rtoRate, cod: c.stats.codPendingValue }));
+    .map((c) => ({ code: c.code, name: c.name, delivered: c.stats.delivered30, returned: c.stats.returned30, active: c.stats.active, rto: c.stats.rtoRate, cod: c.stats.codPendingValue }));
 
   return (
     <PageShell>
@@ -139,7 +139,7 @@ export default function CouriersPage() {
             </div>
           ) : (
             <div className="grid gap-4 lg:grid-cols-5">
-              <Card className="rounded-2xl lg:col-span-3" title="Deliver aur wapas (30 din)" description="Kaun sa courier zyada parcel pohanchata hai">
+              <Card className="rounded-3xl border-0 ring-1 ring-slate-200/80 lg:col-span-3" title="Deliver aur wapas (30 din)" description="Kaun sa courier zyada parcel pohanchata hai">
                 <div className="h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={compare} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
@@ -155,14 +155,14 @@ export default function CouriersPage() {
                   </ResponsiveContainer>
                 </div>
               </Card>
-              <Card className="rounded-2xl lg:col-span-2" flush title="RTO aur COD" description="Kam RTO wala courier behtar">
+              <Card className="rounded-3xl border-0 ring-1 ring-slate-200/80 lg:col-span-2" flush title="RTO aur COD" description="Kam RTO wala courier behtar">
                 <ul className="divide-y divide-slate-100">
                   {[...compare].sort((a, b) => a.rto - b.rto).map((c) => (
                     <li key={c.name} className="flex items-center justify-between gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
-                      <span className="font-medium text-slate-900">{c.name}</span>
+                      <span className="inline-flex min-w-0 items-center gap-2 font-medium text-slate-900"><CourierLogo c={c} size={24} /><span className="truncate">{c.name}</span></span>
                       <span className="flex items-center gap-3">
                         {c.cod > 0 && <span className="text-orange-700">{money(c.cod)} paas</span>}
-                        <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', c.rto >= 20 ? 'bg-rose-50 text-rose-700' : c.rto >= 10 ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700')}>RTO {c.rto}%</span>
+                        <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', c.rto >= 20 ? 'bg-rose-50 text-rose-700' : c.rto >= 10 ? 'bg-amber-50 text-amber-800' : 'bg-success-50 text-success-700')}>RTO {c.rto}%</span>
                       </span>
                     </li>
                   ))}
@@ -230,7 +230,7 @@ function CourierTile({ c, money }: { c: CourierAccount; money: (n: number) => st
           <div className="truncate text-[0.75rem] text-slate-500">
             {c.connected
               ? c.lastError ? c.lastError : c.lastSyncAt ? `Sync ${timeAgo(c.lastSyncAt)}` : 'Abhi sync nahi hua'
-              : c.mode === 'api' ? 'Booking · label · tracking khud' : 'CN khud likhein'}
+              : c.mode === 'api' ? (c.connect?.features.label ? 'Booking · label · tracking khud' : 'Booking · tracking khud') : c.code === 'RIDER' ? 'COD ka hisaab Nafaa me' : 'CN khud likhein'}
           </div>
         </div>
         <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500" />

@@ -108,6 +108,10 @@ export const PERMISSIONS = {
   CLINIC_RECORDS_MANAGE: 'clinic.records.manage',
   ONLINE_ORDERS_VIEW: 'online_orders.view',
   ONLINE_ORDERS_MANAGE: 'online_orders.manage',
+  /** Online products: links, channel prices, stock sent, sync errors. */
+  ONLINE_PRODUCTS_VIEW: 'online_products.view',
+  /** Online products: link/unlink, create in Nafaa, channel prices, stock buffer, sync now. */
+  ONLINE_PRODUCTS_MANAGE: 'online_products.manage',
   CATALOG_VIEW: 'catalog.view',
   CATALOG_MANAGE: 'catalog.manage',
 } as const;
@@ -165,6 +169,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.SERVICE_BOOKINGS_VIEW, PERMISSIONS.SERVICE_BOOKINGS_MANAGE,
     PERMISSIONS.CLINIC_RECORDS_VIEW, PERMISSIONS.CLINIC_RECORDS_MANAGE,
     PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
+    PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
     PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
     PERMISSIONS.POS_USE,
     PERMISSIONS.POS_PRICE_TIER,
@@ -379,6 +384,7 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'service.bookings.view': 'Booking dekhein', 'service.bookings.manage': 'Booking lein',
   'clinic.records.view': 'Mareez ka record dekhein', 'clinic.records.manage': 'Checkup, nuskha aur lab result likhein',
   'online_orders.view': 'Online order dekhein', 'online_orders.manage': 'Online order chalayein',
+  'online_products.view': 'Online products dekhein (link, price, stock)', 'online_products.manage': 'Online products jorein, Price aur Stock bhejein',
   'catalog.view': 'Online catalog dekhein', 'catalog.manage': 'Online catalog badlein',
 };
 
@@ -575,6 +581,7 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     title: 'Online dukaan', label: 'Online dukaan', emoji: '🌐', color: '#0ea5e9',
     permissions: [
       PERMISSIONS.ONLINE_ORDERS_VIEW, PERMISSIONS.ONLINE_ORDERS_MANAGE,
+      PERMISSIONS.ONLINE_PRODUCTS_VIEW, PERMISSIONS.ONLINE_PRODUCTS_MANAGE,
       PERMISSIONS.CATALOG_VIEW, PERMISSIONS.CATALOG_MANAGE,
     ],
   },

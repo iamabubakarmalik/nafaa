@@ -68,6 +68,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
     categoryId: params.get('categoryId') ?? undefined,
     brandId: params.get('brandId') ?? undefined,
     tagId: params.get('tagId') ?? undefined,
+    noCost: params.get('noCost') === '1' || undefined,
   });
   const navigate = useNavigate();
   const { sales: money, cost, costHidden } = useMasked();
@@ -209,6 +210,9 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
     { id: 'featured', label: 'Khaas', icon: Star, value: c.f.featured ? 'yes' : 'all', empty: 'all',
       options: [{ value: 'all', label: 'Sab' }, { value: 'yes', label: 'Sirf khaas' }],
       onChange: (v) => c.set('featured', v === 'yes' ? true : undefined) },
+    ...(costHidden ? [] : [{ id: 'noCost', label: 'Cost', icon: Wallet, value: c.f.noCost ? 'none' : 'all', empty: 'all',
+      options: [{ value: 'all', label: 'Sab' }, { value: 'none', label: 'Cost nahi likhi', hint: 'In ki poori sale Profit ginti hai' }],
+      onChange: (v: string) => c.set('noCost', v === 'none' ? true : undefined) }]),
   ];
 
   const filterChips: Array<[string, () => void]> = [];
@@ -220,6 +224,7 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
   if (c.f.etype) filterChips.push([labelOf('etype', c.f.etype), () => c.set('etype', undefined)]);
   if (c.f.serial) filterChips.push([c.f.serial === 'mismatch' ? 'Serial ginti ghalat' : 'Serial wale', () => c.set('serial', undefined)]);
   if (c.f.featured) filterChips.push(['Sirf khaas', () => c.set('featured', undefined)]);
+  if (c.f.noCost) filterChips.push(['Cost nahi likhi', () => c.set('noCost', undefined)]);
   if (c.f.kindOf) filterChips.push([c.f.kindOf === 'raw' ? 'Raw material' : 'Bechne wale', () => c.set('kindOf', undefined)]);
   if (c.f.active !== 'active') filterChips.push([c.f.active === 'inactive' ? 'Band wale' : 'Chalu + band', () => c.set('active', 'active')]);
   if (c.search.trim()) filterChips.push([`"${c.search.trim()}"`, () => c.setSearch('')]);
@@ -301,6 +306,19 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         </div>
       )}
       {d && Banners && <Banners data={d} setFilter={(k, v) => c.set(k as never, v as never)} />}
+      {c.f.noCost && !costHidden && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <p className="min-w-[12rem] flex-1">
+            <b>{c.count.toLocaleString('en-PK')} cheezon ki Cost nahi likhi.</b> Jab tak Cost nahi, in ki poori sale Profit mein gini jati hai.
+          </p>
+          {can.edit && (
+            <Link to="/products/bulk-edit?nocost=1" className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-amber-600 px-3 font-semibold text-white hover:bg-amber-700 max-sm:w-full">
+              <ListChecks className="h-4 w-4" /> Ek saath Cost bharein
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Toolbar: search and the most used filters in one row, the rest under "Aur filters". */}
       <FilterBar

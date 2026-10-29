@@ -7,7 +7,8 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
 import { startOfBusinessMonthTz, tzParts } from '../../../common/helpers/business-time.helper';
-import { refreshSettlements } from '../../../common/helpers/sale-settlement.helper';
+import { previewPayment, refreshSettlements, type PaymentPreview } from '../../../common/helpers/sale-settlement.helper';
+import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import {
   AddUdhaarDto,
   CreatePaymentDto,
@@ -84,6 +85,25 @@ export class CustomerLedgerService {
     };
   }
 
+  /**
+   * The bills a payment would clear (FIFO, as SaleSettlement) and the profit it
+   * brings in. Profit figures are left out for users without cost.view.
+   */
+  async paymentPreview(user: AuthenticatedUser, customerId: string, amount: number, reference?: string | null) {
+    if (!(amount > 0) || !Number.isFinite(amount)) throw new BadRequestException('Amount likhein');
+    const customer = await this.prisma.customer.findFirst({ where: { id: customerId, tenantId: user.tenantId }, select: { id: true } });
+    if (!customer) throw new NotFoundException('Customer not found');
+    return this.forViewer(user, await previewPayment(this.prisma, user.tenantId, customerId, amount, reference));
+  }
+
+  private forViewer(user: AuthenticatedUser, p: PaymentPreview) {
+    if (hasPermission(user.role, user.permissions, PERMISSIONS.COST_VIEW)) return { ...p, costHidden: false };
+    return {
+      amount: p.amount, toOther: p.toOther, costHidden: true,
+      bills: p.bills.map(({ saleId, saleNumber, soldAt, amount, billNet, leftAfter }) => ({ saleId, saleNumber, soldAt, amount, billNet, leftAfter })),
+    };
+  }
+
   async receivePayment(
     user: AuthenticatedUser,
     scope: ShopScope,
@@ -91,6 +111,8 @@ export class CustomerLedgerService {
     dto: CreatePaymentDto,
   ) {
     const shopId = await resolveWriteShopId(this.prisma, user.tenantId, scope);
+    // What this payment settles, worked out just before it is written (shown after saving).
+    const settles = await previewPayment(this.prisma, user.tenantId, customerId, dto.amount, dto.reference).catch(() => null);
 
     const done = await this.prisma.$transaction(async (tx) => {
       // The balance check and the decrement are one statement, so two people
@@ -128,7 +150,7 @@ export class CustomerLedgerService {
     });
     // Profit on the bills this payment settles counts from today.
     refreshSettlements(this.prisma, user.tenantId, customerId);
-    return done;
+    return { ...done, settles: settles ? this.forViewer(user, settles) : null };
   }
 
   /** Credit without a sale. */

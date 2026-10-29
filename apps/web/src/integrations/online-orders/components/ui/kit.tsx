@@ -1,12 +1,12 @@
 /**
  * Compatibility layer, frozen with the Shopify App Store review.
  *
- * Only three screens still import this file: ShopifyAppPage, ConnectChannelPage
- * and ChannelPage. They carry the Shopify install and settings flow, which must
- * not change while the review is pending. Every other online-store screen now
+ * Only two screens still import this file: ShopifyAppPage and
+ * ConnectChannelPage. They carry the Shopify install flow, which must not
+ * change while the review is pending. Every other online-store screen now
  * imports '@/design-system/components' directly.
  *
- * After approval: move those three screens to the design system and delete
+ * After approval: move those two screens to the design system and delete
  * this file. Do not add new importers.
  */
 

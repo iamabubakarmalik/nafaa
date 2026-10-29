@@ -221,7 +221,7 @@ export class WebsiteApiController {
     const list = String(skus ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 500);
     if (!list.length) throw new BadRequestException('?skus=A1,B2 bhejein');
     const config = readWebsiteConfig(integration.config);
-    const stock = await this.catalog.stockBySku(integration.tenantId, config.shopId ?? integration.shopId, integration.id, list);
+    const stock = await this.catalog.stockBySku(integration.tenantId, config.shopId ?? integration.shopId, integration.id, list, config.stockBuffer);
     return { stock };
   }
 
@@ -299,8 +299,8 @@ export class WebsiteApiController {
       rawBody: (req as any).rawBody,
       headers: req.headers as any,
       webhookSecret: integration.webhookSecret,
-      // Ek-click se jura Shopify apni app ke secret se sign karta hai
-      shopifySecret: this.shopify.isConnected(integration) ? process.env.SHOPIFY_CLIENT_SECRET ?? null : config.shopifySecret,
+      // Nafaa app: app secret. Merchant's own app: its secret and/or the Notifications signing key.
+      shopifySecret: this.shopify.isConnected(integration) ? this.shopify.webhookSecrets(integration) : config.shopifySecret,
     });
     if (result === 'invalid') throw new UnauthorizedException('Signature match nahi hua — secret dobara check karein');
     if (result === 'missing' && config.requireSignature) {

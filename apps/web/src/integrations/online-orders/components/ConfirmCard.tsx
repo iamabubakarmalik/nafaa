@@ -39,10 +39,10 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
 
   if (c?.result === 'CONFIRMED') {
     return (
-      <section className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-500/30 dark:bg-emerald-500/5">
-        <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+      <section className="flex items-center gap-3 rounded-2xl border border-success-200 bg-success-50/60 p-3">
+        <CheckCircle2 className="h-5 w-5 text-success-600" />
         <div className="flex-1 text-sm">
-          <div className="font-black text-slate-900 dark:text-ink-white">Customer ne confirm kiya</div>
+          <div className="font-bold text-slate-900">Customer ne confirm kiya</div>
           <div className="text-xs text-slate-500">{whenText(c.at)}{c.attempts > 1 ? ` · ${c.attempts} koshish` : ''}</div>
         </div>
       </section>
@@ -51,12 +51,12 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
 
   return (
     <section className={cn('rounded-2xl border p-4',
-      c?.result === 'REFUSED' ? 'border-rose-200 bg-rose-50/60 dark:border-rose-500/30 dark:bg-rose-500/5'
-        : 'border-amber-200 bg-amber-50/50 dark:border-amber-500/30 dark:bg-amber-500/5')}>
-      <div className="text-sm font-black text-slate-900 dark:text-ink-white">
+      c?.result === 'REFUSED' ? 'border-rose-200 bg-rose-50/60'
+        : 'border-amber-200 bg-amber-50/50')}>
+      <div className="text-sm font-bold text-slate-900">
         {c?.result === 'REFUSED' ? 'Customer ne mana kiya' : 'COD — bhejne se pehle customer se confirm karein'}
       </div>
-      <div className="mt-0.5 text-xs text-slate-600 dark:text-ink-300">
+      <div className="mt-0.5 text-xs text-slate-600">
         {c?.result === 'NO_ANSWER'
           ? `${c.attempts} dafa jawab nahi mila · aakhri ${whenText(c.at)}`
           : c?.result === 'REFUSED' ? 'Order cancel kar dein — stock wapas aa jayega'
@@ -65,12 +65,12 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
       <div className="mt-3 flex flex-wrap gap-2">
         {wa && (
           <a href={`https://wa.me/${wa}?text=${text}`} target="_blank" rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-700">
+            className="inline-flex items-center gap-1.5 rounded-lg bg-success-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-success-700">
             <MessageCircle className="h-3.5 w-3.5" /> WhatsApp par poochein
           </a>
         )}
         {o.customerPhone && (
-          <a href={`tel:${o.customerPhone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-white dark:border-ink-700 dark:text-ink-200">
+          <a href={`tel:${o.customerPhone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-white">
             <Phone className="h-3.5 w-3.5" /> Call
           </a>
         )}

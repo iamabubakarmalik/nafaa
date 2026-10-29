@@ -98,7 +98,13 @@ export interface OnlineOrder {
   platform: string;
   nextStatus: OnlineOrderStatus | null;
   integration?: { id: string; type: string; displayName: string };
+  /** Advance received, COD still to collect, and who keeps the delivery charge (older API: absent). */
+  money?: OrderMoney;
 }
+
+export type DeliveryMode = 'CUSTOMER' | 'FREE' | 'RIDER';
+export interface OrderMoney { advance: number; codDue: number; deliveryMode: DeliveryMode; deliveryFee: number }
+export type AdvanceMethod = 'JAZZCASH' | 'EASYPAISA' | 'BANK' | 'CASH' | 'OTHER';
 
 export type CourierState =
   | 'BOOKED' | 'PICKED_UP' | 'IN_TRANSIT' | 'OUT_FOR_DELIVERY' | 'ATTEMPTED'
@@ -354,6 +360,13 @@ export interface WebsiteConfig {
 
 export type WebsiteType = 'CUSTOM_WEBSITE' | 'WOOCOMMERCE' | 'SHOPIFY' | 'DARAZ';
 
+export type ShopifyMode = 'app' | 'token' | 'client';
+export interface ShopifyCustomBody {
+  shop?: string; token?: string; apiSecret?: string; clientId?: string; clientSecret?: string; displayName?: string; shopId?: string;
+}
+export interface ShopifyCheckItem { key: string; ok: boolean; warn?: boolean; title: string; detail: string; fix?: string }
+export interface ShopifyCheckResult { ok: boolean; mode: ShopifyMode | null; checks: ShopifyCheckItem[] }
+
 /** Websites hamare API tak pahunch sakti hain? (WooCommerce ek-click ko https chahiye) */
 export interface PublicApi { url: string; reachable: boolean; reason: string | null; fix: string | null }
 
@@ -391,7 +404,11 @@ export interface WebsiteOverview {
     woo: null | { connected: boolean; connectedAt: string | null; permissions: string | null };
     indolj?: null | { connected: boolean; connectedAt: string | null; baseUrl: string | null };
     branchCodes?: Array<{ code: string; kind?: 'token' | 'code' | 'merchant'; label?: string; firstSeen: string | null; sample: string | null; shopId: string | null }>;
-    shopify?: null | { connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null };
+    shopify?: null | {
+      connected: boolean; needsReinstall?: boolean; shop: string | null; connectedAt: string | null; locationName: string | null;
+      /** 'app' = Nafaa app install; 'token' / 'client' = merchant's own app (manual). */
+      mode?: ShopifyMode | null; scopes?: string[]; clientId?: string | null; hasApiSecret?: boolean;
+    };
     daraz?: null | {
       connected: boolean; configured: boolean; account: string | null; sellerId: string | null; shortCode: string | null;
       connectedAt: string | null; expiresAt: string | null; refreshExpiresAt: string | null; error: string | null; ordersSyncedAt: string | null;
@@ -550,6 +567,12 @@ export const onlineOrdersApi = {
   paymentReceived: (id: string) =>
     apiClient.post(`/online-orders/${id}/payment-received`).then((r) => unwrap<OnlineOrder>(r)),
 
+  /** Advance the shop received outside a payment link; courier COD drops by the same amount. */
+  addAdvance: (id: string, body: { amount: number; method: AdvanceMethod; reference?: string }) =>
+    apiClient.post(`/online-orders/${id}/advance`, body).then((r) => unwrap<OnlineOrder>(r)),
+  removeAdvance: (id: string, ref: string) =>
+    apiClient.delete(`/online-orders/${id}/advance/${encodeURIComponent(ref)}`).then((r) => unwrap<OnlineOrder>(r)),
+
   // ═══ Sales channels (har website / store) ═══
   channels: () => apiClient.get('/online-store/channels').then((r) => unwrap<SalesChannel[]>(r)),
 
@@ -627,6 +650,25 @@ export const onlineOrdersApi = {
 
   capabilities: () =>
     apiClient.get('/online-store/channels/capabilities').then((r) => unwrap<{ publicApi: PublicApi; shopifyOAuth: boolean }>(r)),
+
+  // ═══ Shopify manual (merchant's own app) ═══
+  shopifyResolve: (address: string) =>
+    apiClient.get('/online-store/channels/shopify/resolve', { params: { address } })
+      .then((r) => unwrap<{ ok: boolean; shop: string | null; via: 'typed' | 'domain'; error: string | null }>(r)),
+
+  /** channelId null → verifies first, then creates (or reuses) the channel. */
+  shopifyCustom: (channelId: string | null, body: ShopifyCustomBody) =>
+    apiClient.post(channelId ? `/online-store/channels/${channelId}/shopify/custom` : '/online-store/channels/shopify/custom', body)
+      .then((r) => unwrap<{ ok: boolean; channelId: string; shop: string; mode: ShopifyMode; missingScopes: string[] }>(r)),
+
+  shopifyCustomRemove: (id: string) =>
+    apiClient.delete(`/online-store/channels/${id}/shopify/custom`).then((r) => unwrap<{ ok: boolean }>(r)),
+
+  shopifyCustomWebhooks: (id: string) =>
+    apiClient.post(`/online-store/channels/${id}/shopify/custom/webhooks`).then((r) => unwrap<{ ok: boolean; installed: number }>(r)),
+
+  shopifyCheck: (id: string) =>
+    apiClient.post(`/online-store/channels/${id}/shopify/check`).then((r) => unwrap<ShopifyCheckResult>(r)),
 
   // ═══ Shopify ek click ═══
   shopifyStart: (body: { shop: string; displayName?: string; shopId?: string; channelId?: string }) =>
@@ -757,6 +799,8 @@ export interface PayGatewayAccount {
 export interface OrderPaymentLink {
   ref: string; provider: string; amount: number; kind: 'FULL' | 'ADVANCE'; status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED';
   createdAt: string; paidAt?: string | null; url?: string;
+  /** Hand-recorded advance (provider "MANUAL"): how it came and the transaction / slip number. */
+  method?: AdvanceMethod; reference?: string | null;
 }
 
 export const paymentsApi = {

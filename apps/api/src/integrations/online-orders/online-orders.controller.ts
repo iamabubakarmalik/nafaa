@@ -219,6 +219,23 @@ export class OnlineOrdersController {
     return this.svc.markReturned(user, scope, id, body?.reason);
   }
 
+  @Post(':id/advance')
+  @ApiOperation({ summary: 'Advance likhein (JazzCash / Easypaisa / bank / cash) — COD utna kam' })
+  advance(
+    @GetUser() user: AuthenticatedUser,
+    @CurrentShop() scope: ShopScope,
+    @Param('id') id: string,
+    @Body() body: { amount?: number; method?: string; reference?: string },
+  ) {
+    return this.svc.addAdvance(user, scope, id, body ?? {});
+  }
+
+  @Delete(':id/advance/:ref')
+  @ApiOperation({ summary: 'Haath se likha advance hatayein' })
+  removeAdvance(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string, @Param('ref') ref: string) {
+    return this.svc.removeAdvance(user, scope, id, ref);
+  }
+
   @Post(':id/payment-received')
   @ApiOperation({ summary: 'COD ka paisa mil gaya' })
   paid(@GetUser() user: AuthenticatedUser, @CurrentShop() scope: ShopScope, @Param('id') id: string) {
@@ -283,7 +300,15 @@ export class ChannelsController {
     @GetUser() user: AuthenticatedUser,
     @Body() body: { type: 'CUSTOM_WEBSITE' | 'WOOCOMMERCE' | 'SHOPIFY'; displayName?: string; shopId?: string; siteUrl?: string },
   ) {
-    const siteUrl = body?.siteUrl ? this.woo.normalizeSite(body.siteUrl) : undefined;
+    // Shopify: any pasted form becomes https://<handle>.myshopify.com (custom domains are looked up)
+    let siteUrl: string | undefined;
+    if (body?.type === 'SHOPIFY' && body?.siteUrl) {
+      const r = await this.shopify.resolveAddress(body.siteUrl);
+      if (!r.shop) throw new BadRequestException(r.error ?? 'Shopify store ka address sahi nahi');
+      siteUrl = `https://${r.shop}`;
+    } else {
+      siteUrl = body?.siteUrl ? this.woo.normalizeSite(body.siteUrl) : undefined;
+    }
     const created = await this.setup.createChannel(user, { type: body?.type, displayName: body?.displayName, shopId: body?.shopId, siteUrl });
     return this.setup.channelOverview(user, created.id);
   }
@@ -311,6 +336,23 @@ export class ChannelsController {
     const list = await this.setup.listChannels(user, new ShopScope(null, true));
     const hit = list.find((c) => c.type === 'SHOPIFY' && c.siteUrl === `https://${domain}`);
     return { shop: domain, channelId: hit?.id ?? null, connected: !!hit?.oneClick };
+  }
+
+  /** Any pasted Shopify address → <handle>.myshopify.com (custom domain looked up on the storefront). */
+  /** Manual connect from the connect page: verifies first, creates the channel only on success. */
+  @Post('shopify/custom')
+  shopifyCustomNew(
+    @GetUser() user: AuthenticatedUser,
+    @Body() body: { shop?: string; token?: string; apiSecret?: string; clientId?: string; clientSecret?: string; displayName?: string; shopId?: string },
+  ) {
+    return this.shopify.connectCustom(user, null, body ?? {});
+  }
+
+  @Get('shopify/resolve')
+  @ApiOperation({ summary: 'Shopify store address check (any pasted form)' })
+  shopifyResolve(@GetUser() user: AuthenticatedUser, @Query('address') address: string) {
+    this.setup.assertCanManage(user);
+    return this.shopify.resolveAddress(String(address ?? '').slice(0, 300));
   }
 
   // ─── Shopify ek click ───
@@ -436,6 +478,34 @@ export class ChannelsController {
     await this.shopify.afterConnect(integration.id);
     const fresh = await this.setup.requireChannel(user.tenantId, id);
     return { ok: fresh.webhookVerified, installed: 0 };
+  }
+
+  // ─── Shopify manual: merchant's own app (token or client credentials) ───
+  @Post(':id/shopify/custom')
+  @ApiOperation({ summary: 'Shopify manual connect with the merchant\'s own app' })
+  shopifyCustom(
+    @GetUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() body: { shop?: string; token?: string; apiSecret?: string; clientId?: string; clientSecret?: string },
+  ) {
+    return this.shopify.connectCustom(user, id, body ?? {});
+  }
+
+  @Delete(':id/shopify/custom')
+  shopifyCustomRemove(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.shopify.disconnectCustom(user, id);
+  }
+
+  @Post(':id/shopify/custom/webhooks')
+  @ApiOperation({ summary: 'Register order webhooks through the Admin API (manual mode)' })
+  shopifyCustomWebhooks(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.shopify.customWebhooks(user, id);
+  }
+
+  @Post(':id/shopify/check')
+  @ApiOperation({ summary: 'Shopify connection check, step by step' })
+  shopifyCheck(@GetUser() user: AuthenticatedUser, @Param('id') id: string) {
+    return this.shopify.check(user, id);
   }
 
   @Post(':id/shopify/sync-stock')

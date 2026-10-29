@@ -38,7 +38,7 @@ import { businessDayKey, zonedToUtc } from '../../../common/helpers/business-tim
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import {
   LINE_COST, LINE_COST_JOINS, LINE_NET, LINE_REFUND, billMathCte, emptyCreditProfit, emptyWriteOffs, foldCreditProfit, foldWriteOffs,
-  liveSaleSql, paidExpenseSql, creditProfitRows, otherIncomeRows, profitBasis, profitSplit,
+  liveSaleSql, noCostSales, paidExpenseSql, creditProfitRows, otherIncomeRows, profitBasis, profitSplit,
   writeOffRows, type CreditProfit, type CreditProfitRow, type ProfitBasis, type ProfitSplit, type WriteOffRow, type WriteOffs,
 } from '../../../common/helpers/business-math.helper';
 import { MoneyService } from '../../finance/money/money.service';
@@ -482,7 +482,7 @@ export class PnlService {
   async report(user: AuthenticatedUser, scope: ShopScope, q: PnlQueryDto) {
     const c = await this.ctx(user, scope, q);
     const p = this.period(c, q);
-    const [now, before, channels, categories, pending] = await Promise.all([
+    const [now, before, channels, categories, pending, bare] = await Promise.all([
       this.collect(c, p.range, 'all'),
       this.collect(c, p.prev, 'all'),
       this.channels(c, p.range),
@@ -491,6 +491,8 @@ export class PnlService {
         where: { tenantId: c.tenantId, status: 'PENDING', expenseDate: p.range, ...(c.shopId && { shopId: c.shopId }) },
         _sum: { amount: true }, _count: { _all: true },
       }),
+      // Lines sold with no cost: their whole sale counts as profit.
+      noCostSales(this.prisma, { tenantId: c.tenantId, shopId: c.shopId }, p.range),
     ]);
     const cur = now.get('all') ?? blank();
     const prev = before.get('all') ?? blank();
@@ -500,7 +502,10 @@ export class PnlService {
       branch: c.branch,
       costVisible: c.costVisible,
       staffIncluded: c.staff,
-      current: this.statement(c, cur, cats),
+      current: (() => {
+        const st = this.statement(c, cur, cats);
+        return st.profitSplit ? { ...st, profitSplit: { ...st.profitSplit, noCost: bare } } : st;
+      })(),
       previous: this.statement(c, prev, cats),
       channels,
       categories,

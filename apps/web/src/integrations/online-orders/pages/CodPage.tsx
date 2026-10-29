@@ -32,7 +32,8 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { useReportRange } from '@modules/reports/prefs';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
 import { OrderDrawer } from '../components/orders/OrderDrawer';
-import { whenText } from '../lib/labels';
+import { brandIcon, courierBrand, whenText } from '../lib/labels';
+import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { downloadCsv, orderNo } from '../lib/orders';
 import { codDoc } from '../lib/print';
 
@@ -161,10 +162,10 @@ export default function CodPage() {
         loading={summaryQ.isLoading}
         actions={<>
           <PrivacyToggle compact />
-          <button type="button" onClick={exportCsv} className={heroButton}><Download className="h-4 w-4" /> CSV</button>
+          <button type="button" onClick={exportCsv} className={cn(heroButton, 'hidden sm:inline-flex')}><Download className="h-4 w-4" /> CSV</button>
           <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800"><PrintButton doc={() => codDoc(s!, h, periodText)} disabled={!s} /></span>
-          <Link to="/online-store/couriers" className={heroButton}><Truck className="h-4 w-4" /> <span className="hidden sm:inline">Couriers</span></Link>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          <Link to="/online-store/couriers" className={cn(heroButton, 'hidden sm:inline-flex')}><Truck className="h-4 w-4" /> Couriers</Link>
+          <button type="button" onClick={guide.open} title="Guide (G)" className={cn(heroIconButton, 'hidden sm:flex')}><GraduationCap className="h-4 w-4" /></button>
         </>}
         stats={s ? [
           { label: `Courier ke paas · ${s.totals.withCourier} parcel`, value: money(s.totals.withCourierValue) },
@@ -206,7 +207,7 @@ export default function CodPage() {
           {dated && <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="thisMonth" allowAll={false} />}
           {courierNames.length > 0 && (
             <FilterMenu icon={Truck} label="Courier" value={courier} active={!!courier} onChange={setCourier}
-              options={[{ value: '', label: 'Sab couriers' }, ...courierNames.map((n) => ({ value: n, label: n }))]} />
+              options={[{ value: '', label: 'Sab couriers' }, ...courierNames.map((n) => ({ value: n, label: n, icon: brandIcon(courierBrand(n)) }))]} />
           )}
         </FilterBar>
 
@@ -248,7 +249,7 @@ export default function CodPage() {
                     <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(o.id)} onChange={() => toggle(o.id)} aria-label={`#${o.externalOrderNumber ?? o.externalOrderId} chunein`} />
                     <button type="button" onClick={() => setOrderId(o.id)} className="min-w-0 flex-1 text-left">
                       <span className="block text-[0.875rem] font-semibold text-slate-900">#{o.externalOrderNumber ?? o.externalOrderId} <span className="font-normal text-slate-600">· {o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ''}</span></span>
-                      <span className="block truncate text-[0.75rem] text-slate-500">{o.courier ?? NO_COURIER}{o.trackingNumber ? <span className="font-mono"> · {o.trackingNumber}</span> : null}</span>
+                      <span className="flex min-w-0 items-center gap-1.5 truncate text-[0.75rem] text-slate-500"><BrandLogo name={courierBrand(o.courier)} size={16} />{o.courier ?? NO_COURIER}{o.trackingNumber ? <span className="font-mono"> · {o.trackingNumber}</span> : null}</span>
                     </button>
                     <span className="hidden w-32 text-right text-[0.75rem] text-slate-500 sm:block">
                       {o.deliveredAt ? whenText(o.deliveredAt) : '—'}
@@ -273,7 +274,7 @@ export default function CodPage() {
                       <button type="button" onClick={() => setOrderId(o.id)} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-slate-50/80 sm:px-5">
                         <span className="min-w-0 flex-1">
                           <span className="block text-[0.875rem] font-semibold text-slate-900">#{orderNo(o)} <span className="font-normal text-slate-600">· {o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ''}</span></span>
-                          <span className="block truncate text-[0.75rem] text-slate-500">{o.courierLabel ?? NO_COURIER}{o.trackingNumber ? <span className="font-mono"> · {o.trackingNumber}</span> : null}{o.courierTrail?.label ? ` · ${o.courierTrail.label}` : ''}</span>
+                          <span className="flex min-w-0 items-center gap-1.5 truncate text-[0.75rem] text-slate-500"><BrandLogo name={courierBrand(o.courierCode ?? o.courierLabel)} size={16} />{o.courierLabel ?? NO_COURIER}{o.trackingNumber ? <span className="font-mono"> · {o.trackingNumber}</span> : null}{o.courierTrail?.label ? ` · ${o.courierTrail.label}` : ''}</span>
                         </span>
                         <span className={cn('hidden text-[0.75rem] sm:block', (d ?? 0) >= 5 ? 'font-semibold text-amber-700' : 'text-slate-500')}>{d == null ? '' : d === 0 ? 'aaj bheja' : `${d} din se`}</span>
                         <span className="w-24 text-right text-[0.875rem] font-semibold tabular-nums text-slate-900">{money(o.total)}</span>
@@ -339,7 +340,7 @@ export default function CodPage() {
                           <button type="button" onClick={() => setOrderId(r.id)} className="font-semibold text-slate-900 hover:underline">#{r.number}</button>
                           <div className="text-[0.75rem] text-slate-500">{r.customerName}{r.customerCity ? ` · ${r.customerCity}` : ''}</div>
                         </Td>
-                        <Td className="px-3 py-2.5 text-slate-600">{r.courier}{r.trackingNumber && <div className="font-mono text-[0.75rem] text-slate-500">{r.trackingNumber}</div>}</Td>
+                        <Td className="px-3 py-2.5 text-slate-600"><span className="inline-flex items-center gap-1.5"><BrandLogo name={courierBrand(r.courier)} size={16} />{r.courier}</span>{r.trackingNumber && <div className="font-mono text-[0.75rem] text-slate-500">{r.trackingNumber}</div>}</Td>
                         <Td className="max-w-[14rem] truncate px-3 py-2.5 text-slate-600">{r.reason ?? '—'}</Td>
                         <Td className="px-3 py-2.5 text-slate-600">{whenText(r.returnedAt)}{r.daysOut != null && <div className="text-[0.75rem] text-slate-400">{r.daysOut} din bahar raha</div>}</Td>
                         <Td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 sm:px-5">{money(r.total)}</Td>
@@ -362,7 +363,7 @@ export default function CodPage() {
                     <TBody className="divide-y divide-slate-100">
                       {s.couriers.map((c) => (
                         <Tr key={c.code} className="cursor-pointer hover:bg-slate-50/80" onClick={() => { setCourier(c.name); setTab('with'); }}>
-                          <Td className="px-4 py-2.5 font-semibold text-slate-900 sm:px-5">{c.name}</Td>
+                          <Td className="px-4 py-2.5 font-semibold text-slate-900 sm:px-5"><span className="inline-flex items-center gap-2"><BrandLogo name={courierBrand(c.code || c.name)} size={22} />{c.name}</span></Td>
                           <Td className="px-3 py-2.5 text-right tabular-nums">{money(c.inTransitValue)} <span className="text-slate-400">· {c.inTransit}</span></Td>
                           <Td className={cn('px-3 py-2.5 text-right tabular-nums', c.withCourierValue > 0 && 'font-semibold text-orange-700')}>{money(c.withCourierValue)} <span className="font-normal text-slate-400">· {c.withCourier}</span></Td>
                           <Td className="px-3 py-2.5 text-right tabular-nums">{money(c.settledMonthValue)} <span className="text-slate-400">· {c.settledMonth}</span></Td>

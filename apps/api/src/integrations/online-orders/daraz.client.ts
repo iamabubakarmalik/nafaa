@@ -93,3 +93,18 @@ export function stockXml(rows: { itemId: string; skuId: string; sellerSku: strin
   ).join('');
   return `<?xml version="1.0" encoding="UTF-8" ?><Request><Product><Skus>${skus}</Skus></Product></Request>`;
 }
+
+/** Price update XML: the normal Price of each SKU (20 SKUs per request). A running Daraz sale price is left alone. */
+export function priceXml(rows: { itemId: string; skuId: string; sellerSku: string; price: number }[]) {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const skus = rows.map((r) =>
+    `<Sku><ItemId>${esc(r.itemId)}</ItemId><SkuId>${esc(r.skuId)}</SkuId><SellerSku>${esc(r.sellerSku)}</SellerSku><Price>${(Math.round(r.price * 100) / 100).toFixed(2)}</Price></Sku>`,
+  ).join('');
+  return `<?xml version="1.0" encoding="UTF-8" ?><Request><Product><Skus>${skus}</Skus></Product></Request>`;
+}
+
+/** Daraz SKU option title from its variation attributes ("Black / M"). */
+export function darazOptionTitle(s: any): string {
+  const parts = [s?.color_family, s?.size, s?.Variation, s?.variation].map((x) => (x == null ? '' : String(x).trim())).filter((x) => x && x.toLowerCase() !== 'not specified');
+  return [...new Set(parts)].join(' / ');
+}

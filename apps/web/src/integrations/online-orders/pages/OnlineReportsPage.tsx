@@ -29,7 +29,9 @@ import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { useReportRange } from '@modules/reports/prefs';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
 import { OnlineAnalytics, type AnalyticsSection } from '../components/analytics/OnlineAnalytics';
-import { channelMeta, useSalesChannels } from '../hooks/useSalesChannels';
+import { useSalesChannels } from '../hooks/useSalesChannels';
+import { brandIcon } from '../lib/labels';
+import { brandForChannel, brandLabel } from '@/assets/brands/BrandLogo';
 import { reportDoc } from '../lib/print';
 
 type Tab = 'summary' | 'channels' | 'couriers' | 'products' | 'aging';
@@ -131,7 +133,10 @@ export default function OnlineReportsPage() {
         <DateRangeMenu value={range} onChange={setRange} startHour={startHour} defaultPreset="month" allowAll={false} />
         {(channels?.length ?? 0) > 1 && (
           <FilterMenu icon={Globe} label="Channel" value={channelId} active={!!channelId} onChange={setChannelId} width="w-72" align="right"
-            options={[{ value: '', label: 'Sab channels' }, ...channels!.map((c) => ({ value: c.id, label: `${channelMeta(c.type).emoji} ${c.displayName}`, hint: channelMeta(c.type).label }))]} />
+            options={[{ value: '', label: 'Sab channels' }, ...channels!.map((c) => {
+              const b = brandForChannel(c.type, { platform: c.platform });
+              return { value: c.id, label: c.displayName, hint: brandLabel(b), icon: brandIcon(b) };
+            })]} />
         )}
       </FilterBar>
 

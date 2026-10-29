@@ -5,7 +5,7 @@ import {
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
-  Briefcase, Code2, FileSpreadsheet, MapPin, Factory,
+  Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck,
 } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -91,6 +91,7 @@ export const posNavGroups: NavGroup[] = [
     id: 'online', label: 'Online store', icon: Globe, color: '#0ea5e9', defaultOpen: true, order: 6,
     items: [
       { to: '/online-orders', label: 'Online orders', icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz' },
+      { to: '/online-store/products', label: 'Online products', icon: PackageCheck, permission: P.ONLINE_PRODUCTS_VIEW, keywords: 'daraz shopify woocommerce products link jorna sku price stock sync channel' },
       { to: '/online-orders/cod', label: 'COD & courier', icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier tcs leopards postex rto settlement paisa' },
       { to: '/online-store/couriers', label: 'Couriers', icon: Truck, permission: P.SALES_VIEW, keywords: 'courier postex leopards tcs trax booking label cn tracking connect' },
       { to: '/online-orders/customers', label: 'Online customers', icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab whatsapp broadcast remarketing' },
