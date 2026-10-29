@@ -1207,7 +1207,15 @@ export class ShopifyService {
       this.refreshing.set(integration.id, job);
       return job;
     }
-    // Purana (non-expiring) token ya abhi zinda token
+    // Public app token issued before expiring tokens: swap it once for an expiring pair.
+    if (!c.shopifyMode && !exp && !c.shopifyRefreshToken) {
+      const running = this.refreshing.get(integration.id);
+      if (running) return running;
+      const job = this.migrateLegacyToken(integration).finally(() => this.refreshing.delete(integration.id));
+      this.refreshing.set(integration.id, job);
+      return job;
+    }
+    // Custom app token (never expires) or a token that is still fresh
     if (!exp || exp - Date.now() > 5 * 60_000) return decrypt(c.shopifyToken);
     if (!c.shopifyRefreshToken) return decrypt(c.shopifyToken);
 
@@ -1216,6 +1224,57 @@ export class ShopifyService {
     const job = this.refresh(integration).finally(() => this.refreshing.delete(integration.id));
     this.refreshing.set(integration.id, job);
     return job;
+  }
+
+  /** Last migration attempt per channel, so a failing store is retried at most every 30 minutes. */
+  private migrationTried = new Map<string, number>();
+
+  /**
+   * Shopify requires public apps to move non-expiring offline tokens to
+   * expiring ones before 1 Jan 2027. The exchange invalidates the old token,
+   * so the new pair is stored before anything else. If the response is lost,
+   * repeating the same request within seven days returns the same pair.
+   */
+  private async migrateLegacyToken(integration: Integration): Promise<string | null> {
+    const fresh = await this.prisma.integration.findUnique({ where: { id: integration.id } });
+    const c = (fresh?.credentials ?? {}) as any;
+    const old = decrypt(c.shopifyToken);
+    // Another request already migrated it
+    if (c.shopifyMode || c.shopifyRefreshToken || c.shopifyTokenExpiresAt) return old;
+    const last = this.migrationTried.get(integration.id) ?? 0;
+    if (Date.now() - last < 30 * 60_000) return old;
+    this.migrationTried.set(integration.id, Date.now());
+
+    const res = await fetch(`https://${c.shopifyShop}/admin/oauth/access_token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+      body: new URLSearchParams({
+        grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
+        client_id: this.clientId(),
+        client_secret: this.clientSecret(),
+        subject_token: old ?? '',
+        subject_token_type: 'urn:shopify:params:oauth:token-type:offline-access-token',
+        requested_token_type: 'urn:shopify:params:oauth:token-type:offline-access-token',
+        expiring: '1',
+      }).toString(),
+      signal: AbortSignal.timeout(20_000),
+    }).catch(() => null);
+    const tok: any = res ? await res.json().catch(() => null) : null;
+
+    if (!res || !res.ok || !tok?.access_token || !tok?.refresh_token) {
+      // The old token keeps working until Shopify switches it off, so carry on with it.
+      await this.log(integration, 'SHOPIFY_TOKEN_MIGRATE', false,
+        `Expiring token nahi mila (${res?.status ?? 'network'}${tok?.error ? `: ${tok.error}` : ''})`);
+      return old;
+    }
+
+    await this.prisma.integration.update({
+      where: { id: integration.id },
+      data: { credentials: { ...c, ...this.tokenFields(tok) }, status: IntegrationStatus.CONNECTED },
+    });
+    this.migrationTried.delete(integration.id);
+    await this.log(integration, 'SHOPIFY_TOKEN_MIGRATE', true);
+    return tok.access_token as string;
   }
 
   private async refresh(integration: Integration): Promise<string | null> {
