@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link2, Search, CheckCircle2, PackageSearch } from 'lucide-react';
 import { Modal, Button } from '@/design-system/components';
 import { productsApi, type Product } from '@modules/inventory/products/api/products.api';
+import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import type { OrderLine } from '../api/online-orders.api';
 import { rs } from '../lib/labels';
 import { cn } from '@core/lib/cn';
@@ -78,16 +79,16 @@ export function MatchItemsModal({
                   <div className="truncate text-sm font-black text-slate-900 dark:text-ink-white">
                     {line.name}{line.variant ? ` (${line.variant})` : ''}
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="truncate text-xs text-slate-500">
                     {line.quantity} × {rs(line.price)}{line.sku ? ` · SKU ${line.sku}` : ''}
                   </div>
                 </div>
                 {m ? (
-                  <span className="flex items-center gap-1 rounded-lg bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300">
-                    <Link2 className="h-3 w-3" /> {m.label}
+                  <span title={m.label} className="flex min-w-0 max-w-[45%] items-center gap-1 rounded-lg bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300">
+                    <Link2 className="h-3 w-3 shrink-0" /> <span className="truncate">{m.label}</span>
                   </span>
                 ) : (
-                  <span className="rounded-lg bg-amber-100 px-2 py-1 text-xs font-black text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
+                  <span className="shrink-0 rounded-lg bg-amber-100 px-2 py-1 text-xs font-black text-amber-800 dark:bg-amber-500/15 dark:text-amber-300">
                     Jodna hai
                   </span>
                 )}
@@ -141,21 +142,8 @@ function ProductPicker({ initial, onPick }: { initial: string; onPick: (p: Produ
         {isFetching && !items.length && <div className="p-3 text-center text-xs text-slate-500">Dhoond rahe hain…</div>}
         {!isFetching && !items.length && <div className="p-3 text-center text-xs text-slate-500">Koi product nahi mila — naam badal kar dekhein</div>}
         {items.map((p) =>
-          p.hasVariants && p.variants?.length ? (
-            <div key={p.id} className="rounded-lg border border-slate-200 p-2 dark:border-ink-700">
-              <div className="mb-1 text-xs font-black text-slate-800 dark:text-ink-100">{p.name}</div>
-              <div className="flex flex-wrap gap-1">
-                {p.variants.map((v: any) => (
-                  <button
-                    key={v.id}
-                    onClick={() => onPick(p, v.id, `${p.name} (${v.name})`)}
-                    className="rounded-md border border-slate-200 px-2 py-1 text-xs font-bold hover:border-brand-500 hover:bg-brand-50 dark:border-ink-700 dark:hover:bg-ink-800"
-                  >
-                    {v.name} · {rs(v.price)}
-                  </button>
-                ))}
-              </div>
-            </div>
+          p.hasVariants ? (
+            <VariantChoice key={p.id} product={p} onPick={onPick} />
           ) : (
             <button
               key={p.id}
@@ -164,12 +152,46 @@ function ProductPicker({ initial, onPick }: { initial: string; onPick: (p: Produ
             >
               <div className="min-w-0">
                 <div className="truncate text-sm font-bold text-slate-900 dark:text-ink-white">{p.name}</div>
-                <div className="text-[0.6875rem] text-slate-500">{p.sku ? `SKU ${p.sku} · ` : ''}Stock {p.stock}</div>
+                <div className={cn('text-[0.6875rem]', p.stock > 0 ? 'text-slate-500' : 'font-bold text-rose-600')}>{p.sku ? `SKU ${p.sku} · ` : ''}Stock {p.stock}</div>
               </div>
               <span className="text-sm font-black text-slate-700 dark:text-ink-200">{rs(p.price)}</span>
             </button>
           ),
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A product with sizes keeps its stock on each size, so the owner picks the
+ * size here. The products list does not carry variants, so they load on demand.
+ */
+function VariantChoice({ product, onPick }: { product: Product; onPick: (p: Product, variantId: string | null, label: string) => void }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['match-variants', product.id],
+    queryFn: () => productVariantsApi.list(product.id),
+    initialData: product.variants?.length ? product.variants : undefined,
+  });
+  const variants = (data ?? []).filter((v) => v.isActive !== false);
+  return (
+    <div className="rounded-lg border border-slate-200 p-2 dark:border-ink-700">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <span className="truncate text-sm font-bold text-slate-900 dark:text-ink-white">{product.name}</span>
+        <span className="shrink-0 text-[0.6875rem] font-semibold text-slate-500">Size chunein</span>
+      </div>
+      {isLoading && <div className="px-1 py-1 text-xs text-slate-500">Size aa rahe hain…</div>}
+      <div className="flex flex-wrap gap-1.5">
+        {variants.map((v) => (
+          <button
+            key={v.id}
+            onClick={() => onPick(product, v.id, `${product.name} (${v.name})`)}
+            className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-left text-xs font-bold hover:border-brand-500 hover:bg-brand-50 dark:border-ink-700 dark:hover:bg-ink-800"
+          >
+            <span className="block text-slate-900 dark:text-ink-white">{v.name} · {rs(v.price)}</span>
+            <span className={cn('block text-[0.6875rem] font-semibold', v.stock > 0 ? 'text-slate-500' : 'text-rose-600')}>Stock {v.stock}</span>
+          </button>
+        ))}
       </div>
     </div>
   );

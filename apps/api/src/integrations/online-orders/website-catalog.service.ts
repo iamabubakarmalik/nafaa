@@ -260,7 +260,9 @@ export class WebsiteCatalogService {
         const externalId = toStr(p.id ?? p.productId ?? p.externalId) ?? sku;
         const price = toNum(p.price ?? p.regularPrice ?? p.regular_price ?? p.salePrice);
         const costPrice = toNum(p.costPrice ?? p.cost);
-        const stock = toNum(p.stock ?? p.quantity ?? p.inventory ?? p.stock_quantity);
+        // Stores report oversold items with negative inventory; Nafaa starts those at zero.
+        const rawStock = toNum(p.stock ?? p.quantity ?? p.inventory ?? p.stock_quantity);
+        const stock = rawStock === undefined ? undefined : Math.max(0, rawStock);
         const description = toStr(p.description ?? p.desc);
         const categoryName = toStr(p.category ?? p.categoryName ?? (Array.isArray(p.categories) ? p.categories[0] : undefined));
         const images: string[] = (Array.isArray(p.images) ? p.images : p.image ? [p.image] : [])

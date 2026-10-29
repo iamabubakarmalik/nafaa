@@ -485,9 +485,13 @@ export class OnlineOrdersService implements OnModuleInit {
       if (manual?.productId) {
         const ok = await this.prisma.product.findFirst({
           where: { id: manual.productId, tenantId: user.tenantId, isActive: true },
-          select: { id: true },
+          select: { id: true, hasVariants: true },
         });
         if (!ok) throw new BadRequestException(`${items[i].name}: chuna hua product nahi mila`);
+        // A product with sizes keeps its stock on the variants, so the base row is empty.
+        if (ok.hasVariants && !manual.variantId) {
+          throw new BadRequestException(`${items[i].name}: is product ke size/variant hain — jodte waqt sahi size chunein`);
+        }
         if (manual.variantId) {
           const v = await this.prisma.productVariant.findFirst({
             where: { id: manual.variantId, productId: manual.productId, isActive: true },
@@ -1070,7 +1074,14 @@ export class OnlineOrdersService implements OnModuleInit {
    * "Milta julta naam" nahi — warna "Chai" ka order "Chai Patti 1kg" se jud jata tha.
    */
   private async resolveItem(tenantId: string, integrationId: string, it: StoredItem): Promise<(ItemMatch & { via: string }) | null> {
-    if (it.productId) return { productId: it.productId, variantId: it.variantId ?? null, via: 'saved' };
+    if (it.productId) {
+      if (it.variantId) return { productId: it.productId, variantId: it.variantId, via: 'saved' };
+      const saved = await this.prisma.product.findFirst({ where: { id: it.productId, tenantId, isActive: true }, select: { id: true, hasVariants: true } });
+      if (saved) {
+        const hit = await this.withVariant(saved, it, 'saved');
+        if (hit) return hit;
+      }
+    }
 
     // 1. SKU/barcode sab se pakki pehchan — variant ka SKU pehle, taake
     //    "Shirt (M)" ka stock "Shirt" ke base stock se na kate

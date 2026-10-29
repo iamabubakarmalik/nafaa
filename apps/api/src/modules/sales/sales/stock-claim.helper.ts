@@ -15,9 +15,9 @@ export function addCartNeed(
   const wanted = (wantByKey.get(key) ?? 0) + quantity;
   if (available < wanted) {
     throw new BadRequestException(
-      wanted > quantity
-        ? `${label.item} insufficient in ${label.shop}. Available: ${available}, cart me kul: ${wanted}`
-        : `${label.item} insufficient in ${label.shop}. Available: ${available}`,
+      `Stock kam hai — ${label.item}: ${label.shop} me ${available} pada hai`
+        + (wanted > quantity ? `, cart me kul ${wanted}` : `, chahiye ${wanted}`)
+        + '. Pehle stock barhayein, ya Settings → Stock rules me minus stock ki ijazat dein.',
     );
   }
   wantByKey.set(key, wanted);
