@@ -235,10 +235,13 @@ export class ShopifyService {
     return cfg.shopifyBilling === 'shopify' && !cfg.shopifyPlan?.active;
   }
 
+  /** App handle as Shopify reports it; the plan page URL is built from it */
+  private appHandle: string | null = null;
+
   /** Shopify's plan page for this store (managed App Pricing) */
   pricingUrl(shop: string) {
     const store = shop.replace(/\.myshopify\.com$/, '');
-    const app = (process.env.SHOPIFY_APP_HANDLE || 'nafaa').trim();
+    const app = (process.env.SHOPIFY_APP_HANDLE || this.appHandle || 'nafaa').trim();
     return `https://admin.shopify.com/store/${store}/charges/${app}/pricing_plans`;
   }
 
@@ -248,8 +251,9 @@ export class ShopifyService {
     const client = await this.client(integration);
     if (!client) return null;
     const data = await client.graphql<any>(`{
-      currentAppInstallation { activeSubscriptions { name status test } }
+      currentAppInstallation { app { handle } activeSubscriptions { name status test } }
     }`);
+    if (data?.currentAppInstallation?.app?.handle) this.appHandle = data.currentAppInstallation.app.handle;
     const subs: any[] = data?.currentAppInstallation?.activeSubscriptions ?? [];
     const live = subs.find((x) => x.status === 'ACTIVE');
     const plan: ShopifyPlanState = {
