@@ -694,9 +694,13 @@ export class ShopifyService {
     let updated = 0;
     for (let i = 0; i < changes.length; i += 100) {
       const chunk = changes.slice(i, i + 100);
-      await client.mutate(`mutation($input: InventorySetQuantitiesInput!) {
-        inventorySetQuantities(input: $input) { inventoryAdjustmentGroup { id } userErrors { field message } }
-      }`, { input: { name: 'available', reason: 'correction', referenceDocumentUri: 'nafaa://stock-sync', quantities: chunk } }, 'inventorySetQuantities');
+      // From API 2026-04 inventory mutations must carry an idempotency key.
+      await client.mutate(`mutation($input: InventorySetQuantitiesInput!, $key: String!) {
+        inventorySetQuantities(input: $input) @idempotent(key: $key) { inventoryAdjustmentGroup { id } userErrors { field message } }
+      }`, {
+        input: { name: 'available', reason: 'correction', referenceDocumentUri: 'nafaa://stock-sync', quantities: chunk },
+        key: crypto.randomUUID(),
+      }, 'inventorySetQuantities');
       updated += chunk.length;
     }
 
