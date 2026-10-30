@@ -41,8 +41,11 @@ export interface ItemResult { id: ID; ok: boolean; status?: string | null; error
 
 /* ───────────────────────── settings ───────────────────────── */
 
+/** WHOLESALE: price lists, orders, credit, recoveries. FULL: adds routes, bookers, load sheets and delivery. */
+export type DistributionMode = 'WHOLESALE' | 'FULL';
+
 export interface DistributionSettings {
-  enabled: boolean; creditMode: CreditMode; requireCheckIn: boolean; checkInRadiusM: number;
+  enabled: boolean; mode?: DistributionMode; creditMode: CreditMode; requireCheckIn: boolean; checkInRadiusM: number;
   orderPrefix: string; loadSheetPrefix: string; recoveryNeedsVerify: boolean;
   defaultPriceListId: ID | null; defaultShopId: ID | null; updatedAt: string | null;
 }
@@ -95,6 +98,8 @@ export interface Order {
   invoiceError: string | null; cancelReason: string | null; cancelledAt: string | null;
   saleId: ID | null; invoicedAt: string | null; loadSheetId: ID | null;
   deliveryStatus: DeliveryOutcome | null; deliveredAt: string | null; cashCollected: number; returnsValue: number; returnId: ID | null; returnReason: string | null;
+  /** NETWORK: placed by a linked shop on Nafaa (trade network). */
+  source?: string | null;
   createdAt: string; updatedAt: string;
 }
 export interface OrderRow extends Order {
@@ -199,7 +204,11 @@ export interface CollectionList {
   totals: Partial<Record<CollectionStatus, { count: number; amount: number }>>;
   collections: CollectionRow[];
 }
-export interface CreateCollection { clientRef?: string; customerId: ID; amount: number; method?: MoneyMethod; reference?: string; note?: string; saleId?: ID; loadSheetId?: ID }
+export interface CreateCollection {
+  clientRef?: string; customerId: ID; amount: number; method?: MoneyMethod | 'CHEQUE'; reference?: string; note?: string; saleId?: ID; loadSheetId?: ID;
+  /** Cheque only: bank, number and the date written on it (YYYY-MM-DD). */
+  bankName?: string; chequeNo?: string; chequeDate?: string;
+}
 
 export interface Ageing { d0_7: number; d8_15: number; d16_30: number; d31_60: number; d60_plus: number }
 export interface RecoveryRow {
@@ -228,6 +237,11 @@ export interface Dashboard {
     openSheets: Partial<Record<'OPEN' | 'DISPATCHED', { count: number; value: number }>>; collectionsToVerify: { count: number; amount: number };
   };
   receivable: { customers: number; amount: number };
+  /** Phase 2 work waiting (older servers leave it out). */
+  phase2?: {
+    returnsToApprove: { count: number; value: number }; chequesToDeposit: { count: number; amount: number };
+    vansOut: number; ordersHoldingStock: number;
+  };
 }
 export interface DsrRow {
   bookerId: ID; bookerName: string; routes: string[]; planned: number; visited: number; productive: number; strikeRate: number; orders: number; value: number;
@@ -354,7 +368,7 @@ export const distributionApi = {
 
 export type UpdateSettings = Partial<Omit<DistributionSettings, 'updatedAt'>>;
 
-export interface Preset { key: 'ORDER_BOOKER' | 'DELIVERY' | 'DISTRIBUTION_MANAGER'; label: string; role: 'STAFF' | 'MANAGER'; description: string; permissions: string[] }
+export interface Preset { key: 'ORDER_BOOKER' | 'DELIVERY' | 'VAN_SALESMAN' | 'DISTRIBUTION_MANAGER'; label: string; role: 'STAFF' | 'MANAGER'; description: string; permissions: string[] }
 
 export interface SavePriceList { name: string; code?: string; basedOn?: ListBase; adjustPct?: number; isDefault?: boolean; isActive?: boolean; note?: string }
 export interface PriceList {
@@ -387,7 +401,7 @@ export interface SaveScheme {
   productIds?: ID[]; brandIds?: ID[]; categoryIds?: ID[]; priceListIds?: ID[];
   buyQty?: number; buyUnitName?: string | null; freeQty?: number; freeProductId?: ID | null; value?: number;
   slabs?: SchemeSlab[]; minOrderValue?: number | null; startsAt?: string | null; endsAt?: string | null;
-  isClaimable?: boolean; isActive?: boolean; note?: string;
+  isClaimable?: boolean; isMix?: boolean; isActive?: boolean; note?: string;
 }
 export interface Scheme extends Omit<SaveScheme, 'slabs'> {
   id: ID; createdAt: string; updatedAt: string; slabs: SchemeSlab[] | null;

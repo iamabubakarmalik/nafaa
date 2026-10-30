@@ -14,7 +14,7 @@ import { cn } from '@core/lib/cn';
 import { DIST_KEY, distSetupApi, type Preset } from '../api/distribution.api';
 import { useDistributionEnabled } from '../hooks/useDistribution';
 
-const ICON: Record<Preset['key'], typeof Truck> = { ORDER_BOOKER: ClipboardList, DELIVERY: Truck, DISTRIBUTION_MANAGER: UserCog };
+const ICON: Record<Preset['key'], typeof Truck> = { ORDER_BOOKER: ClipboardList, DELIVERY: Truck, VAN_SALESMAN: Truck, DISTRIBUTION_MANAGER: UserCog };
 
 export function useDistributionPresets() {
   const on = useDistributionEnabled();

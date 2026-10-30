@@ -29,6 +29,9 @@ export interface CatRow {
   m: string;
   uid: string | null;
   cat: string | null;
+  /** Brand and its principal (Distribution → Principals), for rules limited to them. */
+  brand?: string | null;
+  principal?: string | null;
   sale: number;
   cost: number;
   qty: number;
@@ -79,18 +82,19 @@ export function salesByCategory(db: PrismaService, w: Window) {
                   ELSE 1 END AS k
       FROM "SaleItem" si JOIN s ON s.id = si."saleId"
     )
-    SELECT si.m, si.uid, p."categoryId" AS cat,
+    SELECT si.m, si.uid, p."categoryId" AS cat, p."brandId" AS brand, pb."supplierId" AS principal,
            COALESCE(SUM(si.total * si.k), 0)::float8 AS sale,
            COALESCE(SUM(si.quantity * ${UNIT_COST}), 0)::float8 AS cost,
            COALESCE(SUM(si.quantity), 0)::float8 AS qty,
            COUNT(*) FILTER (WHERE si."costPrice" <= 0)::int AS "noCost"
     FROM l si LEFT JOIN "Product" p ON p.id = si."productId"
-    GROUP BY 1, 2, 3`);
+    LEFT JOIN "DistPrincipalBrand" pb ON pb."tenantId" = ${w.tenantId} AND pb."brandId" = p."brandId"
+    GROUP BY 1, 2, 3, 4, 5`);
 }
 
 export function returnsByCategory(db: PrismaService, w: Window) {
   return db.$queryRaw<CatRow[]>(Prisma.sql`
-    SELECT ${monthOf(w, Prisma.sql`r."returnedAt"`)} AS m, ${SELLER} AS uid, p."categoryId" AS cat,
+    SELECT ${monthOf(w, Prisma.sql`r."returnedAt"`)} AS m, ${SELLER} AS uid, p."categoryId" AS cat, p."brandId" AS brand, pb."supplierId" AS principal,
            COALESCE(SUM(ri.total), 0)::float8 AS sale,
            COALESCE(SUM(ri.quantity * ${UNIT_COST}), 0)::float8 AS cost,
            COALESCE(SUM(ri.quantity), 0)::float8 AS qty,
@@ -100,9 +104,10 @@ export function returnsByCategory(db: PrismaService, w: Window) {
     JOIN "Sale" s ON s.id = r."saleId"
     JOIN "SaleItem" si ON si.id = ri."saleItemId"
     LEFT JOIN "Product" p ON p.id = ri."productId"
+    LEFT JOIN "DistPrincipalBrand" pb ON pb."tenantId" = ${w.tenantId} AND pb."brandId" = p."brandId"
     WHERE r."tenantId" = ${w.tenantId} AND s."tenantId" = ${w.tenantId} AND s.status::text <> 'VOIDED'
       AND r."returnedAt" >= ${w.gte} AND r."returnedAt" < ${w.lt}
-    GROUP BY 1, 2, 3`);
+    GROUP BY 1, 2, 3, 4, 5`);
 }
 
 export function billsBySeller(db: PrismaService, w: Window) {

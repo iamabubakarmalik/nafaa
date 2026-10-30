@@ -22,6 +22,10 @@
  * - AMOUNT_PER_UNIT: `value` rupees off per buy pack, from `buyQty` packs upward.
  * - SLAB: the highest slab reached (minQty in buy packs) gives a percent,
  *   rupees per buy pack, or a flat `freeQty` packs free.
+ * - Mix schemes (`isMix`): the buy packs of every covered line on the order
+ *   count together toward buyQty and the slabs ("any 10 cartons of the juice
+ *   range"). Percent and rupees off apply to each covered line; free goods
+ *   earned by the group go on the covered line with the most packs.
  * - One scheme per line: the one worth most (rupees off plus free goods at
  *   the line's price). Ties keep the earlier scheme in the list.
  * - Rupees off never exceed the line's gross.
@@ -57,6 +61,14 @@ export interface SchemeRule {
   startsAt?: Date | string | null;
   endsAt?: Date | string | null;
   isActive?: boolean | null;
+  /** Covered lines count together (see the rules above). */
+  isMix?: boolean | null;
+}
+
+/** A mix scheme's group on one order: buy packs of all covered lines, and whether this line takes the free goods. */
+export interface MixGroup {
+  packs: number;
+  anchor: boolean;
 }
 
 export interface SchemeLine {
@@ -143,11 +155,18 @@ function slabsOf(s: SchemeRule): SchemeSlab[] {
 const packLabel = (s: SchemeRule) => s.buyUnitName?.trim() || 'pcs';
 const qtyText = (v: number) => String(r4(v));
 
-/** What one scheme gives one line, or null when it does not qualify. */
-export function evaluateScheme(s: SchemeRule, line: SchemeLine): SchemeResult | null {
+/**
+ * What one scheme gives one line, or null when it does not qualify. A mix
+ * scheme passes its `group`: the group's packs decide the threshold and the
+ * slab; the line's own packs size the rupees off.
+ */
+export function evaluateScheme(s: SchemeRule, line: SchemeLine, group?: MixGroup | null): SchemeResult | null {
   const rate = buyPackSize(s, line);
   if (rate == null || !(line.baseQty > 0)) return null;
-  const packs = line.baseQty / rate;
+  const own = line.baseQty / rate;
+  const mix = !!s.isMix && !!group;
+  const packs = mix ? group!.packs : own;
+  const takesFree = !mix || group!.anchor;
   const gross = r2(line.baseQty * line.unitPrice);
   const buy = Math.max(0, num(s.buyQty));
   const base = { schemeId: s.id, schemeName: s.name, freeProductId: null as string | null };
@@ -158,7 +177,7 @@ export function evaluateScheme(s: SchemeRule, line: SchemeLine): SchemeResult | 
       const free = num(s.freeQty);
       if (!(buy > 0) || !(free > 0)) return null;
       const times = Math.floor(packs / buy + EPS);
-      if (times < 1) return null;
+      if (times < 1 || !takesFree) return null;
       const freeBase = otherFree ? r4(times * free) : r4(times * free * rate);
       const note = `${s.name}: ${qtyText(times * free)}${otherFree ? '' : ` ${packLabel(s)}`} free`;
       return { ...base, note, discount: 0, freeBaseQty: freeBase, freeProductId: otherFree };
@@ -171,7 +190,7 @@ export function evaluateScheme(s: SchemeRule, line: SchemeLine): SchemeResult | 
     case 'AMOUNT_PER_UNIT': {
       const each = Math.max(0, num(s.value));
       if (!(each > 0) || packs + EPS < buy) return null;
-      return { ...base, note: `${s.name}: Rs ${qtyText(each)}/${packLabel(s)} off`, discount: Math.min(gross, r2(each * packs)), freeBaseQty: 0 };
+      return { ...base, note: `${s.name}: Rs ${qtyText(each)}/${packLabel(s)} off`, discount: Math.min(gross, r2(each * own)), freeBaseQty: 0 };
     }
     case 'SLAB': {
       const slab = slabsOf(s).find((x) => packs + EPS >= num(x.minQty));
@@ -182,9 +201,9 @@ export function evaluateScheme(s: SchemeRule, line: SchemeLine): SchemeResult | 
       }
       if (num(slab.amountPerUnit) > 0) {
         const each = num(slab.amountPerUnit);
-        return { ...base, note: `${s.name}: Rs ${qtyText(each)}/${packLabel(s)} off`, discount: Math.min(gross, r2(each * packs)), freeBaseQty: 0 };
+        return { ...base, note: `${s.name}: Rs ${qtyText(each)}/${packLabel(s)} off`, discount: Math.min(gross, r2(each * own)), freeBaseQty: 0 };
       }
-      if (num(slab.freeQty) > 0) {
+      if (num(slab.freeQty) > 0 && takesFree) {
         const free = num(slab.freeQty);
         const freeBase = otherFree ? r4(free) : r4(free * rate);
         return { ...base, note: `${s.name}: ${qtyText(free)}${otherFree ? '' : ` ${packLabel(s)}`} free`, discount: 0, freeBaseQty: freeBase, freeProductId: otherFree };
@@ -203,6 +222,31 @@ function worth(res: SchemeResult, line: SchemeLine, ctx: SchemeContext): number 
 }
 
 /**
+ * For each mix scheme: buy packs of all lines it covers, and the line (index)
+ * with the most packs, which takes the group's free goods. Ties keep the
+ * earlier line.
+ */
+export function mixGroups(lines: SchemeLine[], schemes: SchemeRule[], priceListId?: string | null): Map<string, { packs: number; anchor: number }> {
+  const out = new Map<string, { packs: number; anchor: number }>();
+  for (const s of schemes) {
+    if (!s.isMix) continue;
+    let packs = 0;
+    let anchor = -1;
+    let most = 0;
+    lines.forEach((line, i) => {
+      if (!(line.baseQty > 0) || !schemeCovers(s, line, priceListId)) return;
+      const rate = buyPackSize(s, line);
+      if (rate == null) return;
+      const p = line.baseQty / rate;
+      packs += p;
+      if (p > most + EPS) { most = p; anchor = i; }
+    });
+    if (anchor >= 0) out.set(s.id, { packs: r4(packs), anchor });
+  }
+  return out;
+}
+
+/**
  * Best scheme for each line, in the order given. Lines no scheme covers get
  * NO_SCHEME. `schemes` may hold every scheme of the business; this filters them.
  */
@@ -210,12 +254,14 @@ export function applySchemes(lines: SchemeLine[], schemes: SchemeRule[], ctx: Sc
   const at = ctx.at ?? new Date();
   const orderGross = ctx.orderGross ?? lines.reduce((s, l) => s + Math.max(0, l.baseQty) * Math.max(0, l.unitPrice), 0);
   const live = schemes.filter((s) => schemeIsLive(s, at) && !(num(s.minOrderValue) > 0 && orderGross + 0.005 < num(s.minOrderValue)));
-  return lines.map((line) => {
+  const groups = mixGroups(lines, live, ctx.priceListId);
+  return lines.map((line, i) => {
     let best: SchemeResult | null = null;
     let bestWorth = 0;
     for (const s of live) {
       if (!schemeCovers(s, line, ctx.priceListId)) continue;
-      const res = evaluateScheme(s, line);
+      const g = s.isMix ? groups.get(s.id) : null;
+      const res = evaluateScheme(s, line, g ? { packs: g.packs, anchor: g.anchor === i } : null);
       if (!res) continue;
       const w = worth(res, line, ctx);
       if (!best || w > bestWorth + 0.0001) { best = res; bestWorth = w; }

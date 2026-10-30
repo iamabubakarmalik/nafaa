@@ -31,7 +31,7 @@ import { PayoutDto } from './dto/payout.dto';
 import {
   billsBySeller, fullReturnsBySeller, returnsByCategory, salesByCategory, salesBySellerShop, type Window,
 } from './commission.queries';
-import { apply, emptyMonth, r2, ruleLabel, rulesFor, type PersonMonth, type Result } from './commission.engine';
+import { apply, emptyMonth, r2, ruleLabel, rulesFor, xKey, type PersonMonth, type Result } from './commission.engine';
 
 const PERIOD = /^(\d{4})-(\d{2})$/;
 /** Payroll writes this note on the payout when commission is paid inside a salary. */
@@ -108,6 +108,16 @@ export class CommissionService {
       const found = await this.prisma.category.count({ where: { id: { in: categoryIds }, tenantId: user.tenantId } });
       if (found !== categoryIds.length) throw new BadRequestException('Kuch categories is dukaan ki nahi');
     }
+    const brandIds = [...new Set(dto.brandIds ?? [])];
+    if (brandIds.length) {
+      const found = await this.prisma.brand.count({ where: { id: { in: brandIds }, tenantId: user.tenantId } });
+      if (found !== brandIds.length) throw new BadRequestException('Kuch brands is dukaan ke nahi');
+    }
+    const supplierIds = [...new Set(dto.supplierIds ?? [])];
+    if (supplierIds.length) {
+      const found = await this.prisma.supplier.count({ where: { id: { in: supplierIds }, tenantId: user.tenantId } });
+      if (found !== supplierIds.length) throw new BadRequestException('Kuch principals (suppliers) is dukaan ke nahi');
+    }
 
     const data = {
       name: dto.name?.trim() || null,
@@ -116,6 +126,8 @@ export class CommissionService {
       valueType,
       value: dto.value,
       categoryIds: perBill ? [] : categoryIds,
+      brandIds: perBill ? [] : brandIds,
+      supplierIds: perBill ? [] : supplierIds,
       minMonthlySale: dto.minMonthlySale || null,
       targetAmount: dto.targetAmount || null,
       targetBonus: dto.targetAmount ? dto.targetBonus ?? null : null,
@@ -404,6 +416,11 @@ export class CommissionService {
       b.sale += num(row.sale); b.cost += num(row.cost); b.qty += num(row.qty);
       target.set(k, b);
     };
+    /* Rules limited to brands or principals read a finer bucket: category, brand and principal. */
+    const addX = (pm: PersonMonth, kind: 'salesX' | 'returnsX', r: { cat: string | null; brand?: string | null; principal?: string | null; sale: number; cost: number; qty: number }) => {
+      const map = (pm[kind] ??= new Map());
+      add(map, xKey(r.cat, r.brand ?? null, r.principal ?? null), r);
+    };
     for (const r of sales) {
       if (!r.uid) {
         const o = orphan.get(r.m) ?? { bills: 0, sale: 0 };
@@ -412,9 +429,15 @@ export class CommissionService {
       }
       const pm = get(r.m, r.uid);
       add(pm.sales, r.cat, r);
+      addX(pm, 'salesX', r);
       pm.noCost += num(r.noCost);
     }
-    for (const r of returns) if (r.uid) add(get(r.m, r.uid).returns, r.cat, r);
+    for (const r of returns) {
+      if (!r.uid) continue;
+      const pm = get(r.m, r.uid);
+      add(pm.returns, r.cat, r);
+      addX(pm, 'returnsX', r);
+    }
     for (const r of bills) {
       if (!r.uid) {
         const o = orphan.get(r.m) ?? { bills: 0, sale: 0 };
@@ -634,7 +657,7 @@ export class CommissionService {
       ...row,
       rules: rules.map((r) => ({
         id: r.id, label: ruleLabel(r), basis: r.basis, valueType: r.valueType, value: r.value,
-        categoryIds: r.categoryIds, minMonthlySale: r.minMonthlySale, targetAmount: r.targetAmount, targetBonus: r.targetBonus,
+        categoryIds: r.categoryIds, brandIds: r.brandIds, supplierIds: r.supplierIds, minMonthlySale: r.minMonthlySale, targetAmount: r.targetAmount, targetBonus: r.targetBonus,
         own: r.userId === userId,
       })),
       history,
@@ -645,7 +668,7 @@ export class CommissionService {
   /** Product, category, bill and return lists for one person's month. */
   private async goods(tenantId: string, userId: string, w: Window, live: CommissionRule[], enrolled: boolean) {
     const seller = { OR: [{ soldById: userId }, { soldById: null, createdById: userId }] };
-    const product = { select: { id: true, name: true, unit: true, categoryId: true, costPrice: true, category: { select: { name: true } } } };
+    const product = { select: { id: true, name: true, unit: true, categoryId: true, brandId: true, costPrice: true, category: { select: { name: true } } } };
     const [sales, returns] = await Promise.all([
       this.prisma.sale.findMany({
         where: { tenantId, status: { not: SaleStatus.VOIDED }, soldAt: { gte: w.gte, lt: w.lt }, ...seller },
@@ -670,14 +693,14 @@ export class CommissionService {
       }),
     ]);
 
-    type P = { productId: string; name: string; unit: string; categoryId: string | null; categoryName: string | null; qty: number; sale: number; cost: number | null; profit: number | null; returnedQty: number; returnedSale: number; returnedCost: number; bills: number; commission: number };
+    type P = { productId: string; name: string; unit: string; categoryId: string | null; brandId?: string | null; categoryName: string | null; qty: number; sale: number; cost: number | null; profit: number | null; returnedQty: number; returnedSale: number; returnedCost: number; bills: number; commission: number };
     const products = new Map<string, P>();
-    const entry = (p: { id: string; name: string; unit: string; categoryId: string | null; category: { name: string } | null } | null) => {
+    const entry = (p: { id: string; name: string; unit: string; categoryId: string | null; brandId?: string | null; category: { name: string } | null } | null) => {
       const key = p?.id ?? 'none';
       let e = products.get(key);
       if (!e) {
         e = {
-          productId: key, name: p?.name ?? 'Cheez', unit: p?.unit ?? '', categoryId: p?.categoryId ?? null, categoryName: p?.category?.name ?? null,
+          productId: key, name: p?.name ?? 'Cheez', unit: p?.unit ?? '', categoryId: p?.categoryId ?? null, brandId: p?.brandId ?? null, categoryName: p?.category?.name ?? null,
           qty: 0, sale: 0, cost: 0, profit: 0, returnedQty: 0, returnedSale: 0, returnedCost: 0, bills: 0, commission: 0,
         };
         products.set(key, e);
@@ -719,12 +742,17 @@ export class CommissionService {
     /* Commission per product with the same rules as the month total (rules
        still below their minimum are left out), so the rows add up to the
        rule lines. Bill and target amounts are not per product. */
+    const principalOfBrand = live.some((r) => r.supplierIds?.length)
+      ? new Map((await this.prisma.distPrincipalBrand.findMany({ where: { tenantId }, select: { brandId: true, supplierId: true } })).map((x) => [x.brandId, x.supplierId]))
+      : new Map<string, string>();
     const out = [...products.values()].map((p) => {
       let amount = 0;
       if (enrolled) {
         for (const rule of live) {
           if (rule.basis === 'PER_BILL') continue;
           if (rule.categoryIds.length && (!p.categoryId || !rule.categoryIds.includes(p.categoryId))) continue;
+          if (rule.brandIds?.length && (!p.brandId || !rule.brandIds.includes(p.brandId))) continue;
+          if (rule.supplierIds?.length && (!p.brandId || !rule.supplierIds.includes(principalOfBrand.get(p.brandId) ?? ''))) continue;
           if (rule.valueType === 'FIXED') amount += (p.qty - p.returnedQty) * rule.value;
           else if (rule.basis === 'PROFIT') amount += ((p.sale - (p.cost ?? 0)) - (p.returnedSale - p.returnedCost)) * rule.value / 100;
           else amount += (p.sale - p.returnedSale) * rule.value / 100;

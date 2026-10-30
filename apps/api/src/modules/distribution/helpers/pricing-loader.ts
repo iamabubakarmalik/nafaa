@@ -190,7 +190,9 @@ export async function ownerSetPrices(
       if (!schemes.length || !(l.quantity > 0)) return floor;
       const line = schemeLine(l, floor);
       if (!line) return floor;
-      const [res] = applySchemes([line], schemes, { priceListId: list?.id ?? null, at, orderGross });
+      // The bill's other paid lines ride along so a mix scheme sees its whole group.
+      const others = paid.filter((p) => p.productId !== l.productId);
+      const [res] = applySchemes([line, ...others], schemes, { priceListId: list?.id ?? null, at, orderGross });
       return res?.discount > 0 ? Math.max(0, floor - res.discount / l.quantity) : floor;
     },
     freeAllowance,

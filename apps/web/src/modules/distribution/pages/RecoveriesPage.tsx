@@ -294,7 +294,7 @@ function Recoveries() {
                       {canVerify && <Checkbox aria-label={partyName(c.customer)} checked={picked.has(c.id)} onChange={() => setPicked((p) => { const n = new Set(p); if (n.has(c.id)) n.delete(c.id); else n.add(c.id); return n; })} />}
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[0.875rem] font-semibold text-slate-900">{partyName(c.customer)}</span>
-                        <span className="block truncate text-[0.75rem] text-slate-500">{c.collectedByName ?? '—'} · {dayTime(c.collectedAt)} · {METHOD_LABEL[c.method]}{c.reference ? ` · ${c.reference}` : ''}{c.kind === 'INVOICE_CASH' && c.saleNumber ? ` · ${c.saleNumber}` : ''}</span>
+                        <span className="block truncate text-[0.75rem] text-slate-500">{c.collectedByName ?? '—'} · {dayTime(c.collectedAt)} · {methodLabel(c.method)}{c.reference ? ` · ${c.reference}` : ''}{c.kind === 'INVOICE_CASH' && c.saleNumber ? ` · ${c.saleNumber}` : ''}</span>
                       </span>
                       <span className="text-right">
                         <span className="block text-[0.9375rem] font-bold tabular-nums text-slate-900">{money(c.amount)}</span>
@@ -332,7 +332,7 @@ function Recoveries() {
                         <Tr key={c.id}>
                           <Td className="max-w-[16rem] px-4 py-2.5 sm:px-5"><div className="truncate font-semibold text-slate-900">{partyName(c.customer)}</div><div className="truncate text-[0.75rem] text-slate-500">{partySub(c.customer)}</div></Td>
                           <Td className="px-3 py-2.5 text-[0.75rem] text-slate-600">{c.collectedByName ?? '—'}<div>{dayTime(c.collectedAt)}</div></Td>
-                          <Td className="px-3 py-2.5 text-[0.75rem] text-slate-600">{c.kind === 'INVOICE_CASH' ? `Invoice ${c.saleNumber ?? ''}` : 'Purana udhaar'} · {METHOD_LABEL[c.method]}</Td>
+                          <Td className="px-3 py-2.5 text-[0.75rem] text-slate-600">{c.kind === 'INVOICE_CASH' ? `Invoice ${c.saleNumber ?? ''}` : 'Purana udhaar'} · {methodLabel(c.method)}</Td>
                           <Td className="px-3 py-2.5 text-right font-semibold tabular-nums text-slate-900">{money(c.amount)}</Td>
                           <Td className="px-4 py-2.5 sm:px-5"><Pill tone={COLLECTION_STATUS[c.status].tone}>{COLLECTION_STATUS[c.status].label}</Pill>
                             {c.rejectReason && <div className="mt-0.5 text-[0.6875rem] text-rose-600">{c.rejectReason}</div>}
@@ -384,20 +384,31 @@ function AgeBar({ row }: { row: RecoveryRow }) {
   );
 }
 
+/** Money method label; field collections may also be a cheque. */
+const methodLabel = (m: string) => METHOD_LABEL[m as MoneyMethod] ?? (m === 'CHEQUE' ? 'Cheque' : m);
+
 function CollectModal({ row, rows, onClose }: { row: RecoveryRow | null; rows: RecoveryRow[]; onClose: () => void }) {
   const qc = useQueryClient();
   const [customerId, setCustomerId] = useState(row?.customer.id ?? '');
   const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState<MoneyMethod>('CASH');
+  const [method, setMethod] = useState<MoneyMethod | 'CHEQUE'>('CASH');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [chequeNo, setChequeNo] = useState('');
+  const [chequeDate, setChequeDate] = useState('');
   const [clientRef] = useState(() => crypto.randomUUID?.() ?? String(Date.now()));
   const cur = rows.find((x) => x.customer.id === customerId) ?? row;
   const save = useMutation({
     mutationFn: () => {
       if (!customerId) throw new Error('Customer chunein');
       if (!(Number(amount) > 0)) throw new Error('Amount likhein');
-      return distributionApi.collect({ clientRef, customerId, amount: Number(amount), method, reference: reference.trim() || undefined, note: note.trim() || undefined });
+      const cheque = method === 'CHEQUE';
+      if (cheque && (!bankName.trim() || !chequeNo.trim() || !chequeDate)) throw new Error('Cheque ka bank, number aur date likhein');
+      return distributionApi.collect({
+        clientRef, customerId, amount: Number(amount), method, reference: cheque ? undefined : reference.trim() || undefined, note: note.trim() || undefined,
+        ...(cheque && { bankName: bankName.trim(), chequeNo: chequeNo.trim(), chequeDate }),
+      });
     },
     onSuccess: (r) => {
       toast.success(r.collection.status === 'VERIFIED' ? 'Paisa khata me jama ho gaya' : 'Recovery save — verify ke baad khata me jayegi');
@@ -422,9 +433,19 @@ function CollectModal({ row, rows, onClose }: { row: RecoveryRow | null; rows: R
         <div className="grid grid-cols-[minmax(0,1fr)_8rem] gap-2">
           <Input label="Amount" inputMode="decimal" autoFocus value={amount} onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))}
             hint={cur ? <button type="button" className="font-semibold text-brand-700 hover:underline" onClick={() => setAmount(String(cur.balance))}>Poora {rs(cur.balance)}</button> : undefined} />
-          <Select label="Tareeqa" value={method} onChange={(e) => setMethod(e.target.value as MoneyMethod)} options={METHODS.map((m) => ({ value: m, label: METHOD_LABEL[m] }))} />
+          <Select label="Tareeqa" value={method} onChange={(e) => setMethod(e.target.value as MoneyMethod | 'CHEQUE')}
+            options={[...METHODS.map((m) => ({ value: m, label: METHOD_LABEL[m] })), { value: 'CHEQUE', label: 'Cheque' }]} />
         </div>
-        {method !== 'CASH' && <Input label="Reference" placeholder="Transaction ID / cheque no." value={reference} onChange={(e) => setReference(e.target.value)} />}
+        {method === 'CHEQUE' ? (
+          <div className="space-y-2 rounded-xl bg-slate-50 p-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Input size="sm" label="Bank" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="HBL" />
+              <Input size="sm" label="Cheque no." value={chequeNo} onChange={(e) => setChequeNo(e.target.value)} />
+            </div>
+            <Input size="sm" type="date" label="Cheque ki date" value={chequeDate} onChange={(e) => setChequeDate(e.target.value)}
+              hint="Aage ki date = post-dated (PDC). Cheque register me nazar aayega." />
+          </div>
+        ) : method !== 'CASH' && <Input label="Reference" placeholder="Transaction ID" value={reference} onChange={(e) => setReference(e.target.value)} />}
         <Input label="Note" placeholder="Zaroori nahi" value={note} onChange={(e) => setNote(e.target.value)} />
       </div>
     </Modal>

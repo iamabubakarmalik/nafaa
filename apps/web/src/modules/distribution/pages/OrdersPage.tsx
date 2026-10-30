@@ -31,7 +31,9 @@ import { OrderEditor } from '../components/OrderEditor';
 import { LoadSheetModal } from '../components/LoadSheetModal';
 import { approveOrInvoice, type RunResult } from '../lib/actions';
 import { dayTime, ORDER_STATUS, partyName, partySub, typingInField } from '../lib/meta';
-import { printInvoices } from '../print/distPrint';
+import { printInvoices, printTaxInvoices } from '../print/distPrint';
+import { phase2Api } from '../api/phase2.api';
+import { StockWarning } from '../phase2/StockWarning';
 
 type Tab = 'BOOKED' | 'APPROVED' | 'INVOICED' | 'LOADED' | 'DONE' | 'ALL';
 const TAB_STATUS: Record<Tab, string | undefined> = {
@@ -148,6 +150,11 @@ function Desk() {
     if (!ids.length) return toast.message('Pehle Invoice banayein');
     try { printInvoices(await distributionApi.printInvoices(ids)); } catch (e) { toast.error(distError(e, 'Print nahi hua')); }
   };
+  const doTaxPrint = async (list = targets()) => {
+    const ids = list.filter((o) => o.saleId).map((o) => o.id);
+    if (!ids.length) return toast.message('Pehle Invoice banayein');
+    try { printTaxInvoices(await phase2Api.printTaxInvoices(ids)); } catch (e) { toast.error(distError(e, 'Print nahi hua')); }
+  };
   const doCancel = async (list = targets()) => {
     const ids = list.filter((o) => o.status === 'BOOKED' || o.status === 'APPROVED').map((o) => o.id);
     if (!ids.length) return toast.message('Sirf Booked ya Approved order cancel hota hai');
@@ -231,6 +238,8 @@ function Desk() {
       <ViewTabs value={tab} onChange={setTab} tabs={TABS.map((t) => ({ id: t.id, label: t.label, count: t.id === tab ? total : null }))}
         hint={<><Kbd>A</Kbd> approve · <Kbd>I</Kbd> invoice · <Kbd>L</Kbd> load · <Kbd>Space</Kbd> chunein · <Kbd>Enter</Kbd> kholein</>} />
 
+      <StockWarning ids={rows.filter((o) => o.status === 'BOOKED' || o.status === 'APPROVED').map((o) => o.id)} />
+
       {failures.length > 0 && (
         <Alert tone="danger" icon={<AlertTriangle className="h-4 w-4" />}
           action={<button type="button" onClick={() => setFailures([])} aria-label="Band" className="rounded-lg p-1 hover:bg-rose-100"><X className="h-4 w-4" /></button>}>
@@ -281,6 +290,7 @@ function Desk() {
                         <Td className="px-3 py-2.5">
                           <div className="flex flex-wrap items-center gap-1">
                             <Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill>
+                            {o.source === 'NETWORK' && <Pill tone="teal">Nafaa order</Pill>}
                             {o.creditWarning && <span title={o.creditWarning} className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-amber-800"><AlertTriangle className="h-3 w-3" />Credit</span>}
                             {o.invoiceError && <span title={o.invoiceError} className="inline-flex items-center gap-0.5 rounded-full bg-rose-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-rose-700"><XCircle className="h-3 w-3" />Masla</span>}
                           </div>
@@ -306,6 +316,7 @@ function Desk() {
                       <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{o.orderNumber} · {o.routeName ?? '—'} · {dayTime(o.bookedAt)}</span>
                       <span className="mt-1 flex flex-wrap gap-1">
                         <Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill>
+                        {o.source === 'NETWORK' && <Pill tone="teal">Nafaa order</Pill>}
                         {o.creditWarning && <Pill tone="amber">Credit</Pill>}
                         {o.invoiceError && <Pill tone="rose">Masla</Pill>}
                         {o.saleNumber && <span className="text-[0.6875rem] text-slate-500">{o.saleNumber}</span>}
@@ -331,6 +342,7 @@ function Desk() {
                   {canManage && pickedRows.some((o) => o.status === 'APPROVED') && <Button size="sm" loading={run.isPending} leftIcon={<Receipt className="h-4 w-4" />} onClick={() => doInvoice(pickedRows)}>Invoice</Button>}
                   {canLoad && pickedRows.some((o) => o.status === 'INVOICED' && !o.loadSheetId) && <Button size="sm" leftIcon={<Truck className="h-4 w-4" />} onClick={() => doLoad(pickedRows)}>Load sheet</Button>}
                   {pickedRows.some((o) => o.saleId) && <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => void doPrint(pickedRows)}>Print</Button>}
+                  {pickedRows.some((o) => o.saleId) && <Button size="sm" variant="secondary" leftIcon={<Printer className="h-4 w-4" />} onClick={() => void doTaxPrint(pickedRows)}>Tax invoice</Button>}
                   {canManage && pickedRows.some((o) => o.status === 'BOOKED' || o.status === 'APPROVED') && <Button size="sm" variant="ghost" className="text-white hover:bg-white/10" onClick={() => void doCancel(pickedRows)}>Cancel</Button>}
                   <button type="button" onClick={() => setPicked(new Set())} aria-label="Chunna khatam" className="rounded-lg p-1.5 text-white/70 hover:bg-white/10"><X className="h-4 w-4" /></button>
                 </BulkBar>

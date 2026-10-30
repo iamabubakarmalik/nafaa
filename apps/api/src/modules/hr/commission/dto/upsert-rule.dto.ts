@@ -39,6 +39,14 @@ export class UpsertRuleDto {
   @IsOptional() @IsArray() @IsString({ each: true })
   categoryIds?: string[];
 
+  @ApiPropertyOptional({ type: [String], description: 'Only sales of these brands; empty = every brand.' })
+  @IsOptional() @IsArray() @IsString({ each: true })
+  brandIds?: string[];
+
+  @ApiPropertyOptional({ type: [String], description: 'Only sales of brands of these principals (suppliers, Distribution → Principals); empty = no limit.' })
+  @IsOptional() @IsArray() @IsString({ each: true })
+  supplierIds?: string[];
+
   @ApiPropertyOptional({ description: 'Itni sale ke baad commission shuru ho' })
   @IsOptional() @IsNumber() @Min(0)
   minMonthlySale?: number;

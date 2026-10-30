@@ -33,8 +33,15 @@ export class DistributionPrintService {
     };
   }
 
-  /** A4 invoices for invoiced orders (kind invoice-a4), in the order asked. */
-  async invoices(user: AuthenticatedUser, orderIds: string[]) {
+  /**
+   * A4 invoices for invoiced orders (kind invoice-a4), in the order asked.
+   * With `tax`, the sales tax invoice (kind tax-invoice-a4): each line split
+   * into value excluding tax and sales tax at the item's rate (else the
+   * shop's tax rate), the seller's NTN / STRN, the buyer's NTN / STRN when
+   * registered, and the FBR invoice number and QR when the bill went to FBR.
+   * Bills carry tax inside their prices, so totals never change.
+   */
+  async invoices(user: AuthenticatedUser, orderIds: string[], opts: { tax?: boolean } = {}) {
     const tenantId = user.tenantId;
     const orders = await this.prisma.salesOrder.findMany({
       where: { tenantId, id: { in: [...new Set(orderIds)] }, saleId: { not: null } },
@@ -61,10 +68,11 @@ export class DistributionPrintService {
     const lMap = new Map(ledger.map((l) => [l.reference, l]));
     const xMap = new Map(extra.map((x) => [x.id, x]));
     const byId = new Map(orders.map((o) => [o.id, o]));
+    const taxInfo = opts.tax ? await this.taxInfo(tenantId, saleIds) : null;
 
-    return {
-      kind: 'invoice-a4',
-      business,
+    const out = {
+      kind: opts.tax ? 'tax-invoice-a4' : 'invoice-a4',
+      business: taxInfo ? { ...business, taxLabel: taxInfo.label, taxNumber: taxInfo.taxNumber } : business,
       invoices: orderIds.map((id) => byId.get(id)).filter((o): o is NonNullable<typeof o> => !!o).map((o) => {
         const sale = saleMap.get(o.saleId!)!;
         const credit = lMap.get(sale?.saleNumber);
@@ -101,8 +109,46 @@ export class DistributionPrintService {
             balanceAfterInvoice: credit ? r2(credit.balanceAfter) : null,
           },
           note: o.note,
+          ...(taxInfo && { tax: this.taxBlock(lines, c ?? null, taxInfo, o.saleId!) }),
         };
       }),
+    };
+    return out;
+  }
+
+  /** Shop tax settings and the FBR rows of the bills. */
+  private async taxInfo(tenantId: string, saleIds: string[]) {
+    const [settings, fbr] = await Promise.all([
+      this.prisma.tenantSettings.findUnique({ where: { tenantId }, select: { enableTax: true, taxRate: true, taxLabel: true, taxNumber: true } }),
+      this.prisma.fbrInvoice.findMany({ where: { tenantId, saleId: { in: saleIds } }, select: { saleId: true, status: true, fbrInvoiceNumber: true, fbrQrCode: true, fbrVerificationUrl: true } }),
+    ]);
+    return {
+      defaultRate: settings?.enableTax ? Number(settings.taxRate) || 0 : 0,
+      label: settings?.taxLabel || 'Sales Tax',
+      taxNumber: settings?.taxNumber ?? null,
+      fbr: new Map(fbr.map((f) => [f.saleId, f])),
+    };
+  }
+
+  private taxBlock(
+    lines: Array<{ net: number; taxRate: number }>,
+    customer: { ntn: string | null; strn: string | null } | null,
+    info: Awaited<ReturnType<DistributionPrintService['taxInfo']>>,
+    saleId: string,
+  ) {
+    const rows = lines.map((l) => {
+      const rate = l.taxRate > 0 ? l.taxRate : info.defaultRate;
+      const tax = rate > 0 ? r2((l.net * rate) / (100 + rate)) : 0;
+      return { rate, valueExclTax: r2(l.net - tax), salesTax: tax, valueInclTax: r2(l.net) };
+    });
+    const fbr = info.fbr.get(saleId);
+    return {
+      lines: rows,
+      valueExclTax: r2(rows.reduce((s, r) => s + r.valueExclTax, 0)),
+      salesTax: r2(rows.reduce((s, r) => s + r.salesTax, 0)),
+      valueInclTax: r2(rows.reduce((s, r) => s + r.valueInclTax, 0)),
+      buyerRegistered: !!(customer?.strn || customer?.ntn),
+      fbr: fbr ? { status: fbr.status, invoiceNumber: fbr.fbrInvoiceNumber, qrCode: fbr.fbrQrCode, verificationUrl: fbr.fbrVerificationUrl } : null,
     };
   }
 

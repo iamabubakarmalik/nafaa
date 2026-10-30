@@ -26,6 +26,9 @@ export interface Bucket { sale: number; cost: number; qty: number }
 export interface PersonMonth {
   sales: Map<string, Bucket>;
   returns: Map<string, Bucket>;
+  /** Same figures keyed by xKey(category, brand, principal), for rules limited to brands or principals. */
+  salesX?: Map<string, Bucket>;
+  returnsX?: Map<string, Bucket>;
   bills: number;
   fullReturns: number;
   reassigned: number;
@@ -72,6 +75,23 @@ const sum = (map: Map<string, Bucket>, cats: string[]) => {
   const out: Bucket = { sale: 0, cost: 0, qty: 0 };
   map.forEach((b, cat) => {
     if (cats.length && !cats.includes(cat)) return;
+    out.sale += b.sale; out.cost += b.cost; out.qty += b.qty;
+  });
+  return out;
+};
+
+const SEP = '\u0001';
+/** Bucket key of the finer maps: category, brand and principal (empty when none). */
+export const xKey = (cat: string | null, brand: string | null, principal: string | null) => [cat ?? '', brand ?? '', principal ?? ''].join(SEP);
+
+/** Sums the finer buckets that pass a rule's category, brand and principal limits. */
+const sumX = (map: Map<string, Bucket> | undefined, rule: Pick<CommissionRule, 'categoryIds' | 'brandIds' | 'supplierIds'>) => {
+  const out: Bucket = { sale: 0, cost: 0, qty: 0 };
+  map?.forEach((b, key) => {
+    const [cat, brand, principal] = key.split(SEP);
+    if (rule.categoryIds.length && !rule.categoryIds.includes(cat)) return;
+    if (rule.brandIds?.length && !rule.brandIds.includes(brand)) return;
+    if (rule.supplierIds?.length && !rule.supplierIds.includes(principal)) return;
     out.sale += b.sale; out.cost += b.cost; out.qty += b.qty;
   });
   return out;
@@ -124,8 +144,9 @@ export function apply(pm: PersonMonth, rules: CommissionRule[], enrolled: boolea
       base = pm.bills; returnBase = pm.fullReturns;
       plus = base * rule.value; minus = returnBase * rule.value;
     } else {
-      const s = sum(pm.sales, rule.categoryIds);
-      const b = sum(pm.returns, rule.categoryIds);
+      const narrow = !!(rule.brandIds?.length || rule.supplierIds?.length);
+      const s = narrow ? sumX(pm.salesX, rule) : sum(pm.sales, rule.categoryIds);
+      const b = narrow ? sumX(pm.returnsX, rule) : sum(pm.returns, rule.categoryIds);
       if (rule.valueType === 'FIXED') {
         base = s.qty; returnBase = b.qty;
         plus = base * rule.value; minus = returnBase * rule.value;

@@ -5,7 +5,7 @@ import {
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
-  Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck, Calculator, BadgePercent,
+  Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck, Calculator, BadgePercent, Network, Target, Undo2,
 } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -33,8 +33,8 @@ export type NavItem = {
   needsShop?: boolean;
   /** Extra words that should find this item in search */
   keywords?: string;
-  /** Shown only while this business feature is switched on in Settings. */
-  feature?: 'manufacturing' | 'distribution';
+  /** Shown only while this business feature is switched on in Settings ('distribution-full': not in Wholesale mode). */
+  feature?: 'manufacturing' | 'distribution' | 'distribution-full';
   /** Jora hua sales channel — apni ginti (naye orders) ke saath */
   count?: number;
   /** Channel ki halat: band ho to halka dikhe */
@@ -110,11 +110,25 @@ export const posNavGroups: NavGroup[] = [
     items: [
       { to: '/distribution', label: 'Distribution', icon: Gauge, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'wholesale distributor dashboard booker supply' },
       { to: '/distribution/orders', label: 'Orders', icon: ClipboardCheck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'sales order booking approve invoice booker wholesale' },
-      { to: '/distribution/load-sheets', label: 'Load sheets', icon: Truck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'load sheet gaari van dispatch delivery settle settlement' },
+      { to: '/distribution/load-sheets', label: 'Load sheets', icon: Truck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution-full', keywords: 'load sheet gaari van dispatch delivery settle settlement' },
       { to: '/distribution/recoveries', label: 'Recoveries', icon: HandCoins, permission: P.KHATA_VIEW, feature: 'distribution', keywords: 'recovery wasooli udhaar collection verify ageing' },
       { to: '/distribution/price-lists', label: 'Price lists', icon: Tag, permission: P.DISTRIBUTION_PRICELISTS_VIEW, feature: 'distribution', keywords: 'price list rate wholesale retailer key account excel import' },
-      { to: '/distribution/routes', label: 'Routes', icon: MapPin, permission: P.DISTRIBUTION_ROUTES_MANAGE, feature: 'distribution', keywords: 'route beat area booker delivery visit day sequence' },
+      { to: '/distribution/routes', label: 'Routes', icon: MapPin, permission: P.DISTRIBUTION_ROUTES_MANAGE, feature: 'distribution-full', keywords: 'route beat area booker delivery visit day sequence' },
       { to: '/distribution/schemes', label: 'Schemes', icon: BadgePercent, permission: P.DISTRIBUTION_SCHEMES_MANAGE, feature: 'distribution', keywords: 'scheme trade offer 10+1 free slab percent principal company' },
+      { to: '/distribution/vans', label: 'Vans', icon: Truck, permission: P.DISTRIBUTION_VANS_MANAGE, feature: 'distribution-full', keywords: 'van stock spot sale salesman load unload count gaari' },
+      { to: '/distribution/returns', label: 'Market returns', icon: Undo2, permission: P.DISTRIBUTION_RETURNS_APPROVE, feature: 'distribution', keywords: 'market return expiry kharab damaged wapas retailer credit' },
+      { to: '/distribution/claims', label: 'Claims', icon: FileText, permission: P.DISTRIBUTION_CLAIMS_MANAGE, feature: 'distribution', keywords: 'claim principal company scheme free goods expiry reimbursement' },
+      { to: '/distribution/targets', label: 'Targets', icon: Target, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'target achievement booker brand principal commission monthly' },
+      { to: '/distribution/cheques', label: 'Cheques', icon: Landmark, permission: P.DISTRIBUTION_CHEQUES_MANAGE, feature: 'distribution', keywords: 'cheque pdc post dated bounce deposit clear bank' },
+      { to: '/network/customers', label: 'Network', icon: Network, permission: P.TRADE_SELL, feature: 'distribution', keywords: 'network nafaa dukaan retailer link request invite code customer order online' },
+    ],
+  },
+  {
+    id: 'network', label: 'Suppliers', icon: Network, color: '#0f766e', defaultOpen: true, order: 6.8,
+    items: [
+      { to: '/network', label: 'Order from suppliers', icon: Network, permission: P.TRADE_BUY, keywords: 'supplier distributor wholesaler order mangwana nafaa network link invite code' },
+      { to: '/network/orders', label: 'Supplier orders', icon: ClipboardCheck, permission: P.TRADE_BUY, keywords: 'supplier order track invoice delivery raste' },
+      { to: '/network/receiving', label: 'Receive goods', icon: PackageCheck, permission: P.TRADE_BUY, keywords: 'maal mil gaya receive purchase stock delivery supplier' },
     ],
   },
   {

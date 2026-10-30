@@ -1,7 +1,9 @@
 /**
  * Distribution prints, drawn by the receipt engine so they carry the shop's
  * A4 design, header and the Nafaa footer:
- *   invoice-a4      one A4 invoice per order (GET /distribution/orders/print)
+ *   invoice-a4      one A4 invoice per order (GET /distribution/orders/print);
+ *                   with ?tax=1 the sales tax invoice (value excluding tax,
+ *                   sales tax per line, both parties' NTN / STRN, FBR number)
  *   load-sheet      pick list, free goods and the trip's invoices, optionally
  *                   followed by every invoice (GET /load-sheets/:id/print)
  *   recovery-sheet  a route's customers with balances and blank columns for
@@ -15,6 +17,7 @@ import { printHtml } from '@core/receipt/print';
 import { getReceiptSetup } from '@core/receipt/setup';
 import type { ReceiptDoc, ReceiptSetup } from '@core/receipt/types';
 import type { InvoicePrint, LoadSheetPrint, PrintBusiness, PrintInvoice, RecoverySheet } from '../api/distribution.api';
+import type { TaxInvoicePrint } from '../api/phase2.api';
 import { METHOD_LABEL, rs, SHEET_STATUS, trim } from '../lib/meta';
 
 type Kind = 'invoice-a4' | 'load-sheet' | 'recovery-sheet';
@@ -114,6 +117,34 @@ export function printInvoices(data: InvoicePrint) {
   const setup = setupFor(data.business);
   const docs = repeat(data.invoices.map((i) => invoiceDoc(i, data.business.strn)), copiesOf('invoice-a4'));
   printHtml(renderA4Pack({ title: data.invoices.length === 1 ? data.invoices[0].invoiceNumber ?? 'Invoice' : `${data.invoices.length} Invoices`, setup, docs }));
+}
+
+/** Sales tax invoices: the same invoice with tax split out and the tax ids of both parties. */
+export function printTaxInvoices(data: TaxInvoicePrint) {
+  const setup = setupFor(data.business);
+  setup.design = { ...setup.design, a4Title: 'SALES TAX INVOICE' };
+  const label = data.business.taxLabel || 'Sales Tax';
+  const docs = data.invoices.map((inv) => {
+    const doc = invoiceDoc(inv, data.business.strn);
+    const t = inv.tax;
+    doc.lines = doc.lines.map((l, i) => {
+      const x = t.lines[i];
+      return x && x.rate > 0 ? { ...l, details: [...(l.details ?? []), `Excl. ${rs(x.valueExclTax)} + ${label} ${trim(x.rate)}% ${rs(x.salesTax)}`] } : l;
+    });
+    doc.infoRows = [
+      ...(doc.infoRows ?? []),
+      ...(data.business.ntn ? [{ label: 'Hamara NTN', value: data.business.ntn }] : []),
+      { label: 'Buyer', value: t.buyerRegistered ? 'Registered' : 'Unregistered' },
+      ...(t.fbr?.invoiceNumber ? [{ label: 'FBR Invoice', value: t.fbr.invoiceNumber }] : []),
+    ];
+    doc.extraRows = [
+      ...(doc.extraRows ?? []).filter((r) => !r.label.startsWith('Tax (shamil)')),
+      { label: `Value (excl. ${label})`, value: rs(t.valueExclTax) },
+      { label, value: rs(t.salesTax) },
+    ];
+    return doc;
+  });
+  printHtml(renderA4Pack({ title: data.invoices.length === 1 ? `Tax ${data.invoices[0].invoiceNumber ?? 'Invoice'}` : `${data.invoices.length} Tax Invoices`, setup, docs: repeat(docs, copiesOf('invoice-a4')) }));
 }
 
 /* ───────────────────────── load sheet ───────────────────────── */

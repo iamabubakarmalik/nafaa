@@ -6,6 +6,9 @@
  *   Summary  the chosen period: booked vs invoiced, delivery outcomes,
  *            returns, cash at the door, recoveries, and the split by route,
  *            booker, product and scheme.
+ *   Visits   per booker per day in the period: productive and unproductive
+ *            shops, strike rate, coverage, time in market, distance between
+ *            check-ins and GPS flags, with the flagged visits listed.
  * Each view prints (A4 / PDF / thermal) and exports CSV.
  */
 
@@ -13,7 +16,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CalendarDays, Download, MapPin, Route as RouteIcon, ShoppingBag, Truck, UserRound, Wallet } from 'lucide-react';
+import { CalendarDays, Clock, Download, MapPin, Navigation, Route as RouteIcon, ShoppingBag, Truck, UserRound, Wallet } from 'lucide-react';
 import { Button, FilterMenu, KpiCard, KpiRow, Segmented, Skeleton, Table, TBody, Td, Th, THead, Tr } from '@/design-system/components';
 import { PrintButton, type PrintDoc } from '@core/print';
 import { cn } from '@core/lib/cn';
@@ -21,14 +24,16 @@ import { downloadCsv } from '@modules/reports/center/print';
 import type { Formatter } from '@modules/reports/center/components/parts';
 import { DIST_KEY, distributionApi, type Dsr, type DistSummary } from '../api/distribution.api';
 import { Empty, Panel, Pill } from '../components/parts';
-import { dayKeyLabel, trim } from '../lib/meta';
+import { dayKeyLabel, dayTime, trim } from '../lib/meta';
+import { phase2Api, type VisitAnalytics } from '../api/phase2.api';
 
-type View = 'dsr' | 'summary';
+type View = 'dsr' | 'summary' | 'visits';
+const hm = (min: number) => `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`;
 const hour = (h: number | null) => (h == null ? '—' : `${((h + 11) % 12) + 1}${h < 12 ? 'am' : 'pm'}`);
 
 export function DistributionReportTab({ period, f }: { period: { from: string; to: string }; f: Formatter }) {
   const [params] = useSearchParams();
-  const [view, setView] = useState<View>(params.get('view') === 'summary' ? 'summary' : 'dsr');
+  const [view, setView] = useState<View>(params.get('view') === 'summary' ? 'summary' : params.get('view') === 'visits' ? 'visits' : 'dsr');
   const [date, setDate] = useState(params.get('date') ?? period.to);
   const [routeId, setRouteId] = useState('');
   const [bookerId, setBookerId] = useState('');
@@ -36,6 +41,11 @@ export function DistributionReportTab({ period, f }: { period: { from: string; t
   const from = period.from === 'all' ? undefined : period.from;
   const filters = { routeId: routeId || undefined, bookerId: bookerId || undefined };
   const dsrQ = useQuery({ queryKey: [DIST_KEY, 'dsr', date, filters], queryFn: () => distributionApi.dsr({ date, ...filters }), enabled: view === 'dsr', placeholderData: keepPreviousData });
+  const visitsQ = useQuery({
+    queryKey: [DIST_KEY, 'visits-report', from, period.to, filters],
+    queryFn: () => phase2Api.visits({ from: from ?? period.to, to: period.to, ...filters, flags: true }),
+    enabled: view === 'visits', placeholderData: keepPreviousData,
+  });
   const sumQ = useQuery({ queryKey: [DIST_KEY, 'summary', from, period.to, filters], queryFn: () => distributionApi.summary({ from, to: period.to, ...filters }), enabled: view === 'summary', placeholderData: keepPreviousData });
 
   const bookers = useMemo(() => {
@@ -48,19 +58,21 @@ export function DistributionReportTab({ period, f }: { period: { from: string; t
 
   const doc = (): PrintDoc => {
     if (view === 'dsr') { if (!dsrQ.data) throw new Error('Report abhi aa rahi hai'); return dsrDoc(dsrQ.data, f, routeName, bookerName); }
+    if (view === 'visits') { if (!visitsQ.data) throw new Error('Report abhi aa rahi hai'); return visitsDoc(visitsQ.data, f, routeName, bookerName); }
     if (!sumQ.data) throw new Error('Report abhi aa rahi hai');
     return summaryDoc(sumQ.data, f, routeName, bookerName);
   };
   const csv = () => {
-    try { downloadCsv(doc(), view === 'dsr' ? `dsr-${date}.csv` : `distribution-${sumQ.data?.from}-${sumQ.data?.to}.csv`); toast.success('CSV ban gayi'); } catch (e) { toast.error((e as Error).message); }
+    const name = view === 'dsr' ? `dsr-${date}.csv` : view === 'visits' ? `visits-${visitsQ.data?.from}-${visitsQ.data?.to}.csv` : `distribution-${sumQ.data?.from}-${sumQ.data?.to}.csv`;
+    try { downloadCsv(doc(), name); toast.success('CSV ban gayi'); } catch (e) { toast.error((e as Error).message); }
   };
-  const ready = view === 'dsr' ? !!dsrQ.data : !!sumQ.data;
+  const ready = view === 'dsr' ? !!dsrQ.data : view === 'visits' ? !!visitsQ.data : !!sumQ.data;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-2">
-        <Segmented label="Report" value={view} onChange={(v) => setView(v as View)} items={[{ value: 'dsr', label: 'DSR (din)' }, { value: 'summary', label: 'Period summary' }]} />
+        <Segmented label="Report" value={view} onChange={(v) => setView(v as View)} items={[{ value: 'dsr', label: 'DSR (din)' }, { value: 'summary', label: 'Period summary' }, { value: 'visits', label: 'Visits' }]} />
         {view === 'dsr' && (
           <label className="inline-flex h-9 items-center gap-2 rounded-xl bg-white px-3 text-[0.8125rem] ring-1 ring-slate-200">
             <CalendarDays className="h-4 w-4 text-slate-400" />
@@ -78,7 +90,7 @@ export function DistributionReportTab({ period, f }: { period: { from: string; t
         </div>
       </div>
 
-      {view === 'dsr' ? <DsrView data={dsrQ.data} f={f} /> : <SummaryView data={sumQ.data} f={f} />}
+      {view === 'dsr' ? <DsrView data={dsrQ.data} f={f} /> : view === 'visits' ? <VisitsView data={visitsQ.data} f={f} /> : <SummaryView data={sumQ.data} f={f} />}
     </div>
   );
 }
@@ -222,6 +234,101 @@ function SplitTable({ title, icon: Icon, rows, f }: { title: string; icon: typeo
 
 function filterMeta(route?: string, booker?: string): Array<[string, string]> {
   return [...(route ? [['Route', route] as [string, string]] : []), ...(booker ? [['Booker', booker] as [string, string]] : [])];
+}
+
+function VisitsView({ data, f }: { data?: VisitAnalytics; f: Formatter }) {
+  if (!data) return <Skeleton className="h-72 rounded-3xl" />;
+  const t = data.totals;
+  return (
+    <>
+      <KpiRow cols={5}>
+        <KpiCard icon={MapPin} color="#2563eb" label="Visits" value={`${t.visited}/${t.planned}`} hint="kiye / plan" />
+        <KpiCard icon={ShoppingBag} color="#16a34a" label="Strike rate" value={`${Math.round(t.strikeRate)}%`} hint={`${t.productive} order wali · ${t.unproductive} bina order`} />
+        <KpiCard icon={Wallet} color="#7c3aed" label="Orders" value={String(t.orders)} hint={f.money(t.value)} />
+        <KpiCard icon={Navigation} color="#0891b2" label="Safar" value={`${trim(t.travelledKm)} km`} hint="check-ins ke beech seedhi doori" />
+        <KpiCard icon={MapPin} color={t.farFromShop || t.noGps ? '#e11d48' : '#059669'} label="GPS flags" value={String(t.farFromShop + t.noGps)} hint={`${t.farFromShop} door se · ${t.noGps} bina GPS`} />
+      </KpiRow>
+      <Panel flush title={`Visits — ${dayKeyLabel(data.from)}${data.to !== data.from ? ` se ${dayKeyLabel(data.to)}` : ''}`} sub="Har booker ka har din">
+        {!data.rows.length ? <Empty text="Is period me koi visit ya plan nahi." /> : (
+          <div className="overflow-x-auto pb-2">
+            <Table minWidth="72rem" className="[&_table]:text-[0.8125rem]">
+              <THead className="text-left text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">
+                <Tr>
+                  <Th className="px-4 py-2 sm:px-5">Booker / din</Th><Th className="px-3 py-2 text-right">Plan</Th><Th className="px-3 py-2 text-right">Visit</Th>
+                  <Th className="px-3 py-2 text-right">Order wali</Th><Th className="px-3 py-2 text-right">Bina order</Th><Th className="px-3 py-2 text-right">Strike</Th>
+                  <Th className="px-3 py-2 text-right">Coverage</Th><Th className="px-3 py-2 text-right">Market me</Th><Th className="px-3 py-2 text-right">Ausat visit</Th>
+                  <Th className="px-3 py-2 text-right">Km</Th><Th className="px-4 py-2 sm:px-5">GPS</Th>
+                </Tr>
+              </THead>
+              <TBody className="divide-y divide-slate-100">
+                {data.rows.map((r) => (
+                  <Tr key={`${r.bookerId}|${r.date}`}>
+                    <Td className="px-4 py-2.5 sm:px-5"><div className="font-semibold text-slate-900">{r.bookerName ?? 'Booker'}</div><div className="max-w-[14rem] truncate text-[0.75rem] text-slate-500">{dayKeyLabel(r.date)}{r.routes.length ? ` · ${r.routes.join(', ')}` : ''}</div></Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{r.planned}</Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{r.visited}{r.notVisited > 0 && <div className="text-[0.6875rem] text-slate-500">{r.notVisited} reh gaye</div>}</Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-success-700">{r.productive}</Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums text-rose-600">{r.unproductive}</Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right"><Pill tone={r.strikeRate >= 70 ? 'green' : r.strikeRate >= 40 ? 'amber' : 'rose'}>{Math.round(r.strikeRate)}%</Pill></Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{r.planned ? `${Math.round(r.coverage)}%` : '—'}</Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums"><span className="inline-flex items-center gap-1"><Clock className="h-3 w-3 text-slate-400" />{hm(r.timeInMarketMin)}</span><div className="text-[0.6875rem] text-slate-500">{r.longestGapMin ? `lamba waqfa ${r.longestGapMin} min` : ''}</div></Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{r.avgVisitMin != null ? `${r.avgVisitMin} min` : '—'}</Td>
+                    <Td className="whitespace-nowrap px-3 py-2.5 text-right tabular-nums">{trim(r.travelledKm)}</Td>
+                    <Td className="px-4 py-2.5 text-[0.75rem] sm:px-5">
+                      {r.flags.farFromShop + r.flags.noGps + r.flags.poorAccuracy === 0 ? <span className="text-success-700">Theek</span> : (
+                        <span className="flex flex-wrap gap-1">
+                          {r.flags.farFromShop > 0 && <Pill tone="rose">{r.flags.farFromShop} door se</Pill>}
+                          {r.flags.noGps > 0 && <Pill tone="amber">{r.flags.noGps} bina GPS</Pill>}
+                          {r.flags.poorAccuracy > 0 && <Pill tone="slate">{r.flags.poorAccuracy} kamzor GPS</Pill>}
+                        </span>
+                      )}
+                      {r.flags.shopWithoutGps > 0 && <div className="mt-0.5 text-[0.6875rem] text-slate-500">{r.flags.shopWithoutGps} dukan ki location save nahi</div>}
+                    </Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
+          </div>
+        )}
+      </Panel>
+      {!!data.flagged?.length && (
+        <Panel flush title="Flag wali visits" sub="Dukan se door check-in ya bina GPS — booker se poochein">
+          <ul className="divide-y divide-slate-100">
+            {data.flagged.map((v) => (
+              <li key={v.id} className="flex items-center gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
+                <Pill tone={v.reason === 'FAR' ? 'rose' : 'amber'}>{v.reason === 'FAR' ? `${v.distanceM ?? '?'} m door` : 'Bina GPS'}</Pill>
+                <span className="min-w-0 flex-1 truncate"><b className="text-slate-900">{v.customerName ?? 'Customer'}</b> · {v.bookerName ?? 'Booker'}</span>
+                <span className="shrink-0 text-[0.75rem] text-slate-500">{dayTime(v.checkInAt)}</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+    </>
+  );
+}
+
+function visitsDoc(d: VisitAnalytics, f: Formatter, route?: string, booker?: string): PrintDoc {
+  return {
+    title: 'Visit report',
+    subtitle: d.from === d.to ? dayKeyLabel(d.from) : `${dayKeyLabel(d.from)} se ${dayKeyLabel(d.to)}`,
+    meta: filterMeta(route, booker),
+    sections: [
+      { kind: 'rows', title: 'Kul', rows: [
+        { label: 'Visits (kiye / plan)', value: `${d.totals.visited}/${d.totals.planned}` },
+        { label: 'Order wali / bina order', value: `${d.totals.productive} / ${d.totals.unproductive}` },
+        { label: 'Strike rate', value: `${Math.round(d.totals.strikeRate)}%` },
+        { label: 'Order value', value: f.money(d.totals.value), strong: true },
+        { label: 'GPS flags', value: `${d.totals.farFromShop} door se · ${d.totals.noGps} bina GPS` },
+      ] },
+      { kind: 'table', title: 'Booker / din', columns: [
+        { label: 'Booker' }, { label: 'Din' }, { label: 'Plan', align: 'right' }, { label: 'Visit', align: 'right' }, { label: 'Order wali', align: 'right' },
+        { label: 'Strike', align: 'right' }, { label: 'Market me', align: 'right', wideOnly: true }, { label: 'Km', align: 'right', wideOnly: true }, { label: 'GPS flags', wideOnly: true },
+      ], rows: d.rows.map((r) => [
+        r.bookerName ?? '', r.date, String(r.planned), String(r.visited), String(r.productive), `${Math.round(r.strikeRate)}%`, hm(r.timeInMarketMin),
+        trim(r.travelledKm), `${r.flags.farFromShop} door · ${r.flags.noGps} bina GPS`,
+      ]) },
+    ],
+  };
 }
 
 function dsrDoc(d: Dsr, f: Formatter, route?: string, booker?: string): PrintDoc {

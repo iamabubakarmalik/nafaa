@@ -96,7 +96,31 @@ export const ROUTE_RULES: RouteRule[] = [
   { match: /^distribution\/delivery(\/|$)/, GET: P.DISTRIBUTION_DELIVERY_REPORT, write: P.DISTRIBUTION_DELIVERY_REPORT },
   { match: /^distribution\/visits(\/|$)/, GET: P.DISTRIBUTION_ORDERS_VIEW, write: P.DISTRIBUTION_ORDERS_BOOK },
   { match: /^distribution\/reports(\/|$)/, GET: P.DISTRIBUTION_ORDERS_VIEW },
+  // Phase 2. A salesman sees only the van given to him (checked in the service).
+  { match: /^distribution\/vans\/[^/]+\/sell$/, POST: P.DISTRIBUTION_VANS_SELL },
+  { match: /^distribution\/vans(\/|$)/, GET: [P.DISTRIBUTION_VANS_MANAGE, P.DISTRIBUTION_VANS_SELL, P.DISTRIBUTION_ORDERS_VIEW], write: P.DISTRIBUTION_VANS_MANAGE },
+  { match: /^distribution\/returns\/(approve|reject)$/, POST: P.DISTRIBUTION_RETURNS_APPROVE },
+  // A collector without approve sees only the returns they recorded (checked in the service).
+  { match: /^distribution\/returns(\/|$)/, GET: [P.DISTRIBUTION_RETURNS_APPROVE, P.DISTRIBUTION_RETURNS_COLLECT, P.DISTRIBUTION_ORDERS_VIEW], write: P.DISTRIBUTION_RETURNS_COLLECT },
+  { match: /^distribution\/principals(\/|$)/, GET: [P.DISTRIBUTION_CLAIMS_MANAGE, P.DISTRIBUTION_TARGETS_MANAGE, P.DISTRIBUTION_SCHEMES_MANAGE, P.DISTRIBUTION_ORDERS_VIEW], write: P.DISTRIBUTION_CLAIMS_MANAGE },
+  { match: /^distribution\/claims(\/|$)/, GET: P.DISTRIBUTION_CLAIMS_MANAGE, write: P.DISTRIBUTION_CLAIMS_MANAGE },
+  { match: /^distribution\/targets(\/|$)/, GET: [P.DISTRIBUTION_TARGETS_MANAGE, P.DISTRIBUTION_ORDERS_VIEW], write: P.DISTRIBUTION_TARGETS_MANAGE },
+  { match: /^distribution\/cheques(\/|$)/, GET: [P.DISTRIBUTION_CHEQUES_MANAGE, P.DISTRIBUTION_COLLECTIONS_VERIFY], write: P.DISTRIBUTION_CHEQUES_MANAGE },
   { match: /^distribution(\/|$)/, GET: P.DISTRIBUTION_ORDERS_VIEW, write: P.DISTRIBUTION_ORDERS_MANAGE },
+
+  /* Trade network. Reads that serve both sides list each permission that may read them;
+     the service then checks the side (buyer or seller) and the link. */
+  { match: /^trade-network\/(overview|links\/[^/]+\/statement)$/, GET: [P.TRADE_BUY, P.TRADE_SELL, P.TRADE_LINKS_MANAGE, P.TRADE_PAYMENTS_MANAGE] },
+  { match: /^trade-network\/(find|directory)$/, GET: [P.TRADE_LINKS_MANAGE, P.TRADE_BUY] },
+  { match: /^trade-network\/requests\/incoming$/, GET: [P.TRADE_SELL, P.TRADE_LINKS_MANAGE] },
+  { match: /^trade-network\/(requests|profile)(\/|$)/, GET: [P.TRADE_LINKS_MANAGE, P.TRADE_SELL, P.TRADE_BUY], write: P.TRADE_LINKS_MANAGE },
+  { match: /^trade-network\/links(\/|$)/, GET: [P.TRADE_LINKS_MANAGE, P.TRADE_SELL, P.TRADE_BUY], write: P.TRADE_LINKS_MANAGE },
+  { match: /^trade-network\/payments(\/|$)/, GET: [P.TRADE_PAYMENTS_MANAGE, P.TRADE_BUY, P.TRADE_SELL], write: P.TRADE_PAYMENTS_MANAGE },
+  { match: /^trade-network\/customers(\/|$)/, GET: P.TRADE_SELL },
+  { match: /^trade-network\/orders\/[^/]+\/receive$/, POST: P.TRADE_RECEIVE },
+  { match: /^trade-network\/receiving(\/|$)/, GET: [P.TRADE_RECEIVE, P.TRADE_BUY] },
+  { match: /^trade-network\/(suppliers|orders)(\/|$)/, GET: P.TRADE_BUY, write: P.TRADE_BUY },
+  { match: /^trade-network(\/|$)/, GET: P.TRADE_BUY, write: P.TRADE_LINKS_MANAGE },
 
   /* Data files. Each file also needs the view right of what it holds (checked in ExportsService). */
   { match: /^exports(\/|$)/, GET: P.EXPORTS_VIEW },

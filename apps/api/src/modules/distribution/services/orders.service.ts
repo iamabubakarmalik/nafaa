@@ -19,8 +19,9 @@ import { CancelOrdersDto, CreateOrderDto, ListOrdersDto, OrderLineDto, PreviewOr
 import { creditStatus, openDebts, type CreditStatus } from '../helpers/credit';
 import { priceOrder, type PricedOrder } from '../helpers/pricing';
 import { pricingFor, readSettings } from '../helpers/pricing-loader';
+import { orderNeeds, releaseOrder } from '../helpers/reservation';
 import {
-  CUSTOMER_CARD, customerCards, dayRange, nextNumber, parseWhen, r2, routeNames, shopNames, userNames,
+  CUSTOMER_CARD, customerCards, dayRange, nextNumber, parseWhen, r2, r4, routeNames, shopNames, userNames,
 } from '../distribution.support';
 
 export interface CreditSnapshot {
@@ -217,12 +218,17 @@ export class OrdersService {
   /** Cancels orders not yet invoiced. Invoiced goods come back through settlement instead. */
   async cancel(user: AuthenticatedUser, dto: CancelOrdersDto) {
     const tenantId = user.tenantId;
-    const orders = await this.prisma.salesOrder.findMany({ where: { tenantId, id: { in: dto.ids } }, select: { id: true, orderNumber: true, status: true } });
+    const orders = await this.prisma.salesOrder.findMany({ where: { tenantId, id: { in: dto.ids } }, select: { id: true, orderNumber: true, status: true, reservation: true } });
     const results = [];
     for (const o of orders) {
-      const done = await this.prisma.salesOrder.updateMany({
-        where: { id: o.id, status: { in: ['BOOKED', 'APPROVED'] } },
-        data: { status: 'CANCELLED', cancelReason: dto.reason?.trim() || null, cancelledAt: new Date() },
+      const done = await this.prisma.$transaction(async (tx) => {
+        const res = await tx.salesOrder.updateMany({
+          where: { id: o.id, status: { in: ['BOOKED', 'APPROVED'] } },
+          data: { status: 'CANCELLED', cancelReason: dto.reason?.trim() || null, cancelledAt: new Date() },
+        });
+        // Godown stock held for it goes back on the shelf.
+        if (res.count) await releaseOrder(tx, tenantId, o);
+        return res;
       });
       results.push(done.count
         ? { id: o.id, orderNumber: o.orderNumber, ok: true, status: 'CANCELLED' }
@@ -230,6 +236,61 @@ export class OrdersService {
     }
     for (const id of dto.ids) if (!orders.some((o) => o.id === id)) results.push({ id, orderNumber: null, ok: false, status: null, error: 'Order nahi mila' });
     return { results };
+  }
+
+  /**
+   * Overbooking check for the desk: what the given orders (not yet invoiced)
+   * need from each godown against the free stock there (stock less what other
+   * orders and the counter hold). An order's own hold counts as free for it.
+   */
+  async stockCheck(user: AuthenticatedUser, ids: string[]) {
+    const tenantId = user.tenantId;
+    const orders = await this.prisma.salesOrder.findMany({
+      where: { tenantId, id: { in: [...new Set(ids)] }, status: { in: ['BOOKED', 'APPROVED'] }, shopId: { not: null } },
+      select: { id: true, orderNumber: true, shopId: true, reservation: true, items: { select: { productId: true, variantId: true, baseQty: true, freeBaseQty: true, freeProductId: true } } },
+    });
+    const need = new Map<string, { shopId: string; productId: string; variantId: string | null; need: number; ownHold: number; orders: string[] }>();
+    for (const o of orders) {
+      for (const n of orderNeeds(o.items).values()) {
+        const k = `${o.shopId}:${n.productId}:${n.variantId ?? ''}`;
+        const e = need.get(k) ?? { shopId: o.shopId!, productId: n.productId, variantId: n.variantId, need: 0, ownHold: 0, orders: [] };
+        e.need = r4(e.need + n.qty);
+        e.orders.push(o.id);
+        need.set(k, e);
+      }
+      for (const h of (Array.isArray(o.reservation) ? (o.reservation as Array<{ shopId: string; productId: string; variantId: string | null; qty: number }>) : [])) {
+        const e = need.get(`${h.shopId}:${h.productId}:${h.variantId ?? ''}`);
+        if (e) e.ownHold = r4(e.ownHold + h.qty);
+      }
+    }
+    const lines = [...need.values()];
+    const [stock, products] = await Promise.all([
+      lines.length
+        ? this.prisma.shopStock.findMany({
+          where: { tenantId, OR: lines.map((l) => ({ shopId: l.shopId, productId: l.productId, variantId: l.variantId })) },
+          select: { shopId: true, productId: true, variantId: true, stock: true, reserved: true },
+        })
+        : [],
+      this.prisma.product.findMany({ where: { tenantId, id: { in: [...new Set(lines.map((l) => l.productId))] } }, select: { id: true, name: true, unit: true } }),
+    ]);
+    const sMap = new Map(stock.map((s) => [`${s.shopId}:${s.productId}:${s.variantId ?? ''}`, s]));
+    const pMap = new Map(products.map((p) => [p.id, p]));
+    const out = lines.map((l) => {
+      const s = sMap.get(`${l.shopId}:${l.productId}:${l.variantId ?? ''}`);
+      const onHand = r4(Number(s?.stock ?? 0));
+      const heldByOthers = r4(Math.max(0, Number(s?.reserved ?? 0) - l.ownHold));
+      const free = r4(onHand - heldByOthers);
+      return {
+        shopId: l.shopId, productId: l.productId, variantId: l.variantId, name: pMap.get(l.productId)?.name ?? null, baseUnit: pMap.get(l.productId)?.unit ?? 'pcs',
+        need: l.need, stock: onHand, reservedByOthers: heldByOthers, free, short: r4(Math.max(0, l.need - free)), orderIds: l.orders,
+      };
+    }).sort((a, b) => b.short - a.short);
+    const shortOrders = new Set(out.filter((l) => l.short > 0).flatMap((l) => l.orderIds));
+    return {
+      lines: out,
+      shortLines: out.filter((l) => l.short > 0).length,
+      orders: orders.map((o) => ({ id: o.id, orderNumber: o.orderNumber, short: shortOrders.has(o.id), holding: Array.isArray(o.reservation) && o.reservation.length > 0 })),
+    };
   }
 
   /* ───────────── read ───────────── */

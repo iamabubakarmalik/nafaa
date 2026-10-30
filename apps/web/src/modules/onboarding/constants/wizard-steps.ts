@@ -30,7 +30,7 @@ export interface WizardStep {
 }
 
 export const WIZARD_STEPS: readonly WizardStep[] = [
-  { id: 'business', title: 'Aap ka business', description: 'Kaam, size aur shahar — is se app aap ke hisaab se set hoti hai.', icon: Store, minutes: 1, skippable: false },
+  { id: 'business', title: 'Aap ka business', description: 'Kaise bechte hain, kya kaam hai aur shahar — is se app aap ke hisaab se set hoti hai.', icon: Store, minutes: 1, skippable: false },
   { id: 'branch', title: 'Pehli branch', description: 'Dukaan ka pata, khulne ka waqt aur chhutti ke din.', icon: Building2, minutes: 1, skippable: true },
   { id: 'products', title: 'Pehle products', description: 'Misaal wale products, khud likhein ya file se import.', icon: Package, minutes: 2, skippable: true },
   { id: 'receipt', title: 'Bill aur payment', description: 'Parchi ka size, payment ke tareeqe aur tax.', icon: ReceiptText, minutes: 1, skippable: true },

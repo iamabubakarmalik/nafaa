@@ -52,6 +52,7 @@ export default function HomeScreen() {
   const noShop = !can(PERMISSIONS.POS_USE) && !can(PERMISSIONS.SALES_VIEW);
   if (noShop && can(PERMISSIONS.DISTRIBUTION_ORDERS_BOOK)) return <Redirect href="/booker" />;
   if (noShop && can(PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT)) return <Redirect href="/delivery" />;
+  if (noShop && can(PERMISSIONS.DISTRIBUTION_VANS_SELL)) return <Redirect href={"/van" as never} />;
   return <ShopHome />;
 }
 

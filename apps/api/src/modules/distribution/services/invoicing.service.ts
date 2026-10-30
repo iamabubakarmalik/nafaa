@@ -14,6 +14,11 @@
  *   - Over the credit limit or overdue: the manager PIN (creditMode
  *     WARN_THEN_PIN) or a refusal (BLOCK).
  *
+ * An order left APPROVED without its bill (PIN needed, stock short) holds
+ * what is free of its goods in the godown (helpers/reservation), so the
+ * counter cannot sell them meanwhile; the hold is given back just before
+ * the bill is made, or when the order is cancelled.
+ *
  * Bulk work runs in chunks, one order at a time, each bill in its own
  * transaction. An order is claimed (APPROVED → INVOICING) before its bill is
  * made, and a bill already made for the order (found by its number) is
@@ -32,6 +37,7 @@ import { INVOICE_CHUNK } from '../distribution.constants';
 import { OrderIdsDto } from '../dto/field.dto';
 import { readSettings } from '../helpers/pricing-loader';
 import { r4 } from '../distribution.support';
+import { releaseOrder, reserveOrder } from '../helpers/reservation';
 import { OrdersService } from './orders.service';
 
 /** An order stuck in INVOICING longer than this (a crash mid-way) may be picked up again. */
@@ -114,7 +120,11 @@ export class InvoicingService {
   private async invoiceOne(
     user: AuthenticatedUser,
     order: Order,
-    ctx: { mode: string; credit: Parameters<OrdersService['creditOf']>[0]; managerPin?: string; pin: { approved: boolean; tried: boolean; error: string | null } },
+    ctx: {
+      mode: string; credit: Parameters<OrdersService['creditOf']>[0]; managerPin?: string; pin: { approved: boolean; tried: boolean; error: string | null };
+      /** Money paid on the spot (van sale): only the rest goes on the khata and counts for credit. */
+      cashNow?: number;
+    },
   ): Promise<InvoiceResult> {
     const base = { id: order.id, orderNumber: order.orderNumber };
     if (order.saleId) return { ...base, ok: true, status: order.status, saleId: order.saleId, error: 'Invoice pehle se bani hui hai' };
@@ -126,7 +136,7 @@ export class InvoicingService {
 
     // Credit rule before anything is claimed.
     if (ctx.mode !== 'OFF') {
-      const status = this.orders.creditOf(ctx.credit, order.total);
+      const status = this.orders.creditOf(ctx.credit, Math.max(0, order.total - (ctx.cashNow ?? 0)));
       if (status.overLimit || status.overdue) {
         if (ctx.mode === 'BLOCK') return this.fail(order, `${status.message} — Invoice nahi ban sakti (Settings: BLOCK)`);
         if (!ctx.pin.approved) {
@@ -150,6 +160,8 @@ export class InvoicingService {
       data: { status: 'INVOICING', invoiceError: null },
     });
     if (!claim.count) return { ...base, ok: false, status: order.status, error: 'Order abhi kisi aur ne badla — dobara koshish karein' };
+    // The bill takes the goods itself; a hold left from an earlier try would block it.
+    await this.prisma.$transaction((tx) => releaseOrder(tx, order.tenantId, order));
 
     try {
       // A bill made for this order before a crash is linked, not made again.
@@ -180,13 +192,40 @@ export class InvoicingService {
       return { ...base, ok: true, status: 'INVOICED', saleId: sale!.id, saleNumber: sale!.saleNumber };
     } catch (e: any) {
       await this.prisma.salesOrder.update({ where: { id: order.id }, data: { status: 'APPROVED', invoiceError: String(e?.message ?? 'Invoice nahi bani').slice(0, 500) } });
+      await this.hold({ ...order, reservation: null });
       return { ...base, ok: false, status: 'APPROVED', error: e?.message ?? 'Invoice nahi bani' };
     }
   }
 
   private async fail(order: Order, error: string): Promise<InvoiceResult> {
     await this.prisma.salesOrder.update({ where: { id: order.id }, data: { invoiceError: error.slice(0, 500) } });
+    if (order.status === 'APPROVED') await this.hold(order);
     return { id: order.id, orderNumber: order.orderNumber, ok: false, status: order.status, error };
+  }
+
+  /** Holds the godown stock of an approved order still waiting for its bill. Never fails the call. */
+  private async hold(order: Order) {
+    if (order.vanSessionId) return;
+    try {
+      await this.prisma.$transaction((tx) => reserveOrder(tx, order.tenantId, order));
+    } catch {
+      // A hold is a courtesy to the desk; the bill itself still checks stock.
+    }
+  }
+
+  /**
+   * Invoices one approved order sold on the spot (van sale), counting only
+   * the part not paid now against the credit limit.
+   */
+  async invoiceSpot(user: AuthenticatedUser, orderId: string, opts: { cashNow: number; managerPin?: string }): Promise<InvoiceResult> {
+    const [order] = await this.loadOrders(user.tenantId, [orderId]);
+    if (!order) return { id: orderId, orderNumber: null, ok: false, status: null, error: 'Order nahi mila' };
+    const settings = await readSettings(this.prisma, user.tenantId);
+    const credit = await this.orders.creditSnapshots(user.tenantId, [order.customerId]);
+    return this.invoiceOne(user, order, {
+      mode: settings?.creditMode ?? 'WARN_THEN_PIN', credit: credit.get(order.customerId), managerPin: opts.managerPin,
+      pin: { approved: false, tried: false, error: null }, cashNow: opts.cashNow,
+    });
   }
 
   /** The bill for an order: pack lines in base units, free goods as their own lines. */

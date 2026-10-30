@@ -73,6 +73,24 @@ export default function BookerSummary() {
               </View>
             </View>
 
+            {!!summary.targets?.length && (
+              <Card>
+                <Text className="text-[11px] font-extrabold uppercase text-neutral-400 mb-1">Target (is mahine)</Text>
+                {summary.targets.map((t) => {
+                  const fmt = (n: number) => (t.metric === 'VALUE' ? rs(n) : `${Math.round(n * 10) / 10} ${t.unitName ?? 'pcs'}`);
+                  return (
+                    <View key={t.id} className="mb-2">
+                      <Row label={t.label} value={`${Math.round(t.pct)}%`} strong />
+                      <View className="h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+                        <View className={t.onTrack ? 'h-2 bg-emerald-600' : 'h-2 bg-amber-500'} style={{ width: `${Math.min(100, Math.max(0, t.pct))}%` }} />
+                      </View>
+                      <Text className="text-[11px] text-neutral-500 mt-1">{fmt(t.achieved)} / {fmt(t.target)} · baqi {fmt(t.remaining)} · roz {fmt(t.perDayNeeded)}</Text>
+                    </View>
+                  );
+                })}
+              </Card>
+            )}
+
             <Card>
               <Text className="text-[11px] font-extrabold uppercase text-neutral-400 mb-1">Recovery</Text>
               <Row label="Kul recovery" value={rs(summary.collections.amount)} strong />

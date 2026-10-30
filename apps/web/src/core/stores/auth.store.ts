@@ -31,6 +31,8 @@ export interface AuthTenant {
   businessType?: string | null;
   businessFeatures?: Record<string, boolean> | null;
   defaultUnit?: string | null;
+  /** RETAIL, WHOLESALE, DISTRIBUTION, ONLINE; empty = not answered (retail). */
+  businessModels?: string[] | null;
 }
 
 interface AuthState {

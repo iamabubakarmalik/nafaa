@@ -23,6 +23,9 @@ export const VISIT_OUTCOMES = ['ORDER', 'NO_ORDER', 'CLOSED', 'RECOVERY_ONLY'] a
 
 export const CREDIT_MODES = ['WARN_THEN_PIN', 'BLOCK', 'OFF'] as const;
 
+/** WHOLESALE: price lists, orders, credit, recoveries. FULL: adds routes, bookers, load sheets and delivery. */
+export const DISTRIBUTION_MODES = ['WHOLESALE', 'FULL'] as const;
+
 /** Why a shop gave no order; labels are shown as is. */
 export const NO_ORDER_REASONS: Array<{ code: string; label: string }> = [
   { code: 'STOCK_AVAILABLE', label: 'Maal abhi pada hai' },
@@ -34,6 +37,14 @@ export const NO_ORDER_REASONS: Array<{ code: string; label: string }> = [
   { code: 'COMPETITOR', label: 'Doosri company ka maal liya' },
   { code: 'OTHER', label: 'Koi aur wajah' },
 ];
+
+/** Field money methods: the counter's methods plus a cheque (see cheques.service). */
+export const FIELD_MONEY_METHODS = ['CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA', 'CHEQUE'] as const;
+export const CHEQUE_STATUSES = ['RECEIVED', 'DEPOSITED', 'CLEARED', 'BOUNCED', 'CANCELLED'] as const;
+export const RETURN_CONDITIONS = ['GOOD', 'DAMAGED', 'EXPIRED'] as const;
+export const MARKET_RETURN_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+export const CLAIM_STATUSES = ['DRAFT', 'SUBMITTED', 'RECEIVED', 'CANCELLED'] as const;
+export const TARGET_METRICS = ['VALUE', 'QTY'] as const;
 
 /** Orders invoiced per chunk in a bulk approve; each order is still its own transaction. */
 export const INVOICE_CHUNK = 20;

@@ -9,7 +9,7 @@ import {
   ArrayMaxSize, IsArray, IsBoolean, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, MaxLength, Min,
   ValidateNested,
 } from 'class-validator';
-import { CREDIT_MODES } from '../distribution.constants';
+import { CREDIT_MODES, DISTRIBUTION_MODES } from '../distribution.constants';
 import { LIST_BASES } from '../helpers/pricing';
 import { SCHEME_TYPES } from '../helpers/scheme-resolver';
 
@@ -17,6 +17,7 @@ import { SCHEME_TYPES } from '../helpers/scheme-resolver';
 
 export class UpdateDistributionSettingsDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() enabled?: boolean;
+  @ApiPropertyOptional({ enum: DISTRIBUTION_MODES }) @IsOptional() @IsIn(DISTRIBUTION_MODES) mode?: string;
   @ApiPropertyOptional({ enum: CREDIT_MODES }) @IsOptional() @IsIn(CREDIT_MODES) creditMode?: string;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() requireCheckIn?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(10) @Max(5000) checkInRadiusM?: number;
@@ -126,6 +127,7 @@ export class SaveSchemeDto {
   @ApiPropertyOptional({ description: 'YYYY-MM-DD (start of that business day) or ISO time.' }) @IsOptional() @IsString() startsAt?: string | null;
   @ApiPropertyOptional({ description: 'YYYY-MM-DD (end of that business day) or ISO time.' }) @IsOptional() @IsString() endsAt?: string | null;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isClaimable?: boolean;
+  @ApiPropertyOptional({ description: 'Mix scheme: covered products on one order count together toward buyQty / slabs.' }) @IsOptional() @IsBoolean() isMix?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isActive?: boolean;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) note?: string;
 }

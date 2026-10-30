@@ -200,6 +200,32 @@ export const PERMISSIONS = {
   DISTRIBUTION_COLLECTIONS_VERIFY: 'distribution.collections.verify',
   /** Delivery app: see own dispatched load sheets and report each invoice (delivered, returns, cash). The office still settles. */
   DISTRIBUTION_DELIVERY_REPORT: 'distribution.delivery.report',
+  /** Vans: add vans, load from the godown, close the day (count, short / excess, unload). */
+  DISTRIBUTION_VANS_MANAGE: 'distribution.vans.manage',
+  /** Sell from a van on the route (spot invoices) and see that van's stock. */
+  DISTRIBUTION_VANS_SELL: 'distribution.vans.sell',
+  /** Record market returns on the route (they wait for approval). */
+  DISTRIBUTION_RETURNS_COLLECT: 'distribution.returns.collect',
+  /** Approve or reject market returns: khata credit, stock back, damaged written off. */
+  DISTRIBUTION_RETURNS_APPROVE: 'distribution.returns.approve',
+  /** Principal claims: make, print, submit and record money received (other income). */
+  DISTRIBUTION_CLAIMS_MANAGE: 'distribution.claims.manage',
+  /** Set monthly targets for bookers, routes, brands and principals. */
+  DISTRIBUTION_TARGETS_MANAGE: 'distribution.targets.manage',
+  /** Cheque register: deposit, clear and bounce (a bounce takes the payment back off the khata). */
+  DISTRIBUTION_CHEQUES_MANAGE: 'distribution.cheques.manage',
+
+  // Trade network: ordering between linked businesses on Nafaa
+  /** Buyer: see linked suppliers and their catalogs, place and track orders, match products. */
+  TRADE_BUY: 'trade.buy',
+  /** Buyer: receive a delivered network order into stock ("Maal mil gaya"); makes the Purchase. */
+  TRADE_RECEIVE: 'trade.receive',
+  /** Seller: see network customers, link requests and the statement with each buyer. Needs distribution on. */
+  TRADE_SELL: 'trade.sell',
+  /** Send link requests (buyer); approve, reject, pause and unlink, set terms, edit the directory profile and invite code (seller). */
+  TRADE_LINKS_MANAGE: 'trade.links.manage',
+  /** Record network payments and confirm or dispute payments the other side recorded. */
+  TRADE_PAYMENTS_MANAGE: 'trade.payments.manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -239,6 +265,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE, PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE,
     PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY,
     PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
+    PERMISSIONS.DISTRIBUTION_VANS_MANAGE, PERMISSIONS.DISTRIBUTION_VANS_SELL, PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT,
+    PERMISSIONS.DISTRIBUTION_RETURNS_APPROVE, PERMISSIONS.DISTRIBUTION_CLAIMS_MANAGE, PERMISSIONS.DISTRIBUTION_TARGETS_MANAGE,
+    PERMISSIONS.DISTRIBUTION_CHEQUES_MANAGE,
+    // Trade network: everything except linking (credit terms stay with the owner).
+    PERMISSIONS.TRADE_BUY, PERMISSIONS.TRADE_RECEIVE, PERMISSIONS.TRADE_SELL, PERMISSIONS.TRADE_PAYMENTS_MANAGE,
     PERMISSIONS.POS_USE,
     PERMISSIONS.POS_PRICE_TIER,
     PERMISSIONS.SALES_VIEW,
@@ -393,7 +424,7 @@ export const BOOKER_REQUIRED_PERMISSIONS: PermissionKey[] = [
 ];
 
 export interface PermissionPreset {
-  key: 'ORDER_BOOKER' | 'DELIVERY' | 'DISTRIBUTION_MANAGER';
+  key: 'ORDER_BOOKER' | 'DELIVERY' | 'VAN_SALESMAN' | 'DISTRIBUTION_MANAGER';
   label: string;
   /** Role the user is created with; the permissions below replace that role's defaults. */
   role: 'STAFF' | 'MANAGER';
@@ -412,6 +443,7 @@ export const DISTRIBUTION_PRESETS: PermissionPreset[] = [
     permissions: [
       PERMISSIONS.DISTRIBUTION_ORDERS_BOOK,
       PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT,
+      PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT,
       PERMISSIONS.CUSTOMERS_VIEW,
       PERMISSIONS.PRODUCTS_VIEW,
       PERMISSIONS.KHATA_VIEW,
@@ -424,8 +456,21 @@ export const DISTRIBUTION_PRESETS: PermissionPreset[] = [
       PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
       PERMISSIONS.DISTRIBUTION_ORDERS_VIEW,
       PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT,
+      PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT,
       PERMISSIONS.CUSTOMERS_VIEW,
       PERMISSIONS.PRODUCTS_VIEW,
+    ],
+  },
+  {
+    key: 'VAN_SALESMAN', label: 'Van Salesman', role: 'STAFF',
+    description: 'Van se maal bechta hai (spot Invoice), recovery, cheque aur market return leta hai',
+    permissions: [
+      PERMISSIONS.DISTRIBUTION_VANS_SELL,
+      PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT,
+      PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT,
+      PERMISSIONS.CUSTOMERS_VIEW,
+      PERMISSIONS.PRODUCTS_VIEW,
+      PERMISSIONS.KHATA_VIEW,
     ],
   },
   {
@@ -436,6 +481,9 @@ export const DISTRIBUTION_PRESETS: PermissionPreset[] = [
       PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE, PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE,
       PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE, PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE,
       PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY, PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
+      PERMISSIONS.DISTRIBUTION_VANS_MANAGE, PERMISSIONS.DISTRIBUTION_VANS_SELL, PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT,
+      PERMISSIONS.DISTRIBUTION_RETURNS_APPROVE, PERMISSIONS.DISTRIBUTION_CLAIMS_MANAGE, PERMISSIONS.DISTRIBUTION_TARGETS_MANAGE,
+      PERMISSIONS.DISTRIBUTION_CHEQUES_MANAGE,
       PERMISSIONS.CUSTOMERS_VIEW, PERMISSIONS.CUSTOMERS_EDIT, PERMISSIONS.KHATA_VIEW, PERMISSIONS.KHATA_MANAGE,
       PERMISSIONS.PRODUCTS_VIEW, PERMISSIONS.SALES_VIEW, PERMISSIONS.RETURNS_VIEW, PERMISSIONS.REPORTS_VIEW,
       PERMISSIONS.SHOPS_VIEW, PERMISSIONS.STAFF_VIEW, PERMISSIONS.TEAM_VIEW,

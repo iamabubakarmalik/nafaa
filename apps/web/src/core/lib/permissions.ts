@@ -132,6 +132,18 @@ export const PERMISSIONS = {
   DISTRIBUTION_COLLECTIONS_COLLECT: 'distribution.collections.collect',
   DISTRIBUTION_COLLECTIONS_VERIFY: 'distribution.collections.verify',
   DISTRIBUTION_DELIVERY_REPORT: 'distribution.delivery.report',
+  DISTRIBUTION_VANS_MANAGE: 'distribution.vans.manage',
+  DISTRIBUTION_VANS_SELL: 'distribution.vans.sell',
+  DISTRIBUTION_RETURNS_COLLECT: 'distribution.returns.collect',
+  DISTRIBUTION_RETURNS_APPROVE: 'distribution.returns.approve',
+  DISTRIBUTION_CLAIMS_MANAGE: 'distribution.claims.manage',
+  DISTRIBUTION_TARGETS_MANAGE: 'distribution.targets.manage',
+  DISTRIBUTION_CHEQUES_MANAGE: 'distribution.cheques.manage',
+  TRADE_BUY: 'trade.buy',
+  TRADE_RECEIVE: 'trade.receive',
+  TRADE_SELL: 'trade.sell',
+  TRADE_LINKS_MANAGE: 'trade.links.manage',
+  TRADE_PAYMENTS_MANAGE: 'trade.payments.manage',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -203,6 +215,11 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE, PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE,
     PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY,
     PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
+    PERMISSIONS.DISTRIBUTION_VANS_MANAGE, PERMISSIONS.DISTRIBUTION_VANS_SELL, PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT,
+    PERMISSIONS.DISTRIBUTION_RETURNS_APPROVE, PERMISSIONS.DISTRIBUTION_CLAIMS_MANAGE, PERMISSIONS.DISTRIBUTION_TARGETS_MANAGE,
+    PERMISSIONS.DISTRIBUTION_CHEQUES_MANAGE,
+    // Trade network: everything except linking (credit terms stay with the owner).
+    PERMISSIONS.TRADE_BUY, PERMISSIONS.TRADE_RECEIVE, PERMISSIONS.TRADE_SELL, PERMISSIONS.TRADE_PAYMENTS_MANAGE,
     PERMISSIONS.POS_USE,
     PERMISSIONS.POS_PRICE_TIER,
     PERMISSIONS.SALES_VIEW,
@@ -426,6 +443,13 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'distribution.pricelists.manage': 'Price lists banayein / badlein', 'distribution.schemes.manage': 'Schemes banayein / badlein',
   'distribution.collections.collect': 'Recovery / cash collect karein', 'distribution.collections.verify': 'Recovery verify karein (khata me jaye)',
   'distribution.delivery.report': 'Delivery app: maal deliver karke har Invoice ki report bhejein',
+  'distribution.vans.manage': 'Vans: godown se load, din band (ginti, short / zyada, maal wapas)', 'distribution.vans.sell': 'Van se maal bechein (spot Invoice)',
+  'distribution.returns.collect': 'Market return likhein (approval ke liye)', 'distribution.returns.approve': 'Market return approve karein (khata credit, stock wapas)',
+  'distribution.claims.manage': 'Company (principal) claims banayein, jama karayein, paisa likhein', 'distribution.targets.manage': 'Monthly targets set karein',
+  'distribution.cheques.manage': 'Cheque register: deposit, clear, bounce',
+  'trade.buy': 'Suppliers se Nafaa par Order bhejein aur dekhein', 'trade.receive': 'Network ka maal receive karein (Purchase stock me)',
+  'trade.sell': 'Network customers aur un ka hisaab dekhein', 'trade.links.manage': 'Supplier/customer jorein, approve karein, terms badlein',
+  'trade.payments.manage': 'Network payment likhein aur confirm karein',
 };
 
 export function getPermissionLabel(key: string): string {
@@ -633,7 +657,15 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
       PERMISSIONS.DISTRIBUTION_PRICE_OVERRIDE, PERMISSIONS.DISTRIBUTION_LOADSHEETS_MANAGE, PERMISSIONS.DISTRIBUTION_SETTLE,
       PERMISSIONS.DISTRIBUTION_ROUTES_MANAGE, PERMISSIONS.DISTRIBUTION_PRICELISTS_VIEW, PERMISSIONS.DISTRIBUTION_PRICELISTS_MANAGE,
       PERMISSIONS.DISTRIBUTION_SCHEMES_MANAGE, PERMISSIONS.DISTRIBUTION_COLLECTIONS_COLLECT, PERMISSIONS.DISTRIBUTION_COLLECTIONS_VERIFY,
-      PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT,
+      PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT, PERMISSIONS.DISTRIBUTION_VANS_MANAGE, PERMISSIONS.DISTRIBUTION_VANS_SELL,
+      PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT, PERMISSIONS.DISTRIBUTION_RETURNS_APPROVE, PERMISSIONS.DISTRIBUTION_CLAIMS_MANAGE,
+      PERMISSIONS.DISTRIBUTION_TARGETS_MANAGE, PERMISSIONS.DISTRIBUTION_CHEQUES_MANAGE,
+    ],
+  },
+  {
+    title: 'Nafaa network', label: 'Nafaa network', emoji: '🔗', color: '#0f766e',
+    permissions: [
+      PERMISSIONS.TRADE_BUY, PERMISSIONS.TRADE_RECEIVE, PERMISSIONS.TRADE_SELL, PERMISSIONS.TRADE_LINKS_MANAGE, PERMISSIONS.TRADE_PAYMENTS_MANAGE,
     ],
   },
   {

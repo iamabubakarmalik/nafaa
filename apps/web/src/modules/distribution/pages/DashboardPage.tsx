@@ -1,7 +1,8 @@
 /**
  * Distribution home: what is waiting at each step today (approve, invoice,
  * load, on the van, recoveries to verify), the day's cash from load sheets,
- * the oldest credit and a booker-wise table for the day.
+ * the oldest credit and a booker-wise table for the day. Phase 2 adds the
+ * returns, cheques, vans and stock holds waiting, and the month's targets.
  *
  * Keys: O orders · L load sheets · R recoveries.
  */
@@ -10,7 +11,7 @@ import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
-  AlertTriangle, ArrowRight, BadgeCheck, ClipboardList, FileText, HandCoins, MapPin, PackageCheck, RefreshCw, Timer, Truck, Users, Wallet,
+  AlertTriangle, ArrowRight, BadgeCheck, ClipboardList, FileText, HandCoins, Landmark, Lock, MapPin, PackageCheck, RefreshCw, Target, Timer, Truck, Undo2, Users, Wallet,
 } from 'lucide-react';
 import {
   KpiCard, KpiRow, PageHero, PageShell, Skeleton, Table, TBody, Td, Th, THead, Tr, heroButton, heroIconButton, Kbd,
@@ -20,6 +21,7 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { usePermission } from '@core/hooks/usePermission';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { DIST_KEY, distributionApi } from '../api/distribution.api';
+import { phase2Api } from '../api/phase2.api';
 import { DistributionGate } from '../components/DistributionGate';
 import { useMoney } from '../hooks/useDistribution';
 import { Empty, Panel, Pill } from '../components/parts';
@@ -40,6 +42,7 @@ function Dashboard() {
   const date = d?.date;
   const dsrQ = useQuery({ queryKey: [DIST_KEY, 'dsr', date], queryFn: () => distributionApi.dsr({ date }), enabled: !!date && canReports });
   const sheetsQ = useQuery({ queryKey: [DIST_KEY, 'sheets', 'day', date], queryFn: () => distributionApi.loadSheets({ from: date, to: date, limit: 20 }), enabled: !!date });
+  const targetsQ = useQuery({ queryKey: [DIST_KEY, 'targets', 'dashboard'], queryFn: () => phase2Api.targets(), retry: false });
   const overdueQ = useQuery({ queryKey: [DIST_KEY, 'recoveries', 'overdue-top'], queryFn: () => distributionApi.recoveries({ overdueOnly: true, limit: 6 }), enabled: canKhata });
 
   useEffect(() => {
@@ -89,6 +92,15 @@ function Dashboard() {
           <KpiCard icon={HandCoins} color="#059669" label="Verify baqi" value={String(w.collectionsToVerify.count)} hint={money(w.collectionsToVerify.amount)} onClick={() => navigate('/distribution/recoveries?tab=verify')} />
         </>}
       </KpiRow>
+
+      {d?.phase2 && (
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <Small icon={Undo2} color="#be123c" label="Market returns approve" value={String(d.phase2.returnsToApprove.count)} hint={money(d.phase2.returnsToApprove.value)} to="/distribution/returns" />
+          <Small icon={Landmark} color="#0f766e" label="Cheque bank me dene" value={String(d.phase2.chequesToDeposit.count)} hint={money(d.phase2.chequesToDeposit.amount)} to="/distribution/cheques" />
+          <Small icon={Truck} color="#ea580c" label="Vans bahar" value={String(d.phase2.vansOut)} hint="din khula hai" to="/distribution/vans" />
+          <Small icon={Lock} color="#7c3aed" label="Stock rok kar" value={String(d.phase2.ordersHoldingStock)} hint="approved, Invoice baqi" to="/distribution/orders?status=APPROVED" />
+        </div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3 [&>*]:min-w-0">
         <Panel className="lg:col-span-2" flush title="Booker — aaj" sub={canReports ? 'Visit, order aur recovery har booker ki' : undefined}
@@ -154,6 +166,25 @@ function Dashboard() {
             </ul>
           </Panel>
 
+          {!!targetsQ.data?.targets.length && (
+            <Panel title="Targets" sub={`${targetsQ.data.pace}% mahina guzra · ${targetsQ.data.daysLeft} din baqi`}
+              right={<Link to="/distribution/targets" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Sab</Link>}>
+              <ul className="space-y-2.5">
+                {[...targetsQ.data.targets].sort((a, b) => a.pct - b.pct).slice(0, 5).map((t) => (
+                  <li key={t.id}>
+                    <div className="flex items-center justify-between gap-2 text-[0.8125rem]">
+                      <span className="flex min-w-0 items-center gap-1.5 font-semibold text-slate-900"><Target className="h-3.5 w-3.5 shrink-0 text-slate-400" /><span className="truncate">{t.label}</span></span>
+                      <span className={cn('shrink-0 font-semibold tabular-nums', t.onTrack ? 'text-success-700' : 'text-amber-700')}>{Math.round(t.pct)}%</span>
+                    </div>
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                      <div className={cn('h-full rounded-full', t.onTrack ? 'bg-success-500' : 'bg-amber-500')} style={{ width: `${Math.min(100, t.pct)}%` }} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Panel>
+          )}
+
           {canKhata && (
             <Panel title="Purana udhaar" sub={overdueQ.data ? `${overdueQ.data.totals.customers} customers · ${money(overdueQ.data.totals.balance)}` : 'Credit days se zyada'}
               right={<Link to="/distribution/recoveries" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Sab</Link>}>
@@ -184,6 +215,18 @@ function Dashboard() {
         <Wallet className="h-3.5 w-3.5" /> <Kbd>O</Kbd> orders · <Kbd>L</Kbd> load sheets · <Kbd>R</Kbd> recoveries
       </p>
     </PageShell>
+  );
+}
+
+function Small({ icon: Icon, color, label, value, hint, to }: { icon: typeof Truck; color: string; label: string; value: string; hint: string; to: string }) {
+  return (
+    <Link to={to} className="flex min-w-0 items-center gap-2.5 rounded-2xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:shadow-md">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${color}17`, color }}><Icon className="h-4 w-4" /></span>
+      <span className="min-w-0">
+        <span className="block truncate text-[0.75rem] text-slate-500">{label}</span>
+        <span className="block truncate text-[0.9375rem] font-bold tabular-nums text-slate-900">{value} <span className="text-[0.75rem] font-normal text-slate-500">{hint}</span></span>
+      </span>
+    </Link>
   );
 }
 

@@ -1,14 +1,17 @@
-/** Onboarding step 1: industry, size, city and WhatsApp number. */
+/** Onboarding step 1: how the business sells, industry, size, city and WhatsApp number. */
 
 import { useId, useMemo } from 'react';
 import { Home, MapPin, MessageCircle, Network, Store, Warehouse } from 'lucide-react';
 import { Input } from '@/design-system/components';
 import { IndustryPicker } from '@modules/auth/components/IndustryPicker';
+import { BusinessModelPicker } from '@modules/auth/components/BusinessModelPicker';
+import type { BusinessModel } from '@core/lib/business-models';
 import { industryChoices } from '@modules/auth/lib/industry-choices';
 import type { OnboardingOptions } from '../api/onboarding.api';
 import { ChoiceCard, StepSection } from '../components/WizardControls';
 
 export interface BusinessForm {
+  businessModels: BusinessModel[];
   businessType: string;
   businessSize: string;
   city: string;
@@ -57,11 +60,13 @@ export function BusinessStep({ value, onChange, errors, options, detectedCity }:
   // Only offer industries the API accepts.
   const choices = useMemo(() => {
     const allowed = new Set(options.businessTypes.map((b) => b.value));
-    return industryChoices().filter((c) => allowed.has(c.businessType));
-  }, [options.businessTypes]);
+    return industryChoices(value.businessModels).filter((c) => allowed.has(c.businessType));
+  }, [options.businessTypes, value.businessModels]);
 
   return (
     <div className="space-y-7">
+      <BusinessModelPicker value={value.businessModels} onChange={(businessModels) => onChange({ businessModels })} />
+
       <IndustryPicker
         label="Aap kya bechte hain / kya kaam hai?"
         choices={choices}

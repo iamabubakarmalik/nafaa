@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Req, UseGuards,
+  Body, Controller, Get, HttpCode, HttpStatus, Patch, Post, Put, Req, UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../auth/decorators/get-user.decorator';
@@ -14,6 +14,7 @@ import { UpdateStep6Dto } from './dto/update-step6.dto';
 import { UpdateStep7Dto } from './dto/update-step7.dto';
 import { UpdateStep8Dto } from './dto/update-step8.dto';
 import { SkipStepDto } from './dto/skip-step.dto';
+import { BusinessModelsDto } from './dto/business-models.dto';
 import { OnboardingService } from './onboarding.service';
 import { LocationDetectorService } from './services/location-detector.service';
 
@@ -54,6 +55,12 @@ export class OnboardingController {
   @HttpCode(HttpStatus.OK)
   changeType(@GetUser() user: AuthenticatedUser, @Body() body: { businessType: string }) {
     return this.onboarding.changeBusinessType(user, body.businessType);
+  }
+
+  @Put('business-models')
+  @ApiOperation({ summary: 'How the business sells: RETAIL, WHOLESALE, DISTRIBUTION, ONLINE (owner only)' })
+  setBusinessModels(@GetUser() user: AuthenticatedUser, @Body() dto: BusinessModelsDto) {
+    return this.onboarding.setBusinessModels(user, dto.businessModels);
   }
 
   @Patch('step/1') step1(@GetUser() u: AuthenticatedUser, @Body() dto: UpdateStep1Dto) { return this.onboarding.updateStep1(u, dto); }

@@ -8,6 +8,9 @@ export interface AdminTenant {
   slug: string;
   phone?: string | null;
   status: TenantStatus;
+  businessType?: string | null;
+  /** RETAIL, WHOLESALE, DISTRIBUTION, ONLINE; empty = not answered. */
+  businessModels?: string[] | null;
   referralCode?: string | null;
   accountCredit: number;
   createdAt: string;
@@ -35,7 +38,7 @@ export interface TenantsResponse {
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminTenantsApi = {
-  list: (params?: { search?: string; status?: TenantStatus; page?: number; limit?: number }) =>
+  list: (params?: { search?: string; status?: TenantStatus; model?: string; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: TenantsResponse }>('/admin/tenants', { params })
       .then(unwrap),

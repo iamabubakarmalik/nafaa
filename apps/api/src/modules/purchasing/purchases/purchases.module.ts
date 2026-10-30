@@ -9,5 +9,6 @@ import { PurchaseAnalyticsService } from './purchase-analytics.service';
   imports: [SupplierLedgerModule],
   controllers: [PurchasesController],
   providers: [PurchasesService, PurchaseAnalyticsService, TenantTimezoneService],
+  exports: [PurchasesService],
 })
 export class PurchasesModule {}

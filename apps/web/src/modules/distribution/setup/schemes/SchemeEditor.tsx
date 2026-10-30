@@ -29,7 +29,7 @@ interface Draft {
   products: PickedProduct[]; brandIds: string[]; categoryIds: string[]; priceListIds: string[];
   buyQty: string; buyUnitName: string; freeQty: string; freeProduct: PickedProduct | null; value: string;
   slabs: Array<{ minQty: string; percent: string; amountPerUnit: string; freeQty: string }>;
-  minOrderValue: string; startsAt: string; endsAt: string; isClaimable: boolean; isActive: boolean; note: string;
+  minOrderValue: string; startsAt: string; endsAt: string; isClaimable: boolean; isMix: boolean; isActive: boolean; note: string;
 }
 
 const fromScheme = (s: SchemeRow | null): Draft => ({
@@ -40,7 +40,7 @@ const fromScheme = (s: SchemeRow | null): Draft => ({
   freeProduct: s?.freeProductId ? { id: s.freeProductId, name: s.freeProductName ?? 'Item' } : null, value: s?.value ? String(s.value) : '',
   slabs: (s?.slabs ?? []).map((x) => ({ minQty: String(x.minQty), percent: x.percent ? String(x.percent) : '', amountPerUnit: x.amountPerUnit ? String(x.amountPerUnit) : '', freeQty: x.freeQty ? String(x.freeQty) : '' })),
   minOrderValue: s?.minOrderValue ? String(s.minOrderValue) : '', startsAt: isoToDayKey(s?.startsAt), endsAt: isoToDayKey(s?.endsAt),
-  isClaimable: s?.isClaimable ?? false, isActive: s?.isActive ?? true, note: s?.note ?? '',
+  isClaimable: s?.isClaimable ?? false, isMix: s?.isMix ?? false, isActive: s?.isActive ?? true, note: s?.note ?? '',
 });
 
 function toBody(d: Draft): SaveScheme {
@@ -56,7 +56,7 @@ function toBody(d: Draft): SaveScheme {
     value: d.type === 'PERCENT_OFF' || d.type === 'AMOUNT_PER_UNIT' ? num(d.value) ?? 0 : 0,
     slabs: d.type === 'SLAB' ? slabs : [],
     minOrderValue: num(d.minOrderValue), startsAt: d.startsAt || null, endsAt: d.endsAt || null,
-    isClaimable: d.isClaimable, isActive: d.isActive, note: d.note.trim() || undefined,
+    isClaimable: d.isClaimable, isMix: d.isMix, isActive: d.isActive, note: d.note.trim() || undefined,
   };
 }
 
@@ -207,7 +207,8 @@ export function SchemeEditor({ scheme, onClose }: { scheme: SchemeRow | null; on
               options={[{ value: '', label: '— Apni scheme —' }, ...(suppliersQ.data?.items ?? []).map((s) => ({ value: s.id, label: s.name }))]}
               hint="Jo company scheme ka kharcha deti hai" />
             <div className="space-y-2 pt-1">
-              <Switch checked={d.isClaimable} onChange={(e) => set('isClaimable', e.target.checked)} label="Company se claim hoga" description="Report me alag dikhega" />
+              <Switch checked={d.isClaimable} onChange={(e) => set('isClaimable', e.target.checked)} label="Company se claim hoga" description="Claims page par company ke hisaab me aayega" />
+              <Switch checked={d.isMix} onChange={(e) => set('isMix', e.target.checked)} label="Mix scheme" description="Chune hue items mil kar quantity poori karein (jaise koi bhi 10 carton juice)" />
               <Switch checked={d.isActive} onChange={(e) => set('isActive', e.target.checked)} label="Chalu" />
             </div>
           </div>

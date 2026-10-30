@@ -6,7 +6,7 @@
 import type { SchemeRule } from '../../../lib/distribution/scheme-resolver';
 
 export type ID = string;
-export type MoneyMethod = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA';
+export type MoneyMethod = 'CASH' | 'CARD' | 'BANK_TRANSFER' | 'JAZZCASH' | 'EASYPAISA' | 'CHEQUE';
 export type VisitOutcome = 'ORDER' | 'NO_ORDER' | 'CLOSED' | 'RECOVERY_ONLY';
 export type CreditMode = 'WARN_THEN_PIN' | 'BLOCK' | 'OFF';
 
@@ -206,6 +206,10 @@ export interface CollectionPayload {
   collectedAt?: string;
   latitude?: number;
   longitude?: number;
+  /** CHEQUE only: bank, number and the date written on it (YYYY-MM-DD). */
+  bankName?: string;
+  chequeNo?: string;
+  chequeDate?: string;
 }
 
 export type SyncStatus = 'ok' | 'duplicate' | 'conflict' | 'error';
@@ -239,6 +243,8 @@ export interface DaySummary {
   noOrder: { reason: string; label: string; count: number }[];
   collections: { count: number; amount: number; cash: number; pending: number };
   notVisited: { id: ID; name: string; routeId: ID | null }[];
+  /** The booker's own targets this month (servers before phase 2 leave it out). */
+  targets?: { id: ID; label: string; metric: 'VALUE' | 'QTY'; unitName: string | null; target: number; achieved: number; pct: number; onTrack: boolean; remaining: number; perDayNeeded: number }[];
 }
 
 /* ───────────── offline rows ───────────── */

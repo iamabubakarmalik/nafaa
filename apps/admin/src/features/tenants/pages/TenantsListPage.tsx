@@ -5,6 +5,7 @@ import {
   Building2, Search, ChevronRight, Users, Package, ShoppingCart,
 } from 'lucide-react';
 import { adminTenantsApi, type TenantStatus } from '@/api/admin-tenants.api';
+import { BUSINESS_MODELS, BusinessModelChips } from '../components/BusinessModelChips';
 
 const statusColors: Record<string, string> = {
   ACTIVE: 'bg-emerald-100 text-emerald-700',
@@ -16,14 +17,16 @@ const statusColors: Record<string, string> = {
 export default function TenantsListPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<TenantStatus | ''>('');
+  const [model, setModel] = useState('');
   const [page, setPage] = useState(1);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-tenants', search, status, page],
+    queryKey: ['admin-tenants', search, status, model, page],
     queryFn: () =>
       adminTenantsApi.list({
         search: search || undefined,
         status: status || undefined,
+        model: model || undefined,
         page,
         limit: 20,
       }),
@@ -73,6 +76,21 @@ export default function TenantsListPage() {
             <option value="SUSPENDED">Suspended</option>
             <option value="EXPIRED">Expired</option>
           </select>
+
+          <select
+            value={model}
+            onChange={(e) => {
+              setModel(e.target.value);
+              setPage(1);
+            }}
+            aria-label="How they sell"
+            className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm"
+          >
+            <option value="">All ways of selling</option>
+            {BUSINESS_MODELS.map((m) => (
+              <option key={m.id} value={m.id}>{m.label}{m.id === 'RETAIL' ? ' (incl. not answered)' : ''}</option>
+            ))}
+          </select>
         </div>
       </section>
 
@@ -92,6 +110,7 @@ export default function TenantsListPage() {
                   <tr>
                     <th className="text-left px-6 py-4 font-medium">Shop Name</th>
                     <th className="text-left px-6 py-4 font-medium">Status</th>
+                    <th className="text-left px-6 py-4 font-medium">Sells</th>
                     <th className="text-left px-6 py-4 font-medium">Plan</th>
                     <th className="text-left px-6 py-4 font-medium">Stats</th>
                     <th className="text-left px-6 py-4 font-medium">Joined</th>
@@ -114,6 +133,10 @@ export default function TenantsListPage() {
                           <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold ${statusColors[t.status]}`}>
                             {t.status}
                           </span>
+                        </td>
+                        <td className="px-6 py-3">
+                          <BusinessModelChips models={t.businessModels} />
+                          {t.businessType && <div className="mt-1 text-[11px] text-slate-500">{t.businessType}</div>}
                         </td>
                         <td className="px-6 py-3">
                           {sub ? (

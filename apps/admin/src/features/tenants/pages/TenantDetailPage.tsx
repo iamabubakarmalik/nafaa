@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
 import TenantNotesPanel from '@/features/notes/pages/TenantNotesPanel';
+import { BusinessModelChips } from '../components/BusinessModelChips';
 
 const statusColors: Record<string, string> = {
   ACTIVE: 'bg-emerald-100 text-emerald-700',
@@ -95,6 +96,11 @@ export default function TenantDetailPage() {
                   <Phone className="h-3 w-3" /> {tenant.phone}
                 </span>
               )}
+            </div>
+            <div className="mt-2 flex items-center gap-2 flex-wrap text-xs text-white/80">
+              <span>Sells:</span>
+              <BusinessModelChips models={tenant.businessModels} onDark />
+              {tenant.businessType && <span className="font-mono text-white/70">· {tenant.businessType}</span>}
             </div>
           </div>
 

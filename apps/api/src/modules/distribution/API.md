@@ -548,3 +548,153 @@ Both answer `NOT_ENABLED` when distribution is off. Their links are `/distributi
   - that price after a running scheme's rupees off;
   - free lines (`price 0`, note starting `Scheme: `) up to the free quantity the bill's paid lines earned.
 - With distribution off, nothing changes.
+
+## 14. Phase 2
+
+Migration `20261031300000_distribution_phase2` (additive: new tables, defaulted columns). Every new field is optional; the shared sales path is unchanged.
+
+### 14.0 New permissions (explicit; MANAGER defaults include all of them)
+
+| Key | What it allows |
+|---|---|
+| `distribution.vans.manage` | Add vans, load from the godown, open and close the van day (count, short / excess, unload) |
+| `distribution.vans.sell` | Spot invoices from the van given to you (`POST /distribution/vans/:id/sell`), see that van |
+| `distribution.returns.collect` | Record market returns (PENDING), in the office or through booker sync |
+| `distribution.returns.approve` | Approve / reject market returns; typed credit rates are kept only with this |
+| `distribution.claims.manage` | Principals (brand mapping), claims: make, print, submit, record money received (other income) |
+| `distribution.targets.manage` | Monthly targets |
+| `distribution.cheques.manage` | Cheque register: deposit, clear, bounce, cancel |
+
+Presets: `ORDER_BOOKER` and `DELIVERY` gain `returns.collect`; new `VAN_SALESMAN` (STAFF): `vans.sell`, `collections.collect`, `returns.collect`, `customers.view`, `products.view`, `khata.view`; `DISTRIBUTION_MANAGER` gains all seven.
+
+Route rules: `vans/:id/sell` POST vans.sell; `vans` GET vans.manage | vans.sell | orders.view, write vans.manage; `returns/(approve|reject)` returns.approve; `returns` GET returns.approve | returns.collect (own only) | orders.view, write returns.collect; `principals` GET claims.manage | targets.manage | schemes.manage | orders.view, write claims.manage; `claims` claims.manage; `targets` GET targets.manage | orders.view, write targets.manage; `cheques` GET cheques.manage | collections.verify, write cheques.manage.
+
+### 14.1 Vans (`/distribution/vans`)
+
+A van is a `DistVan` plus its own WAREHOUSE-type Shop (`shopId`, named "Van: …"), created with the van. Its stock is ordinary ShopStock.
+
+| Method | Path | Body / query | Response |
+|---|---|---|---|
+| GET | `/distribution/vans` | – | `{ vans: VanRow[] }` (a salesman without manage/view sees only his) |
+| GET | `/distribution/vans/mine` | – | the caller's own vans |
+| POST | `/distribution/vans` | `{ name; vehicleNo?; homeShopId? (godown); salesmanId?; routeId?; note? }` | `VanDetail` |
+| GET / PATCH | `/distribution/vans/:id` | same fields, `isActive?` | `VanDetail` |
+| POST | `/distribution/vans/:id/open` | `{ salesmanId?; note? }` | van day (`DistVanSession`, one OPEN per van) |
+| POST | `/distribution/vans/:id/load` | `{ items: { productId; variantId?; unitId?; qty /* pack */ }[]; note? }` | `{ transferId; transferNumber; van: VanDetail }` — a transfer godown → van sent and received at once; opens the day when needed |
+| POST | `/distribution/vans/:id/sell` | `VanSell` | `{ order: OrderDetail; duplicate; invoice: { saleId; saleNumber }; collection: DistCollection \| null; warnings }` |
+| GET | `/distribution/vans/:id/close` | – | `{ session; lines: VanLine[] }` |
+| POST | `/distribution/vans/:id/close` | `{ counts?: { productId; variantId?; counted /* base */ }[]; handedIn?; unload? (default true); verifyCollections?; note? }` | closed session with `lines` |
+| GET | `/distribution/vans/:id/sessions` | – | `{ sessions }` |
+| GET | `/distribution/vans/sessions/:sessionId` | – | session with invoices, returns, money, `lines` |
+
+```ts
+interface VanSell { clientRef?; customerId; items: OrderLine[]; cashReceived?: Money; method?: FieldMethod; bankName?; chequeNo?; chequeDate?; managerPin?; note?; latitude?; longitude? }
+type FieldMethod = MoneyMethod | 'CHEQUE';
+interface VanLine { productId; variantId; name; baseUnit; opening; loaded; sold; returnsIn; writtenOff; other; expected /* system stock */; counted?; variance?; unloaded?; text }
+```
+
+Rules:
+- Sell: the order is priced like any order (price list, schemes), approved, invoiced from the van shop through `SalesService.create` (source DISTRIBUTION) and marked DELIVERED. Only the unpaid part counts for the credit limit; over it, `managerPin` (WARN_THEN_PIN) or refusal (BLOCK). A failed invoice leaves no order behind (the phone may resend the same clientRef); the error body carries `needsPin`.
+- Cash taken is an INVOICE_CASH collection of the van day (`vanSessionId`), PENDING unless settings post at once; verified at close (`verifyCollections`) or on Recoveries.
+- Close: lines come from the van's stock movements since the day opened. `counted − expected` is booked as stock adjustments (short: LOSS, reason THEFT; extra: ADJUSTMENT_IN, AUDIT_FOUND). Then everything left is transferred back to the godown. `shortAmount = expectedCash (CASH collections of the day) − handedIn`.
+
+### 14.2 Market returns (`/distribution/returns`)
+
+| Method | Path | Body / query | Response |
+|---|---|---|---|
+| GET | `/distribution/returns` | `?status&customerId&routeId&collectedById&from&to&page&limit` | `{ total; page; limit; totals: Record<status, { count; value; credited }>; returns }` |
+| POST | `/distribution/returns` | `CreateMarketReturn` | `{ marketReturn; duplicate }` |
+| POST | `/distribution/returns/preview` | same body | `{ lines (rate, value, costValue, supplierId, claimable); total }` |
+| GET | `/distribution/returns/:id` | – | detail with items, sale returns made |
+| POST | `/distribution/returns/approve` | `{ ids; managerPin? }` | `{ results: { id; number; ok; status; credited?; error?; needsPin? }[]; approved; needsPin }` |
+| POST | `/distribution/returns/reject` | `{ ids; reason? }` | `{ results; rejected }` |
+
+```ts
+interface CreateMarketReturn { clientRef?; customerId; shopId? /* godown */; vanId?; note?; collectedAt?; latitude?; longitude?; approve?: boolean; managerPin?;
+  items: { productId; variantId?; unitId?; qty /* pack */; condition: 'GOOD' | 'DAMAGED' | 'EXPIRED'; reason?; batchNo?; expiryDate?; rate? /* per pack, returns.approve only */; claimable?; supplierId? }[] }
+```
+
+- Credit rate: the customer's latest invoice price of the item (after discounts), else their price list.
+- Approve posts against the customer's invoices first (newest bill with that item unreturned) through `ReturnsService` (refund method CASH, restock only GOOD; damaged / expired go out as damage). Whatever the khata cannot absorb stays as an advance (REFUND row on the khata, never drawer cash). Quantity no invoice covers: stock in (RETURN_IN), damaged / expired written off by stock adjustment (DAMAGE / EXPIRY, LOSS), value credited as a khata ADJUSTMENT. Note: this last part has no sale behind it, so profit reports do not see its margin.
+- `claimable` defaults to true for DAMAGED / EXPIRED lines whose brand has a principal.
+- Booker sync takes `returns: CreateMarketReturn[]` (needs `returns.collect`); results kind `return`.
+
+### 14.3 Principals and claims
+
+| Method | Path | Body / query | Response |
+|---|---|---|---|
+| GET | `/distribution/principals` | – | `{ suppliers: { id; name; brandIds; brandNames; schemes; isPrincipal }[]; brands: { id; name; supplierId }[] }` |
+| PUT | `/distribution/principals/:supplierId/brands` | `{ brandIds }` | same; a brand moves from another principal |
+| GET | `/distribution/claims/pending` | `?from&to` (default this month) | `{ from; to; principals: { supplierId; supplierName; schemeDiscount; freeGoodsValue; returnsValue; total; lines }[]; total; openClaims }` |
+| GET | `/distribution/claims/preview` | `?supplierId&from&to` | lines a claim would take |
+| GET | `/distribution/claims` | `?status&supplierId` | `{ claims }` |
+| POST | `/distribution/claims` | `{ supplierId; from?; to?; note? }` | claim statement |
+| GET | `/distribution/claims/:id` | – | `{ kind: 'claim-statement'; business; claim (lines, totals, balance); supplier; receipts }` |
+| POST | `/distribution/claims/:id/submit` | `{ reference?; note? }` | DRAFT → SUBMITTED |
+| POST | `/distribution/claims/:id/receive` | `{ amount; receivedVia: 'SUPPLIER_KHATA' \| 'CASH_DRAWER' \| 'ACCOUNT'; moneyAccountId?; shopId?; date?; note? }` | RECEIVED when paid in full |
+| POST | `/distribution/claims/:id/cancel` | – | lines become claimable again (not after money arrived) |
+
+- Scheme lines: settled invoices of the period (by invoice date) whose line used a claimable scheme of the principal. Rupees off are claimed for the delivered share; free goods at cost (the free bill line's cost) for what was delivered.
+- Return lines: approved market return lines marked claimable for the principal, at cost.
+- Each line is stamped with its claim (`claimId`), so it is never claimed twice.
+- Money received is written as other income, category SCHEME_CLAIM, through the income module: SUPPLIER_KHATA sets it off on the supplier khata (ADJUSTMENT), CASH_DRAWER / ACCOUNT as cash or a deposit. It counts in net profit.
+- A product's principal is its brand's (`DistPrincipalBrand`). Claims, targets and commission by principal use this.
+
+### 14.4 Targets and commission
+
+| Method | Path | Body / query | Response |
+|---|---|---|---|
+| GET | `/distribution/targets` | `?period=YYYY-MM&userId` | `{ period; today; pace /* % of month gone */; daysLeft; targets: TargetRow[] }` |
+| POST | `/distribution/targets` | `{ period; userId?; routeId?; brandId?; supplierId?; metric: 'VALUE' \| 'QTY'; target; unitName?; note? }` | target |
+| PATCH / DELETE | `/distribution/targets/:id` | partial | |
+| POST | `/distribution/targets/copy` | `{ from; to }` | `{ copied; skipped }` |
+
+`TargetRow`: target plus `label, userName, routeName, brandName, supplierName, achieved, pct, expectedByNow, onTrack, remaining, perDayNeeded`. Achievement = invoices of the month (business time), each line for its delivered share; VALUE in rupees, QTY in base units or the target's pack. `GET /distribution/booker/summary` now also returns the caller's `targets`.
+
+Commission: `CommissionRule` takes `brandIds` and `supplierIds` (principals) next to `categoryIds` (`POST/PATCH /commission/rules`). Sales count for a rule only when they match every list that is set. Existing rules have empty lists and work as before.
+
+### 14.5 Cheques / PDC
+
+- Record: any collection (`POST /distribution/collections`, booker sync, delivery sync recoveries, van sell) with `method: 'CHEQUE'` and `bankName`, `chequeNo`, `chequeDate` (YYYY-MM-DD). The cheque row is written with the collection; the same cheque (customer, bank, number) is refused twice.
+- When the collection is verified, the khata gets PAYMENT_RECEIVED with payment method BANK_TRANSFER and reference "Cheque #…". Cheques never count in a load sheet's or van's expected cash.
+
+| Method | Path | Body / query | Response |
+|---|---|---|---|
+| GET | `/distribution/cheques` | `?status&customerId&due=today\|week\|later&from&to&search&page&limit` | `{ today; total; totals: Record<status, { count; amount }>; due: { today; week }; cheques (customer, collectionStatus, postDated, overdue) }` |
+| POST | `/distribution/cheques/:id/deposit` | `{ date?; moneyAccountId?; note? }` | RECEIVED → DEPOSITED |
+| POST | `/distribution/cheques/:id/clear` | `{ date?; note? }` | → CLEARED (collection must be verified) |
+| POST | `/distribution/cheques/:id/bounce` | `{ reason? }` | → BOUNCED: a verified payment is taken back with a khata ADJUSTMENT noted "Cheque bounce: #… (bank) — reason"; an unverified collection is rejected |
+| POST | `/distribution/cheques/:id/cancel` | `{ reason? }` | RECEIVED and not verified only |
+
+### 14.6 Stock reservation
+
+- An order left APPROVED without its invoice (PIN needed, stock short, no godown) holds what is free of its goods (paid and free) in its godown: `ShopStock.reserved` goes up and the hold is written on the order (`reservation`, `reservedAt`). The counter and every invoice already treat reserved stock as not free.
+- The hold is given back just before the order's own invoice is made, and when the order is cancelled. Van orders never hold.
+- `GET /distribution/orders/stock-check?ids=a,b` → `{ lines: { shopId; productId; name; need; stock; reservedByOthers; free; short; orderIds }[]; shortLines; orders: { id; orderNumber; short; holding }[] }` for BOOKED / APPROVED orders: the desk warns before approving.
+- Dashboard `phase2.ordersHoldingStock` counts them.
+
+### 14.7 Visit analytics
+
+`GET /distribution/reports/visits?from&to&bookerId&routeId&flags=1` (orders.view AND reports.view) → `{ from; to; rows; totals; flagged? }`. One row per booker per business day: `planned, visited, productive, unproductive, notVisited, strikeRate, coverage, orders, value, firstAt, lastAt, timeInMarketMin, avgVisitMin, longestGapMin, travelledKm` (straight line between check-ins) and `flags { farFromShop, noGps, shopWithoutGps, poorAccuracy }`. `flags=1` lists the far / no-GPS visits.
+
+### 14.8 Sales tax invoice
+
+`GET /distribution/orders/print?ids=…&tax=1` → kind `tax-invoice-a4`: the invoice-a4 data plus `business.taxLabel, business.taxNumber` and per invoice `tax { lines: { rate; valueExclTax; salesTax; valueInclTax }[]; valueExclTax; salesTax; valueInclTax; buyerRegistered; fbr: { status; invoiceNumber; qrCode; verificationUrl } | null }`. Rate: the item's tax rate, else the shop's (Settings → Tax) when tax is on. Prices include tax, so totals equal the bill.
+
+### 14.9 Schemes
+
+- `isMix` (boolean) on schemes: covered products on one order count together toward `buyQty` and the slabs. Percent and rupees per pack apply to each covered line; free goods go on the covered line with the most packs (or `freeProductId`).
+- Slabs must have different `minQty`.
+- The counter's discount guard checks a line against mix schemes with the rest of the bill.
+
+### 14.10 Dashboard additions
+
+`GET /distribution/dashboard` adds `phase2 { returnsToApprove { count; value }; chequesToDeposit { count; amount }; vansOut; ordersHoldingStock }`.
+
+### 14.11 AI tools (appended at the end of TOOL_SPECS)
+
+- `targets_status` (distribution.orders.view)
+- `van_stock` (distribution.orders.view)
+- `pending_claims` (distribution.claims.manage)
+
+All answer NOT_ENABLED when distribution is off.

@@ -177,6 +177,7 @@ export default function MoreScreen() {
       items: [
         { to: '/booker', label: 'Order Booking', description: 'Route, orders, recovery', icon: Truck, color: '#115e59', bg: '#ccfbf1', permission: PERMISSIONS.DISTRIBUTION_ORDERS_BOOK },
         { to: '/delivery', label: 'Delivery', description: 'Aaj ki load sheet, report, cash', icon: PackageCheck, color: '#115e59', bg: '#ccfbf1', permission: PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT },
+        { to: '/van', label: 'Van sale', description: 'Van ka stock, spot sale, market return', icon: Truck, color: '#115e59', bg: '#ccfbf1', permission: PERMISSIONS.DISTRIBUTION_VANS_SELL },
       ],
     },
     {
@@ -315,7 +316,7 @@ export default function MoreScreen() {
     const type = (businessType ?? '').toUpperCase();
     const isCarpet = type.includes('CARPET') || type.includes('FLOORING') || businessFeatures?.lengthWidthCalc === true;
     const isMobile = type.includes('MOBILE') || type.includes('PHONE') || type.includes('ELECTRONICS') || businessFeatures?.imei === true;
-    const isDistribution = type === 'DISTRIBUTOR' || !!user?.permissions?.includes(PERMISSIONS.DISTRIBUTION_ORDERS_BOOK) || !!user?.permissions?.includes(PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT);
+    const isDistribution = type === 'DISTRIBUTOR' || !!user?.permissions?.includes(PERMISSIONS.DISTRIBUTION_ORDERS_BOOK) || !!user?.permissions?.includes(PERMISSIONS.DISTRIBUTION_DELIVERY_REPORT) || !!user?.permissions?.includes(PERMISSIONS.DISTRIBUTION_VANS_SELL);
 
     return navGroups
       .filter((g) => {

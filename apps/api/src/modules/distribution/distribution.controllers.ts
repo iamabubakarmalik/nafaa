@@ -38,6 +38,7 @@ import { BookerService } from './services/booker.service';
 import { DeliveryService } from './services/delivery.service';
 import { DistributionReportsService } from './services/reports.service';
 import { DistributionPrintService } from './services/print.service';
+import { VisitAnalyticsQueryDto } from './dto/phase2.dto';
 
 const ids = (v?: string) => (v ?? '').split(',').map((s) => s.trim()).filter(Boolean).slice(0, 500);
 
@@ -80,6 +81,13 @@ export class DistributionReportsController {
   @RequirePermissions(PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.REPORTS_VIEW)
   dsr(@GetUser() user: AuthenticatedUser, @Query() q: DayQueryDto) {
     return this.reports.dsr(user, q);
+  }
+
+  /** Visit analytics per booker per day: strike rate, time in market, distance, GPS flags. */
+  @Get('reports/visits')
+  @RequirePermissions(PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, PERMISSIONS.REPORTS_VIEW)
+  visits(@GetUser() user: AuthenticatedUser, @Query() q: VisitAnalyticsQueryDto) {
+    return this.reports.visits(user, q);
   }
 
   @Get('reports/summary')
@@ -257,10 +265,16 @@ export class OrdersController {
     return this.orders.list(user, q);
   }
 
-  /** A4 invoice data (print kind invoice-a4) for invoiced orders: ?ids=a,b,c */
+  /** A4 invoice data (print kind invoice-a4) for invoiced orders: ?ids=a,b,c; &tax=1 gives the sales tax invoice. */
   @Get('print')
-  printInvoices(@GetUser() user: AuthenticatedUser, @Query('ids') list?: string) {
-    return this.print.invoices(user, ids(list));
+  printInvoices(@GetUser() user: AuthenticatedUser, @Query('ids') list?: string, @Query('tax') tax?: string) {
+    return this.print.invoices(user, ids(list), { tax: tax === '1' || tax === 'true' });
+  }
+
+  /** Overbooking check: what these orders need from each godown against free stock: ?ids=a,b,c */
+  @Get('stock-check')
+  stockCheck(@GetUser() user: AuthenticatedUser, @Query('ids') list?: string) {
+    return this.orders.stockCheck(user, ids(list));
   }
 
   @Post('preview')

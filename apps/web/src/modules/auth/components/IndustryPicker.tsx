@@ -74,7 +74,7 @@ export function IndustryPicker({ choices, value, onChange, error, label = 'Aap k
         })}
         {visible.length === 0 && (
           <p className="col-span-full rounded-lg bg-slate-50 p-4 text-center text-sm text-slate-500">
-            "{query}" nahi mila. "Koi aur dukaan" chun lein — baad me Settings se badal sakte hain.
+            "{query}" nahi mila. "Koi aur kaam" chun lein — baad me Settings se badal sakte hain.
           </p>
         )}
       </div>

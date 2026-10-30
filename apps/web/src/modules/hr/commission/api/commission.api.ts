@@ -17,6 +17,9 @@ export interface CommissionRule {
   valueType: CommissionValueType;
   value: number;
   categoryIds: string[];
+  /** Only these brands / brands of these principals (distribution); empty = no limit. */
+  brandIds?: string[];
+  supplierIds?: string[];
   minMonthlySale?: number | null;
   targetAmount?: number | null;
   targetBonus?: number | null;
@@ -33,6 +36,8 @@ export interface RulePayload {
   valueType: CommissionValueType;
   value: number;
   categoryIds: string[];
+  brandIds?: string[];
+  supplierIds?: string[];
   minMonthlySale: number | null;
   targetAmount: number | null;
   targetBonus: number | null;

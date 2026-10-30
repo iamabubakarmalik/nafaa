@@ -217,6 +217,19 @@ const DistLoadSheetPage = lazy(() => import('@modules/distribution/pages/LoadShe
 const DistSettlePage = lazy(() => import('@modules/distribution/pages/SettlePage'));
 const DistRecoveriesPage = lazy(() => import('@modules/distribution/pages/RecoveriesPage'));
 const DistReportsRedirect = lazy(() => import('@modules/distribution/pages/ReportsRedirect'));
+// ─── Distribution phase 2 (vans, market returns, claims, targets, cheques) ───
+const DistVansPage = lazy(() => import('@modules/distribution/phase2/vans/VansPage'));
+const DistVanPage = lazy(() => import('@modules/distribution/phase2/vans/VanDetailPage'));
+const DistReturnsPage = lazy(() => import('@modules/distribution/phase2/returns/MarketReturnsPage'));
+const DistClaimsPage = lazy(() => import('@modules/distribution/phase2/claims/ClaimsPage'));
+const DistTargetsPage = lazy(() => import('@modules/distribution/phase2/targets/TargetsPage'));
+const DistChequesPage = lazy(() => import('@modules/distribution/phase2/cheques/ChequesPage'));
+const TradeSuppliersPage = lazy(() => import('@modules/trade-network/pages/SuppliersPage'));
+const TradeOrderPage = lazy(() => import('@modules/trade-network/pages/OrderPage'));
+const TradeMyOrdersPage = lazy(() => import('@modules/trade-network/pages/MyOrdersPage'));
+const TradeReceivingPage = lazy(() => import('@modules/trade-network/pages/ReceivingPage'));
+const TradeAccountPage = lazy(() => import('@modules/trade-network/pages/AccountPage'));
+const TradeNetworkPage = lazy(() => import('@modules/trade-network/pages/NetworkPage'));
 
 // ─── Industry Pack System ──────────────────────────────────────
 import '@app/providers/registerIndustries';
@@ -386,6 +399,22 @@ export default function App() {
                   <Route path="/distribution/load-sheets/:id/settle" element={secure(PERMISSIONS.DISTRIBUTION_SETTLE, <DistSettlePage />)} />
                   <Route path="/distribution/recoveries" element={secure(PERMISSIONS.KHATA_VIEW, <DistRecoveriesPage />)} />
                   <Route path="/distribution/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <DistReportsRedirect />)} />
+                  <Route path="/distribution/vans" element={secure(PERMISSIONS.DISTRIBUTION_VANS_MANAGE, <DistVansPage />)} />
+                  <Route path="/distribution/vans/:id" element={secure(PERMISSIONS.DISTRIBUTION_VANS_MANAGE, <DistVanPage />)} />
+                  <Route path="/distribution/returns" element={secure(PERMISSIONS.DISTRIBUTION_RETURNS_APPROVE, <DistReturnsPage />)} />
+                  <Route path="/distribution/claims" element={secure(PERMISSIONS.DISTRIBUTION_CLAIMS_MANAGE, <DistClaimsPage />)} />
+                  <Route path="/distribution/targets" element={secure(PERMISSIONS.DISTRIBUTION_ORDERS_VIEW, <DistTargetsPage />)} />
+                  <Route path="/distribution/cheques" element={secure(PERMISSIONS.DISTRIBUTION_CHEQUES_MANAGE, <DistChequesPage />)} />
+
+                  {/* ── Trade network ── */}
+                  <Route path="/network" element={secure(PERMISSIONS.TRADE_BUY, <Suspense fallback={null}><TradeSuppliersPage /></Suspense>)} />
+                  <Route path="/network/join/:code" element={secure(PERMISSIONS.TRADE_LINKS_MANAGE, <Suspense fallback={null}><TradeSuppliersPage /></Suspense>)} />
+                  <Route path="/network/order/:linkId" element={secure(PERMISSIONS.TRADE_BUY, <Suspense fallback={null}><TradeOrderPage /></Suspense>)} />
+                  <Route path="/network/orders" element={secure(PERMISSIONS.TRADE_BUY, <Suspense fallback={null}><TradeMyOrdersPage /></Suspense>)} />
+                  <Route path="/network/receiving" element={secure(PERMISSIONS.TRADE_BUY, <Suspense fallback={null}><TradeReceivingPage /></Suspense>)} />
+                  <Route path="/network/suppliers/:linkId" element={secure(PERMISSIONS.TRADE_BUY, <Suspense fallback={null}><TradeAccountPage /></Suspense>)} />
+                  <Route path="/network/links/:linkId" element={secure(PERMISSIONS.TRADE_SELL, <Suspense fallback={null}><TradeAccountPage /></Suspense>)} />
+                  <Route path="/network/customers" element={secure(PERMISSIONS.TRADE_SELL, <Suspense fallback={null}><TradeNetworkPage /></Suspense>)} />
 
                   {/* ── Reports ────────────────────────────────── */}
                   <Route path="/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <ReportsCenterPage />)} />

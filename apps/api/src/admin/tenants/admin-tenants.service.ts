@@ -9,6 +9,8 @@ export class AdminTenantsService {
   async list(params: {
     search?: string;
     status?: TenantStatus;
+    /** RETAIL also matches businesses that never answered (empty list). */
+    model?: string;
     page?: number;
     limit?: number;
   }) {
@@ -28,6 +30,11 @@ export class AdminTenantsService {
           }
         : {}),
       ...(params.status ? { status: params.status } : {}),
+      ...(params.model === 'RETAIL'
+        ? { AND: [{ OR: [{ businessModels: { has: 'RETAIL' } }, { businessModels: { isEmpty: true } }] }] }
+        : params.model
+          ? { businessModels: { has: params.model } }
+          : {}),
     };
 
     const [items, total] = await Promise.all([

@@ -3,7 +3,9 @@
  *
  * Combines the core groups, the active industry's groups and the connected
  * sales channels, then filters by workspace (shop / all shops / marketplace),
- * ownership and permissions. The expanded sidebar, the collapsed rail and the
+ * ownership and permissions. How the business sells (Tenant.businessModels)
+ * moves its main group up: Online store for online sellers, Distribution for
+ * wholesalers and distributors. The expanded sidebar, the collapsed rail and the
  * mobile drawer all read from this hook so they never disagree.
  */
 
@@ -17,7 +19,8 @@ import { useIsAllShops } from '@core/stores/auth.store';
 import { channelMeta, channelPath, useSalesChannels } from '@integrations/online-orders/hooks/useSalesChannels';
 import { BrandLogo, brandForChannel, type BrandName } from '@/assets/brands/BrandLogo';
 import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
-import { useDistributionEnabled } from '@modules/distribution/hooks/useDistribution';
+import { useDistributionState } from '@modules/distribution/hooks/useDistribution';
+import { useBusinessModels } from '@core/lib/business-models';
 import { cn } from '@core/lib/cn';
 import { allShopsNavGroups, canSeeSettingsItem, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
 
@@ -30,10 +33,20 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const isAllShops = useIsAllShops();
   const { data: channels } = useSalesChannels();
   const manufacturing = useManufacturingEnabled();
-  const distribution = useDistributionEnabled();
+  const dist = useDistributionState();
+  const distribution = dist.state === 'on';
+  const fullDistribution = distribution && dist.data?.settings.mode !== 'WHOLESALE';
+  const { sellsOnline, sellsToShops } = useBusinessModels();
+  // A wholesaler whose plan lacks distribution (or who switched it off) keeps one entry that explains the next step.
+  const distributionTeaser = (sellsToShops || industry?.id === 'distribution') && (dist.state === 'plan' || dist.state === 'off');
 
   const groups = useMemo<NavGroup[]>(() => {
-    const pos = posNavGroups.map((g) => (g.id === 'online' ? { ...g, items: [...g.items, ...channelItems(channels)] } : g));
+    const pos = posNavGroups.map((g) => {
+      const group = g.id === 'online' ? { ...g, items: [...g.items, ...channelItems(channels)] } : g;
+      if (g.id === 'online' && sellsOnline) return { ...group, order: 0.6, defaultOpen: true };
+      if (g.id === 'distribution' && sellsToShops) return { ...group, order: 0.5, defaultOpen: true };
+      return group;
+    });
     const base = isMarketplace
       ? marketplaceNavGroups
       : isAllShops
@@ -47,7 +60,8 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
         items: g.items.filter((it) => {
           if (isAllShops && !isMarketplace && it.needsShop) return false;
           if (it.feature === 'manufacturing' && !manufacturing) return false;
-          if (it.feature === 'distribution' && !distribution) return false;
+          if (it.feature === 'distribution-full' && !fullDistribution) return false;
+          if (it.feature === 'distribution' && !distribution && !(distributionTeaser && it.to === '/distribution')) return false;
           if (!owner && isOwnerOnlyPath(it.to)) return false;
           // Setup screens live in Settings, not in the everyday menu.
           if (!isMarketplace && isSettingsPath(it.to)) return false;
@@ -58,8 +72,11 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
           return needs ? hasPermission(role as never, permissions, needs) : true;
         }),
       }))
+      .map((g) => (distributionTeaser && g.id === 'distribution'
+        ? { ...g, items: g.items.map((it) => (it.to === '/distribution' ? { ...it, badge: dist.state === 'plan' ? 'Plan' : 'Band' } : it)) }
+        : g))
       .filter((g) => g.items.length > 0);
-  }, [industry, isMarketplace, isAllShops, role, permissions, channels, manufacturing, distribution]);
+  }, [industry, isMarketplace, isAllShops, role, permissions, channels, manufacturing, distribution, fullDistribution, distributionTeaser, dist.state, sellsOnline, sellsToShops]);
 
   const settingsItems = useMemo(() => SETTINGS_ITEMS.filter((i) => canSeeSettingsItem(i, role, permissions)), [role, permissions]);
 

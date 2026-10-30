@@ -18,6 +18,7 @@ import { isDialogOpen } from '@core/lib/shortcuts';
 import { Alert, Button, Kbd, Modal, Skeleton } from '@/design-system/components';
 import { ThemeToggle } from '@modules/auth/components/ThemeToggle';
 import { clearSignupIndustry, readSignupIndustry } from '@modules/auth/lib/industry-choices';
+import { clearSignupModels, DEFAULT_MODELS, readSignupModels, cleanModels } from '@core/lib/business-models';
 import { onboardingApi, type OnboardingOptions, type OnboardingProgress } from '../api/onboarding.api';
 import { useOnboardingOptions, useOnboardingProgress } from '../hooks/useOnboarding';
 import { useOnboardingTimer } from '../hooks/useOnboardingTimer';
@@ -69,7 +70,7 @@ export default function OnboardingPage() {
   const finishingRef = useRef(false);
   const hydratedRef = useRef(false);
 
-  const [business, setBusiness] = useState<BusinessForm>({ businessType: '', businessSize: 'SMALL', city: '', whatsappNumber: '' });
+  const [business, setBusiness] = useState<BusinessForm>({ businessModels: DEFAULT_MODELS, businessType: '', businessSize: 'SMALL', city: '', whatsappNumber: '' });
   const [branch, setBranch] = useState<BranchForm>({
     shopAddress: '', shopArea: '', shopLandmark: '', openTime: '09:00', closeTime: '22:00', workingDays: DEFAULT_DAYS, taxNumber: '',
   });
@@ -103,7 +104,9 @@ export default function OnboardingPage() {
   const hydrate = (p: OnboardingProgress, o: OnboardingOptions) => {
     const allowed = new Set(o.businessTypes.map((b) => b.value));
     const pick = [p.businessType, readSignupIndustry(), tenant?.businessType].find((t): t is string => !!t && allowed.has(t)) ?? '';
+    const savedModels = cleanModels(tenant?.businessModels);
     setBusiness({
+      businessModels: readSignupModels() ?? (savedModels.length ? savedModels : DEFAULT_MODELS),
       businessType: pick,
       businessSize: p.businessSize || 'SMALL',
       city: p.city || p.detectedCity || '',
@@ -177,14 +180,16 @@ export default function OnboardingPage() {
     const phone = cleanPhone(business.whatsappNumber);
     void run(async () => {
       await onboardingApi.step1({
+        businessModels: business.businessModels,
         businessType: business.businessType,
         businessSize: business.businessSize,
         city: known?.name ?? city,
         province: known?.province || undefined,
       });
       const result = await onboardingApi.step2(phone ? { whatsappNumber: phone } : {});
-      updateTenant({ businessType: business.businessType });
+      updateTenant({ businessType: business.businessType, businessModels: business.businessModels });
       clearSignupIndustry();
+      clearSignupModels();
       void queryClient.invalidateQueries({ queryKey: ['business-config'] });
       return result;
     }, nextPosition('business'));
@@ -467,7 +472,7 @@ export default function OnboardingPage() {
                   <span className="flex-1 md:hidden" />
                   {step?.skippable && (
                     <Button variant="ghost" size="lg" onClick={skip} disabled={busy}>
-                      Abhi nahi
+                      Skip
                     </Button>
                   )}
                   <Button
@@ -476,7 +481,7 @@ export default function OnboardingPage() {
                     loading={busy}
                     rightIcon={position === 'finish' ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
                   >
-                    {position === 'finish' ? 'Dukaan kholein' : 'Save karke aage'}
+                    {position === 'finish' ? 'Start' : 'Next'}
                   </Button>
                 </footer>
               </section>

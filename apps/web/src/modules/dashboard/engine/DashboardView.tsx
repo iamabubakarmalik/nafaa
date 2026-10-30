@@ -16,6 +16,7 @@ import { useAuthStore, useIsAllShops } from '@core/stores/auth.store';
 import { EmailVerifyBanner } from '@core/components/auth/EmailVerifyBanner';
 import { cn } from '@core/lib/cn';
 import { SubscriptionBanner } from '../components/SubscriptionBanner';
+import { BusinessModelStrip } from '../components/BusinessModelStrip';
 import AllShopsDashboard from '../components/AllShopsDashboard';
 import { CustomizeDialog } from './CustomizeDialog';
 import { GuideDialog } from './GuideDialog';
@@ -112,6 +113,8 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
           </Button>
         </div>
       </header>
+
+      <BusinessModelStrip />
 
       <div className="grid grid-flow-row-dense grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-12">
         {visible.map(({ widget, size }) => (

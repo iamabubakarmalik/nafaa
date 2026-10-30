@@ -25,6 +25,7 @@ import { Alert, Badge, Button, EmptyState, IconButton, Input, Skeleton } from '@
 import { useAuthStore } from '@core/stores/auth.store';
 import { SectionCard } from '../components/SettingsBlocks';
 import { SaveStatusBar } from './_SaveStatus';
+import { BusinessModelsCard } from './BusinessModelsCard';
 
 interface FeatureMeta {
   key: keyof BusinessFeatures;
@@ -274,6 +275,8 @@ export function BusinessConfigSection() {
   return (
     <div className="space-y-4">
       <SaveStatusBar saving={updateFeaturesMutation.isPending || changeTypeMutation.isPending} dirty={false} />
+
+      <BusinessModelsCard />
 
       <SectionCard title="Aap ka business type" desc="Is se tay hota hai ke menu, product form aur POS me kya kya aata hai" icon={Store} color="violet"
         action={

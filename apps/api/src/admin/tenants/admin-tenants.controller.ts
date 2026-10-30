@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TenantStatus } from '@prisma/client';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
+import { BUSINESS_MODELS } from '../../modules/onboarding/constants/business-models';
 import { AdminTenantsService } from './admin-tenants.service';
 import { UpdateTenantStatusDto } from './dto/update-tenant-status.dto';
 
@@ -26,12 +27,14 @@ export class AdminTenantsController {
   list(
     @Query('search') search?: string,
     @Query('status') status?: TenantStatus,
+    @Query('model') model?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.service.list({
       search,
       status,
+      model: model && BUSINESS_MODELS.includes(model.toUpperCase() as never) ? model.toUpperCase() : undefined,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
     });

@@ -19,11 +19,16 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { shopsApi } from '@modules/organization/shops/api/shops.api';
 import { ChoiceGroup, Field, NumberInput, PageLink, SectionCard, Toggle } from '@modules/organization/settings/components/SettingsBlocks';
 import { SaveStatusBar } from '@modules/organization/settings/sections/_SaveStatus';
-import { DIST_KEY, distError, distSetupApi, type CreditMode, type DistributionSettings, type SettingsResponse, type UpdateSettings } from '../../api/distribution.api';
+import { DIST_KEY, distError, distSetupApi, type CreditMode, type DistributionMode, type DistributionSettings, type SettingsResponse, type UpdateSettings } from '../../api/distribution.api';
 import { useDistributionSettings } from '../../hooks/useDistribution';
 import { PRICE_LISTS_KEY } from '../shared';
 
 const SETTINGS_KEY = [DIST_KEY, 'settings'];
+
+const MODES: Array<{ value: DistributionMode; label: string; desc: string; icon: typeof Truck }> = [
+  { value: 'WHOLESALE', label: 'Sirf wholesale', desc: 'Price list, order, udhaar aur recovery', icon: Warehouse },
+  { value: 'FULL', label: 'Poori distribution', desc: 'Upar sab, saath me routes, booker, load sheet aur delivery', icon: Truck },
+];
 
 const CREDIT_MODES: Array<{ value: CreditMode; label: string; desc: string }> = [
   { value: 'WARN_THEN_PIN', label: 'Warning, phir PIN', desc: 'Limit se zyada ya purana udhaar ho to Invoice par manager ka PIN' },
@@ -111,10 +116,16 @@ export function DistributionSettingsSection() {
           label="Distribution chalu karein"
           desc={access.planAllows ? 'Band karne se purana data nahi mitta — sirf menu aur booker app band hote hain.' : 'Pehle plan upgrade karein.'} />
         {on && (
+          <div className="mt-3">
+            <p className="mb-2 text-[0.8125rem] font-medium text-slate-700">Kitna kaam chahiye?</p>
+            <ChoiceGroup value={draft.mode ?? 'FULL'} onChange={(v: DistributionMode) => set('mode', v, true)} options={MODES} />
+          </div>
+        )}
+        {on && (
           <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             <PageLink to="/distribution" icon={LayoutDashboard} title="Distribution dashboard" desc="Aaj ka kaam ek nazar me" />
             <PageLink to="/distribution/price-lists" icon={Tag} title="Price lists" desc="Har customer group ka rate" />
-            <PageLink to="/distribution/routes" icon={MapPin} title="Routes" desc="Din, booker, dukaanein" />
+            {draft.mode !== 'WHOLESALE' && <PageLink to="/distribution/routes" icon={MapPin} title="Routes" desc="Din, booker, dukaanein" />}
             <PageLink to="/distribution/schemes" icon={BadgePercent} title="Schemes" desc="10+1, % off, slab" />
             <PageLink to="/staff" icon={UserCog} title="Team" desc="Booker aur Delivery login" />
           </div>

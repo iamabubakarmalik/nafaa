@@ -222,6 +222,7 @@ export class DeliveryService {
       user,
       {
         clientRef: c.clientRef, customerId: c.customerId, amount: c.amount, method: c.method, reference: c.reference,
+        bankName: c.bankName, chequeNo: c.chequeNo, chequeDate: c.chequeDate,
         note: c.note?.trim() || 'Recovery (delivery)', loadSheetId: c.loadSheetId, collectedAt: c.collectedAt,
         latitude: c.latitude, longitude: c.longitude,
       },

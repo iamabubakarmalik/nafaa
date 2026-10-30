@@ -128,6 +128,7 @@ export interface OnboardingOptions {
 
 export interface BusinessConfig {
   businessType: string;
+  businessModels?: string[];
   defaultUnit: string;
   currency?: string;
   features: Record<string, boolean>;
@@ -171,6 +172,10 @@ export const onboardingApi = {
 
   changeBusinessType: (businessType: string) =>
     apiClient.post<{ data: BusinessConfig }>('/onboarding/change-business-type', { businessType }).then(unwrap) as Promise<BusinessConfig>,
+
+  setBusinessModels: (businessModels: string[]) =>
+    apiClient.put('/onboarding/business-models', { businessModels })
+      .then(unwrap) as Promise<{ businessModels: string[]; distributionMode: 'FULL' | 'WHOLESALE' | null }>,
 
   // ─── Steps ────────────────────────────────────────────────
   step1: (data: any) =>

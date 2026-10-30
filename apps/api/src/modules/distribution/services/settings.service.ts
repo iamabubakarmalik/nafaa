@@ -10,14 +10,14 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { BOOKER_REQUIRED_PERMISSIONS, DISTRIBUTION_PRESETS } from '../../../common/constants/permissions.constants';
 import { DistributionAccessService } from '../distribution-access';
 import {
-  COLLECTION_STATUSES, CREDIT_MODES, DELIVERY_OUTCOMES, LOAD_SHEET_STATUSES, NO_ORDER_REASONS, ORDER_STATUSES, VISIT_OUTCOMES,
+  COLLECTION_STATUSES, CREDIT_MODES, DELIVERY_OUTCOMES, DISTRIBUTION_MODES, LOAD_SHEET_STATUSES, NO_ORDER_REASONS, ORDER_STATUSES, VISIT_OUTCOMES,
 } from '../distribution.constants';
 import { UpdateDistributionSettingsDto } from '../dto/setup.dto';
 import { LIST_BASES } from '../helpers/pricing';
 import { SCHEME_TYPES } from '../helpers/scheme-resolver';
 
 const PUBLIC_FIELDS = {
-  enabled: true, creditMode: true, requireCheckIn: true, checkInRadiusM: true, orderPrefix: true, loadSheetPrefix: true,
+  enabled: true, mode: true, creditMode: true, requireCheckIn: true, checkInRadiusM: true, orderPrefix: true, loadSheetPrefix: true,
   recoveryNeedsVerify: true, defaultPriceListId: true, defaultShopId: true, updatedAt: true,
 } as const;
 
@@ -29,6 +29,7 @@ export const DISTRIBUTION_META = {
   visitOutcomes: VISIT_OUTCOMES,
   noOrderReasons: NO_ORDER_REASONS,
   creditModes: CREDIT_MODES,
+  modes: DISTRIBUTION_MODES,
   schemeTypes: SCHEME_TYPES,
   listBases: LIST_BASES,
 };
@@ -42,7 +43,7 @@ export class DistributionSettingsService {
     const access = await this.access.read(user.tenantId);
     return {
       settings: row ?? {
-        enabled: false, creditMode: 'WARN_THEN_PIN', requireCheckIn: false, checkInRadiusM: 150, orderPrefix: 'SO-',
+        enabled: false, mode: 'FULL', creditMode: 'WARN_THEN_PIN', requireCheckIn: false, checkInRadiusM: 150, orderPrefix: 'SO-',
         loadSheetPrefix: 'LS-', recoveryNeedsVerify: true, defaultPriceListId: null, defaultShopId: null, updatedAt: null,
       },
       access,

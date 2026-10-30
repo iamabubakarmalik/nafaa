@@ -117,15 +117,18 @@ export async function assertShop(db: Db, tenantId: string, id: string | null | u
 
 /* ───────────── numbering ───────────── */
 
-/** Next order or load sheet number, taken atomically from the settings row. */
-export async function nextNumber(db: Db, tenantId: string, kind: 'order' | 'loadSheet'): Promise<string> {
+/** Next document number, taken atomically from the settings row. Market returns are MR-, claims CL-. */
+export async function nextNumber(db: Db, tenantId: string, kind: 'order' | 'loadSheet' | 'return' | 'claim'): Promise<string> {
+  const field = ({ order: 'orderSeq', loadSheet: 'loadSheetSeq', return: 'returnSeq', claim: 'claimSeq' } as const)[kind];
   const row = await db.distributionSettings.upsert({
     where: { tenantId },
-    create: { tenantId, ...(kind === 'order' ? { orderSeq: 1 } : { loadSheetSeq: 1 }) },
-    update: kind === 'order' ? { orderSeq: { increment: 1 } } : { loadSheetSeq: { increment: 1 } },
-    select: { orderSeq: true, loadSheetSeq: true, orderPrefix: true, loadSheetPrefix: true },
+    create: { tenantId, [field]: 1 },
+    update: { [field]: { increment: 1 } },
+    select: { orderSeq: true, loadSheetSeq: true, returnSeq: true, claimSeq: true, orderPrefix: true, loadSheetPrefix: true },
   });
-  return kind === 'order' ? docNumber(row.orderPrefix, row.orderSeq) : docNumber(row.loadSheetPrefix, row.loadSheetSeq);
+  if (kind === 'order') return docNumber(row.orderPrefix, row.orderSeq);
+  if (kind === 'loadSheet') return docNumber(row.loadSheetPrefix, row.loadSheetSeq);
+  return kind === 'return' ? docNumber('MR-', row.returnSeq) : docNumber('CL-', row.claimSeq);
 }
 
 /* ───────────── khata posting ───────────── */
@@ -164,6 +167,8 @@ export async function postCollection(tx: Db, c: PostableCollection, verifierId: 
   });
   const balance = await tidyCustomerBalance(tx, c.customerId, raw);
   let reference = c.reference;
+  // A cheque is bank money on the khata; the cheque register can take it back if it bounces.
+  const method = c.method === 'CHEQUE' ? 'BANK_TRANSFER' : c.method;
   if (!reference && c.saleId) {
     reference = (await tx.sale.findFirst({ where: { id: c.saleId, tenantId: c.tenantId }, select: { saleNumber: true } }))?.saleNumber ?? null;
   }
@@ -171,7 +176,7 @@ export async function postCollection(tx: Db, c: PostableCollection, verifierId: 
     data: {
       tenantId: c.tenantId, customerId: c.customerId, shopId: c.shopId, createdById: verifierId,
       type: 'PAYMENT_RECEIVED', amount: -c.amount, balanceAfter: balance,
-      reference, paymentMethod: c.method as PaymentMethod,
+      reference, paymentMethod: method as PaymentMethod,
       note: c.note || (c.kind === 'INVOICE_CASH' ? 'Delivery par payment' : 'Recovery (field)'),
     },
     select: { id: true },

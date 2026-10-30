@@ -26,6 +26,7 @@ import {
 } from './templates/business-templates';
 import { LocationDetectorService } from './services/location-detector.service';
 import { SampleDataService } from './services/sample-data.service';
+import { cleanBusinessModels, distributionModeFor, type BusinessModel } from './constants/business-models';
 
 @Injectable()
 export class OnboardingService {
@@ -155,6 +156,7 @@ export class OnboardingService {
       update: settingsData,
     });
     await this.switchOnDistribution(user.tenantId, dto.businessType);
+    if (dto.businessModels?.length) await this.saveBusinessModels(user.tenantId, cleanBusinessModels(dto.businessModels));
 
     return this.updateAndAdvance(user.tenantId, 1, {
       businessType: dto.businessType,
@@ -494,13 +496,14 @@ export class OnboardingService {
   async getBusinessConfig(user: AuthenticatedUser) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { id: user.tenantId },
-      select: { businessType: true, businessFeatures: true, defaultUnit: true, currency: true },
+      select: { businessType: true, businessFeatures: true, defaultUnit: true, currency: true, businessModels: true },
     });
     if (!tenant) throw new NotFoundException('Tenant not found');
 
     const template = getBusinessTemplate(tenant.businessType || 'GENERAL');
     return {
       businessType: tenant.businessType || 'GENERAL',
+      businessModels: tenant.businessModels ?? [],
       defaultUnit: tenant.defaultUnit || template.defaultUnit,
       currency: tenant.currency || template.currency,
       features: (tenant.businessFeatures as any) || template.features,
@@ -563,6 +566,33 @@ export class OnboardingService {
       create: { tenantId, enabled: true },
       update: { enabled: true },
     });
+  }
+
+  /** How the business sells (sign-up, onboarding and Settings). Owner only. */
+  async setBusinessModels(user: AuthenticatedUser, input: string[]) {
+    if (user.role !== 'OWNER') throw new ForbiddenException('Only owner');
+    const models = cleanBusinessModels(input);
+    if (!models.length) throw new BadRequestException('Kam se kam ek tareeqa chunein');
+    return this.saveBusinessModels(user.tenantId, models);
+  }
+
+  /**
+   * Stores the models and sets the business up for them. Wholesale or
+   * distribution switches Distribution on in the matching mode (the plan
+   * still decides whether it can be used). Dropping a model never switches
+   * anything off, so no data or screen disappears behind the owner's back.
+   */
+  private async saveBusinessModels(tenantId: string, models: BusinessModel[]) {
+    await this.prisma.tenant.update({ where: { id: tenantId }, data: { businessModels: models } });
+    const mode = distributionModeFor(models);
+    if (mode) {
+      await this.prisma.distributionSettings.upsert({
+        where: { tenantId },
+        create: { tenantId, enabled: true, mode },
+        update: { enabled: true, mode },
+      });
+    }
+    return { businessModels: models, distributionMode: mode };
   }
 
   /** Analytics — total time spent */

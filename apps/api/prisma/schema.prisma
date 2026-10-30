@@ -417,6 +417,8 @@ model Tenant {
   businessType     String? // CARPET, MOBILE, GROCERY, PHARMACY, etc.
   businessFeatures Json? // { lengthWidthCalc: true, imei: false, ... }
   defaultUnit      String? // sqft, kg, pcs, etc.
+  /// How the business sells: RETAIL, WHOLESALE, DISTRIBUTION, ONLINE. Empty = not answered, treated as retail.
+  businessModels   String[] @default([])
 
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
@@ -2864,6 +2866,9 @@ model CommissionRule {
 
   /// Sirf in categories ki bikri par — khali to har cheez par
   categoryIds String[] @default([])
+  /// Only sales of these brands, or of brands of these principals (suppliers); empty = no limit. Distribution phase 2.
+  brandIds    String[] @default([])
+  supplierIds String[] @default([])
 
   /// Mahine me itni bikri ke baad hi commission shuru ho
   minMonthlySale Float?
@@ -23695,6 +23700,8 @@ model DistributionSettings {
   id                  String   @id @default(uuid())
   tenantId            String   @unique
   enabled             Boolean  @default(false)
+  /// WHOLESALE: price lists, orders, credit, recoveries. FULL: adds routes, bookers, load sheets and delivery.
+  mode                String   @default("FULL")
   /// WARN_THEN_PIN: warn at booking, manager PIN at invoicing. BLOCK: refuse at invoicing. OFF: no check.
   creditMode          String   @default("WARN_THEN_PIN")
   /// Visits must be checked in within `checkInRadiusM` of the customer's location (flagged, never refused offline).
@@ -23704,6 +23711,9 @@ model DistributionSettings {
   loadSheetPrefix     String   @default("LS-")
   orderSeq            Int      @default(0)
   loadSheetSeq        Int      @default(0)
+  /// Numbering of market returns (MR-) and principal claims (CL-).
+  returnSeq           Int      @default(0)
+  claimSeq            Int      @default(0)
   /// Recoveries stay PENDING until the office verifies them. Off: posted to the khata when recorded.
   recoveryNeedsVerify Boolean  @default(true)
   /// Price list for customers without one. Null: the customer's price tier, else wholesale.
@@ -23814,6 +23824,8 @@ model TradeScheme {
   endsAt        DateTime?
   /// Can be claimed back from the principal.
   isClaimable   Boolean   @default(false)
+  /// Mix scheme: quantities of every covered product on the order count together toward buyQty / slabs.
+  isMix         Boolean   @default(false)
   isActive      Boolean   @default(true)
   note          String?
   createdAt     DateTime  @default(now())
@@ -23868,6 +23880,13 @@ model SalesOrder {
   returnsValue   Float     @default(0)
   returnId       String?
   returnReason   String?
+  /// Spot invoice sold from a van during this van day.
+  vanSessionId   String?
+  /// Godown stock held while approved and not yet invoiced: [{ shopId, productId, variantId, qty }].
+  reservation    Json?
+  reservedAt     DateTime?
+  /// NETWORK when a linked buyer placed it on Nafaa (trade network). Null: booked in the field or office.
+  source         String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @default(now()) @updatedAt
 
@@ -23913,6 +23932,8 @@ model SalesOrderItem {
   /// Delivered at settlement, in base units (paid and free).
   deliveredBaseQty Float?
   deliveredFreeQty Float?
+  /// Principal claim this line's scheme value was put on.
+  claimId          String?
   sortOrder        Int     @default(0)
 
   salesOrder SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
@@ -23982,6 +24003,10 @@ model DistCollection {
   verifiedById  String?
   verifiedAt    DateTime?
   rejectReason  String?
+  /// Cheque behind this collection (method CHEQUE).
+  chequeId      String?
+  /// Van day the money was taken on (spot sale or recovery from the van).
+  vanSessionId  String?
   clientRef     String?
   latitude      Float?
   longitude     Float?
@@ -24063,4 +24088,408 @@ model DistVisit {
   @@index([tenantId, userId, checkInAt])
   @@index([tenantId, customerId])
   @@index([tenantId, routeId, checkInAt])
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Distribution phase 2: vans, market returns, principal claims, cheques
+// and targets. Tables carry tenantId without a Tenant relation (like the
+// trade network tables) so the shared Tenant model is not touched.
+// ═══════════════════════════════════════════════════════════════════
+
+/// A van that carries stock and sells on the route. Its stock is a WAREHOUSE-type Shop (shopId).
+model DistVan {
+  id         String   @id @default(uuid())
+  tenantId   String
+  name       String
+  vehicleNo  String?
+  /// The van's own stock location: a Shop of type WAREHOUSE.
+  shopId     String   @unique
+  /// Godown the van loads from and unloads back to.
+  homeShopId String?
+  /// Salesman who sells from the van (spot invoices).
+  salesmanId String?
+  routeId    String?
+  isActive   Boolean  @default(true)
+  note       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  sessions DistVanSession[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, isActive])
+}
+
+/// One working day of a van: loads from the godown, spot sales, returns, then the end-of-day count and unload.
+model DistVanSession {
+  id               String    @id @default(uuid())
+  tenantId         String
+  vanId            String
+  /// Business day, YYYY-MM-DD.
+  dayKey           String
+  /// OPEN | CLOSED
+  status           String    @default("OPEN")
+  salesmanId       String?
+  /// Van stock when the day opened: [{ productId, variantId, qty }].
+  openingStock     Json?
+  /// Transfers that loaded the van (godown → van) and the one that unloaded it.
+  loadTransferIds  String[]  @default([])
+  unloadTransferId String?
+  /// End-of-day lines: [{ productId, variantId, opening, loaded, sold, returnsIn, writtenOff, expected, counted, variance, unloaded }].
+  reconciliation   Json?
+  /// Stock adjustment group made for counted short / excess.
+  varianceRef      String?
+  expectedCash     Float     @default(0)
+  handedIn         Float?
+  shortAmount      Float     @default(0)
+  openedById       String?
+  openedAt         DateTime  @default(now())
+  closedById       String?
+  closedAt         DateTime?
+  note             String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  van DistVan @relation(fields: [vanId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, vanId, status])
+  @@index([tenantId, dayKey])
+}
+
+/// Goods a retailer gives back on the route (expired, damaged, unsold). Credited to the khata when approved.
+model DistMarketReturn {
+  id             String    @id @default(uuid())
+  tenantId       String
+  number         String
+  clientRef      String?
+  customerId     String
+  routeId        String?
+  /// Godown or van the goods come back into.
+  shopId         String?
+  vanSessionId   String?
+  collectedById  String
+  collectedAt    DateTime  @default(now())
+  /// PENDING | APPROVED | REJECTED
+  status         String    @default("PENDING")
+  /// Value of the goods at the rates credited, and what reached the khata.
+  totalValue     Float     @default(0)
+  creditedAmount Float     @default(0)
+  approvedById   String?
+  approvedAt     DateTime?
+  rejectReason   String?
+  /// Sale returns made against the customer's invoices, and the khata row for goods without an invoice.
+  saleReturnIds  String[]  @default([])
+  ledgerId       String?
+  note           String?
+  latitude       Float?
+  longitude      Float?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  items DistMarketReturnItem[]
+
+  @@unique([tenantId, number])
+  @@unique([tenantId, clientRef])
+  @@index([tenantId, status])
+  @@index([tenantId, customerId])
+  @@index([tenantId, collectedAt])
+}
+
+model DistMarketReturnItem {
+  id             String    @id @default(uuid())
+  marketReturnId String
+  productId      String
+  variantId      String?
+  unitId         String?
+  unitName       String?
+  conversionRate Float     @default(1)
+  qty            Float
+  baseQty        Float
+  /// Rupees credited per base unit, and the line value.
+  rate           Float     @default(0)
+  value          Float     @default(0)
+  /// Cost of the goods (base units × cost), used for principal claims.
+  costValue      Float     @default(0)
+  /// GOOD (back on the shelf) | DAMAGED | EXPIRED (written off)
+  condition      String    @default("GOOD")
+  reason         String?
+  batchNo        String?
+  expiryDate     DateTime?
+  /// The principal pays this back (damaged or expired goods).
+  claimable      Boolean   @default(false)
+  supplierId     String?
+  /// Base units matched to invoices; the rest was posted without an invoice.
+  matchedQty     Float     @default(0)
+  claimId        String?
+  sortOrder      Int       @default(0)
+
+  marketReturn DistMarketReturn @relation(fields: [marketReturnId], references: [id], onDelete: Cascade)
+
+  @@index([marketReturnId])
+  @@index([claimId])
+}
+
+/// Which principal (a supplier company) owns a brand. Drives claims, targets and commission by principal.
+model DistPrincipalBrand {
+  id         String   @id @default(uuid())
+  tenantId   String
+  supplierId String
+  brandId    String
+  createdAt  DateTime @default(now())
+
+  @@unique([tenantId, brandId])
+  @@index([tenantId, supplierId])
+}
+
+/// A claim to a principal for one period: scheme discounts, free goods and claimable market returns.
+model DistClaim {
+  id             String    @id @default(uuid())
+  tenantId       String
+  number         String
+  supplierId     String
+  fromKey        String
+  toKey          String
+  /// DRAFT | SUBMITTED | RECEIVED | CANCELLED
+  status         String    @default("DRAFT")
+  schemeDiscount Float     @default(0)
+  freeGoodsValue Float     @default(0)
+  returnsValue   Float     @default(0)
+  total          Float     @default(0)
+  /// Lines as they stood when the claim was made (see claims.service).
+  lines          Json?
+  reference      String?
+  submittedAt    DateTime?
+  submittedById  String?
+  receivedAmount Float     @default(0)
+  receivedAt     DateTime?
+  /// OtherIncome rows written for money received.
+  incomeIds      String[]  @default([])
+  note           String?
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  @@unique([tenantId, number])
+  @@index([tenantId, supplierId, status])
+}
+
+/// A cheque taken from a customer. The khata is credited when its collection is verified; a bounce reverses it.
+model DistCheque {
+  id             String    @id @default(uuid())
+  tenantId       String
+  customerId     String
+  collectionId   String?   @unique
+  bankName       String
+  chequeNo       String
+  /// Date written on the cheque; later than receipt = post-dated (PDC).
+  chequeDate     DateTime
+  amount         Float
+  /// RECEIVED | DEPOSITED | CLEARED | BOUNCED | CANCELLED
+  status         String    @default("RECEIVED")
+  receivedById   String
+  receivedAt     DateTime  @default(now())
+  depositedAt    DateTime?
+  moneyAccountId String?
+  clearedAt      DateTime?
+  bouncedAt      DateTime?
+  bounceReason   String?
+  /// Khata row that took the payment back on bounce.
+  bounceLedgerId String?
+  note           String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, chequeDate])
+  @@index([tenantId, customerId])
+}
+
+/// Monthly sales target for a booker, route, brand or principal (any mix; none = the whole business).
+model DistTarget {
+  id          String   @id @default(uuid())
+  tenantId    String
+  /// YYYY-MM
+  period      String
+  userId      String?
+  routeId     String?
+  brandId     String?
+  supplierId  String?
+  /// VALUE (rupees, invoiced less returns) | QTY (packs of unitName, else base units)
+  metric      String   @default("VALUE")
+  target      Float
+  unitName    String?
+  note        String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@index([tenantId, period])
+  @@index([tenantId, userId])
+}
+
+/// Trade network: a buyer business linked to a seller business on Nafaa. Orders, deliveries,
+/// receiving and payments flow between the two accounts only through an ACTIVE link.
+model TradeLink {
+  id             String    @id @default(uuid())
+  sellerTenantId String
+  buyerTenantId  String
+  /// PENDING | ACTIVE | PAUSED | REJECTED | UNLINKED | CANCELLED
+  status         String    @default("PENDING")
+  /// CODE | PHONE | DIRECTORY
+  requestedVia   String    @default("CODE")
+  requestedById  String?
+  requestNote    String?
+  requestedAt    DateTime  @default(now())
+  decidedById    String?
+  decidedAt      DateTime?
+  rejectReason   String?
+  /// Set when the link first became ACTIVE; payments before this are never mirrored.
+  activatedAt    DateTime?
+  /// SELLER | BUYER, for PAUSED and UNLINKED.
+  closedBy       String?
+  /// The buyer as a Customer in the seller's account.
+  customerId     String?
+  /// The seller as a Supplier in the buyer's account.
+  supplierId     String?
+  /// Seller user named as booker on network orders.
+  bookedById     String?
+  /// Buyer: receive delivered goods into stock without a tap.
+  autoReceive    Boolean   @default(false)
+  /// Buyer: branch that receives the goods (main shop when empty).
+  receiveShopId  String?
+  /// Last time customer and supplier ledgers were scanned for payments to mirror.
+  paymentsScanAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  orders      TradeOrder[]
+  payments    TradePayment[]
+  productMaps TradeProductMap[]
+
+  @@unique([sellerTenantId, buyerTenantId])
+  @@index([buyerTenantId, status])
+  @@index([sellerTenantId, status])
+}
+
+/// A seller's network profile: invite code and the opt-in directory listing.
+model TradeProfile {
+  id             String   @id @default(uuid())
+  tenantId       String   @unique
+  inviteCode     String   @unique
+  acceptRequests Boolean  @default(true)
+  /// Shown in "Nafaa par distributors".
+  listed         Boolean  @default(false)
+  displayName    String?
+  phone          String?
+  city           String?
+  area           String?
+  categories     String[] @default([])
+  brands         String[] @default([])
+  about          String?
+  minOrderValue  Float?
+  /// ALL: every active product. LISTED: only products on the buyer's price list.
+  catalogScope   String   @default("ALL")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  @@index([listed, city])
+}
+
+/// The buyer's record of a network order; the seller's side is the SalesOrder (salesOrderId).
+model TradeOrder {
+  id             String    @id @default(uuid())
+  linkId         String
+  buyerTenantId  String
+  sellerTenantId String
+  clientRef      String?
+  salesOrderId   String?   @unique
+  orderNumber    String?
+  placedById     String?
+  /// BOOKED | APPROVED | INVOICED | LOADED | DELIVERED | PARTIAL | RETURNED | CANCELLED
+  status         String    @default("BOOKED")
+  total          Float     @default(0)
+  invoiceNumber  String?
+  invoiceTotal   Float?
+  returnsValue   Float     @default(0)
+  /// Invoice total less goods that came back: what the buyer owes for this order.
+  deliveredValue Float?
+  cashAtDelivery Float     @default(0)
+  note           String?
+  /// What the buyer ordered: [{ productId, variantId, unitId, qty, name, unitName }].
+  lines          Json?
+  /// NONE | NEEDS_MAP | DRAFT | RECEIVED
+  receiveState   String    @default("NONE")
+  purchaseId     String?   @unique
+  receivedAt     DateTime?
+  approvedAt     DateTime?
+  invoicedAt     DateTime?
+  loadedAt       DateTime?
+  deliveredAt    DateTime?
+  cancelledAt    DateTime?
+  syncedAt       DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  link TradeLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@unique([buyerTenantId, clientRef])
+  @@index([buyerTenantId, createdAt])
+  @@index([sellerTenantId, createdAt])
+  @@index([linkId, status])
+  @@index([status])
+}
+
+/// A seller's product matched to the buyer's own product, remembered per link.
+model TradeProductMap {
+  id              String   @id @default(uuid())
+  linkId          String
+  buyerTenantId   String
+  sellerProductId String
+  /// Empty string when the seller product has no variant (keeps the unique key strict).
+  sellerVariantId String   @default("")
+  buyerProductId  String
+  buyerVariantId  String?
+  /// BARCODE | SKU | NAME | MANUAL | CREATED
+  matchedBy       String   @default("MANUAL")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  link TradeLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@unique([linkId, sellerProductId, sellerVariantId])
+  @@index([buyerTenantId, buyerProductId])
+}
+
+/// A payment between the two sides. Recorded on one side, it posts on the other only when that side confirms.
+model TradePayment {
+  id             String    @id @default(uuid())
+  linkId         String
+  sellerTenantId String
+  buyerTenantId  String
+  /// SELLER | BUYER: who recorded it.
+  source         String
+  /// PENDING | CONFIRMED | DISPUTED | CANCELLED
+  status         String    @default("PENDING")
+  amount         Float
+  method         String    @default("CASH")
+  reference      String?
+  note           String?
+  paidAt         DateTime  @default(now())
+  tradeOrderId   String?
+  /// CustomerLedger row in the seller's account.
+  sellerLedgerId String?   @unique
+  /// SupplierLedger row in the buyer's account.
+  buyerLedgerId  String?   @unique
+  recordedById   String?
+  decidedById    String?
+  decidedAt      DateTime?
+  disputeReason  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  link TradeLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId, status])
+  @@index([sellerTenantId, status])
+  @@index([buyerTenantId, status])
 }

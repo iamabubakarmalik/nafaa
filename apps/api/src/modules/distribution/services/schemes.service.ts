@@ -87,6 +87,7 @@ export class SchemesService {
         break;
       case 'SLAB':
         if (!dto.slabs?.length) throw new BadRequestException('Slab scheme me kam se kam ek slab likhein');
+        if (new Set(dto.slabs.map((x) => Number(x.minQty))).size !== dto.slabs.length) throw new BadRequestException('Do slabs ki quantity ek jaisi hai — har slab alag quantity se shuru ho');
         for (const s of dto.slabs) {
           if (!(Number(s.percent) > 0) && !(Number(s.amountPerUnit) > 0) && !(Number(s.freeQty) > 0)) {
             throw new BadRequestException('Har slab par percent, rupay ya free quantity me se ek likhein');
@@ -116,7 +117,7 @@ export class SchemesService {
       buyQty, buyUnitName: dto.buyUnitName?.trim() || null, freeQty, freeProductId: dto.freeProductId || null, value,
       slabs: dto.type === 'SLAB' ? (dto.slabs as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
       minOrderValue: Number(dto.minOrderValue) > 0 ? Number(dto.minOrderValue) : null,
-      startsAt, endsAt, isClaimable: !!dto.isClaimable, isActive: dto.isActive ?? true, note: dto.note?.trim() || null,
+      startsAt, endsAt, isClaimable: !!dto.isClaimable, isMix: !!dto.isMix, isActive: dto.isActive ?? true, note: dto.note?.trim() || null,
     };
   }
 }

@@ -1,6 +1,7 @@
 /**
- * New Google user: asks for the shop name (required by the API) and the
- * industry, then creates the account with the temporary Google token.
+ * New Google user: asks for the shop name (required by the API), how the
+ * business sells and the industry, then creates the account with the
+ * temporary Google token.
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -17,8 +18,10 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { Alert, Button, Input } from '@/design-system/components';
 import { AuthHeading, AuthLayout } from '../components/AuthLayout';
 import { IndustryPicker } from '../components/IndustryPicker';
+import { BusinessModelPicker } from '../components/BusinessModelPicker';
 import { authErrorMessage } from '../lib/auth-errors';
-import { applySignupIndustry, industryChoices, readSignupIndustry, rememberSignupIndustry } from '../lib/industry-choices';
+import { industryChoices, readSignupIndustry, rememberSignupIndustry, setUpNewAccount } from '../lib/industry-choices';
+import { DEFAULT_MODELS, readSignupModels, rememberSignupModels, type BusinessModel } from '@core/lib/business-models';
 
 const schema = z.object({
   shopName: z.string().trim().min(2, 'Dukaan ka naam likhein (kam se kam 2 huroof)').max(100, 'Naam 100 huroof se chhota rakhein'),
@@ -38,7 +41,8 @@ export default function GoogleCompleteSignupPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const setSession = useAuthStore((s) => s.setSession);
-  const choices = useMemo(industryChoices, []);
+  const [models, setModels] = useState<BusinessModel[]>(() => readSignupModels() ?? DEFAULT_MODELS);
+  const choices = useMemo(() => industryChoices(models), [models]);
   const [pending, setPending] = useState<PendingGoogleUser | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -69,7 +73,8 @@ export default function GoogleCompleteSignupPage() {
       // Drop cached data from any previous account so OnboardingGate reads fresh state.
       queryClient.clear();
       rememberSignupIndustry(vars.businessType);
-      await applySignupIndustry(vars.businessType);
+      rememberSignupModels(models);
+      await setUpNewAccount(vars.businessType, models);
       try {
         await queryClient.fetchQuery({ queryKey: ['onboarding'], queryFn: onboardingApi.get });
       } catch {
@@ -91,7 +96,7 @@ export default function GoogleCompleteSignupPage() {
 
   return (
     <AuthLayout side="signup" wide>
-      <AuthHeading title="Bas aakhri qadam" subtitle="Apni dukaan ka naam aur kaam batayein — account foran ban jayega." />
+      <AuthHeading title="Bas aakhri qadam" subtitle="Apne business ka naam aur kaam batayein — account foran ban jayega." />
 
       <div className="mb-5 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
         {pending.avatarUrl ? (
@@ -122,14 +127,16 @@ export default function GoogleCompleteSignupPage() {
           {...form.register('shopName')}
           error={form.formState.errors.shopName?.message}
         />
+        <BusinessModelPicker value={models} onChange={setModels} />
         <IndustryPicker
+          label={models.length === 1 && models[0] === 'RETAIL' ? 'Aap ka kaam kya hai?' : 'Aap kis cheez ka kaam karte hain?'}
           choices={choices}
           value={businessType}
           onChange={(v) => form.setValue('businessType', v, { shouldValidate: true })}
           error={form.formState.errors.businessType?.message}
         />
         <Button type="submit" size="xl" fullWidth loading={mutation.isPending} rightIcon={<ArrowRight className="h-4 w-4" />}>
-          Account banayein
+          Create account
         </Button>
         <p className="text-center text-xs leading-relaxed text-slate-500">
           Account bana kar aap Nafaa ki{' '}

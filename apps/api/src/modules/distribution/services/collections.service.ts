@@ -20,7 +20,7 @@ import { CreateCollectionDto, ListCollectionsDto, RecoveriesQueryDto } from '../
 import { ageing, EMPTY_AGEING, openDebts, type AgeingBuckets } from '../helpers/credit';
 import { readSettings } from '../helpers/pricing-loader';
 import {
-  CUSTOMER_CARD, checkKey, customerCards, dayRange, postCollection, r2, routeNames, todayKey, userNames,
+  CUSTOMER_CARD, checkKey, customerCards, dayRange, parseWhen, postCollection, r2, routeNames, todayKey, userNames,
 } from '../distribution.support';
 
 const DAY = 86_400_000;
@@ -33,13 +33,18 @@ export class CollectionsService {
    * Records a collection. The same clientRef is saved once; the second call
    * returns the first with `duplicate: true`.
    */
-  async create(user: AuthenticatedUser, dto: CreateCollectionDto, opts: { kind?: 'INVOICE_CASH' | 'RECOVERY'; salesOrderId?: string; autoVerify?: boolean; collectedById?: string } = {}) {
+  async create(
+    user: AuthenticatedUser,
+    dto: CreateCollectionDto,
+    opts: { kind?: 'INVOICE_CASH' | 'RECOVERY'; salesOrderId?: string; autoVerify?: boolean; collectedById?: string; vanSessionId?: string | null } = {},
+  ) {
     const tenantId = user.tenantId;
     const clientRef = dto.clientRef?.trim() || null;
     if (clientRef) {
       const seen = await this.prisma.distCollection.findUnique({ where: { tenantId_clientRef: { tenantId, clientRef } } });
       if (seen) return { collection: seen, duplicate: true };
     }
+    const cheque = dto.method === 'CHEQUE' ? await this.chequeInput(tenantId, dto) : null;
     const customer = await this.prisma.customer.findFirst({ where: { id: dto.customerId, tenantId }, select: { id: true, routeId: true } });
     if (!customer) throw new NotFoundException('Customer nahi mila');
     let shopId: string | null = null;
@@ -75,11 +80,19 @@ export class CollectionsService {
           data: {
             tenantId, customerId: customer.id, loadSheetId: dto.loadSheetId || null, saleId: dto.saleId || null,
             salesOrderId: opts.salesOrderId ?? null, kind: opts.kind ?? (dto.saleId ? 'INVOICE_CASH' : 'RECOVERY'),
-            amount: r2(dto.amount), method: dto.method ?? 'CASH', reference: dto.reference?.trim() || null, note: dto.note?.trim() || null,
+            amount: r2(dto.amount), method: dto.method ?? 'CASH',
+            reference: dto.reference?.trim() || (cheque ? `Cheque #${cheque.chequeNo} (${cheque.bankName})` : null), note: dto.note?.trim() || null,
             status: 'PENDING', shopId, collectedById: opts.collectedById ?? user.id, collectedAt, clientRef,
-            latitude: dto.latitude ?? null, longitude: dto.longitude ?? null,
+            latitude: dto.latitude ?? null, longitude: dto.longitude ?? null, vanSessionId: opts.vanSessionId ?? null,
           },
         });
+        if (cheque) {
+          const ch = await tx.distCheque.create({
+            data: { tenantId, customerId: customer.id, collectionId: c.id, ...cheque, amount: c.amount, receivedById: c.collectedById, receivedAt: collectedAt },
+            select: { id: true },
+          });
+          await tx.distCollection.update({ where: { id: c.id }, data: { chequeId: ch.id } });
+        }
         if (autoVerify) await postCollection(tx, c, user.id);
         return tx.distCollection.findUniqueOrThrow({ where: { id: c.id } });
       });
@@ -92,6 +105,22 @@ export class CollectionsService {
       }
       throw e;
     }
+  }
+
+  /** Checks the cheque fields of a CHEQUE collection; the cheque row is written with the collection. */
+  private async chequeInput(tenantId: string, dto: CreateCollectionDto) {
+    const bankName = dto.bankName?.trim();
+    const chequeNo = dto.chequeNo?.trim();
+    if (!bankName || !chequeNo || !dto.chequeDate) throw new BadRequestException('Cheque ke liye bank, cheque number aur cheque ki date likhein');
+    const clock = await this.tz.clock(tenantId);
+    const chequeDate = parseWhen(dto.chequeDate, clock);
+    if (!chequeDate) throw new BadRequestException('Cheque ki date sahi nahi');
+    const twin = await this.prisma.distCheque.findFirst({
+      where: { tenantId, customerId: dto.customerId, chequeNo, bankName: { equals: bankName, mode: 'insensitive' }, status: { not: 'CANCELLED' } },
+      select: { id: true },
+    });
+    if (twin) throw new BadRequestException(`Cheque #${chequeNo} (${bankName}) pehle se darj hai`);
+    return { bankName, chequeNo, chequeDate };
   }
 
   /** Collections; a collector without verify sees only their own. */
@@ -171,6 +200,8 @@ export class CollectionsService {
         where: { id, tenantId, status: 'PENDING' },
         data: { status: 'REJECTED', rejectReason: reason?.trim() || null, verifiedById: user.id, verifiedAt: new Date() },
       });
+      // A rejected cheque collection takes its cheque out of the register.
+      if (res.count) await this.prisma.distCheque.updateMany({ where: { tenantId, collectionId: id, status: { in: ['RECEIVED', 'DEPOSITED'] } }, data: { status: 'CANCELLED', note: reason?.trim() || 'Collection reject hui' } });
       results.push(res.count ? { id, ok: true, status: 'REJECTED' } : { id, ok: false, error: 'Sirf PENDING collection reject ho sakti hai' });
     }
     return { results, rejected: results.filter((r) => r.ok).length };

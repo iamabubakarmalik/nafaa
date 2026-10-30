@@ -12,7 +12,9 @@ import { hourInTz } from '../../../common/helpers/business-time.helper';
 import { PERMISSIONS, hasPermission } from '../../../common/constants/permissions.constants';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { INVOICED_STATUSES, NO_ORDER_REASONS } from '../distribution.constants';
-import { checkKey, dayRange, dayStart, r2, r4, shiftKey, todayKey, userNames, weekdayOfKey } from '../distribution.support';
+import { checkKey, customerCards, dayRange, dayStart, r2, r4, shiftKey, todayKey, userNames, weekdayOfKey } from '../distribution.support';
+import { businessDayKey } from '../../../common/helpers/business-time.helper';
+import { distanceMetres } from '../helpers/logistics';
 
 @Injectable()
 export class DistributionReportsService {
@@ -25,7 +27,7 @@ export class DistributionReportsService {
     const today = todayKey(clock);
     const gte = dayStart(today, clock);
     const lt = dayStart(shiftKey(today, 1), clock);
-    const [byStatus, todayOrders, failed, sheets, pending, owing, visits] = await Promise.all([
+    const [byStatus, todayOrders, failed, sheets, pending, owing, visits, returnsPending, chequesDue, vansOpen, held] = await Promise.all([
       this.prisma.salesOrder.groupBy({ by: ['status'], where: { tenantId, status: { in: ['BOOKED', 'APPROVED', 'INVOICING', 'INVOICED', 'LOADED'] } }, _count: { _all: true }, _sum: { total: true } }),
       this.prisma.salesOrder.aggregate({ where: { tenantId, bookedAt: { gte, lt }, status: { not: 'CANCELLED' } }, _count: { _all: true }, _sum: { total: true } }),
       this.prisma.salesOrder.count({ where: { tenantId, status: 'APPROVED', invoiceError: { not: null } } }),
@@ -33,6 +35,10 @@ export class DistributionReportsService {
       this.prisma.distCollection.aggregate({ where: { tenantId, status: 'PENDING' }, _count: { _all: true }, _sum: { amount: true } }),
       this.prisma.customer.aggregate({ where: { tenantId, routeId: { not: null }, balance: { gt: 0.005 } }, _count: { _all: true }, _sum: { balance: true } }),
       this.prisma.distVisit.groupBy({ by: ['outcome'], where: { tenantId, checkInAt: { gte, lt } }, _count: { _all: true } }),
+      this.prisma.distMarketReturn.aggregate({ where: { tenantId, status: 'PENDING' }, _count: { _all: true }, _sum: { totalValue: true } }),
+      this.prisma.distCheque.aggregate({ where: { tenantId, status: 'RECEIVED', chequeDate: { lt } }, _count: { _all: true }, _sum: { amount: true } }),
+      this.prisma.distVanSession.count({ where: { tenantId, status: 'OPEN' } }),
+      this.prisma.salesOrder.count({ where: { tenantId, status: 'APPROVED', reservedAt: { not: null } } }),
     ]);
     const st = Object.fromEntries(byStatus.map((s) => [s.status, { count: s._count._all, value: r2(s._sum.total ?? 0) }]));
     return {
@@ -52,6 +58,112 @@ export class DistributionReportsService {
         collectionsToVerify: { count: pending._count._all, amount: r2(pending._sum.amount ?? 0) },
       },
       receivable: { customers: owing._count._all, amount: r2(owing._sum.balance ?? 0) },
+      phase2: {
+        returnsToApprove: { count: returnsPending._count._all, value: r2(returnsPending._sum.totalValue ?? 0) },
+        chequesToDeposit: { count: chequesDue._count._all, amount: r2(chequesDue._sum.amount ?? 0) },
+        vansOut: vansOpen,
+        ordersHoldingStock: held,
+      },
+    };
+  }
+
+  /**
+   * Visit analytics per booker per business day: planned, visited,
+   * productive and unproductive shops, strike rate, time in market (first to
+   * last activity), average time per visit, distance travelled between
+   * check-ins, and GPS flags (far from the shop, no GPS, shop has no GPS).
+   */
+  async visits(user: AuthenticatedUser, q: { from?: string; to?: string; bookerId?: string; routeId?: string; flags?: boolean }) {
+    const tenantId = user.tenantId;
+    const clock = await this.tz.clock(tenantId);
+    const today = todayKey(clock);
+    const range = dayRange(clock, q.from ?? today, q.to ?? q.from ?? today);
+    const [visits, orders, routes] = await Promise.all([
+      this.prisma.distVisit.findMany({
+        where: { tenantId, checkInAt: { gte: range.gte, lt: range.lt }, ...(q.bookerId && { userId: q.bookerId }), ...(q.routeId && { routeId: q.routeId }) },
+        select: { id: true, userId: true, customerId: true, routeId: true, checkInAt: true, checkOutAt: true, latitude: true, longitude: true, accuracyM: true, distanceM: true, withinRadius: true, outcome: true, noOrderReason: true },
+        orderBy: { checkInAt: 'asc' },
+      }),
+      this.prisma.salesOrder.findMany({
+        where: { tenantId, bookedAt: { gte: range.gte, lt: range.lt }, status: { not: 'CANCELLED' }, vanSessionId: null, ...(q.bookerId && { bookedById: q.bookerId }), ...(q.routeId && { routeId: q.routeId }) },
+        select: { bookedById: true, customerId: true, total: true, bookedAt: true },
+      }),
+      this.prisma.distRoute.findMany({ where: { tenantId, isActive: true, bookerId: q.bookerId ? q.bookerId : { not: null }, ...(q.routeId && { id: q.routeId }) }, select: { id: true, name: true, bookerId: true, visitDays: true } }),
+    ]);
+    const planned = await this.prisma.customer.groupBy({ by: ['routeId'], where: { tenantId, isActive: true, routeId: { in: routes.map((r) => r.id) } }, _count: { _all: true } });
+    const plannedBy = new Map(planned.map((p) => [p.routeId, p._count._all]));
+    const dayOf = (d: Date) => businessDayKey(d, clock.tz, clock.dayStartHour);
+    const keys = new Set<string>();
+    for (const v of visits) keys.add(`${v.userId}|${dayOf(v.checkInAt)}`);
+    for (const o of orders) keys.add(`${o.bookedById}|${dayOf(o.bookedAt)}`);
+    // Planned days with no activity count only up to today.
+    for (let d = range.from; d <= range.to && d <= today; d = shiftKey(d, 1)) {
+      const wd = weekdayOfKey(d);
+      for (const r of routes) if (r.bookerId && r.visitDays.includes(wd)) keys.add(`${r.bookerId}|${d}`);
+    }
+    const names = await userNames(this.prisma, tenantId, [...keys].map((x) => x.split('|')[0]));
+    const mins = (a: Date, b: Date) => Math.max(0, Math.round((b.getTime() - a.getTime()) / 60_000));
+
+    const rows = [...keys].map((key) => {
+      const [userId, day] = key.split('|');
+      const wd = weekdayOfKey(day);
+      const myRoutes = routes.filter((r) => r.bookerId === userId && r.visitDays.includes(wd));
+      const vs = visits.filter((v) => v.userId === userId && dayOf(v.checkInAt) === day);
+      const os = orders.filter((o) => o.bookedById === userId && dayOf(o.bookedAt) === day);
+      const visited = new Set([...vs.map((v) => v.customerId), ...os.map((o) => o.customerId)]);
+      const productive = new Set(os.map((o) => o.customerId));
+      const times = [...vs.flatMap((v) => [v.checkInAt, ...(v.checkOutAt ? [v.checkOutAt] : [])]), ...os.map((o) => o.bookedAt)].sort((a, b) => a.getTime() - b.getTime());
+      const timed = vs.filter((v) => v.checkOutAt && v.checkOutAt > v.checkInAt);
+      const gps = vs.filter((v) => v.latitude != null && v.longitude != null);
+      let metres = 0;
+      for (let i = 1; i < gps.length; i++) metres += distanceMetres(gps[i - 1].latitude!, gps[i - 1].longitude!, gps[i].latitude!, gps[i].longitude!);
+      let longestGap = 0;
+      for (let i = 1; i < times.length; i++) longestGap = Math.max(longestGap, mins(times[i - 1], times[i]));
+      const plannedCount = myRoutes.reduce((s, r) => s + (plannedBy.get(r.id) ?? 0), 0);
+      return {
+        bookerId: userId, bookerName: names.get(userId) ?? null, date: day, routes: myRoutes.map((r) => r.name),
+        planned: plannedCount, visited: visited.size, productive: productive.size, unproductive: visited.size - productive.size,
+        notVisited: Math.max(0, plannedCount - visited.size),
+        strikeRate: visited.size ? r2((productive.size / visited.size) * 100) : 0,
+        coverage: plannedCount ? r2((visited.size / plannedCount) * 100) : 0,
+        orders: os.length, value: r2(os.reduce((s, o) => s + o.total, 0)),
+        firstAt: times[0] ?? null, lastAt: times.length ? times[times.length - 1] : null,
+        timeInMarketMin: times.length > 1 ? mins(times[0], times[times.length - 1]) : 0,
+        avgVisitMin: timed.length ? Math.round(timed.reduce((s, v) => s + mins(v.checkInAt, v.checkOutAt!), 0) / timed.length) : null,
+        longestGapMin: longestGap,
+        travelledKm: r2(metres / 1000),
+        flags: {
+          farFromShop: vs.filter((v) => v.withinRadius === false).length,
+          noGps: vs.filter((v) => v.latitude == null || v.longitude == null).length,
+          shopWithoutGps: vs.filter((v) => v.latitude != null && v.distanceM == null).length,
+          poorAccuracy: vs.filter((v) => (v.accuracyM ?? 0) > 100).length,
+        },
+      };
+    }).sort((a, b) => b.date.localeCompare(a.date) || (a.bookerName ?? '').localeCompare(b.bookerName ?? ''));
+
+    let flagged: unknown[] | undefined;
+    if (q.flags) {
+      const bad = visits.filter((v) => v.withinRadius === false || v.latitude == null).slice(0, 300);
+      const customers = await customerCards(this.prisma, tenantId, bad.map((v) => v.customerId));
+      flagged = bad.map((v) => ({
+        id: v.id, bookerId: v.userId, bookerName: names.get(v.userId) ?? null, checkInAt: v.checkInAt, outcome: v.outcome,
+        customerId: v.customerId, customerName: customers.get(v.customerId)?.businessName || customers.get(v.customerId)?.name || null,
+        distanceM: v.distanceM, accuracyM: v.accuracyM, reason: v.latitude == null ? 'NO_GPS' : 'FAR',
+      }));
+    }
+    const sum = (f: (r: (typeof rows)[number]) => number) => rows.reduce((s, r) => s + f(r), 0);
+    const visited = sum((r) => r.visited);
+    const productive = sum((r) => r.productive);
+    return {
+      from: range.from, to: range.to,
+      rows,
+      totals: {
+        planned: sum((r) => r.planned), visited, productive, unproductive: visited - productive,
+        strikeRate: visited ? r2((productive / visited) * 100) : 0,
+        orders: sum((r) => r.orders), value: r2(sum((r) => r.value)),
+        farFromShop: sum((r) => r.flags.farFromShop), noGps: sum((r) => r.flags.noGps), travelledKm: r2(sum((r) => r.travelledKm)),
+      },
+      ...(flagged && { flagged }),
     };
   }
 

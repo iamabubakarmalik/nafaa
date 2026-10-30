@@ -1,7 +1,9 @@
 /**
- * Sign-up in two short parts: the shop (name + industry), then the owner's
- * account. The register API is unchanged; the picked industry is applied
- * right after the account exists and onboarding opens with it selected.
+ * Sign-up in two short parts: the shop (name, how it sells, industry), then
+ * the owner's account. The register API is unchanged; the picked industry and
+ * selling models are applied right after the account exists, and onboarding
+ * opens with them selected. Only the shop name and industry are required:
+ * "Retail" starts selected, so the selling question costs one glance.
  */
 
 import { useMemo, useState } from 'react';
@@ -19,11 +21,20 @@ import { cn } from '@core/lib/cn';
 import { AuthHeading, AuthLayout, OrDivider } from '../components/AuthLayout';
 import { GoogleButton } from '../components/GoogleButton';
 import { IndustryPicker } from '../components/IndustryPicker';
+import { BusinessModelPicker } from '../components/BusinessModelPicker';
 import { PasswordField } from '../components/PasswordField';
 import { authErrorMessage } from '../lib/auth-errors';
-import { applySignupIndustry, industryChoices, rememberSignupIndustry } from '../lib/industry-choices';
+import { industryChoices, rememberSignupIndustry, setUpNewAccount } from '../lib/industry-choices';
+import { DEFAULT_MODELS, readSignupModels, rememberSignupModels, type BusinessModel } from '@core/lib/business-models';
+import { isValidPakistanPhone } from '@core/lib/phone';
 
-const stripPhone = (v: unknown) => (typeof v === 'string' ? v.replace(/[\s-]/g, '') : v);
+/** Strips spaces and dashes; a Pakistani mobile in +92 / 92 form becomes 03xx… like most saved numbers. */
+const stripPhone = (v: unknown) => {
+  if (typeof v !== 'string') return v;
+  const cleaned = v.replace(/[\s\-()]/g, '');
+  if (isValidPakistanPhone(cleaned) && !cleaned.startsWith('0')) return `0${cleaned.slice(-10)}`;
+  return cleaned;
+};
 
 const schema = z.object({
   shopName: z.string().trim().min(2, 'Dukaan ka naam likhein (kam se kam 2 huroof)').max(100, 'Naam 100 huroof se chhota rakhein'),
@@ -32,7 +43,10 @@ const schema = z.object({
   email: z.string().trim().min(1, 'Email likhein').email('Email sahi nahi lag raha. Misaal: ahmad@gmail.com'),
   phone: z.preprocess(
     stripPhone,
-    z.string().regex(/^\+?[0-9]{10,15}$/, 'Mobile number sahi nahi. Misaal: 03001234567').optional().or(z.literal('')),
+    z.string()
+      .regex(/^\+?[0-9]{10,15}$/, 'Mobile number sahi nahi. Misaal: 03001234567')
+      .refine((v) => !v.startsWith('0') || isValidPakistanPhone(v), 'Mobile number 03 se shuru aur 11 number ka hota hai. Misaal: 03001234567')
+      .optional().or(z.literal('')),
   ),
   password: z.string().min(8, 'Password kam se kam 8 huroof ka rakhein').max(64, 'Password 64 huroof se chhota rakhein'),
   referralCode: z.string().trim().max(40, 'Code bohat lamba hai').optional().or(z.literal('')),
@@ -46,7 +60,8 @@ export default function RegisterPage() {
   const [searchParams] = useSearchParams();
   const setSession = useAuthStore((s) => s.setSession);
   const refFromUrl = searchParams.get('ref') || '';
-  const choices = useMemo(industryChoices, []);
+  const [models, setModels] = useState<BusinessModel[]>(() => readSignupModels() ?? DEFAULT_MODELS);
+  const choices = useMemo(() => industryChoices(models), [models]);
 
   const [part, setPart] = useState<1 | 2>(1);
   const [showReferral, setShowReferral] = useState(!!refFromUrl);
@@ -61,11 +76,13 @@ export default function RegisterPage() {
 
   const mutation = useMutation({
     mutationFn: authApi.register,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setSession(data);
       const picked = form.getValues('businessType');
       rememberSignupIndustry(picked);
-      void applySignupIndustry(picked);
+      rememberSignupModels(models);
+      // Before leaving the page, so onboarding opens already set up.
+      await setUpNewAccount(picked, models);
       toast.success('Mubarak ho! Aap ka account ban gaya', { description: 'Email par 6 number ka code bheja gaya hai' });
       navigate('/verify-email', { replace: true, state: { codeSent: true } });
     },
@@ -131,7 +148,10 @@ export default function RegisterPage() {
               error={form.formState.errors.shopName?.message}
             />
 
+            <BusinessModelPicker value={models} onChange={setModels} />
+
             <IndustryPicker
+              label={models.length === 1 && models[0] === 'RETAIL' ? 'Aap ka kaam kya hai?' : 'Aap kis cheez ka kaam karte hain?'}
               choices={choices}
               value={businessType}
               onChange={(v) => form.setValue('businessType', v, { shouldValidate: true })}
@@ -139,14 +159,14 @@ export default function RegisterPage() {
             />
 
             <Button type="submit" size="xl" fullWidth rightIcon={<ArrowRight className="h-4 w-4" />}>
-              Aage barhein
+              Next
             </Button>
           </form>
 
           <OrDivider label="ya" />
           <GoogleButton
             label="Google se account banayein"
-            onBeforeRedirect={() => { if (businessType) rememberSignupIndustry(businessType); }}
+            onBeforeRedirect={() => { if (businessType) rememberSignupIndustry(businessType); rememberSignupModels(models); }}
           />
           <p className="mt-2 text-center text-xs text-slate-500">Google ke baad sirf dukaan ka naam poochenge.</p>
         </>
@@ -231,7 +251,7 @@ export default function RegisterPage() {
                 <span className="hidden sm:inline">Wapas</span>
               </Button>
               <Button type="submit" size="xl" className="flex-1" loading={mutation.isPending} rightIcon={<ArrowRight className="h-4 w-4" />}>
-                Account banayein
+                Create account
               </Button>
             </div>
 

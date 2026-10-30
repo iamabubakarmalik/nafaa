@@ -81,23 +81,28 @@ const METHODS: { key: MoneyMethod; label: string }[] = [
   { key: 'BANK_TRANSFER', label: 'Bank' },
   { key: 'JAZZCASH', label: 'JazzCash' },
   { key: 'EASYPAISA', label: 'Easypaisa' },
+  { key: 'CHEQUE', label: 'Cheque' },
 ];
 
 export function RecoverySheet({ visible, balance, onClose, onSave, saving }: {
   visible: boolean;
   balance: number | null;
   onClose: () => void;
-  onSave: (v: { amount: number; method: MoneyMethod; reference: string; note: string }) => void;
+  onSave: (v: { amount: number; method: MoneyMethod; reference: string; note: string; cheque?: { bankName: string; chequeNo: string; chequeDate: string } }) => void;
   saving?: boolean;
 }) {
   const [amount, setAmount] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [chequeNo, setChequeNo] = useState('');
+  const [chequeDate, setChequeDate] = useState(new Date().toISOString().slice(0, 10));
   const [method, setMethod] = useState<MoneyMethod>('CASH');
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
   const value = Number(amount.replace(/,/g, ''));
-  const ok = Number.isFinite(value) && value >= 0.01;
+  const chequeOk = method !== 'CHEQUE' || (!!bankName.trim() && !!chequeNo.trim() && /^\d{4}-\d{2}-\d{2}$/.test(chequeDate));
+  const ok = Number.isFinite(value) && value >= 0.01 && chequeOk;
   return (
-    <Sheet visible={visible} title="Recovery likhein" onClose={onClose}>
+    <Sheet visible={visible} title="Recovery" onClose={onClose}>
       <ScrollView keyboardShouldPersistTaps="handled">
         {balance != null && (
           <Text className="text-xs text-neutral-500 mb-2">Khata balance: <Text className={balance > 0 ? 'font-extrabold text-red-600' : 'font-extrabold text-neutral-700 dark:text-neutral-200'}>{rs(balance)}</Text></Text>
@@ -122,17 +127,28 @@ export function RecoverySheet({ visible, balance, onClose, onSave, saving }: {
             </Pressable>
           ))}
         </View>
-        {method !== 'CASH' && (
+        {method === 'CHEQUE' && (
+          <View className="mt-3 gap-2">
+            <TextInput value={bankName} onChangeText={setBankName} placeholder="Bank (HBL, MCB…)" placeholderTextColor="#9ca3af" className={inputCls} maxLength={80} />
+            <TextInput value={chequeNo} onChangeText={setChequeNo} placeholder="Cheque number" placeholderTextColor="#9ca3af" className={inputCls} maxLength={40} />
+            <TextInput value={chequeDate} onChangeText={setChequeDate} placeholder="Cheque date YYYY-MM-DD" placeholderTextColor="#9ca3af" className={inputCls} maxLength={10} />
+            <Text className="text-[11px] text-neutral-500">Aage ki date = post-dated cheque. Bounce hua to khata me wapas lag jayega.</Text>
+          </View>
+        )}
+        {method !== 'CASH' && method !== 'CHEQUE' && (
           <TextInput value={reference} onChangeText={setReference} placeholder="Reference / TID" placeholderTextColor="#9ca3af" className={cn(inputCls, 'mt-3')} maxLength={80} />
         )}
         <TextInput value={note} onChangeText={setNote} placeholder="Note" placeholderTextColor="#9ca3af" className={cn(inputCls, 'mt-3')} maxLength={300} />
         <Text className="text-[11px] text-neutral-500 mt-3">Office check karega, phir ye amount khata me jama hoga.</Text>
         <ActionButton
-          label={ok ? `${rs(value)} save karein` : 'Save karein'}
+          label={ok ? `Save ${rs(value)}` : 'Save'}
           className="mt-4"
           disabled={!ok}
           loading={saving}
-          onPress={() => onSave({ amount: Math.round(value * 100) / 100, method, reference, note })}
+          onPress={() => onSave({
+            amount: Math.round(value * 100) / 100, method, reference, note,
+            ...(method === 'CHEQUE' && { cheque: { bankName: bankName.trim(), chequeNo: chequeNo.trim(), chequeDate } }),
+          })}
         />
       </ScrollView>
     </Sheet>

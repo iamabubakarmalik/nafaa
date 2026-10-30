@@ -72,13 +72,14 @@ export default function BookerCustomer() {
     }
   };
 
-  const saveRecovery = async (v: { amount: number; method: MoneyMethod; reference: string; note: string }) => {
+  const saveRecovery = async (v: { amount: number; method: MoneyMethod; reference: string; note: string; cheque?: { bankName: string; chequeNo: string; chequeDate: string } }) => {
     setSaving(true);
     try {
       const c = await checkInOrNow(db, customer, today, radius);
       const payload: CollectionPayload = { clientRef: newClientRef(), customerId: customer.id, amount: v.amount, method: v.method, collectedAt: new Date().toISOString() };
       if (v.reference.trim()) payload.reference = v.reference.trim().slice(0, 80);
       if (v.note.trim()) payload.note = v.note.trim().slice(0, 300);
+      if (v.cheque) Object.assign(payload, v.cheque);
       if (c?.latitude != null && c.longitude != null) { payload.latitude = c.latitude; payload.longitude = c.longitude; }
       const visitedAlready = !!(day?.visits.length || day?.orders.length);
       await queueCollection(db, payload, today, visitedAlready ? null : {

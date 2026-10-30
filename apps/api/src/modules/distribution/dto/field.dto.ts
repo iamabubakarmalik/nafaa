@@ -10,7 +10,8 @@ import {
   Max, MaxLength, Min, ValidateNested,
 } from 'class-validator';
 import { MONEY_METHODS } from '../../../common/helpers/sale-payments.helper';
-import { DELIVERY_OUTCOMES, SYNC_MAX_ITEMS, VISIT_OUTCOMES } from '../distribution.constants';
+import { DELIVERY_OUTCOMES, FIELD_MONEY_METHODS, SYNC_MAX_ITEMS, VISIT_OUTCOMES } from '../distribution.constants';
+import { CreateMarketReturnDto } from './market-return.dto';
 
 const bankAlias = ({ value }: { value: unknown }) => (value === 'BANK' ? 'BANK_TRANSFER' : value);
 
@@ -168,7 +169,11 @@ export class CreateCollectionDto {
   @ApiPropertyOptional({ description: 'Id made on the phone; the same clientRef is saved once.' }) @IsOptional() @IsString() @MaxLength(64) clientRef?: string;
   @ApiProperty() @IsString() @IsNotEmpty() customerId!: string;
   @ApiProperty() @IsNumber() @Min(0.01) amount!: number;
-  @ApiPropertyOptional({ enum: MONEY_METHODS, default: 'CASH' }) @IsOptional() @Transform(bankAlias) @IsIn(MONEY_METHODS) method?: string;
+  @ApiPropertyOptional({ enum: FIELD_MONEY_METHODS, default: 'CASH', description: 'CHEQUE needs bankName, chequeNo and chequeDate.' })
+  @IsOptional() @Transform(bankAlias) @IsIn(FIELD_MONEY_METHODS) method?: string;
+  @ApiPropertyOptional({ description: 'Cheque: bank name.' }) @IsOptional() @IsString() @MaxLength(80) bankName?: string;
+  @ApiPropertyOptional({ description: 'Cheque: number.' }) @IsOptional() @IsString() @MaxLength(40) chequeNo?: string;
+  @ApiPropertyOptional({ description: 'Cheque: date written on it (YYYY-MM-DD); later than today = post-dated.' }) @IsOptional() @IsString() chequeDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) reference?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) note?: string;
   @ApiPropertyOptional({ description: 'Invoice the money is for (Sale id); empty for an old-balance recovery.' }) @IsOptional() @IsString() saleId?: string;
@@ -257,6 +262,8 @@ export class SyncDto {
   @IsOptional() @IsArray() @ArrayMaxSize(SYNC_MAX_ITEMS) @ValidateNested({ each: true }) @Type(() => CreateVisitDto) visits?: CreateVisitDto[];
   @ApiPropertyOptional({ type: [CreateCollectionDto] })
   @IsOptional() @IsArray() @ArrayMaxSize(SYNC_MAX_ITEMS) @ValidateNested({ each: true }) @Type(() => CreateCollectionDto) collections?: CreateCollectionDto[];
+  @ApiPropertyOptional({ type: [CreateMarketReturnDto], description: 'Market returns (need distribution.returns.collect); they wait for office approval.' })
+  @IsOptional() @IsArray() @ArrayMaxSize(SYNC_MAX_ITEMS) @ValidateNested({ each: true }) @Type(() => CreateMarketReturnDto) returns?: CreateMarketReturnDto[];
 }
 
 export class DayQueryDto {
@@ -297,7 +304,10 @@ export class DeliveryRecoveryDto {
   @ApiProperty() @IsString() @IsNotEmpty() loadSheetId!: string;
   @ApiProperty() @IsString() @IsNotEmpty() customerId!: string;
   @ApiProperty() @IsNumber() @Min(0.01) amount!: number;
-  @ApiPropertyOptional({ enum: MONEY_METHODS, default: 'CASH' }) @IsOptional() @Transform(bankAlias) @IsIn(MONEY_METHODS) method?: string;
+  @ApiPropertyOptional({ enum: FIELD_MONEY_METHODS, default: 'CASH' }) @IsOptional() @Transform(bankAlias) @IsIn(FIELD_MONEY_METHODS) method?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) bankName?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) chequeNo?: string;
+  @ApiPropertyOptional({ description: 'YYYY-MM-DD' }) @IsOptional() @IsString() chequeDate?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(80) reference?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(300) note?: string;
   @ApiPropertyOptional() @IsOptional() @IsISO8601() collectedAt?: string;

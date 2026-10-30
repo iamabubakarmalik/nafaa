@@ -1,12 +1,15 @@
 /**
  * Create or change a commission rule. Two separate choices: what it is paid
  * on (sale, profit or each bill) and how much (a percent or a fixed amount),
- * then who it is for, which categories, a minimum sale before it starts and
- * a target bonus. A worked example under the amount shows what the numbers
+ * then who it is for, which categories (and brands or principals), a minimum
+ * sale before it starts and a target bonus. A worked example under the amount shows what the numbers
  * mean.
  */
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { brandsApi } from '@modules/inventory/brands/api/brands.api';
+import { phase2Api } from '@modules/distribution/api/phase2.api';
 import { Info, Trash2 } from 'lucide-react';
 import { Button, Input, Modal, Segmented, Select, Switch, Textarea, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
@@ -29,6 +32,12 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
   const [value, setValue] = useState(rule?.value != null ? String(rule.value) : '');
   const [userId, setUserId] = useState(rule?.userId ?? '');
   const [cats, setCats] = useState<string[]>(rule?.categoryIds ?? []);
+  const [brandIds, setBrandIds] = useState<string[]>(rule?.brandIds ?? []);
+  const [supplierIds, setSupplierIds] = useState<string[]>(rule?.supplierIds ?? []);
+  const brandsQ = useQuery({ queryKey: ['brands', 'commission-picker'], queryFn: () => brandsApi.list(), staleTime: 5 * 60_000, retry: false });
+  // Principals exist only with distribution on; the picker hides when the call is refused.
+  const principalsQ = useQuery({ queryKey: ['distribution', 'principals'], queryFn: phase2Api.principals, staleTime: 5 * 60_000, retry: false });
+  const principals = (principalsQ.data?.suppliers ?? []).filter((s) => s.isPrincipal || supplierIds.includes(s.id));
   const [minSale, setMinSale] = useState(rule?.minMonthlySale ? String(rule.minMonthlySale) : '');
   const [target, setTarget] = useState(rule?.targetAmount ? String(rule.targetAmount) : '');
   const [bonus, setBonus] = useState(rule?.targetBonus ? String(rule.targetBonus) : '');
@@ -57,6 +66,8 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
       valueType: type,
       value: n,
       categoryIds: perBill ? [] : cats,
+      brandIds: perBill ? [] : brandIds,
+      supplierIds: perBill ? [] : supplierIds,
       minMonthlySale: Number(minSale) > 0 ? Number(minSale) : null,
       targetAmount: Number(target) > 0 ? Number(target) : null,
       targetBonus: Number(target) > 0 && Number(bonus) > 0 ? Number(bonus) : null,
@@ -147,6 +158,15 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
           </div>
         )}
 
+        {!perBill && (brandsQ.data?.length ?? 0) > 0 && (
+          <ChipPicker label="Sirf in brands par" items={(brandsQ.data ?? []).map((b) => ({ id: b.id, name: b.name }))} value={brandIds} onChange={setBrandIds}
+            hint={brandIds.length ? `${brandIds.length} brand chune` : 'Kuch na chunein to har brand par'} />
+        )}
+        {!perBill && principals.length > 0 && (
+          <ChipPicker label="Sirf in principals (company) ke maal par" items={principals.map((s) => ({ id: s.id, name: s.name }))} value={supplierIds} onChange={setSupplierIds}
+            hint="Principal brand se tay hota hai (Distribution → Claims → Principals). Category, brand aur principal sab chune hon to sab ka milna zaroori." />
+        )}
+
         <div className="grid gap-4 sm:grid-cols-3">
           <Input label="Kam se kam sale (mahina)" type="number" inputMode="decimal" min={0} value={minSale} onChange={(e) => setMinSale(e.target.value)}
             hint="Is se kam sale par ye rule nahi chalta; poori ho jaye to mahine ki poori sale par lagta hai. Do rules = slab." />
@@ -165,5 +185,28 @@ export function CommissionRuleModal({ rule, people, categories, saving, onClose,
         </p>
       </div>
     </Modal>
+  );
+}
+
+/** Toggle chips for a short list (brands, principals). */
+function ChipPicker({ label, items, value, onChange, hint }: {
+  label: string; items: Array<{ id: string; name: string }>; value: string[]; onChange: (v: string[]) => void; hint?: ReactNode;
+}) {
+  return (
+    <div>
+      <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{label}</p>
+      <div className="flex max-h-36 flex-wrap gap-1.5 overflow-y-auto">
+        {items.map((c) => {
+          const on = value.includes(c.id);
+          return (
+            <button key={c.id} type="button" aria-pressed={on} onClick={() => onChange(on ? value.filter((i) => i !== c.id) : [...value, c.id])}
+              className={cn('rounded-full px-2.5 py-1 text-[0.75rem] ring-1 transition', on ? 'bg-brand-600 text-white ring-brand-600' : 'text-slate-700 ring-slate-200 hover:bg-slate-50')}>
+              {c.name}
+            </button>
+          );
+        })}
+      </div>
+      {hint && <p className="mt-1.5 text-xs text-slate-500">{hint}</p>}
+    </div>
   );
 }

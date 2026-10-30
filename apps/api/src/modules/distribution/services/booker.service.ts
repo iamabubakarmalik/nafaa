@@ -27,11 +27,14 @@ import { DistributionSettingsService } from './settings.service';
 import { OrdersService } from './orders.service';
 import { VisitsService } from './visits.service';
 import { CollectionsService } from './collections.service';
+import { TargetsService } from './targets.service';
+import { MarketReturnsService } from './market-returns.service';
+import type { CreateMarketReturnDto } from '../dto/market-return.dto';
 
 export type SyncStatus = 'ok' | 'duplicate' | 'conflict' | 'error';
 
 export interface SyncResult {
-  kind: 'order' | 'visit' | 'collection';
+  kind: 'order' | 'visit' | 'collection' | 'return';
   clientRef: string | null;
   status: SyncStatus;
   /** Server id (ok and duplicate). */
@@ -81,6 +84,8 @@ export class BookerService {
     private readonly orders: OrdersService,
     private readonly visits: VisitsService,
     private readonly collections: CollectionsService,
+    private readonly targets: TargetsService,
+    private readonly marketReturns: MarketReturnsService,
   ) {}
 
   private can(user: AuthenticatedUser, p: (typeof PERMISSIONS)[keyof typeof PERMISSIONS]) {
@@ -244,6 +249,7 @@ export class BookerService {
     for (const o of dto.orders ?? []) results.push(await this.one('order', o.clientRef, () => this.syncOrder(user, o)));
     for (const v of dto.visits ?? []) results.push(await this.one('visit', v.clientRef, () => this.syncVisit(user, v)));
     for (const c of dto.collections ?? []) results.push(await this.one('collection', c.clientRef, () => this.syncCollection(user, c)));
+    for (const r of dto.returns ?? []) results.push(await this.one('return', r.clientRef, () => this.syncReturn(user, r)));
     return {
       serverTime: new Date().toISOString(),
       results,
@@ -292,6 +298,12 @@ export class BookerService {
     return { status: (res.duplicate ? 'duplicate' : 'ok') as SyncStatus, id: res.collection.id };
   }
 
+  private async syncReturn(user: AuthenticatedUser, r: CreateMarketReturnDto) {
+    if (!this.can(user, PERMISSIONS.DISTRIBUTION_RETURNS_COLLECT)) throw new ForbiddenException('Market return likhne ki permission nahi (returns.collect)');
+    const res = await this.marketReturns.create(user, { ...r, approve: false });
+    return { status: (res.duplicate ? 'duplicate' : 'ok') as SyncStatus, id: res.marketReturn.id, number: res.marketReturn.number, total: res.marketReturn.totalValue };
+  }
+
   /* ───────────── end of day ───────────── */
 
   /** The caller's day: routes due, customers visited and not, orders and money. */
@@ -331,6 +343,11 @@ export class BookerService {
         pending: r2(collections.filter((c) => c.status === 'PENDING').reduce((s, c) => s + c.amount, 0)),
       },
       notVisited: planned.filter((c) => !visited.has(c.id)).map((c) => ({ id: c.id, name: c.businessName || c.name, routeId: c.routeId })),
+      // The booker's own targets this month (phase 2).
+      targets: (await this.targets.list(user, { period: key.slice(0, 7) }, user.id)).targets.map((t) => ({
+        id: t.id, label: t.label, metric: t.metric, unitName: t.unitName, target: t.target, achieved: t.achieved, pct: t.pct,
+        onTrack: t.onTrack, remaining: t.remaining, perDayNeeded: t.perDayNeeded,
+      })),
     };
   }
 }

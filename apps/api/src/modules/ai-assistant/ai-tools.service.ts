@@ -40,6 +40,9 @@ import { stripCostFigures } from '../manufacturing/mask-costs';
 import { DistributionReportsService } from '../distribution/services/reports.service';
 import { CollectionsService } from '../distribution/services/collections.service';
 import { DistributionAccessService } from '../distribution/distribution-access';
+import { TargetsService } from '../distribution/services/targets.service';
+import { VansService } from '../distribution/services/vans.service';
+import { ClaimsService } from '../distribution/services/claims.service';
 import type { AiActionProposal, AiChart, AiLink, AiReorder, AiReorderGroup } from './ai.types';
 import { ACTION_TOOLS } from './ai-action-tools';
 import { hourRange } from './ai-render';
@@ -354,6 +357,32 @@ export const TOOL_SPECS: ToolSpec[] = [
     needs: [P.KHATA_VIEW],
     status: 'Route ki recovery dekh raha hoon…',
   },
+  {
+    name: 'targets_status',
+    description: 'Distribution monthly targets: each target (booker, route, brand, principal or the whole business; by value or quantity) with achieved so far (invoiced less returns), percent, whether it is on track for the days gone, what is left and what is needed per day. Use for target, achievement or "kitna target poora hua" questions.',
+    properties: {
+      month: { type: 'string', enum: ['this_month', 'last_month'], description: 'Default this_month.' },
+      booker: { type: 'string', description: 'Part of a booker\'s name to show only their targets.' },
+    },
+    needs: [P.DISTRIBUTION_ORDERS_VIEW],
+    status: 'Targets dekh raha hoon…',
+  },
+  {
+    name: 'van_stock',
+    description: 'Distribution vans: each van with its salesman, whether its day is open, spot sales today and the stock value on it; for one van, the items on it. Use for van, van stock or van sales questions.',
+    properties: {
+      van: { type: 'string', description: 'Part of a van name to show its items.' },
+    },
+    needs: [P.DISTRIBUTION_ORDERS_VIEW],
+    status: 'Vans ka stock dekh raha hoon…',
+  },
+  {
+    name: 'pending_claims',
+    description: 'Principal (company) claims: scheme discounts, free goods and damaged / expired market returns not yet claimed this month per principal, and claims made but not yet paid with their balance. Use for claim or "company se kitna lena hai" questions.',
+    properties: {},
+    needs: [P.DISTRIBUTION_CLAIMS_MANAGE],
+    status: 'Claims dekh raha hoon…',
+  },
 ];
 
 /** Tool definitions for the Messages API, in the fixed order above. */
@@ -376,7 +405,7 @@ const PERMISSION_WORDS: Partial<Record<PermissionKey, string>> = {
   [P.EXPENSES_VIEW]: 'Expenses', [P.PURCHASES_VIEW]: 'Purchases', [P.CUSTOMERS_VIEW]: 'Customers',
   [P.LOYALTY_VIEW]: 'Loyalty', [P.STAFF_VIEW]: 'Staff', [P.CASH_REGISTER_VIEW]: 'Cash register',
   [P.RETURNS_VIEW]: 'Returns', [P.ONLINE_ORDERS_VIEW]: 'Online orders', [P.MANUFACTURING_VIEW]: 'Manufacturing',
-  [P.DISTRIBUTION_ORDERS_VIEW]: 'Distribution orders',
+  [P.DISTRIBUTION_ORDERS_VIEW]: 'Distribution orders', [P.DISTRIBUTION_CLAIMS_MANAGE]: 'Distribution claims',
 };
 
 /* ───────────────────────── service ───────────────────────── */
@@ -399,6 +428,9 @@ export class AiToolsService {
     private readonly distribution?: DistributionReportsService,
     private readonly distCollections?: CollectionsService,
     private readonly distAccess?: DistributionAccessService,
+    private readonly distTargets?: TargetsService,
+    private readonly distVans?: VansService,
+    private readonly distClaims?: ClaimsService,
   ) {}
 
   /** Builds the per-request context: clock, names and what the user may see. */
@@ -529,6 +561,9 @@ export class AiToolsService {
       case 'production_summary': return this.productionSummary(ctx, a);
       case 'distribution_dsr': return this.distributionDsr(ctx, a);
       case 'route_recovery': return this.routeRecovery(ctx, a);
+      case 'targets_status': return this.targetsStatus(ctx, a);
+      case 'van_stock': return this.vanStock(ctx, a);
+      case 'pending_claims': return this.pendingClaims(ctx);
       default: return Promise.resolve({ data: { error: 'UNKNOWN_TOOL' }, refused: true });
     }
   }
@@ -1106,6 +1141,65 @@ export class AiToolsService {
       },
       chart: routes.length > 1 ? { type: 'bar', title: 'Route udhaar', unit: 'money', series: [{ key: 'v', label: 'Udhaar' }], data: routes.slice(0, 12).map((x) => ({ label: x.routeName, v: x.balance })) } : undefined,
       link: { label: 'Recovery', to: `/distribution/recoveries${routeId ? `?routeId=${routeId}` : ''}` },
+    };
+  }
+
+  async targetsStatus(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    const closed = await this.distributionClosed(ctx);
+    if (closed) return closed;
+    if (!this.distTargets) return { refused: true, data: { error: 'DATA_ERROR', note: 'Targets are not available.' } };
+    const month = ctx.today.slice(0, 7);
+    const [y, m] = month.split('-').map(Number);
+    const last = new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
+    const r = await this.distTargets.list(ctx.user, { period: a.month === 'last_month' ? last : month });
+    const needle = typeof a.booker === 'string' ? a.booker.trim().toLowerCase() : '';
+    const rows = needle ? r.targets.filter((t) => (t.userName ?? '').toLowerCase().includes(needle)) : r.targets;
+    if (!rows.length) return { data: { month: r.period, note: 'No targets set for this month. Targets are set on Distribution → Targets.' }, link: { label: 'Targets', to: '/distribution/targets' } };
+    return {
+      data: {
+        month: r.period, monthGonePercent: r.pace, daysLeft: r.daysLeft,
+        targets: rows.slice(0, 25).map((t) => ({
+          for: t.label, metric: t.metric === 'VALUE' ? 'rupees' : `quantity${t.unitName ? ` (${t.unitName})` : ''}`, target: t.target, achieved: t.achieved,
+          percent: t.pct, onTrack: t.onTrack, remaining: t.remaining, neededPerDay: t.perDayNeeded,
+        })),
+      },
+      chart: rows.length > 1 ? { type: 'bar', title: 'Target poora (%)', unit: 'percent', series: [{ key: 'v', label: '%' }], data: rows.slice(0, 12).map((t) => ({ label: t.label, v: t.pct })) } : undefined,
+      link: { label: 'Targets', to: `/distribution/targets?period=${r.period}` },
+    };
+  }
+
+  async vanStock(ctx: AiToolContext, a: Record<string, unknown>): Promise<AiToolResult> {
+    const closed = await this.distributionClosed(ctx);
+    if (closed) return closed;
+    if (!this.distVans) return { refused: true, data: { error: 'DATA_ERROR', note: 'Vans are not available.' } };
+    const vans = await this.distVans.stockSummary(ctx.user);
+    if (!vans.length) return { data: { note: 'No vans set up. Vans are added on Distribution → Vans.' }, link: { label: 'Vans', to: '/distribution/vans' } };
+    const needle = typeof a.van === 'string' ? a.van.trim().toLowerCase() : '';
+    const one = needle ? vans.filter((v) => v.name.toLowerCase().includes(needle)) : [];
+    const detail = one.length === 1 ? await this.distVans.get(ctx.user, one[0].id) : null;
+    return {
+      data: {
+        vans: (one.length ? one : vans).map((v) => ({ van: v.name, salesman: v.salesmanName, dayOpen: v.open, spotSalesToday: v.sales, spotSalesValue: v.salesValue, stockItems: v.stockLines, stockValueAtCost: v.stockValue })),
+        ...(detail && { items: detail.stock.slice(0, 40).map((s) => ({ item: s.name, variant: s.variantName ?? undefined, qty: s.text })) }),
+      },
+      link: { label: 'Vans', to: detail ? `/distribution/vans/${detail.id}` : '/distribution/vans' },
+    };
+  }
+
+  async pendingClaims(ctx: AiToolContext): Promise<AiToolResult> {
+    const closed = await this.distributionClosed(ctx);
+    if (closed) return closed;
+    if (!this.distClaims) return { refused: true, data: { error: 'DATA_ERROR', note: 'Claims are not available.' } };
+    const r = await this.distClaims.outstanding(ctx.user);
+    return {
+      data: {
+        unclaimedThisMonth: {
+          from: r.unclaimedThisMonth.from, to: r.unclaimedThisMonth.to, total: r.unclaimedThisMonth.total,
+          principals: r.unclaimedThisMonth.principals.slice(0, 15).map((p) => ({ principal: p.supplierName, schemeDiscount: p.schemeDiscount, freeGoodsAtCost: p.freeGoodsValue, damagedExpiredReturns: p.returnsValue, total: p.total })),
+        },
+        claimsNotPaid: r.openClaims.slice(0, 15).map((c) => ({ claim: c.number, principal: c.supplierName, status: c.status, period: `${c.fromKey} to ${c.toKey}`, total: c.total, received: c.receivedAmount, balance: c.balance })),
+      },
+      link: { label: 'Claims', to: '/distribution/claims' },
     };
   }
 }

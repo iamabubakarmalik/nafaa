@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsIn, IsOptional, IsString } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsOptional, IsString } from 'class-validator';
+import { BUSINESS_MODELS } from '../constants/business-models';
 import { BUSINESS_TEMPLATES } from '../templates/business-templates';
 
 const BUSINESS_TYPES = Object.keys(BUSINESS_TEMPLATES);
@@ -24,4 +25,12 @@ export class UpdateStep1Dto {
   @IsOptional()
   @IsString()
   province?: string;
+
+  /** How the business sells; left out keeps what sign-up saved. */
+  @ApiPropertyOptional({ enum: BUSINESS_MODELS, isArray: true })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(BUSINESS_MODELS.length)
+  @IsIn(BUSINESS_MODELS, { each: true })
+  businessModels?: string[];
 }
