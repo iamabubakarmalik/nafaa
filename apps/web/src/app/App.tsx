@@ -7,7 +7,6 @@ import { Toaster } from 'sonner';
 import { ConfirmHost } from '@/design-system/components';
 import { lazy, Suspense, useEffect, type ReactElement } from 'react';
 import { AppearanceBridge, AppearanceProvider } from '@/design-system';
-import { useLocaleStore } from '@core/stores/locale.store';
 
 // ─── Notifications ─────────────────────────────────────────────
 import NotificationsPage from '@modules/notifications/NotificationsPage';
@@ -258,12 +257,6 @@ function ParamRedirect({ to }: { to: (params: Readonly<Params<string>>) => strin
 }
 
 export default function App() {
-  const initLocale = useLocaleStore((s) => s.initialize);
-
-  useEffect(() => {
-    initLocale();
-  }, [initLocale]);
-
   const secure = (permission: any, node: ReactElement) => (
     <PermissionRoute permission={permission}>{node}</PermissionRoute>
   );

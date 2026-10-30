@@ -24,6 +24,7 @@ import { ReturnsRecordsService } from './returns-records.service';
 import { PIN_APPROVAL_ACTION, r2, r3, tidyCustomerBalance } from './returns.helpers';
 import { hasCarpetNote, productsSoldWithoutStock, productsThatTookStock } from '../sales/carpet-line.helper';
 import { parseCarpetNote as readCarpetNote } from '../../../industries/carpet/common/carpet-stock';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const EPS = 0.001;
 /** The same request again within this time returns the first return instead of a second one. */
@@ -281,9 +282,7 @@ export class ReturnsService {
         const service = !si.productId || !si.product;
         const name = si.product?.name ?? si.note ?? 'Service';
         if (it.quantity > remaining + EPS) {
-          throw new BadRequestException(
-            `${name}: sirf ${r3(Math.max(0, remaining))} ${si.product?.unit ?? ''} wapas ho sakta hai`.trim(),
-          );
+          throw new BadRequestException(apiMessage('{{name}}: sirf {{quantity}} {{unit}} wapas ho sakta hai', { name, quantity: r3(Math.max(0, remaining)), unit: si.product?.unit ?? '' }));
         }
         const unit = rates.unit.get(si.id) ?? si.price;
         const isCarpet = !service && hasCarpetNote(si.note);

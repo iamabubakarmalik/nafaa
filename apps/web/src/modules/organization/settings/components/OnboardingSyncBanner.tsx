@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { CheckCircle2, RotateCcw, Shield, X } from 'lucide-react';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 import { Button, IconButton, Modal } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 const DISMISS_KEY = 'nafaa-onb-sync-dismissed';
 const WEEK = 7 * 24 * 60 * 60 * 1000;
@@ -32,10 +33,10 @@ export function OnboardingSyncBanner() {
     mutationFn: onboardingApi.reset,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['onboarding'] });
-      toast.success('Setup dobara shuru ho raha hai');
+      toast.success(t('Setup dobara shuru ho raha hai'));
       setTimeout(() => navigate('/onboarding'), 500);
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Setup dobara shuru nahi hua'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Setup dobara shuru nahi hua')),
   });
 
   if (dismissed || !progress?.isCompleted) return null;
@@ -50,23 +51,23 @@ export function OnboardingSyncBanner() {
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-brand-200 bg-brand-50/60 px-4 py-3">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-brand-fg"><CheckCircle2 className="h-5 w-5" /></span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-slate-900">Setup mukammal — jawab yahan settings me hain</p>
-          <p className="text-xs text-slate-600">Business, store, ghante aur payments sab yahan se badlein. Tabdeeli foran lagti hai.</p>
+          <p className="text-sm font-semibold text-slate-900">{t('Setup mukammal — jawab yahan settings me hain')}</p>
+          <p className="text-xs text-slate-600">{t('Business, store, ghante aur payments sab yahan se badlein. Tabdeeli foran lagti hai.')}</p>
         </div>
-        <Button size="sm" variant="secondary" onClick={() => setConfirmReset(true)} leftIcon={<RotateCcw className="h-3.5 w-3.5" />}>Setup dobara</Button>
-        <IconButton label="Hafte ke liye chhupayein" onClick={dismiss}><X className="h-4 w-4" /></IconButton>
+        <Button size="sm" variant="secondary" onClick={() => setConfirmReset(true)} leftIcon={<RotateCcw className="h-3.5 w-3.5" />}>{t('Setup dobara')}</Button>
+        <IconButton label={t('Hafte ke liye chhupayein')} onClick={dismiss}><X className="h-4 w-4" /></IconButton>
       </div>
 
-      <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="Setup dobara chalayein?"
-        description="Sirf setup wizard dobara chalega — aap ka data waisa hi rahega."
+      <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title={t('Setup dobara chalayein?')}
+        description={t('Sirf setup wizard dobara chalega — aap ka data waisa hi rahega.')}
         footer={<>
-          <Button variant="secondary" onClick={() => setConfirmReset(false)} disabled={resetMutation.isPending}>Cancel</Button>
-          <Button loading={resetMutation.isPending} onClick={() => resetMutation.mutate()}>Haan, dobara chalayein</Button>
+          <Button variant="secondary" onClick={() => setConfirmReset(false)} disabled={resetMutation.isPending}>{t('Cancel')}</Button>
+          <Button loading={resetMutation.isPending} onClick={() => resetMutation.mutate()}>{t('Haan, dobara chalayein')}</Button>
         </>}>
         <ul className="space-y-1.5 text-sm text-slate-700">
-          <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success-600" /> Products, customers aur Sales waise hi rahenge</li>
-          <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success-600" /> Settings baad me bhi yahan se badal sakte hain</li>
-          <li className="flex items-center gap-2"><Shield className="h-4 w-4 text-amber-600" /> Sirf bari tabdeeli (jaise business type) ke liye</li>
+          <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success-600" /> {' '}{t('Products, customers aur Sales waise hi rahenge')}</li>
+          <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success-600" /> {' '}{t('Settings baad me bhi yahan se badal sakte hain')}</li>
+          <li className="flex items-center gap-2"><Shield className="h-4 w-4 text-amber-600" /> {' '}{t('Sirf bari tabdeeli (jaise business type) ke liye')}</li>
         </ul>
       </Modal>
     </>

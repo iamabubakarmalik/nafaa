@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { CheckCircle2, type LucideIcon } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { IconBubble, WidgetCard } from '../engine/parts';
+import { t as tr } from '@core/i18n';
 
 export interface AttentionItem {
   icon: LucideIcon;
@@ -19,14 +20,14 @@ export interface AttentionItem {
 export function AttentionList({ items }: { items: AttentionItem[] }) {
   return (
     <WidgetCard
-      title="Aaj ka kaam"
-      description={items.length ? `${items.length} cheezein tawajjo maangti hain — sab se zaroori upar` : undefined}
+      title={tr('Aaj ka kaam')}
+      description={items.length ? tr('{{count}} cheezein tawajjo maangti hain — sab se zaroori upar', { count: items.length }) : undefined}
       flush
     >
       {items.length === 0 ? (
         <div className="flex items-center gap-3 px-4 pb-4 sm:px-5">
           <IconBubble icon={CheckCircle2} tone="success" />
-          <p className="text-[0.875rem] text-slate-600">Sab theek hai — koi kaam latka hua nahi.</p>
+          <p className="text-[0.875rem] text-slate-600">{tr('Sab theek hai — koi kaam latka hua nahi.')}</p>
         </div>
       ) : (
         <ul className="divide-y divide-slate-100 pb-1">

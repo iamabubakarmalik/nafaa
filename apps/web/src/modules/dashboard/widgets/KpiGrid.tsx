@@ -12,6 +12,7 @@ import { IconBubble } from '../engine/parts';
 import { useMasked } from '../engine/useMasked';
 import { useDashboardContext } from '../engine/useDashboardLayout';
 import type { KpiDef } from '../engine/types';
+import { t } from '@core/i18n';
 
 const TREND_COLOR = {
   brand: 'text-brand-500', success: 'text-success-500', warning: 'text-amber-500',
@@ -59,7 +60,7 @@ function LockedCard({ def }: { def: KpiDef }) {
   return (
     <div className="flex min-w-0 flex-col rounded-2xl border border-dashed border-slate-200 bg-white p-4">
       <span className="text-[0.8125rem] font-medium text-slate-500">{def.label}</span>
-      <span className="mt-2 inline-flex items-center gap-1.5 text-[0.875rem] text-slate-400"><Lock className="h-3.5 w-3.5" /> Cost lock hai</span>
+      <span className="mt-2 inline-flex items-center gap-1.5 text-[0.875rem] text-slate-400"><Lock className="h-3.5 w-3.5" /> {' '}{t('Cost lock hai')}</span>
     </div>
   );
 }
@@ -71,7 +72,7 @@ export function KpiGrid() {
     return (
       <button type="button" onClick={() => openCustomize('numbers')}
         className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-[0.875rem] text-slate-600 hover:bg-slate-50">
-        <Settings2 className="h-4 w-4" /> Numbers chunein
+        <Settings2 className="h-4 w-4" /> {' '}{t('Numbers chunein')}
       </button>
     );
   }

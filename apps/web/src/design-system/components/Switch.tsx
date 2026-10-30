@@ -31,8 +31,8 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(function Switch(
           sm ? 'h-5 w-9' : 'h-6 w-11',
         )} />
         <span className={cn(
-          'pointer-events-none absolute left-0.5 top-0.5 rounded-full bg-white shadow transition-transform',
-          sm ? 'h-4 w-4 peer-checked:translate-x-4' : 'h-5 w-5 peer-checked:translate-x-5',
+          'pointer-events-none absolute start-0.5 top-0.5 rounded-full bg-white shadow transition-transform',
+          sm ? 'h-4 w-4 peer-checked:translate-x-4 rtl:peer-checked:-translate-x-4' : 'h-5 w-5 peer-checked:translate-x-5 rtl:peer-checked:-translate-x-5',
         )} />
       </span>
     </label>

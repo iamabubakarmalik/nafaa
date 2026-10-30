@@ -4,6 +4,7 @@
  * Mirrors apps/api/src/common/helpers/price-tier.helper.ts.
  */
 
+import { t } from '@core/i18n';
 export type PriceTier = 'RETAIL' | 'WHOLESALE' | 'CREDIT';
 
 export const PRICE_TIERS: PriceTier[] = ['RETAIL', 'WHOLESALE', 'CREDIT'];
@@ -15,20 +16,20 @@ export const tierOf = (v: unknown): PriceTier => (isPriceTier(v) ? v : 'RETAIL')
 
 /** Short name, used on chips and report rows. */
 export const PRICE_TIER_LABEL: Record<PriceTier, string> = {
-  RETAIL: 'Retail',
-  WHOLESALE: 'Wholesale',
-  CREDIT: 'Credit',
+  RETAIL: t('Retail'),
+  WHOLESALE: t('Wholesale'),
+  CREDIT: t('Credit'),
 };
 
 /** Field label on product forms and tables. */
 export const PRICE_TIER_FIELD: Record<PriceTier, string> = {
-  RETAIL: 'Retail price',
-  WHOLESALE: 'Wholesale price',
-  CREDIT: 'Credit (udhaar) price',
+  RETAIL: t('Retail price'),
+  WHOLESALE: t('Wholesale price'),
+  CREDIT: t('Credit (udhaar) price'),
 };
 
 /** Label for the purchase cost; owners call it the company price. */
-export const COST_PRICE_LABEL = 'Cost price (Company price)';
+export const COST_PRICE_LABEL = t('Cost price (Company price)');
 
 /** Badge tone per tier, for the design-system Badge. */
 export const PRICE_TIER_TONE: Record<PriceTier, 'neutral' | 'info' | 'warning'> = {

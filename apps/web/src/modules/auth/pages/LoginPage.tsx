@@ -30,10 +30,11 @@ import { AuthHeading, AuthLayout, OrDivider } from '../components/AuthLayout';
 import { GoogleButton } from '../components/GoogleButton';
 import { PasswordField } from '../components/PasswordField';
 import { authErrorMessage, retryAfterSeconds } from '../lib/auth-errors';
+import { t as tr, Trans } from '@core/i18n';
 
 const schema = z.object({
-  email: z.string().trim().min(1, 'Email likhein').email('Email sahi nahi lag raha. Misaal: ahmad@gmail.com'),
-  password: z.string().min(1, 'Password likhein').min(8, 'Password kam se kam 8 huroof ka hota hai'),
+  email: z.string().trim().min(1, tr('Email likhein')).email(tr('Email sahi nahi lag raha. Misaal: ahmad@gmail.com')),
+  password: z.string().min(1, tr('Password likhein')).min(8, tr('Password kam se kam 8 huroof ka hota hai')),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -86,11 +87,11 @@ export default function LoginPage() {
         const data = meRes.data?.data;
         if (data?.user && data?.tenant) {
           setSession({ user: data.user, tenant: data.tenant, accessToken: access, refreshToken: refresh });
-          toast.success(`Impersonating ${data.tenant.name}`);
+          toast.success(tr('Impersonating {{name}}', { name: data.tenant.name }));
           navigate('/dashboard', { replace: true });
         }
       } catch {
-        toast.error('Impersonation nahi ho saki');
+        toast.error(tr('Impersonation nahi ho saki'));
       }
     })();
   }, [isImpersonating, searchParams, setSession, navigate]);
@@ -119,15 +120,15 @@ export default function LoginPage() {
         prewarmAfterLogin().catch(() => {});
       }, 1000);
       setTimeout(() => {
-        toast.info('Offline data tayyar ho raha hai…', {
-          description: '10 second ruk-ein — phir net ke bina bhi kaam chalega',
+        toast.info(tr('Offline data tayyar ho raha hai…'), {
+          description: tr('10 second ruk-ein — phir net ke bina bhi kaam chalega'),
           duration: 8000,
         });
       }, 2000);
 
       const firstName = data.user.fullName.split(' ')[0];
-      toast.success(`Khush aamdeed, ${firstName}!`, data.isNewDevice
-        ? { description: 'Naya device — aap ki email par security notice bhej diya gaya hai', duration: 6000 }
+      toast.success(tr('Khush aamdeed, {{firstName}}!', { firstName }), data.isNewDevice
+        ? { description: tr('Naya device — aap ki email par security notice bhej diya gaya hai'), duration: 6000 }
         : undefined);
 
       navigate('/dashboard', { replace: true });
@@ -139,10 +140,10 @@ export default function LoginPage() {
       if (status === 401) setFailedCount((n) => n + 1);
 
       if ((!status || status >= 500) && getOfflineCredential()) {
-        setFormError('Server tak nahi pohanch sake. Neeche "Offline login" se saved account khol sakte hain.');
+        setFormError(tr('Server tak nahi pohanch sake. Neeche "Offline login" se saved account khol sakte hain.'));
         return;
       }
-      setFormError(authErrorMessage(err, 'Login nahi ho saka. Dobara koshish karein.'));
+      setFormError(authErrorMessage(err, tr('Login nahi ho saka. Dobara koshish karein.')));
     },
   });
 
@@ -151,12 +152,12 @@ export default function LoginPage() {
     try {
       const rec = await verifyOfflineLogin(d.email, d.password);
       if (!rec) {
-        setFormError('Email ya password match nahi hua. Offline login sirf is device par aakhri saved account se hota hai.');
+        setFormError(tr('Email ya password match nahi hua. Offline login sirf is device par aakhri saved account se hota hai.'));
         return;
       }
       setSession({ accessToken: rec.accessToken, refreshToken: rec.refreshToken, user: rec.user, tenant: rec.tenant });
-      toast.success(`Offline login — khush aamdeed, ${rec.user.fullName.split(' ')[0]}!`, {
-        description: 'Sale is device par save hogi, net aate hi sync ho jayegi',
+      toast.success(tr('Offline login — khush aamdeed, {{value}}!', { value: rec.user.fullName.split(' ')[0] }), {
+        description: tr('Sale is device par save hogi, net aate hi sync ho jayegi'),
         duration: 5000,
       });
       navigate('/dashboard', { replace: true });
@@ -179,7 +180,7 @@ export default function LoginPage() {
     setSaved(null);
     form.reset({ email: '', password: '' });
     setConfirmSwitch(false);
-    toast.info('Saved account hata diya — naya login karein');
+    toast.info(tr('Saved account hata diya — naya login karein'));
   };
 
   const offlineNoAccount = !isOnline && !saved;
@@ -187,29 +188,29 @@ export default function LoginPage() {
   return (
     <AuthLayout side="signin">
       {isImpersonating && (
-        <Alert tone="warning" title="Admin impersonation" icon={<ShieldAlert className="h-4 w-4 text-amber-600" />} className="mb-5">
-          Login ho raha hai, ek pal ruk-ein…
+        <Alert tone="warning" title={tr('Admin impersonation')} icon={<ShieldAlert className="h-4 w-4 text-amber-600" />} className="mb-5">
+          {tr('Login ho raha hai, ek pal ruk-ein…')}
         </Alert>
       )}
 
       {!isOnline && (
-        <Alert tone="warning" title="Internet nahi hai" icon={<WifiOff className="h-4 w-4 text-amber-600" />} className="mb-5">
+        <Alert tone="warning" title={tr('Internet nahi hai')} icon={<WifiOff className="h-4 w-4 text-amber-600" />} className="mb-5">
           {saved
-            ? 'Is device par saved account se offline login kar sakte hain.'
-            : 'Offline login ke liye pehle ek dafa net ke saath login zaroori hai.'}
+            ? tr('Is device par saved account se offline login kar sakte hain.')
+            : tr('Offline login ke liye pehle ek dafa net ke saath login zaroori hai.')}
         </Alert>
       )}
 
-      <AuthHeading title="Wapas aaiye" subtitle="Apni dukaan kholne ke liye login karein." />
+      <AuthHeading title={tr('Wapas aaiye')} subtitle={tr('Apni dukaan kholne ke liye login karein.')} />
 
-      <GoogleButton label="Google se login karein" disabled={!isOnline} />
+      <GoogleButton label={tr('Google se login karein')} disabled={!isOnline} />
       <OrDivider />
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
         {formError && <Alert tone="danger">{formError}</Alert>}
 
         <Input
-          label="Email"
+          label={tr('Email')}
           type="email"
           inputMode="email"
           autoComplete="username"
@@ -225,11 +226,11 @@ export default function LoginPage() {
 
         <PasswordField
           autoComplete="current-password"
-          placeholder="Apna password"
+          placeholder={tr('Apna password')}
           autoFocus={!!saved}
           labelAction={isOnline ? (
             <Link to="/forgot-password" className="text-xs font-semibold text-brand-700 hover:text-brand-800">
-              Password bhool gaye?
+              {tr('Password bhool gaye?')}
             </Link>
           ) : undefined}
           {...form.register('password')}
@@ -238,17 +239,17 @@ export default function LoginPage() {
 
         {failedCount >= 3 && (
           <p className="text-xs text-slate-600">
-            Baar baar ghalat ho raha hai?{' '}
-            <Link to="/forgot-password" className="font-semibold text-brand-700 hover:underline">Naya password bana lein</Link>
-            {' '}— 2 minute ka kaam hai.
+            <Trans text="Baar baar ghalat ho raha hai? {{link}} — 2 minute ka kaam hai." values={{
+              link: <Link to="/forgot-password" className="font-semibold text-brand-700 hover:underline">{tr('Naya password bana lein')}</Link>,
+            }} />
           </p>
         )}
 
         <Checkbox
           checked={remember}
           onChange={(e) => setRemember(e.target.checked)}
-          label="Is device ko yaad rakhein"
-          description="Agli dafa email pehle se likha hoga aur net ke bina bhi login ho sakega. Shared computer par band rakhein."
+          label={tr('Is device ko yaad rakhein')}
+          description={tr('Agli dafa email pehle se likha hoga aur net ke bina bhi login ho sakega. Shared computer par band rakhein.')}
         />
 
         <Button
@@ -257,44 +258,44 @@ export default function LoginPage() {
           fullWidth
           loading={mutation.isPending || offlineBusy}
           disabled={waitSeconds > 0 || offlineNoAccount}
-          rightIcon={isOnline && waitSeconds <= 0 ? <ArrowRight className="h-4 w-4" /> : undefined}
+          rightIcon={isOnline && waitSeconds <= 0 ? <ArrowRight className="h-4 w-4 rtl-flip" /> : undefined}
           leftIcon={!isOnline ? <WifiOff className="h-4 w-4" /> : undefined}
         >
-          {waitSeconds > 0 ? `${waitSeconds} second ruk-ein…` : isOnline ? 'Login karein' : 'Offline login'}
+          {waitSeconds > 0 ? tr('{{waitSeconds}} second ruk-ein…', { waitSeconds }) : isOnline ? tr('Login karein') : tr('Offline login')}
         </Button>
 
         {saved && (
           <div className="flex items-center justify-between gap-2 rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-600">
             <span className="flex min-w-0 items-center gap-1.5">
               <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span className="truncate">Saved: <strong className="font-semibold text-slate-800">{saved.email}</strong></span>
+              <span className="truncate">{tr('Saved:')}{' '} <strong className="font-semibold text-slate-800">{saved.email}</strong></span>
             </span>
             <button type="button" onClick={() => setConfirmSwitch(true)} className="shrink-0 font-semibold text-brand-700 hover:underline">
-              Doosra account
+              {tr('Doosra account')}
             </button>
           </div>
         )}
       </form>
 
       <p className="mt-6 text-center text-sm text-slate-600">
-        Nafaa par naye hain?{' '}
-        <Link to="/register" className="font-semibold text-brand-700 hover:text-brand-800">Free account banayein</Link>
+        {tr('Nafaa par naye hain?')}{' '}
+        <Link to="/register" className="font-semibold text-brand-700 hover:text-brand-800">{tr('Free account banayein')}</Link>
       </p>
 
       <Modal
         open={confirmSwitch}
         onClose={() => setConfirmSwitch(false)}
         size="sm"
-        title="Saved account hatayein?"
-        description="Is device se saved login hat jayega. Doosra user login kar sakega, lekin net ke bina login tab tak nahi hoga jab tak koi dobara online login na kare."
+        title={tr('Saved account hatayein?')}
+        description={tr('Is device se saved login hat jayega. Doosra user login kar sakega, lekin net ke bina login tab tak nahi hoga jab tak koi dobara online login na kare.')}
         footer={(
           <>
-            <Button variant="secondary" onClick={() => setConfirmSwitch(false)}>Rehne dein</Button>
-            <Button variant="danger" onClick={switchAccount}>Haan, hata dein</Button>
+            <Button variant="secondary" onClick={() => setConfirmSwitch(false)}>{tr('Rehne dein')}</Button>
+            <Button variant="danger" onClick={switchAccount}>{tr('Haan, hata dein')}</Button>
           </>
         )}
       >
-        <p className="text-sm text-slate-600">Aap ka data aur sale mehfooz rehti hai — sirf is device ka saved login hatega.</p>
+        <p className="text-sm text-slate-600">{tr('Aap ka data aur sale mehfooz rehti hai — sirf is device ka saved login hatega.')}</p>
       </Modal>
     </AuthLayout>
   );

@@ -6,13 +6,14 @@
  * and dark mode at runtime. This file holds the option lists and labels.
  */
 
+import { t } from '@core/i18n';
 export const HERO_STYLES = {
-  modern: { label: 'Modern', description: 'Gradient, glow aur dots' },
-  simple: { label: 'Simple', description: 'Seedha brand rang, saaf' },
-  soft: { label: 'Halka (Soft)', description: 'Halka rang, gehra text' },
-  dark: { label: 'Dark', description: 'Gehra dabba, rang ki chamak' },
-  aurora: { label: 'Aurora', description: 'Rang ke kai shade mile hue' },
-  outline: { label: 'Outline', description: 'Sirf kinara, andar khaali' },
+  modern: { label: t('Modern'), description: t('Gradient, glow aur dots') },
+  simple: { label: t('Simple'), description: t('Seedha brand rang, saaf') },
+  soft: { label: t('Halka (Soft)'), description: t('Halka rang, gehra text') },
+  dark: { label: t('Dark'), description: t('Gehra dabba, rang ki chamak') },
+  aurora: { label: t('Aurora'), description: t('Rang ke kai shade mile hue') },
+  outline: { label: t('Outline'), description: t('Sirf kinara, andar khaali') },
 } as const;
 export type HeroStyle = keyof typeof HERO_STYLES;
 
@@ -23,22 +24,22 @@ export const LIGHT_HERO_STYLES: readonly HeroStyle[] = ['soft', 'outline'];
 export const PLAIN_HERO_STYLES: readonly HeroStyle[] = ['simple'];
 
 export const HERO_PATTERNS = {
-  dots: { label: 'Dots' },
-  grid: { label: 'Grid' },
-  lines: { label: 'Lines' },
-  none: { label: 'Koi nahi' },
+  dots: { label: t('Dots') },
+  grid: { label: t('Grid') },
+  lines: { label: t('Lines') },
+  none: { label: t('Koi nahi') },
 } as const;
 export type HeroPattern = keyof typeof HERO_PATTERNS;
 
 export const HERO_SIZES = {
-  comfortable: { label: 'Comfortable', description: 'Khula, bara number' },
-  compact: { label: 'Compact', description: 'Kam jagah, chhota number' },
+  comfortable: { label: t('Comfortable'), description: t('Khula, bara number') },
+  compact: { label: t('Compact'), description: t('Kam jagah, chhota number') },
 } as const;
 export type HeroSize = keyof typeof HERO_SIZES;
 
 export const HERO_STATS_LAYOUTS = {
-  inline: { label: 'Ek line me', description: 'Number saath saath' },
-  cards: { label: 'Cards', description: 'Har number alag dabbe me' },
+  inline: { label: t('Ek line me'), description: t('Number saath saath') },
+  cards: { label: t('Cards'), description: t('Har number alag dabbe me') },
 } as const;
 export type HeroStatsLayout = keyof typeof HERO_STATS_LAYOUTS;
 

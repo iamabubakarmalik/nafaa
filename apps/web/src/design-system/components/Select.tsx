@@ -40,14 +40,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
             required={required}
             aria-invalid={error ? true : undefined}
             aria-describedby={describedBy}
-            className={cn(controlClass(!!error), 'cursor-pointer appearance-none pl-3 pr-9', SIZES[size], className)}
+            className={cn(controlClass(!!error), 'cursor-pointer appearance-none ps-3 pe-9', SIZES[size], className)}
             {...props}
           >
             {placeholder && <option value="">{placeholder}</option>}
             {options?.map((o) => <option key={o.value} value={o.value} disabled={o.disabled}>{o.label}</option>)}
             {children}
           </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
+          <ChevronDown className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden />
         </div>
       )}
     </Field>

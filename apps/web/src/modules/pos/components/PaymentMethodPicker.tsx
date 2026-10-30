@@ -8,8 +8,9 @@
 import { cn } from '@core/lib/cn';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { POS_PAYMENT_METHODS } from '../lib/posCart';
+import { t } from '@core/i18n';
 
-export function PaymentMethodPicker({ value, onChange, label = 'Payment kaise mili', hint, className }: {
+export function PaymentMethodPicker({ value, onChange, label = t('Payment kaise mili'), hint, className }: {
   value: PaymentMethod;
   onChange: (m: PaymentMethod) => void;
   label?: string;
@@ -35,7 +36,7 @@ export function PaymentMethodPicker({ value, onChange, label = 'Payment kaise mi
         })}
       </div>
       <p className="mt-1 text-[0.6875rem] text-slate-500">
-        {hint ?? (value === 'CASH' ? 'Cash drawer me ginti hoga' : 'Bank / wallet account me ginti hoga, drawer me nahi')}
+        {hint ?? (value === 'CASH' ? t('Cash drawer me ginti hoga') : t('Bank / wallet account me ginti hoga, drawer me nahi'))}
       </p>
     </div>
   );

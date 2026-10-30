@@ -15,6 +15,7 @@ import { Link } from 'react-router-dom';
 import { AlertTriangle, HandCoins, Hourglass } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
+import { t } from '@core/i18n';
 
 export interface ProfitSplit {
   basis: 'PAID' | 'BILL';
@@ -44,16 +45,16 @@ export function NoCostWarning({ count, className }: { count: number; className?:
     <p className={cn('flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[0.75rem] leading-snug text-amber-900', className)}>
       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <span>
-        {count.toLocaleString('en-PK')} {count === 1 ? 'cheez' : 'cheezon'} ki Cost nahi likhi — un ki poori sale Profit gini gayi.{' '}
-        <Link to={NO_COST_LINK} className="whitespace-nowrap font-semibold underline-offset-2 hover:underline">Cost bharein →</Link>
+        {t('{{count}} {{value}} ki Cost nahi likhi — un ki poori sale Profit gini gayi.', { count: count.toLocaleString('en-PK'), value: count === 1 ? t('cheez') : t('cheezon') })}{' '}
+        <Link to={NO_COST_LINK} className="whitespace-nowrap font-semibold underline-offset-2 hover:underline">{t('Cost bharein →')}</Link>
       </span>
     </p>
   );
 }
 
 export const BASIS_LABEL: Record<ProfitSplit['basis'], string> = {
-  PAID: 'Paisa milne par',
-  BILL: 'Bill bante hi',
+  PAID: t('Paisa milne par'),
+  BILL: t('Bill bante hi'),
 };
 
 type Money = (n: number) => string;
@@ -67,9 +68,9 @@ export function splitMatters(s: ProfitSplit | null | undefined): s is ProfitSpli
 export function splitHint(s: ProfitSplit | null | undefined, money: Money = formatPKR): string | null {
   if (!s) return null;
   const bare = noCostCount(s);
-  if (bare > 0) return `${bare} cheezon ki Cost nahi likhi — Profit zyada dikh raha hai`;
+  if (bare > 0) return t('{{bare}} cheezon ki Cost nahi likhi — Profit zyada dikh raha hai', { bare });
   if (!splitMatters(s)) return null;
-  return `Haath mein ${money(s.realised)} · udhaar mein ${money(s.pending)}`;
+  return t('Haath mein {{realised}} · udhaar mein {{pending}}', { realised: money(s.realised), pending: money(s.pending) });
 }
 
 interface Props {
@@ -85,7 +86,7 @@ interface Props {
 }
 
 /** The two figures side by side with the line that ties them to the bill profit. */
-export function ProfitSplitCard({ split, money = formatPKR, periodLabel = 'is period', compact, always, className }: Props) {
+export function ProfitSplitCard({ split, money = formatPKR, periodLabel = t('is period'), compact, always, className }: Props) {
   if (!split) return null;
   const bare = noCostCount(split);
   if (!always && !splitMatters(split)) return bare > 0 ? <NoCostWarning count={bare} className={className} /> : null;
@@ -96,28 +97,28 @@ export function ProfitSplitCard({ split, money = formatPKR, periodLabel = 'is pe
       {/* Compact cards sit in narrow side columns, so their figures stack. */}
       <div className={cn('grid grid-cols-1 gap-2', !compact && 'sm:grid-cols-2')}>
         <Figure
-          icon={<HandCoins className="h-4 w-4" />} tone="emerald" label="Haath mein aaya profit" value={money(split.realised)}
-          note={headlineIs === 'realised' ? 'Headline profit yahi hai' : 'Jis ka paisa aa gaya'} strong={headlineIs === 'realised'}
+          icon={<HandCoins className="h-4 w-4" />} tone="emerald" label={t('Haath mein aaya profit')} value={money(split.realised)}
+          note={headlineIs === 'realised' ? t('Headline profit yahi hai') : t('Jis ka paisa aa gaya')} strong={headlineIs === 'realised'}
         />
         <Figure
-          icon={<Hourglass className="h-4 w-4" />} tone="amber" label="Udhaar mein profit" value={money(split.pending)}
-          note="Abhi aana hai — customer ke paisa dene par haath mein aayega"
+          icon={<Hourglass className="h-4 w-4" />} tone="amber" label={t('Udhaar mein profit')} value={money(split.pending)}
+          note={t('Abhi aana hai — customer ke paisa dene par haath mein aayega')}
         />
       </div>
       <NoCostWarning count={bare} />
       <div className="space-y-1 rounded-lg bg-slate-50 px-3 py-2 text-[0.75rem] leading-relaxed text-slate-600">
         <p>
-          <span className="font-semibold text-slate-800">Bill ka profit {money(split.billProfit)}</span>
-          {' = '}haath mein ({periodLabel} ke bills) {money(onPeriodBills)} + udhaar mein {money(split.pending)}
-          {Math.abs(split.writtenOff) > 0.5 && <> + maaf kiya {money(split.writtenOff)}</>}
+          <span className="font-semibold text-slate-800">{t('Bill ka profit {{billProfit}}', { billProfit: money(split.billProfit) })}</span>
+          {t('= haath mein ({{periodLabel}} ke bills) {{onPeriodBills}} + udhaar mein {{pending}}', { periodLabel, onPeriodBills: money(onPeriodBills), pending: money(split.pending) })}
+          {Math.abs(split.writtenOff) > 0.5 && <> {' '}{t('+ maaf kiya {{writtenOff}}', { writtenOff: money(split.writtenOff) })}</>}
         </p>
         {Math.abs(split.fromOlderBills) > 0.5 && (
-          <p>Pehle ke udhaar se aaya profit: <span className="font-semibold text-slate-800">{money(split.fromOlderBills)}</span> (haath mein aaye profit me shamil)</p>
+          <p>{t('Pehle ke udhaar se aaya profit:')}{' '} <span className="font-semibold text-slate-800">{money(split.fromOlderBills)}</span> {' '}{t('(haath mein aaye profit me shamil)')}</p>
         )}
         <p className="text-slate-500">
-          Udhaar ka profit: <span className="font-medium text-slate-700">{BASIS_LABEL[split.basis]}</span>
-          {headlineIs === 'bill' && <> — headline me bill ka poora profit hai</>}
-          {' · '}<Link to="/settings/reports" className="font-medium text-brand-700 underline-offset-2 hover:underline">badlein</Link>
+          {t('Udhaar ka profit:')}{' '} <span className="font-medium text-slate-700">{BASIS_LABEL[split.basis]}</span>
+          {headlineIs === 'bill' && <> {' '}{t('— headline me bill ka poora profit hai')}</>}
+          {' · '}<Link to="/settings/reports" className="font-medium text-brand-700 underline-offset-2 hover:underline">{t('badlein')}</Link>
         </p>
       </div>
     </div>

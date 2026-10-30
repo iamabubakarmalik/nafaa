@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { usePermission } from '@core/hooks/usePermission';
 import type { PermissionKey } from '@core/lib/permissions';
+import { t } from '@core/i18n';
 
 interface Props {
   permission: PermissionKey;
@@ -19,10 +20,9 @@ export default function PermissionRoute({ permission, children }: Props) {
         <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-50 flex items-center justify-center">
           <ShieldAlert className="h-8 w-8 text-rose-600" />
         </div>
-        <h2 className="mt-4 text-2xl font-bold text-slate-900">Access Restricted</h2>
+        <h2 className="mt-4 text-2xl font-bold text-slate-900">{t('Access Restricted')}</h2>
         <p className="mt-2 text-sm text-slate-600">
-          Aap ke account ko is section ka access nahi diya gaya.
-          Owner se permission enable karwa lein.
+          {t('Aap ke account ko is section ka access nahi diya gaya. Owner se permission enable karwa lein.')}
         </p>
       </div>
     </div>

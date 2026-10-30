@@ -17,6 +17,7 @@ import { cn } from '@core/lib/cn';
 import { useAppearance } from '../theme/store';
 import { useInPageFrame } from './PageFrame';
 import { PLAIN_HERO_STYLES, type HeroLook, type HeroPattern as HeroPatternName } from '../tokens/hero';
+import { t } from '@core/i18n';
 
 export interface HeroStat {
   label: ReactNode;
@@ -57,14 +58,14 @@ function HeroPattern({ pattern }: { pattern: HeroPatternName }) {
 export function HeroBackdrop({ pattern, small }: { pattern: HeroPatternName; small?: boolean }) {
   return (
     <span className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]" aria-hidden>
-      <span className={cn('nafaa-hero-glow absolute rounded-full', small ? '-right-6 -top-8 h-16 w-16 blur-xl' : '-right-20 -top-24 h-56 w-56 blur-3xl')} />
+      <span className={cn('nafaa-hero-glow absolute rounded-full', small ? '-end-6 -top-8 h-16 w-16 blur-xl' : '-end-20 -top-24 h-56 w-56 blur-3xl')} />
       <HeroPattern pattern={pattern} />
-      <span className={cn('nafaa-hero-edge absolute inset-y-0 left-0', small ? 'w-0.5' : 'w-1')} />
+      <span className={cn('nafaa-hero-edge absolute inset-y-0 start-0', small ? 'w-0.5' : 'w-1')} />
     </span>
   );
 }
 
-export function PageHero({ title, subtitle, back, backLabel = 'Wapas', chip, meta, busy, actions, stats, loading, look }: {
+export function PageHero({ title, subtitle, back, backLabel = t('Wapas'), chip, meta, busy, actions, stats, loading, look }: {
   title: ReactNode;
   /** Second line under the title, for detail and form pages. */
   subtitle?: ReactNode;
@@ -103,10 +104,10 @@ export function PageHero({ title, subtitle, back, backLabel = 'Wapas', chip, met
       <div className={cn('relative flex flex-wrap items-center justify-between', compact ? 'gap-2' : 'gap-3')}>
         <div className={cn('flex min-w-0 flex-1 items-center', compact ? 'gap-2.5' : 'gap-3')}>
           {!inFrame && typeof back === 'string' && (
-            <Link to={back} aria-label={backLabel} title={backLabel} className={heroIconButton}><ArrowLeft className="h-4 w-4" /></Link>
+            <Link to={back} aria-label={backLabel} title={backLabel} className={heroIconButton}><ArrowLeft className="h-4 w-4 rtl-flip" /></Link>
           )}
           {!inFrame && typeof back === 'function' && (
-            <button type="button" onClick={back} aria-label={backLabel} title={backLabel} className={heroIconButton}><ArrowLeft className="h-4 w-4" /></button>
+            <button type="button" onClick={back} aria-label={backLabel} title={backLabel} className={heroIconButton}><ArrowLeft className="h-4 w-4 rtl-flip" /></button>
           )}
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
@@ -114,7 +115,7 @@ export function PageHero({ title, subtitle, back, backLabel = 'Wapas', chip, met
               {chip && (
                 <span className="nafaa-hero-chip inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.75rem] font-medium ring-1 [&_svg]:h-3.5 [&_svg]:w-3.5">
                   {chip}
-                  {busy && <span className="nafaa-hero-dot h-1.5 w-1.5 animate-pulse rounded-full" aria-label="Taaza ho raha hai" />}
+                  {busy && <span className="nafaa-hero-dot h-1.5 w-1.5 animate-pulse rounded-full" aria-label={t('Taaza ho raha hai')} />}
                 </span>
               )}
               {meta && <span className={cn('nafaa-hero-subtle text-[0.75rem]', inFrame ? 'inline' : 'hidden md:inline')}>{meta}</span>}
@@ -133,12 +134,12 @@ export function PageHero({ title, subtitle, back, backLabel = 'Wapas', chip, met
             return (
               <div key={i} className={cn('min-w-0',
                 cards ? cn('nafaa-hero-tile rounded-2xl sm:min-w-[9rem]', compact ? 'px-2.5 py-1.5' : 'px-3 py-2', big && 'col-span-2 sm:col-span-1')
-                  : i > 0 && cn('nafaa-hero-line border-l', compact ? 'pl-3.5 sm:pl-5' : 'pl-4 sm:pl-6'))}>
+                  : i > 0 && cn('nafaa-hero-line border-s', compact ? 'ps-3.5 sm:ps-5' : 'ps-4 sm:ps-6'))}>
                 <p className="nafaa-hero-muted text-[0.75rem] font-medium">{x.label}</p>
                 {loading ? <span className={cn('nafaa-hero-skeleton mt-1 block animate-pulse rounded-lg', big ? (compact ? 'h-7 w-32' : 'h-9 w-40') : 'h-6 w-24')} /> : (
                   <p className={cn('font-bold leading-tight tabular-nums',
                     big ? (compact ? 'text-[1.375rem] tracking-tight' : 'text-[1.875rem] tracking-tight') : (compact ? 'text-base' : 'text-[1.125rem]'))}>
-                    {x.value}{x.hint && <span className="nafaa-hero-subtle ml-1.5 text-[0.6875rem] font-medium">{x.hint}</span>}
+                    {x.value}{x.hint && <span className="nafaa-hero-subtle ms-1.5 text-[0.6875rem] font-medium">{x.hint}</span>}
                   </p>
                 )}
               </div>

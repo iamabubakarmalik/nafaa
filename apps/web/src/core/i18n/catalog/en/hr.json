@@ -1,0 +1,18 @@
+{
+  " · {{ruleCount}} rule chaalu": " · {{ruleCount}} rules on",
+  "{{bills}} bill · {{value}}": "{{bills}} bills · {{value}}",
+  "{{orphanBills}} bill par kisi bande ka naam nahi — in ki commission kisi ko nahi milti": "{{orphanBills}} bills have no staff name — no one gets their commission",
+  "Ada ho gayi": "Paid",
+  "Ada hui": "Paid",
+  "Bande chunein": "Select staff",
+  "Bandon ko sale par hissa dete hain? Ek rule bana dein — phir har mahine ka hisab khud banega.": "Give staff a share on sales? Make a rule — the monthly report is then made by itself.",
+  "Banti hai": "Earned",
+  "Commission load nahi hui": "Commission did not load",
+  "Commission set nahi hai": "Commission not set",
+  "Dena baqi": "Due",
+  "Har bande ko alag se chaalu karna parta hai — tabhi us ki commission banti hai.": "Turn it on for each staff member — only then they earn commission.",
+  "Kisi bande par chaalu nahi": "Not on for any staff",
+  "Poora": "View all",
+  "Rule banayein": "Add rule",
+  "Staff commission": "Staff commission"
+}

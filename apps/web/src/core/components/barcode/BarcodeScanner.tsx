@@ -9,6 +9,7 @@ import { createPortal } from 'react-dom';
 import { BrowserMultiFormatReader, type IScannerControls } from '@zxing/browser';
 import { AlertCircle, CameraOff, CheckCircle2, Keyboard, Loader2, RefreshCw, SwitchCamera, X, Zap } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { t as tr } from '@core/i18n';
 
 interface Props {
   onDetected: (code: string) => void;
@@ -20,12 +21,12 @@ interface Props {
 type CameraState = 'starting' | 'live' | 'denied' | 'none' | 'failed';
 
 const MESSAGES: Record<Exclude<CameraState, 'starting' | 'live'>, { title: string; body: string }> = {
-  denied: { title: 'Camera ki permission nahi mili', body: 'Address bar me 🔒 par tap karein, Camera ko Allow karein, phir dobara koshish karein.' },
-  none: { title: 'Camera nahi mila', body: 'Is device par camera nahi hai ya browser camera nahi deta. Neeche code likh dein.' },
-  failed: { title: 'Camera shuru nahi hua', body: 'Shayad koi aur app camera chala rahi hai. Use band kar ke dobara koshish karein.' },
+  denied: { title: tr('Camera ki permission nahi mili'), body: tr('Address bar me 🔒 par tap karein, Camera ko Allow karein, phir dobara koshish karein.') },
+  none: { title: tr('Camera nahi mila'), body: tr('Is device par camera nahi hai ya browser camera nahi deta. Neeche code likh dein.') },
+  failed: { title: tr('Camera shuru nahi hua'), body: tr('Shayad koi aur app camera chala rahi hai. Use band kar ke dobara koshish karein.') },
 };
 
-export default function BarcodeScanner({ onDetected, onClose, title = 'Barcode scan', hint = 'Barcode ya IMEI ko dabbe ke andar rakhein' }: Props) {
+export default function BarcodeScanner({ onDetected, onClose, title = tr('Barcode scan'), hint = tr('Barcode ya IMEI ko dabbe ke andar rakhein') }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const doneRef = useRef(false);
@@ -143,7 +144,7 @@ export default function BarcodeScanner({ onDetected, onClose, title = 'Barcode s
               <p className="text-base font-semibold">{title}</p>
               <p className="mt-0.5 text-[0.8125rem] text-white/70">{hint}</p>
             </div>
-            <button type="button" onClick={onClose} aria-label="Band karein"
+            <button type="button" onClick={onClose} aria-label={tr('Band karein')}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 backdrop-blur transition hover:bg-white/25">
               <X className="h-5 w-5" />
             </button>
@@ -153,8 +154,8 @@ export default function BarcodeScanner({ onDetected, onClose, title = 'Barcode s
           {state === 'live' && !found && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden>
               <div className="relative aspect-[5/3] w-4/5 max-w-sm rounded-2xl shadow-[0_0_0_100vmax_rgba(0,0,0,0.45)]">
-                {['left-0 top-0 border-l-4 border-t-4 rounded-tl-2xl', 'right-0 top-0 border-r-4 border-t-4 rounded-tr-2xl',
-                  'bottom-0 left-0 border-b-4 border-l-4 rounded-bl-2xl', 'bottom-0 right-0 border-b-4 border-r-4 rounded-br-2xl'].map((c) => (
+                {['start-0 top-0 border-s-4 border-t-4 rounded-ss-2xl', 'end-0 top-0 border-e-4 border-t-4 rounded-se-2xl',
+                  'bottom-0 start-0 border-b-4 border-s-4 rounded-es-2xl', 'bottom-0 end-0 border-b-4 border-e-4 rounded-ee-2xl'].map((c) => (
                   <span key={c} className={cn('absolute h-8 w-8 border-white', c)} />
                 ))}
                 <span className="absolute inset-x-3 top-1/2 h-0.5 -translate-y-1/2 animate-pulse rounded-full bg-brand-400 shadow-[0_0_16px_rgba(255,255,255,0.6)]" />
@@ -165,8 +166,8 @@ export default function BarcodeScanner({ onDetected, onClose, title = 'Barcode s
           {state === 'starting' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
               <Loader2 className="h-8 w-8 animate-spin text-white/70" />
-              <p className="text-sm text-white/80">Camera khul raha hai…</p>
-              <p className="max-w-xs text-xs text-white/50">Browser poochhe to "Allow" dabayein</p>
+              <p className="text-sm text-white/80">{tr('Camera khul raha hai…')}</p>
+              <p className="max-w-xs text-xs text-white/50">{tr('Browser poochhe to "Allow" dabayein')}</p>
             </div>
           )}
 
@@ -180,7 +181,7 @@ export default function BarcodeScanner({ onDetected, onClose, title = 'Barcode s
               {state !== 'none' && (
                 <button type="button" onClick={() => { setDeviceId(''); setAttempt((a) => a + 1); }}
                   className="mt-1 inline-flex h-10 items-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-slate-900 transition hover:bg-white/90">
-                  <RefreshCw className="h-4 w-4" /> Dobara koshish
+                  <RefreshCw className="h-4 w-4" /> {' '}{tr('Dobara koshish')}
                 </button>
               )}
             </div>
@@ -197,18 +198,18 @@ export default function BarcodeScanner({ onDetected, onClose, title = 'Barcode s
           {state === 'live' && !found && (
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 bg-gradient-to-t from-black/70 to-transparent p-4">
               {torch.supported && (
-                <button type="button" onClick={toggleTorch} aria-pressed={torch.on} aria-label="Torch"
+                <button type="button" onClick={toggleTorch} aria-pressed={torch.on} aria-label={tr('Torch')}
                   className={cn('flex h-12 w-12 items-center justify-center rounded-full backdrop-blur transition', torch.on ? 'bg-amber-300 text-slate-900' : 'bg-white/15 hover:bg-white/25')}>
                   <Zap className="h-5 w-5" />
                 </button>
               )}
               {devices.length > 1 && (
-                <button type="button" onClick={switchCamera} aria-label="Doosra camera"
+                <button type="button" onClick={switchCamera} aria-label={tr('Doosra camera')}
                   className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 backdrop-blur transition hover:bg-white/25">
                   <SwitchCamera className="h-5 w-5" />
                 </button>
               )}
-              <button type="button" onClick={() => setTyping((t) => !t)} aria-pressed={typing} aria-label="Code likhein"
+              <button type="button" onClick={() => setTyping((t) => !t)} aria-pressed={typing} aria-label={tr('Code likhein')}
                 className={cn('flex h-12 w-12 items-center justify-center rounded-full backdrop-blur transition', typing ? 'bg-white text-slate-900' : 'bg-white/15 hover:bg-white/25')}>
                 <Keyboard className="h-5 w-5" />
               </button>
@@ -218,12 +219,12 @@ export default function BarcodeScanner({ onDetected, onClose, title = 'Barcode s
 
         {typing && !found && (
           <form onSubmit={submit} className="flex gap-2 border-t border-white/10 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-            <input autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder="Barcode ya IMEI likhein"
-              inputMode="text" autoComplete="off" spellCheck={false} aria-label="Barcode ya IMEI"
+            <input autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder={tr('Barcode ya IMEI likhein')}
+              inputMode="text" autoComplete="off" spellCheck={false} aria-label={tr('Barcode ya IMEI')}
               className="h-11 min-w-0 flex-1 rounded-xl bg-white/10 px-3 font-mono text-sm text-white outline-none ring-1 ring-white/15 placeholder:text-white/40 focus:ring-2 focus:ring-brand-400" />
             <button type="submit" disabled={!code.trim()}
               className="h-11 shrink-0 rounded-xl bg-brand-500 px-4 text-sm font-semibold text-white transition hover:bg-brand-400 disabled:opacity-40">
-              Theek hai
+              {tr('Theek hai')}
             </button>
           </form>
         )}

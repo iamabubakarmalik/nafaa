@@ -3,6 +3,7 @@ import {
 } from 'lucide-react';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import type { PriceTier, TierPriced } from '@core/lib/priceTiers';
+import { t } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    POS CART — ek hi shakal, har industry ke liye
@@ -138,10 +139,10 @@ export interface PosPaymentMethodOption {
 }
 
 export const POS_PAYMENT_METHODS: PosPaymentMethodOption[] = [
-  { id: 'CASH',          label: 'Cash',      icon: Banknote,   color: '#16a34a', key: 'F1' },
-  { id: 'JAZZCASH',      label: 'JazzCash',  icon: Smartphone, color: '#ea580c', key: 'F3' },
-  { id: 'EASYPAISA',     label: 'Easypaisa', icon: Zap,        color: '#22c55e', key: 'F4' },
-  { id: 'CARD',          label: 'Card',      icon: CreditCard, color: '#2563eb', key: 'F5' },
-  { id: 'BANK_TRANSFER', label: 'Bank',      icon: Building2,  color: '#7c3aed', key: 'F7' },
+  { id: 'CASH',          label: t('Cash'),      icon: Banknote,   color: '#16a34a', key: 'F1' },
+  { id: 'JAZZCASH',      label: t('JazzCash'),  icon: Smartphone, color: '#ea580c', key: 'F3' },
+  { id: 'EASYPAISA',     label: t('Easypaisa'), icon: Zap,        color: '#22c55e', key: 'F4' },
+  { id: 'CARD',          label: t('Card'),      icon: CreditCard, color: '#2563eb', key: 'F5' },
+  { id: 'BANK_TRANSFER', label: t('Bank'),      icon: Building2,  color: '#7c3aed', key: 'F7' },
 ];
 

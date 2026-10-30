@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Shield, X, KeyRound, AlertTriangle } from 'lucide-react';
 import { useAppLock } from './useAppLock';
 import { toast } from 'sonner';
+import { t } from '@core/i18n';
 
 interface Props {
   children: ReactNode;
@@ -39,27 +40,27 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
     setBusy(true);
     try {
       if (mode === 'setup') {
-        if (pin1.length < 4) return toast.error('PIN 4-8 digits ka');
-        if (pin1 !== pin2) return toast.error('Dono PIN match nahi karte');
+        if (pin1.length < 4) return toast.error(t('PIN 4-8 digits ka'));
+        if (pin1 !== pin2) return toast.error(t('Dono PIN match nahi karte'));
         await lock.setup(pin1);
-        toast.success('PIN set ho gaya ✓');
+        toast.success(t('PIN set ho gaya ✓'));
         onClose();
       } else if (mode === 'change') {
-        if (pin1.length < 4 || pin1 !== pin2) return toast.error('Naya PIN check karo');
+        if (pin1.length < 4 || pin1 !== pin2) return toast.error(t('Naya PIN check karo'));
         const ok = await lock.changePin(oldPin, pin1);
-        if (!ok) return toast.error('Purana PIN ghalat');
-        toast.success('PIN change ho gaya ✓');
+        if (!ok) return toast.error(t('Purana PIN ghalat'));
+        toast.success(t('PIN change ho gaya ✓'));
         onClose();
       } else {
         const ok = await lock.disable(oldPin);
-        if (!ok) return toast.error('PIN ghalat');
-        toast.success('PIN off');
+        if (!ok) return toast.error(t('PIN ghalat'));
+        toast.success(t('PIN off'));
         onClose();
       }
     } finally { setBusy(false); }
   };
 
-  const title = mode === 'setup' ? 'PIN Set Karo' : mode === 'change' ? 'PIN Change Karo' : 'PIN Band Karo';
+  const title = mode === 'setup' ? t('PIN Set Karo') : mode === 'change' ? t('PIN Change Karo') : t('PIN Band Karo');
   const emoji = mode === 'setup' ? '🔐' : mode === 'change' ? '🔄' : '🔓';
 
   return (
@@ -78,12 +79,12 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
           {mode === 'setup' && (
             <div className="rounded-xl bg-amber-50 border-2 border-amber-300 p-3 text-xs font-extrabold text-amber-800 flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>PIN yaad rakho! Bhoolne par disable karke naya bana sakte ho — data safe rahega.</span>
+              <span>{t('PIN yaad rakho! Bhoolne par disable karke naya bana sakte ho — data safe rahega.')}</span>
             </div>
           )}
           {(mode === 'change' || mode === 'disable') && (
             <div>
-              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">Purana PIN</label>
+              <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">{t('Purana PIN')}</label>
               <input
                 autoFocus type="password" inputMode="numeric" maxLength={8}
                 value={oldPin} onChange={(e) => setOldPin(e.target.value.replace(/[^0-9]/g, ''))}
@@ -96,7 +97,7 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
             <>
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">
-                  {mode === 'change' ? 'Naya PIN' : 'Naya PIN (4-8 digits)'}
+                  {mode === 'change' ? t('Naya PIN') : t('Naya PIN (4-8 digits)')}
                 </label>
                 <input
                   autoFocus={mode === 'setup'} type="password" inputMode="numeric" maxLength={8}
@@ -106,7 +107,7 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
                 />
               </div>
               <div>
-                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">PIN Dobara</label>
+                <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block tracking-wider">{t('PIN Dobara')}</label>
                 <input
                   type="password" inputMode="numeric" maxLength={8}
                   value={pin2} onChange={(e) => setPin2(e.target.value.replace(/[^0-9]/g, ''))}
@@ -125,7 +126,7 @@ export function AppLockSetupModal({ mode, onClose }: { mode: 'setup' | 'change' 
               'inline-flex items-center justify-center gap-2',
             ].join(' ')}
           >
-            <Shield className="h-5 w-5" /> Confirm
+            <Shield className="h-5 w-5" /> {' '}{t('Confirm')}
           </button>
         </div>
       </div>
@@ -139,10 +140,10 @@ export function AppLockPrivacyToggle({ className }: { className?: string }) {
     <button
       onClick={lock.toggleHideStats}
       className={className || 'inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-3 py-2.5 text-sm font-bold backdrop-blur border border-white/20 transition'}
-      title={lock.hideStats ? 'Show amounts' : 'Hide amounts'}
+      title={lock.hideStats ? t('Show amounts') : t('Hide amounts')}
     >
       {lock.hideStats ? '👁️‍🗨️' : '👁️'}
-      <span className="hidden sm:inline">{lock.hideStats ? 'Show' : 'Hide'}</span>
+      <span className="hidden sm:inline">{lock.hideStats ? t('Show') : t('Hide')}</span>
     </button>
   );
 }

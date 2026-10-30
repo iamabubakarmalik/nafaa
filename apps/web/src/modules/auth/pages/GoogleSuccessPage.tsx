@@ -14,6 +14,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { Button } from '@/design-system/components';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 import { AuthHeading, AuthLayout } from '../components/AuthLayout';
+import { t } from '@core/i18n';
 
 export default function GoogleSuccessPage() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function GoogleSuccessPage() {
     const isNewUser = params.get('isNewUser') === 'true';
 
     if (!accessToken || !refreshToken) {
-      toast.error('Google login poora nahi hua. Dobara try karein.');
+      toast.error(t('Google login poora nahi hua. Dobara try karein.'));
       navigate('/login', { replace: true });
       return;
     }
@@ -41,14 +42,14 @@ export default function GoogleSuccessPage() {
       try {
         const meRes = await apiClient.get('/auth/me', { headers: { Authorization: `Bearer ${accessToken}` } });
         const data = meRes.data?.data;
-        if (!data?.user || !data?.tenant) throw new Error('Invalid user data');
+        if (!data?.user || !data?.tenant) throw new Error(t('Invalid user data'));
 
         setSession({ user: data.user, tenant: data.tenant, accessToken, refreshToken });
         // Drop cached data from any previous account on this device.
         queryClient.clear();
 
         const firstName = data.user.fullName.split(' ')[0];
-        toast.success(isNewUser ? `Mubarak ho, ${firstName}!` : `Khush aamdeed, ${firstName}!`);
+        toast.success(isNewUser ? t('Mubarak ho, {{firstName}}!', { firstName }) : t('Khush aamdeed, {{firstName}}!', { firstName }));
 
         try {
           const progress = await queryClient.fetchQuery({ queryKey: ['onboarding'], queryFn: onboardingApi.get });
@@ -72,19 +73,19 @@ export default function GoogleSuccessPage() {
         <>
           <AuthHeading
             icon={<AlertCircle className="h-5 w-5" />}
-            title="Login poora nahi hua"
-            subtitle="Server se account ki maloomat nahi mili. Internet check karke dobara try karein."
+            title={t('Login poora nahi hua')}
+            subtitle={t('Server se account ki maloomat nahi mili. Internet check karke dobara try karein.')}
           />
-          <Button size="lg" fullWidth leftIcon={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate('/login', { replace: true })}>
-            Login par wapas
+          <Button size="lg" fullWidth leftIcon={<ArrowLeft className="h-4 w-4 rtl-flip" />} onClick={() => navigate('/login', { replace: true })}>
+            {t('Login par wapas')}
           </Button>
         </>
       ) : (
         <div role="status" aria-live="polite">
           <AuthHeading
             icon={<Loader2 className="h-5 w-5 animate-spin" />}
-            title="Google se login ho raha hai…"
-            subtitle="Bas ek pal. Aap ka account khola ja raha hai."
+            title={t('Google se login ho raha hai…')}
+            subtitle={t('Bas ek pal. Aap ka account khola ja raha hai.')}
           />
         </div>
       )}

@@ -3,6 +3,7 @@ import { Upload, X, Loader2, ImageIcon, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@core/api/client';
 import { Button } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 interface LogoUploaderProps {
   value?: string | null;
@@ -15,7 +16,7 @@ interface LogoUploaderProps {
 }
 
 export default function LogoUploader({
-  value, onChange, purpose = 'logo', size = 112, label = 'Logo', shape = 'square', hint,
+  value, onChange, purpose = 'logo', size = 112, label = t('Logo'), shape = 'square', hint,
 }: LogoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -23,8 +24,8 @@ export default function LogoUploader({
   const [dragOver, setDragOver] = useState(false);
 
   const uploadFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) { toast.error('Sirf image files allowed hain'); return; }
-    if (file.size > 5 * 1024 * 1024) { toast.error('Image 5MB se kam honi chahiye'); return; }
+    if (!file.type.startsWith('image/')) { toast.error(t('Sirf image files allowed hain')); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error(t('Image 5MB se kam honi chahiye')); return; }
 
     setUploading(true);
     setProgress(0);
@@ -39,11 +40,11 @@ export default function LogoUploader({
         },
       });
       const url = res.data?.data?.url || res.data?.url;
-      if (!url) throw new Error('No URL');
+      if (!url) throw new Error(t('No URL'));
       onChange(url);
-      toast.success(`${label} upload ho gaya`);
+      toast.success(t('{{label}} upload ho gaya', { label }));
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Upload fail');
+      toast.error(e?.response?.data?.message || t('Upload fail'));
     } finally {
       setUploading(false);
       setProgress(0);
@@ -96,7 +97,7 @@ export default function LogoUploader({
                   type="button"
                   onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
                   className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-900 shadow-lg transition hover:bg-brand-600 hover:text-brand-fg"
-                  title="Badlein" aria-label="Logo badlein"
+                  title={t('Badlein')} aria-label={t('Logo badlein')}
                 >
                   <Camera className="h-4 w-4" />
                 </button>
@@ -104,7 +105,7 @@ export default function LogoUploader({
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onChange(''); }}
                   className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-rose-600 shadow-lg transition hover:bg-rose-600 hover:text-white"
-                  title="Hatayein" aria-label="Logo hatayein"
+                  title={t('Hatayein')} aria-label={t('Logo hatayein')}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -115,7 +116,7 @@ export default function LogoUploader({
           <div className="pointer-events-none flex flex-col items-center gap-1.5 text-slate-400">
             <ImageIcon className="h-7 w-7" />
             <span className="text-[0.6875rem] font-semibold uppercase tracking-wider">
-              {dragOver ? 'Drop!' : 'Upload'}
+              {dragOver ? t('Drop!') : t('Upload')}
             </span>
           </div>
         )}
@@ -148,16 +149,16 @@ export default function LogoUploader({
 
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => inputRef.current?.click()} disabled={uploading} leftIcon={<Upload className="h-4 w-4" />}>
-            {uploading ? 'Upload ho raha hai…' : value ? 'Badlein' : 'Upload karein'}
+            {uploading ? t('Upload ho raha hai…') : value ? t('Badlein') : t('Upload karein')}
           </Button>
 
           {value && !uploading && (
-            <Button variant="critical" onClick={() => onChange('')} leftIcon={<X className="h-3.5 w-3.5" />}>Hatayein</Button>
+            <Button variant="critical" onClick={() => onChange('')} leftIcon={<X className="h-3.5 w-3.5" />}>{t('Hatayein')}</Button>
           )}
         </div>
 
         <div className="space-y-0.5 text-xs text-slate-500">
-          <p>PNG, JPG ya WebP · 5MB tak · file yahan kheench kar bhi daal sakte hain</p>
+          <p>{t('PNG, JPG ya WebP · 5MB tak · file yahan kheench kar bhi daal sakte hain')}</p>
           {hint && <p className="text-slate-400">{hint}</p>}
         </div>
       </div>

@@ -14,24 +14,25 @@ import { Alert, Button, controlClass } from '@/design-system/components';
 import { authApi } from '@modules/auth/api/auth.api';
 import { useAuthStore } from '@core/stores/auth.store';
 import { Field, SectionCard } from '../components/SettingsBlocks';
+import { t } from '@core/i18n';
 
 /** A simple strength measure: length, mixed case, digits, symbols. */
 function strengthOf(pw: string) {
-  if (!pw) return { score: 0, label: 'Khaali', color: 'bg-slate-300', text: 'text-slate-400' };
+  if (!pw) return { score: 0, label: t('Khaali'), color: 'bg-slate-300', text: 'text-slate-400' };
   let s = 0;
   if (pw.length >= 8) s += 1;
   if (pw.length >= 12) s += 1;
   if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) s += 1;
   if (/\d/.test(pw)) s += 1;
   if (/[^A-Za-z0-9]/.test(pw)) s += 1;
-  if (s <= 1) return { score: 1, label: 'Bohat kamzor', color: 'bg-rose-500', text: 'text-rose-600' };
-  if (s === 2) return { score: 2, label: 'Kamzor', color: 'bg-orange-500', text: 'text-orange-600' };
-  if (s === 3) return { score: 3, label: 'Theek hai', color: 'bg-amber-500', text: 'text-amber-600' };
-  if (s === 4) return { score: 4, label: 'Mazboot', color: 'bg-success-500', text: 'text-success-600' };
-  return { score: 5, label: 'Bohat mazboot', color: 'bg-success-600', text: 'text-success-700' };
+  if (s <= 1) return { score: 1, label: t('Bohat kamzor'), color: 'bg-rose-500', text: 'text-rose-600' };
+  if (s === 2) return { score: 2, label: t('Kamzor'), color: 'bg-orange-500', text: 'text-orange-600' };
+  if (s === 3) return { score: 3, label: t('Theek hai'), color: 'bg-amber-500', text: 'text-amber-600' };
+  if (s === 4) return { score: 4, label: t('Mazboot'), color: 'bg-success-500', text: 'text-success-600' };
+  return { score: 5, label: t('Bohat mazboot'), color: 'bg-success-600', text: 'text-success-700' };
 }
 
-const inputCls = cn(controlClass(), 'h-10 px-3 pr-10 text-sm');
+const inputCls = cn(controlClass(), 'h-10 px-3 pe-10 text-sm');
 
 export function AccountPasswordCard() {
   const user = useAuthStore((s: any) => s.user);
@@ -48,46 +49,46 @@ export function AccountPasswordCard() {
   const changeMut = useMutation({
     mutationFn: () => (isGoogleOnly ? authApi.setPassword(next) : authApi.changePassword(current, next)),
     onSuccess: () => {
-      toast.success(isGoogleOnly ? 'Password ban gaya' : 'Password badal gaya');
+      toast.success(isGoogleOnly ? t('Password ban gaya') : t('Password badal gaya'));
       setCurrent(''); setNext(''); setConfirm(''); setError('');
     },
-    onError: (e: any) => setError(e?.response?.data?.message || 'Password badal nahi saka'),
+    onError: (e: any) => setError(e?.response?.data?.message || t('Password badal nahi saka')),
   });
 
   const forgotMut = useMutation({
     mutationFn: () => authApi.forgotPassword(user?.email ?? ''),
-    onSuccess: () => toast.success(`Reset link ${user?.email} par bhej diya`),
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Email nahi gayi'),
+    onSuccess: () => toast.success(t('Reset link {{email}} par bhej diya', { email: user?.email })),
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Email nahi gayi')),
   });
 
   const submit = () => {
     setError('');
-    if (!isGoogleOnly && !current) return setError('Purana password likhein');
-    if (next.length < 8) return setError('Naya password kam se kam 8 harf ka ho');
-    if (next !== confirm) return setError('Dono password ek jaise nahi hain');
-    if (!isGoogleOnly && next === current) return setError('Naya password purane se alag hona chahiye');
+    if (!isGoogleOnly && !current) return setError(t('Purana password likhein'));
+    if (next.length < 8) return setError(t('Naya password kam se kam 8 harf ka ho'));
+    if (next !== confirm) return setError(t('Dono password ek jaise nahi hain'));
+    if (!isGoogleOnly && next === current) return setError(t('Naya password purane se alag hona chahiye'));
     changeMut.mutate();
   };
 
   const eye = (
-    <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? 'Password chhupayein' : 'Password dikhayein'}
-      className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
+    <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? t('Password chhupayein') : t('Password dikhayein')}
+      className="absolute end-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100">
       {show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
     </button>
   );
 
   return (
-    <SectionCard title="Account password" desc="Is se aap app me login karte hain — PIN se alag cheez hai" icon={KeyRound} color="emerald">
+    <SectionCard title={t('Account password')} desc={t('Is se aap app me login karte hain — PIN se alag cheez hai')} icon={KeyRound} color="emerald">
       <div className="space-y-4">
         {isGoogleOnly && (
-          <Alert tone="warning" title="Abhi koi password nahi hai" icon={<AlertTriangle className="h-4 w-4" />}>
-            Aap Google se login karte hain. Ek password bana lein — Google na chale to bhi login ho sakega, aur PIN bhool jane par kaam aayega.
+          <Alert tone="warning" title={t('Abhi koi password nahi hai')} icon={<AlertTriangle className="h-4 w-4" />}>
+            {t('Aap Google se login karte hain. Ek password bana lein — Google na chale to bhi login ho sakega, aur PIN bhool jane par kaam aayega.')}
           </Alert>
         )}
 
         <div className="grid gap-4 md:grid-cols-3">
           {!isGoogleOnly && (
-            <Field label="Purana password" hint="Jo abhi login me lagta hai">
+            <Field label={t('Purana password')} hint={t('Jo abhi login me lagta hai')}>
               <div className="relative">
                 <input type={show ? 'text' : 'password'} value={current} autoComplete="current-password" placeholder="••••••••" className={inputCls}
                   onChange={(e) => { setCurrent(e.target.value); setError(''); }} />
@@ -95,7 +96,7 @@ export function AccountPasswordCard() {
               </div>
             </Field>
           )}
-          <Field label="Naya password" hint="Kam se kam 8 harf — bare/chhote harf aur number mila kar">
+          <Field label={t('Naya password')} hint={t('Kam se kam 8 harf — bare/chhote harf aur number mila kar')}>
             <div className="relative">
               <input type={show ? 'text' : 'password'} value={next} autoComplete="new-password" placeholder="••••••••" className={inputCls}
                 onChange={(e) => { setNext(e.target.value); setError(''); }} />
@@ -110,12 +111,12 @@ export function AccountPasswordCard() {
               </div>
             )}
           </Field>
-          <Field label="Naya password dobara" hint="Wohi naya password dobara likhein">
+          <Field label={t('Naya password dobara')} hint={t('Wohi naya password dobara likhein')}>
             <div className="relative">
               <input type={show ? 'text' : 'password'} value={confirm} autoComplete="new-password" placeholder="••••••••" className={inputCls}
                 onChange={(e) => { setConfirm(e.target.value); setError(''); }}
                 onKeyDown={(e) => e.key === 'Enter' && submit()} />
-              {confirm && next === confirm && <CheckCircle2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-success-500" />}
+              {confirm && next === confirm && <CheckCircle2 className="absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-success-500" />}
             </div>
           </Field>
         </div>
@@ -126,18 +127,18 @@ export function AccountPasswordCard() {
 
         <div className="flex flex-wrap items-center gap-2">
           <Button onClick={submit} loading={changeMut.isPending} disabled={next.length < 8 || next !== confirm} leftIcon={<KeyRound className="h-4 w-4" />}>
-            {isGoogleOnly ? 'Password banayein' : 'Password badlein'}
+            {isGoogleOnly ? t('Password banayein') : t('Password badlein')}
           </Button>
           {!isGoogleOnly && (
             <Button variant="secondary" onClick={() => forgotMut.mutate()} loading={forgotMut.isPending} disabled={!user?.email} leftIcon={<Mail className="h-4 w-4" />}>
-              Purana yaad nahi — email par link
+              {t('Purana yaad nahi — email par link')}
             </Button>
           )}
         </div>
 
         <p className="flex items-start gap-2 text-xs leading-relaxed text-slate-500">
           <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Password badalne par doosre devices ka login chalta rehta hai. Kisi device ko nikalna ho to neeche "Active devices" se logout karein.
+          {t('Password badalne par doosre devices ka login chalta rehta hai. Kisi device ko nikalna ho to neeche "Active devices" se logout karein.')}
         </p>
       </div>
     </SectionCard>

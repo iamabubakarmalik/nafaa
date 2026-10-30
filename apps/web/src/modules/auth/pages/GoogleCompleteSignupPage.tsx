@@ -22,10 +22,11 @@ import { BusinessModelPicker } from '../components/BusinessModelPicker';
 import { authErrorMessage } from '../lib/auth-errors';
 import { industryChoices, readSignupIndustry, rememberSignupIndustry, setUpNewAccount } from '../lib/industry-choices';
 import { DEFAULT_MODELS, readSignupModels, rememberSignupModels, type BusinessModel } from '@core/lib/business-models';
+import { t, Trans } from '@core/i18n';
 
 const schema = z.object({
-  shopName: z.string().trim().min(2, 'Dukaan ka naam likhein (kam se kam 2 huroof)').max(100, 'Naam 100 huroof se chhota rakhein'),
-  businessType: z.string().min(1, 'Apna kaam chunein — is se app aap ke hisaab se set hoti hai'),
+  shopName: z.string().trim().min(2, t('Dukaan ka naam likhein (kam se kam 2 huroof)')).max(100, t('Naam 100 huroof se chhota rakhein')),
+  businessType: z.string().min(1, t('Apna kaam chunein — is se app aap ke hisaab se set hoti hai')),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -53,7 +54,7 @@ export default function GoogleCompleteSignupPage() {
     const fullName = params.get('fullName');
     const avatarUrl = params.get('avatarUrl') || undefined;
     if (!tempToken || !email || !fullName) {
-      toast.error('Google ki maloomat nahi mili. Dobara try karein.');
+      toast.error(t('Google ki maloomat nahi mili. Dobara try karein.'));
       navigate('/login', { replace: true });
       return;
     }
@@ -80,23 +81,23 @@ export default function GoogleCompleteSignupPage() {
       } catch {
         // OnboardingGate retries.
       }
-      toast.success(`Mubarak ho, ${data.user.fullName.split(' ')[0]}!`);
+      toast.success(t('Mubarak ho, {{value}}!', { value: data.user.fullName.split(' ')[0] }));
       navigate('/onboarding', { replace: true });
     },
-    onError: (err) => setFormError(authErrorMessage(err, 'Account nahi ban saka. Dobara koshish karein.')),
+    onError: (err) => setFormError(authErrorMessage(err, t('Account nahi ban saka. Dobara koshish karein.'))),
   });
 
   if (!pending) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label="Load ho raha hai" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label={t('Load ho raha hai')} />
       </div>
     );
   }
 
   return (
     <AuthLayout side="signup" wide>
-      <AuthHeading title="Bas aakhri qadam" subtitle="Apne business ka naam aur kaam batayein — account foran ban jayega." />
+      <AuthHeading title={t('Bas aakhri qadam')} subtitle={t('Apne business ka naam aur kaam batayein — account foran ban jayega.')} />
 
       <div className="mb-5 flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
         {pending.avatarUrl ? (
@@ -111,37 +112,38 @@ export default function GoogleCompleteSignupPage() {
           <div className="truncate text-xs text-slate-500">{pending.email}</div>
         </div>
         <span className="flex items-center gap-1 text-xs font-semibold text-success-700">
-          <CheckCircle2 className="h-4 w-4" aria-hidden /> Google
+          <CheckCircle2 className="h-4 w-4" aria-hidden /> {' '}{t('Google')}
         </span>
       </div>
 
       <form onSubmit={form.handleSubmit((d) => { setFormError(null); mutation.mutate(d); })} className="space-y-5" noValidate>
         {formError && <Alert tone="danger">{formError}</Alert>}
         <Input
-          label="Dukaan / business ka naam"
-          placeholder="Misaal: Ahmad Medical Store"
+          label={t('Dukaan / business ka naam')}
+          placeholder={t('Misaal: Ahmad Medical Store')}
           size="lg"
           autoFocus
           leftIcon={<Store className="h-4 w-4" />}
-          hint="Bill aur receipt par yahi naam chhapega."
+          hint={t('Bill aur receipt par yahi naam chhapega.')}
           {...form.register('shopName')}
           error={form.formState.errors.shopName?.message}
         />
         <BusinessModelPicker value={models} onChange={setModels} />
         <IndustryPicker
-          label={models.length === 1 && models[0] === 'RETAIL' ? 'Aap ka kaam kya hai?' : 'Aap kis cheez ka kaam karte hain?'}
+          label={models.length === 1 && models[0] === 'RETAIL' ? t('Aap ka kaam kya hai?') : t('Aap kis cheez ka kaam karte hain?')}
           choices={choices}
           value={businessType}
           onChange={(v) => form.setValue('businessType', v, { shouldValidate: true })}
           error={form.formState.errors.businessType?.message}
         />
-        <Button type="submit" size="xl" fullWidth loading={mutation.isPending} rightIcon={<ArrowRight className="h-4 w-4" />}>
-          Create account
+        <Button type="submit" size="xl" fullWidth loading={mutation.isPending} rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>
+          {t('Create account')}
         </Button>
         <p className="text-center text-xs leading-relaxed text-slate-500">
-          Account bana kar aap Nafaa ki{' '}
-          <Link to="/legal" className="font-semibold text-brand-700 hover:underline">Terms</Link> aur{' '}
-          <Link to="/legal" className="font-semibold text-brand-700 hover:underline">Privacy Policy</Link> se mutafiq hain.
+          <Trans text="Account bana kar aap Nafaa ki {{terms}} aur {{privacy}} se mutafiq hain." values={{
+            terms: <Link to="/legal" className="font-semibold text-brand-700 hover:underline">{t('Terms')}</Link>,
+            privacy: <Link to="/legal" className="font-semibold text-brand-700 hover:underline">{t('Privacy Policy')}</Link>,
+          }} />
         </p>
       </form>
     </AuthLayout>

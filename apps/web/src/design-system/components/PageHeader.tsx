@@ -22,7 +22,7 @@ export function PageHeader({ title, description, back, badge, actions, className
     <header className={cn('mb-5', className)}>
       {back && (
         <Link to={back.to} data-page-back aria-keyshortcuts="Escape" className="mb-2 inline-flex items-center gap-1.5 text-[0.8125rem] font-medium text-slate-500 transition hover:text-slate-900">
-          <ArrowLeft className="h-4 w-4" /> {back.label}
+          <ArrowLeft className="h-4 w-4 rtl-flip" /> {back.label}
         </Link>
       )}
       <div className="flex flex-wrap items-start justify-between gap-3">

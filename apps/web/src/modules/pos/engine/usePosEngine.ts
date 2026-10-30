@@ -54,6 +54,7 @@ import { addTierToReceipt } from '@modules/sales/receipt/fromSale';
 import { getCounterTier, setCounterTier, useCounterTier } from '../lib/priceTierStore';
 import { useMadeOnSaleIds } from '@modules/manufacturing/hooks';
 import { useDistributionPricing } from './useDistributionPricing';
+import { t as tr } from '@core/i18n';
 
 /** Customers refresh after a sale (balances change). */
 const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
@@ -330,7 +331,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (isPriceTier(customerTier) && counter.priceTierList.includes(customerTier)) {
       if (getCounterTier() !== customerTier) {
         setCounterTier(customerTier);
-        toast.info(`${selectedCustomer?.name ?? 'Customer'}: ${PRICE_TIER_LABEL[customerTier]} price lag gayi`, { duration: 2500 });
+        toast.info(tr('{{value}}: {{value2}} price lag gayi', { value: selectedCustomer?.name ?? 'Customer', value2: PRICE_TIER_LABEL[customerTier] }), { duration: 2500 });
       }
       tierFromCustomer.current = true;
     } else if (tierFromCustomer.current) {
@@ -376,7 +377,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     const t = setTimeout(() => {
       discountsApi.validate(promoCode, subtotal, { customerId: customerId || undefined, shopId })
         .then((v) => { if (alive) setPromo({ code: v.code, discount: v.discount, offline: v.offline }); })
-        .catch((e: Error) => { if (alive) { setPromo(null); toast.error(`Code ${promoCode} hata diya: ${e.message}`); } });
+        .catch((e: Error) => { if (alive) { setPromo(null); toast.error(tr('Code {{promoCode}} hata diya: {{message}}', { promoCode, message: e.message })); } });
     }, 300);
     return () => { alive = false; clearTimeout(t); };
   }, [promoCode, subtotal, customerId, shopId]);
@@ -435,19 +436,19 @@ export function usePosEngine(config: PosIndustryConfig) {
     const tier = activeTierRef.current;
     const price = fixedPrice ? Number(opts.price) : tierPrice(src!, tier);
     setCart((prev) => {
-      if (opts.imei && prev.some((l) => l.imeiId === opts.imei!.id)) { toast.info('Ye phone pehle se bill mein hai'); return prev; }
+      if (opts.imei && prev.some((l) => l.imeiId === opts.imei!.id)) { toast.info(tr('Ye phone pehle se bill mein hai')); return prev; }
       const existing = !single && prev.find((l) =>
         l.productId === item.id && l.unitName === unit.unitName && !l.dist?.free && (l.dist ? !l.priceEdited : l.unitPrice === price && (l.priceTier ?? 'RETAIL') === tier) && (l.variantId ?? '') === (opts.variant?.id ?? '') && !l.serialId && !l.imeiId);
       if (existing) {
         const nq = Number((existing.quantity + qty).toFixed(3));
         const nb = nq * unit.conversionRate;
-        if (nb > existing.baseStock) { beep('error'); toast.error(`Stock sirf ${Number(item.stock.toFixed(2))} ${item.unit}`); return prev; }
+        if (nb > existing.baseStock) { beep('error'); toast.error(tr('Stock sirf {{value}} {{unit}}', { value: Number(item.stock.toFixed(2)), unit: item.unit })); return prev; }
         toast.success(`${item.name} +${qty}`, { duration: 800 });
         beep('ok');
         setLastLineId(existing.id);
         return prev.map((l) => (l.id === existing.id ? { ...l, quantity: nq, baseQuantity: nb, lineTotal: nq * l.unitPrice } : l));
       }
-      if (baseQty > limit) { beep('error'); toast.error(`Stock sirf ${Number(Math.max(limit, 0).toFixed(2))} ${item.unit}`); return prev; }
+      if (baseQty > limit) { beep('error'); toast.error(tr('Stock sirf {{value}} {{unit}}', { value: Number(Math.max(limit, 0).toFixed(2)), unit: item.unit })); return prev; }
       toast.success(`${item.name}${opts.variant ? ` · ${opts.variant.name}` : ''} — ${qty} ${unit.unitName}`, { duration: 800 });
       beep('ok');
       const newId = posLineId();
@@ -476,15 +477,15 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   /** A used phone: no catalog product, quantity 1, its own price. */
   const addUsedPhone = useCallback((u: PosUsedPhoneLine) => {
-    if (!(u.price > 0)) { toast.error(`${u.name} ka resale price set nahi`); return; }
+    if (!(u.price > 0)) { toast.error(tr('{{name}} ka resale price set nahi', { name: u.name })); return; }
     setCart((prev) => {
-      if (prev.some((l) => l.usedPhoneId === u.usedPhoneId)) { toast.info('Ye phone pehle se bill mein hai'); return prev; }
+      if (prev.some((l) => l.usedPhoneId === u.usedPhoneId)) { toast.info(tr('Ye phone pehle se bill mein hai')); return prev; }
       toast.success(`${u.name} — ${u.code}`, { duration: 800 });
       return [...prev, {
         id: posLineId(), type: 'product', name: u.name, image: u.image,
         unitName: 'pcs', unitLabel: 'USED', emoji: '📱',
         unitPrice: u.price, basePrice: u.price, quantity: 1, baseQuantity: 1, conversionRate: 1, baseUnit: 'pcs', baseStock: 1,
-        lineTotal: u.price, note: u.note || `Used · ${u.code}`, usedPhoneId: u.usedPhoneId, lockQty: true,
+        lineTotal: u.price, note: u.note || tr('Used · {{code}}', { code: u.code }), usedPhoneId: u.usedPhoneId, lockQty: true,
       }];
     });
   }, []);
@@ -511,14 +512,14 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   const addItem = useCallback(async (item: PosItem, opts: AddOptions = {}) => {
     if (config.beforeAdd && config.beforeAdd(item, opts, engineApiRef.current) === 'handled') return;
-    if (item.price <= 0 && !opts.variant && !(opts.price != null && opts.price > 0)) { toast.error(`${item.name} ka rate set nahi — pehle product mein rate daalein`); return; }
-    if (!opts.oversell && !opts.imei && !rulesRef.current.negativeStock && !opts.variant && item.stock <= 0 && !item.hasVariants && !madeRef.current.has(item.id)) { toast.error(`${item.name} — stock khatam`); return; }
+    if (item.price <= 0 && !opts.variant && !(opts.price != null && opts.price > 0)) { toast.error(tr('{{name}} ka rate set nahi — pehle product mein rate daalein', { name: item.name })); return; }
+    if (!opts.oversell && !opts.imei && !rulesRef.current.negativeStock && !opts.variant && item.stock <= 0 && !item.hasVariants && !madeRef.current.has(item.id)) { toast.error(tr('{{name}} — stock khatam', { name: item.name })); return; }
 
     if (item.hasVariants && !opts.variant && !opts.imei) {
       try {
         const variants = (await productVariantsApi.list(item.id)).filter((v) => v.isActive);
         if (variants.length) { setVariantPicker({ item, variants, opts }); return; }
-      } catch { toast.error('Variants load nahi hue'); return; }
+      } catch { toast.error(tr('Variants load nahi hue')); return; }
     }
     if (opts.serial || opts.imei || opts.unit) { placeUnit(item, opts.unit ?? derivePosUnits({ ...item.product, price: item.price, unit: item.unit } as any, [])[0], opts, opts.qty ?? 1); return; }
 
@@ -532,7 +533,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (!serials && config.beforeAddBundle && config.beforeAddBundle(b, qty, engineApiRef.current) === 'handled') return;
     for (const it of b.items) {
       const p = itemsById.get(it.productId);
-      if (p && !rulesRef.current.negativeStock && p.stock < it.quantity * qty) { toast.error(`${p.name} — stock sirf ${p.stock}, chahiye ${it.quantity * qty}`); return; }
+      if (p && !rulesRef.current.negativeStock && p.stock < it.quantity * qty) { toast.error(tr('{{name}} — stock sirf {{stock}}, chahiye {{value}}', { name: p.name, stock: p.stock, value: it.quantity * qty })); return; }
     }
     // A combo with picked serial units stays its own line, so its units stay with it.
     const picked = serials?.length ? serials : undefined;
@@ -563,10 +564,10 @@ export function usePosEngine(config: PosIndustryConfig) {
   }, [config, itemsById, beep]);
 
   const addQuickKey = useCallback(async (qk: QuickKey) => {
-    if (qk.comboId) { const b = bundles.find((x) => x.id === qk.comboId); return b ? addBundle(b) : toast.error('Combo nahi mila'); }
-    if (!qk.productId) return toast.error('Quick key set nahi hai');
+    if (qk.comboId) { const b = bundles.find((x) => x.id === qk.comboId); return b ? addBundle(b) : toast.error(tr('Combo nahi mila')); }
+    if (!qk.productId) return toast.error(tr('Quick key set nahi hai'));
     const it = itemsById.get(qk.productId);
-    if (!it) return toast.error('Product nahi mila');
+    if (!it) return toast.error(tr('Product nahi mila'));
     // A key may fix the pack unit and the variant; otherwise the usual pickers open.
     const unit = qk.unitId ? (await unitsFor(it)).find((u) => u.id === qk.unitId) : undefined;
     let variant: AddOptions['variant'];
@@ -604,19 +605,19 @@ export function usePosEngine(config: PosIndustryConfig) {
   };
   const changeQty = (id: string, delta: number) => setCart((prev) => prev.flatMap((l) => {
     if (l.id !== id) return [l];
-    if (l.lockQty && delta > 0) { toast.error('Serial / IMEI wala item — ek hi'); return [l]; }
+    if (l.lockQty && delta > 0) { toast.error(tr('Serial / IMEI wala item — ek hi')); return [l]; }
     const nq = Number((l.quantity + delta * qtyStep(l.unitName)).toFixed(3));
     if (nq <= 0) return [];
     const nb = nq * l.conversionRate;
-    if (l.type === 'product' && nb > l.baseStock) { toast.error(`Stock sirf ${l.baseStock} ${l.baseUnit}`); return [l]; }
+    if (l.type === 'product' && nb > l.baseStock) { toast.error(tr('Stock sirf {{baseStock}} {{baseUnit}}', { baseStock: l.baseStock, baseUnit: l.baseUnit })); return [l]; }
     return [atQty(l, nq, nb)];
   }));
   const setQty = (id: string, qty: number) => setCart((prev) => prev.flatMap((l) => {
     if (l.id !== id) return [l];
     if (qty <= 0) return [];
-    if (l.lockQty && qty > 1) { toast.error('Serial / IMEI wala item — ek hi'); return [l]; }
+    if (l.lockQty && qty > 1) { toast.error(tr('Serial / IMEI wala item — ek hi')); return [l]; }
     const nb = qty * l.conversionRate;
-    if (l.type === 'product' && nb > l.baseStock) { toast.error(`Stock sirf ${l.baseStock} ${l.baseUnit}`); return [l]; }
+    if (l.type === 'product' && nb > l.baseStock) { toast.error(tr('Stock sirf {{baseStock}} {{baseUnit}}', { baseStock: l.baseStock, baseUnit: l.baseUnit })); return [l]; }
     return [atQty(l, qty, nb)];
   }));
   const setPrice = (id: string, price: number) => {
@@ -628,10 +629,10 @@ export function usePosEngine(config: PosIndustryConfig) {
   /** One line at its own tier (line menu). Picking the bill's tier again follows the bill. */
   const setLineTier = (id: string, tier: PriceTier) => {
     if (!tiersOn || !counter.tierLineOverride) return;
-    if (!canPickTier(tier)) { toast.error('Price tier badalne ki permission nahi'); return; }
+    if (!canPickTier(tier)) { toast.error(tr('Price tier badalne ki permission nahi')); return; }
     setCart((prev) => prev.map((l) => {
       if (l.id !== id) return l;
-      if (l.fixedPrice || !l.tierSrc) { toast.info('Is line ka rate fixed hai'); return l; }
+      if (l.fixedPrice || !l.tierSrc) { toast.info(tr('Is line ka rate fixed hai')); return l; }
       const price = tierPrice(l.tierSrc, tier);
       return { ...l, priceTier: tier, tierLocked: tier !== activeTierRef.current, priceEdited: false, unitPrice: price, basePrice: price, lineTotal: l.quantity * price };
     }));
@@ -639,13 +640,13 @@ export function usePosEngine(config: PosIndustryConfig) {
   /** Switch the bill's tier by hand (switcher, Alt+T). */
   const pickTier = (tier: PriceTier) => {
     if (!tiersOn || !tierChoices.includes(tier)) return;
-    if (!canPickTier(tier)) { toast.error('Price tier badalne ki permission nahi'); return; }
+    if (!canPickTier(tier)) { toast.error(tr('Price tier badalne ki permission nahi')); return; }
     setCounterTier(tier);
   };
   const cycleTier = () => {
     if (!tiersOn) return;
     const open = tierChoices.filter(canPickTier);
-    if (open.length < 2) { toast.error(tierTrusted ? 'Settings me sirf ek price tier on hai' : 'Price tier badalne ki permission nahi'); return; }
+    if (open.length < 2) { toast.error(tierTrusted ? tr('Settings me sirf ek price tier on hai') : tr('Price tier badalne ki permission nahi')); return; }
     pickTier(open[(open.indexOf(billTier) + 1) % open.length]);
   };
   const removeLine = (id: string) => setCart((prev) => prev.filter((l) => l.id !== id));
@@ -672,7 +673,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (!cart.length) return;
     setHeldCarts((p) => [...p, { id: posHeldId(), lines: cart, customerId, total, heldAt: Date.now(), tier: billTier }]);
     clearCart();
-    toast.success('Bill hold ho gaya');
+    toast.success(tr('Bill hold ho gaya'));
   };
   const resume = (h: PosHeldCart) => {
     if (cart.length) setHeldCarts((p) => [...p.filter((x) => x.id !== h.id), { id: posHeldId(), lines: cart, customerId, total, heldAt: Date.now(), tier: billTier }]);
@@ -682,7 +683,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     setCounterTier(h.tier ?? defaultTier);
     setCart(h.lines);
     setCustomerId(h.customerId);
-    toast.success('Bill wapas aa gaya');
+    toast.success(tr('Bill wapas aa gaya'));
   };
   const deleteHeld = (id: string) => setHeldCarts((p) => p.filter((h) => h.id !== id));
 
@@ -730,7 +731,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       if (it) { void addItem(it, withQty); return; }
     } catch { /* not a product barcode */ }
     beep('error');
-    toast.error(`Barcode "${code}" nahi mila`);
+    toast.error(tr('Barcode "{{code}}" nahi mila', { code }));
   }, [config, bundles, addBundle, unitIndex, itemsById, items, addItem, beep]);
 
   /** Search box Enter: exact code scans; otherwise the first result goes on the bill. */
@@ -758,7 +759,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       addBundle(filteredBundles[Math.min(Math.max(pick, 0), filteredBundles.length - 1)], qty ?? 1);
     } else {
       beep('error');
-      toast.error(`"${q}" nahi mila`);
+      toast.error(tr('"{{q}}" nahi mila', { q }));
       return;
     }
     setSearch('');
@@ -790,7 +791,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         const m = findVoice(c.productQuery);
         if (m && m.score > (pick?.score ?? 0)) pick = { cmd: c, ...m };
       }
-      if (!pick) return { ok: false, text: `"${cmd.productQuery}" nahi mila` };
+      if (!pick) return { ok: false, text: tr('"{{productQuery}}" nahi mila', { productQuery: cmd.productQuery }) };
       const { item: it, cmd: c } = pick;
       const units = await unitsFor(it);
       let unit = units[0];
@@ -799,30 +800,30 @@ export function usePosEngine(config: PosIndustryConfig) {
         if (isWeightUnit(unit.unitName) && unit.price > 0) {
           const q = Number((c.byMoney / unit.price).toFixed(3));
           pushLine(it, unit, q, {});
-          return { ok: true, text: `${it.name} — Rs ${c.byMoney} ka (${q} ${unit.unitName})` };
+          return { ok: true, text: tr('{{name}} — Rs {{byMoney}} ka ({{q}} {{unitName}})', { name: it.name, byMoney: c.byMoney, q, unitName: unit.unitName }) };
         }
         setWeigh({ item: it, unit, opts: {}, prefillMoney: c.byMoney });
-        return { ok: true, text: `${it.name} — wazan check karein` };
+        return { ok: true, text: tr('{{name}} — wazan check karein', { name: it.name }) };
       }
-      if (units.length > 1 && !c.unit) { setUnitPicker({ item: it, units, opts: {} }); return { ok: true, text: `${it.name} — unit chunein` }; }
+      if (units.length > 1 && !c.unit) { setUnitPicker({ item: it, units, opts: {} }); return { ok: true, text: tr('{{name}} — unit chunein', { name: it.name }) }; }
       pushLine(it, unit, c.qty || 1, {});
       return { ok: true, text: `${c.qty || 1} ${unit.unitName} ${it.name}` };
     }
     if (cmd.kind === 'checkout') {
-      if (!cart.length) return { ok: false, text: 'Bill khaali hai' };
+      if (!cart.length) return { ok: false, text: tr('Bill khaali hai') };
       const credit = cmd.mode === 'credit';
-      if (credit && !customerId) return { ok: false, text: 'Udhaar ke liye pehle customer chunein' };
+      if (credit && !customerId) return { ok: false, text: tr('Udhaar ke liye pehle customer chunein') };
       setCheckout({ mode: credit ? 'credit' : 'full' });
-      return { ok: true, text: credit ? 'Udhaar — checkout khul gaya' : 'Checkout khul gaya' };
+      return { ok: true, text: credit ? tr('Udhaar — checkout khul gaya') : tr('Checkout khul gaya') };
     }
     if (cmd.kind === 'discount') {
-      if (!rules.allowDiscount) return { ok: false, text: 'Is dukaan me discount band hai' };
-      if (cmd.pct) { setDiscountMode('pct'); setDiscountPct(Math.min(cmd.pct, 100)); setDiscountRs(0); return { ok: true, text: `${cmd.pct}% discount laga` }; }
-      if (cmd.rs) { setDiscountMode('rs'); setDiscountRs(cmd.rs); setDiscountPct(0); return { ok: true, text: `Rs ${cmd.rs} discount laga` }; }
-      return { ok: false, text: 'Discount ki amount samajh nahi aayi' };
+      if (!rules.allowDiscount) return { ok: false, text: tr('Is dukaan me discount band hai') };
+      if (cmd.pct) { setDiscountMode('pct'); setDiscountPct(Math.min(cmd.pct, 100)); setDiscountRs(0); return { ok: true, text: tr('{{pct}}% discount laga', { pct: cmd.pct }) }; }
+      if (cmd.rs) { setDiscountMode('rs'); setDiscountRs(cmd.rs); setDiscountPct(0); return { ok: true, text: tr('Rs {{rs}} discount laga', { rs: cmd.rs }) }; }
+      return { ok: false, text: tr('Discount ki amount samajh nahi aayi') };
     }
-    if (cmd.kind === 'clear') { clearCart(); return { ok: true, text: 'Bill saaf' }; }
-    return { ok: false, text: `Samjha nahi: "${cmd.text}"` };
+    if (cmd.kind === 'clear') { clearCart(); return { ok: true, text: tr('Bill saaf') }; }
+    return { ok: false, text: tr('Samjha nahi: "{{text}}"', { text: cmd.text }) };
   }, [findVoice, unitsFor, pushLine, cart.length, customerId, clearCart, rules.allowDiscount]);
 
   /* ── Checkout ── */
@@ -846,8 +847,8 @@ export function usePosEngine(config: PosIndustryConfig) {
     riderDelivery: deliveryRiderAmount(delivery) || undefined,
     deliveryAddress: delivery.on ? delivery.address || undefined : undefined,
     paid,
-    paymentLabel: credit > 0 ? `Paid (${POS_PAYMENT_METHODS.find((m) => m.id === method)?.label ?? method}) · Udhaar ${formatPKR(credit)}`
-      : `Paid (${POS_PAYMENT_METHODS.find((m) => m.id === method)?.label ?? method})`,
+    paymentLabel: credit > 0 ? tr('Paid ({{value}}) · Udhaar {{credit}}', { value: POS_PAYMENT_METHODS.find((m) => m.id === method)?.label ?? method, credit: formatPKR(credit) })
+      : tr('Paid ({{value}})', { value: POS_PAYMENT_METHODS.find((m) => m.id === method)?.label ?? method }),
     // Split bills print each part as handed over (cash before change).
     payments: splitReceiptLines(parts),
     cashierName: user?.fullName,
@@ -870,12 +871,12 @@ export function usePosEngine(config: PosIndustryConfig) {
     // A price lowered by hand counts toward the same limit (the server checks it too).
     const priceCut = cart.reduce((s, l) => s + Math.max(0, (Number(l.basePrice) || 0) - (Number(l.unitPrice) || 0)) * (Number(l.quantity) || 0), 0);
     // Staff trusted with "Had se zyada chhoot" skip the limit and its PIN; credit rules below still apply.
-    if (manual > 0 && !rules.allowDiscount) { toast.error('Is dukaan me haath se discount band hai (Settings)'); return false; }
+    if (manual > 0 && !rules.allowDiscount) { toast.error(tr('Is dukaan me haath se discount band hai (Settings)')); return false; }
     if (manual + priceCut > 0.005 && !rules.discountTrusted) {
       const base = subtotal + priceCut;
       const pct = base > 0 ? ((manual + priceCut) / base) * 100 : 100;
       if (pct > rules.maxDiscountPercent + 0.01) {
-        if (!rules.hasPin) { toast.error(`Discount ${rules.maxDiscountPercent}% se zyada nahi ho sakti (Settings)`); return false; }
+        if (!rules.hasPin) { toast.error(tr('Discount {{maxDiscountPercent}}% se zyada nahi ho sakti (Settings)', { maxDiscountPercent: rules.maxDiscountPercent })); return false; }
         return `${rules.maxDiscountPercent}% se zyada discount`;
       }
       if (rules.pinForDiscount && rules.hasPin) return 'Discount';
@@ -883,7 +884,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     if (credit > 0 && selectedCustomer) {
       const limit = Number(selectedCustomer.creditLimit) || 0;
       if (limit > 0 && (Number(selectedCustomer.balance) || 0) + credit > limit + 0.01) {
-        if (!rules.hasPin) { toast.error(`${selectedCustomer.name} ki credit limit ${formatPKR(limit)} hai`); return false; }
+        if (!rules.hasPin) { toast.error(tr('{{name}} ki credit limit {{limit}} hai', { name: selectedCustomer.name, limit: formatPKR(limit) })); return false; }
         return `Credit limit (${formatPKR(limit)}) se zyada udhaar`;
       }
     }
@@ -899,16 +900,16 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   const checkoutMutation = useMutation({
     mutationFn: async (d: PosCheckoutResult) => {
-      if (!shopId) throw new Error('Pehle shop chunein');
-      if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); throw new Error('Cancelled'); }
-      if (!industryAllowsCheckout()) throw new Error('Cancelled');
+      if (!shopId) throw new Error(tr('Pehle shop chunein'));
+      if (rules.requireCustomer && !customerId) { toast.error(tr('Har bill par customer chunna zaroori hai')); throw new Error(tr('Cancelled')); }
+      if (!industryAllowsCheckout()) throw new Error(tr('Cancelled'));
       const credit = Math.max(total - d.paidAmount, 0);
       const why = pinReason(credit);
-      if (why === false) throw new Error('Cancelled');
+      if (why === false) throw new Error(tr('Cancelled'));
       let managerPin: string | undefined;
       if (why) {
         const pin = await askManagerPin(why, /udhaar/i.test(why) ? 'credit' : 'discount');
-        if (!pin) throw new Error('Cancelled');
+        if (!pin) throw new Error(tr('Cancelled'));
         managerPin = pin;
       }
       const items: any[] = [];
@@ -922,7 +923,7 @@ export function usePosEngine(config: PosIndustryConfig) {
           for (const ci of l.comboItems as any[]) {
             const op = Number(ci.originalPrice) || 0;
             const dp = op * factor;
-            const line = { productId: ci.productId, variantId: ci.variantId || undefined, priceOverride: Number.isFinite(dp) && dp > 0 ? dp : op, note: `Combo: ${l.name}` };
+            const line = { productId: ci.productId, variantId: ci.variantId || undefined, priceOverride: Number.isFinite(dp) && dp > 0 ? dp : op, note: tr('Combo: {{name}}', { name: l.name }) };
             let qty = Number(ci.quantity) * l.quantity;
             while (qty >= 1) {
               const at = picks.findIndex((p) => p.productId === ci.productId);
@@ -981,7 +982,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       setCheckout(null);
       clearCart();
       [...refreshKeys, ...SALE_REFRESH].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
-      if (autoPrint && !printReceiptDirect(printPayload, prefs.printerWidth)) toast.error('Popup band hai — browser mein popups allow karein');
+      if (autoPrint && !printReceiptDirect(printPayload, prefs.printerWidth)) toast.error(tr('Popup band hai — browser mein popups allow karein'));
       if (prefs.autoClose) successTimer.current = setTimeout(() => setLastSale(null), 3500);
       // Industry follow-up (qist offer…) only for bills the server saved, never for a queued offline one.
       const queued = isTempId(String(s.id ?? '')) || (sale as { status?: string }).status === 'pending';
@@ -991,15 +992,15 @@ export function usePosEngine(config: PosIndustryConfig) {
     },
     onError: (e: unknown) => {
       if ((e as Error)?.message === 'Cancelled') return;
-      if (!navigator.onLine) toast.info('Offline — sale save ho gayi, net aate hi chali jayegi');
-      else toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || (e as Error).message || 'Sale nahi hui');
+      if (!navigator.onLine) toast.info(tr('Offline — sale save ho gayi, net aate hi chali jayegi'));
+      else toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message || (e as Error).message || tr('Sale nahi hui'));
     },
   });
 
   const instantCash = useCallback(() => {
-    if (!cart.length) { toast.error('Bill khaali hai'); return; }
-    if (!shopId) { toast.error('Pehle shop chunein'); return; }
-    if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); return; }
+    if (!cart.length) { toast.error(tr('Bill khaali hai')); return; }
+    if (!shopId) { toast.error(tr('Pehle shop chunein')); return; }
+    if (rules.requireCustomer && !customerId) { toast.error(tr('Har bill par customer chunna zaroori hai')); return; }
     if (checkoutMutation.isPending) return;
     if (!industryAllowsCheckout()) return;
     checkoutMutation.mutate({ paymentMethod: 'CASH', paidAmount: total, isCredit: false, depositExtra: false });
@@ -1007,8 +1008,8 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   const openCheckout = useCallback((mode: PosCheckoutMode = 'full', method?: PaymentMethod) => {
     if (!cart.length) return;
-    if (rules.requireCustomer && !customerId) { toast.error('Har bill par customer chunna zaroori hai'); return; }
-    if (mode !== 'full' && !rules.allowCredit) { toast.error('Is dukaan me udhaar band hai'); return; }
+    if (rules.requireCustomer && !customerId) { toast.error(tr('Har bill par customer chunna zaroori hai')); return; }
+    if (mode !== 'full' && !rules.allowCredit) { toast.error(tr('Is dukaan me udhaar band hai')); return; }
     if (!industryAllowsCheckout()) return;
     setCheckout({ mode, method: method ?? rules.defaultMethod });
   }, [cart.length, rules, customerId, config, cart]);
@@ -1017,19 +1018,19 @@ export function usePosEngine(config: PosIndustryConfig) {
 
   /* ── Last bill: reprint and sell the same again ── */
   const reprintLast = useCallback(() => {
-    if (!lastBill) { toast.info('Is session me abhi koi bill nahi bana'); return; }
-    if (!printReceiptDirect(lastBill.printPayload, prefs.printerWidth)) toast.error('Popup band hai — browser mein popups allow karein');
-    else toast.success(`Bill ${lastBill.number} dobara print`);
+    if (!lastBill) { toast.info(tr('Is session me abhi koi bill nahi bana')); return; }
+    if (!printReceiptDirect(lastBill.printPayload, prefs.printerWidth)) toast.error(tr('Popup band hai — browser mein popups allow karein'));
+    else toast.success(tr('Bill {{number}} dobara print', { number: lastBill.number }));
   }, [lastBill, prefs.printerWidth]);
   const repeatLast = useCallback(() => {
-    if (!lastBill) { toast.info('Is session me abhi koi bill nahi bana'); return; }
+    if (!lastBill) { toast.info(tr('Is session me abhi koi bill nahi bana')); return; }
     // A tracked unit (serial, IMEI, used phone) was sold already; it cannot go on a second bill.
     const lines = lastBill.lines.filter((l) => !l.serialId && !l.imeiId && !l.usedPhoneId && !l.comboSerials?.length);
-    if (!lines.length) { toast.error('Pichhle bill ki cheezein dobara nahi bik saktin (serial/IMEI)'); return; }
+    if (!lines.length) { toast.error(tr('Pichhle bill ki cheezein dobara nahi bik saktin (serial/IMEI)')); return; }
     setCart((prev) => [...prev, ...lines.map((l) => ({ ...l, id: posLineId() }))]);
     if (!customerId && lastBill.customerId) setCustomerId(lastBill.customerId);
-    if (lines.length < lastBill.lines.length) toast.info('Serial/IMEI wali cheezein chhor di gayin');
-    toast.success(`Bill ${lastBill.number} ki ${lines.length} cheezein bill mein`);
+    if (lines.length < lastBill.lines.length) toast.info(tr('Serial/IMEI wali cheezein chhor di gayin'));
+    toast.success(tr('Bill {{number}} ki {{count}} cheezein bill mein', { number: lastBill.number, count: lines.length }));
   }, [lastBill, customerId]);
 
   /* ── Most sold on this counter (featured fill the rest) ── */
@@ -1075,7 +1076,7 @@ export function usePosEngine(config: PosIndustryConfig) {
     cart, customers, customerId, setCustomerId, selectedCustomer, receiver, setReceiver, soldById, setSoldById,
     delivery, setDelivery, deliveryFee, discountMode, discountPct, discountRs, discountAmount, subtotal, total, totalSavings, totalQty,
     setDiscount: (m: PosDiscountMode, p: number, r: number) => {
-      if (!rules.allowDiscount && (p > 0 || r > 0)) { toast.error('Is dukaan me haath se discount band hai'); return; }
+      if (!rules.allowDiscount && (p > 0 || r > 0)) { toast.error(tr('Is dukaan me haath se discount band hai')); return; }
       setDiscountMode(m); setDiscountPct(p); setDiscountRs(r);
     },
     rules,

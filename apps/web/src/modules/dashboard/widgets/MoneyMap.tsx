@@ -12,6 +12,7 @@ import { useMoneyMap } from '../data/queries';
 import { IconBubble, MetricTile, WidgetCard } from '../engine/parts';
 import { Skeleton } from '@/design-system/components';
 import { PrintButton } from '@core/print';
+import { t as tr } from '@core/i18n';
 
 export type MoneyTileProps = ComponentProps<typeof MetricTile> & { key: string };
 
@@ -33,7 +34,7 @@ export function MoneyMap({ useExtraTiles = noTiles, useNotes = noNotes, products
 
   if (isLoading) {
     return (
-      <WidgetCard title="Paisa kahan hai">
+      <WidgetCard title={tr('Paisa kahan hai')}>
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}
         </div>
@@ -44,42 +45,42 @@ export function MoneyMap({ useExtraTiles = noTiles, useNotes = noNotes, products
 
   const tiles: MoneyTileProps[] = [
     {
-      key: 'stock', icon: Boxes, tone: 'info', to: '/stock-report', label: 'Dukaan me maal',
+      key: 'stock', icon: Boxes, tone: 'info', to: '/stock-report', label: tr('Dukaan me maal'),
       value: formatPKR(m.inventory.valueAtCost),
-      hint: `${m.inventory.productCount} cheezein · bikne par ${formatPKR(m.inventory.valueAtRetail)}`,
+      hint: tr('{{productCount}} cheezein · bikne par {{valueAtRetail}}', { productCount: m.inventory.productCount, valueAtRetail: formatPKR(m.inventory.valueAtRetail) }),
     },
     ...extra,
     {
-      key: 'purchases', icon: ShoppingBag, tone: 'brand', to: '/purchases', label: 'Is mahine maal aaya',
+      key: 'purchases', icon: ShoppingBag, tone: 'brand', to: '/purchases', label: tr('Is mahine maal aaya'),
       value: formatPKR(m.purchases.monthTotal),
-      hint: `${m.purchases.monthCount} bill${m.purchases.monthUnpaid > 0 ? ` · ${formatPKR(m.purchases.monthUnpaid)} baqi` : ''}`,
+      hint: tr('{{monthCount}} bill{{value}}', { monthCount: m.purchases.monthCount, value: m.purchases.monthUnpaid > 0 ? tr(' · {{monthUnpaid}} baqi', { monthUnpaid: formatPKR(m.purchases.monthUnpaid) }) : '' }),
     },
     {
-      key: 'expenses', icon: Wallet, tone: 'warning', to: '/expenses', label: 'Is mahine expense',
+      key: 'expenses', icon: Wallet, tone: 'warning', to: '/expenses', label: tr('Is mahine expense'),
       value: formatPKR(m.expenses.month),
-      hint: `${m.expenses.monthCount} entries · pichhla mahina ${formatPKR(m.expenses.lastMonth ?? 0)}`,
+      hint: tr('{{monthCount}} entries · pichhla mahina {{value}}', { monthCount: m.expenses.monthCount, value: formatPKR(m.expenses.lastMonth ?? 0) }),
     },
     {
-      key: 'receivable', icon: BookOpen, tone: 'danger', to: '/khata', label: 'Logon se lena',
-      value: formatPKR(m.receivable.total), hint: `${m.receivable.customerCount} logon ka udhaar`,
+      key: 'receivable', icon: BookOpen, tone: 'danger', to: '/khata', label: tr('Logon se lena'),
+      value: formatPKR(m.receivable.total), hint: tr('{{customerCount}} logon ka udhaar', { customerCount: m.receivable.customerCount }),
     },
     {
-      key: 'payable', icon: Truck, tone: 'neutral', to: '/suppliers', label: 'Suppliers ko dena',
-      value: formatPKR(m.payable.total), hint: `${m.payable.supplierCount} suppliers`,
+      key: 'payable', icon: Truck, tone: 'neutral', to: '/suppliers', label: tr('Suppliers ko dena'),
+      value: formatPKR(m.payable.total), hint: tr('{{supplierCount}} suppliers', { supplierCount: m.payable.supplierCount }),
     },
     {
-      key: 'cash', icon: Banknote, tone: 'success', to: '/cash-register', label: 'Galle me cash',
+      key: 'cash', icon: Banknote, tone: 'success', to: '/cash-register', label: tr('Galle me cash'),
       value: m.cash.registerOpen ? formatPKR(m.cash.expected) : '—',
-      hint: m.cash.registerOpen ? `Opening ${formatPKR(m.cash.opening)}` : 'Register band hai',
+      hint: m.cash.registerOpen ? tr('Opening {{opening}}', { opening: formatPKR(m.cash.opening) }) : tr('Register band hai'),
     },
   ];
 
   return (
-    <WidgetCard title="Paisa kahan hai" icon={Wallet} description="Maal, expense, lena aur dena — sab ek nazar me"
+    <WidgetCard title={tr('Paisa kahan hai')} icon={Wallet} description={tr('Maal, expense, lena aur dena — sab ek nazar me')}
       actions={<PrintButton size="sm" doc={() => ({
-        title: 'Paisa kahan hai',
+        title: tr('Paisa kahan hai'),
         sections: [{ kind: 'rows', rows: tiles.map((t) => ({ label: `${t.label}${typeof t.hint === 'string' ? ` (${t.hint})` : ''}`, value: String(t.value) })) },
-          ...(m.inventory.deadStockValue > 0 ? [{ kind: 'text' as const, text: `${formatPKR(m.inventory.deadStockValue)} ka maal 60 din se atka hua hai (${m.inventory.deadStockCount} cheezein)` }] : [])],
+          ...(m.inventory.deadStockValue > 0 ? [{ kind: 'text' as const, text: tr('{{deadStockValue}} ka maal 60 din se atka hua hai ({{deadStockCount}} cheezein)', { deadStockValue: formatPKR(m.inventory.deadStockValue), deadStockCount: m.inventory.deadStockCount }) }] : [])],
       })} />}>
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
         {tiles.map(({ key, ...t }) => <MetricTile key={key} {...t} />)}
@@ -88,10 +89,10 @@ export function MoneyMap({ useExtraTiles = noTiles, useNotes = noNotes, products
       {m.inventory.deadStockValue > 0 && (
         <MoneyNote
           icon={Hourglass}
-          title={`${formatPKR(m.inventory.deadStockValue)} ka maal atka hua hai`}
-          text={`${m.inventory.deadStockCount} cheezein 60 din se nahi bikin — deal bana kar nikalein`}
+          title={tr('{{deadStockValue}} ka maal atka hua hai', { deadStockValue: formatPKR(m.inventory.deadStockValue) })}
+          text={tr('{{deadStockCount}} cheezein 60 din se nahi bikin — deal bana kar nikalein', { deadStockCount: m.inventory.deadStockCount })}
           to={productsPath}
-          cta="Maal dekhein"
+          cta={tr('Maal dekhein')}
         />
       )}
     </WidgetCard>
@@ -111,7 +112,7 @@ export function MoneyNote({ icon, title, text, to, cta, tone = 'neutral' }: {
         <div className="text-[0.75rem] text-slate-600">{text}</div>
       </div>
       <Link to={to} className="inline-flex shrink-0 items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
-        {cta} <ArrowRight className="h-3.5 w-3.5" />
+        {cta} <ArrowRight className="h-3.5 w-3.5 rtl-flip" />
       </Link>
     </div>
   );

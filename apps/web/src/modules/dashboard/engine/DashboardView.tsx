@@ -24,6 +24,7 @@ import { DashboardLayoutContext, useDashboardLayout, type CustomizeTab } from '.
 import { WidgetBoundary } from './WidgetBoundary';
 import type { DashboardConfig, WidgetSize } from './types';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
+import { t } from '@core/i18n';
 
 const SPAN: Record<WidgetSize, string> = {
   full: 'md:col-span-2 lg:col-span-12',
@@ -33,11 +34,11 @@ const SPAN: Record<WidgetSize, string> = {
 };
 
 function greeting(hour: number) {
-  if (hour < 5) return 'Raat ki shift';
-  if (hour < 12) return 'Subah bakhair';
-  if (hour < 17) return 'Dopahar bakhair';
-  if (hour < 20) return 'Shaam bakhair';
-  return 'Raat bakhair';
+  if (hour < 5) return t('Raat ki shift');
+  if (hour < 12) return t('Subah bakhair');
+  if (hour < 17) return t('Dopahar bakhair');
+  if (hour < 20) return t('Shaam bakhair');
+  return t('Raat bakhair');
 }
 
 export function DashboardView({ config }: { config: DashboardConfig }) {
@@ -97,16 +98,16 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
         <div className="flex flex-wrap items-center gap-2">
           <PrivacyToggle compact />
           {config.guide && (
-            <IconButton label="Ye safha kya batata hai (G)" variant="secondary" onClick={() => setGuide(true)}>
+            <IconButton label={t('Ye safha kya batata hai (G)')} variant="secondary" onClick={() => setGuide(true)}>
               <GraduationCap className="h-4 w-4" />
             </IconButton>
           )}
-          <IconButton label="Taaza karein (R)" variant="secondary" onClick={refresh}>
+          <IconButton label={t('Taaza karein (R)')} variant="secondary" onClick={refresh}>
             <RefreshCw className={cn('h-4 w-4', fetching && 'animate-spin')} />
           </IconButton>
           <Button variant="secondary" leftIcon={<LayoutGrid className="h-4 w-4" />} onClick={() => openCustomize()}>
-            <span className="hidden sm:inline">Customize</span>
-            <span className="sr-only sm:hidden">Customize</span>
+            <span className="hidden sm:inline">{t('Customize')}</span>
+            <span className="sr-only sm:hidden">{t('Customize')}</span>
           </Button>
           <Button leftIcon={<Primary className="h-4 w-4" />} onClick={() => navigate(config.primaryAction.to)}>
             {config.primaryAction.label}
@@ -128,8 +129,8 @@ function ShopDashboard({ config }: { config: DashboardConfig }) {
 
       {visible.length === 0 && (
         <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center">
-          <p className="text-[0.875rem] text-slate-600">Sab hisse chhupe hue hain.</p>
-          <Button className="mt-3" variant="secondary" onClick={() => openCustomize()}>Hisse chunein</Button>
+          <p className="text-[0.875rem] text-slate-600">{t('Sab hisse chhupe hue hain.')}</p>
+          <Button className="mt-3" variant="secondary" onClick={() => openCustomize()}>{t('Hisse chunein')}</Button>
         </div>
       )}
 

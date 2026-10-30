@@ -17,6 +17,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { ALL_SHOPS } from '@core/lib/shopScope';
 import { cn } from '@core/lib/cn';
 import { Panel, useDismiss } from '../ui';
+import { t } from '@core/i18n';
 
 type Variant = 'bar' | 'row';
 
@@ -65,17 +66,17 @@ export default function ShopSelector({ variant = 'bar' }: { variant?: Variant })
     if (!assigned) {
       return (
         <div className={cn(TRIGGER, 'border-amber-200 bg-amber-50 text-amber-800')}>
-          <Lock className="h-4 w-4" /> <span>No branch assigned</span>
+          <Lock className="h-4 w-4" /> <span>{t('No branch assigned')}</span>
         </div>
       );
     }
     return (
       <div className={cn(TRIGGER, 'cursor-default border-slate-200 bg-white text-slate-800', variant === 'row' && 'w-full')}
-        title="Only the owner can switch branches">
+        title={t('Only the owner can switch branches')}>
         <Store className="h-4 w-4 shrink-0 text-brand-600" />
         <span className={nameClass}>{assigned.name}</span>
-        {assigned.isMain && <Tag className={tagClass}>Main</Tag>}
-        <Lock className="ml-auto h-3.5 w-3.5 shrink-0 text-slate-400" aria-label="Locked" />
+        {assigned.isMain && <Tag className={tagClass}>{t('Main')}</Tag>}
+        <Lock className="ms-auto h-3.5 w-3.5 shrink-0 text-slate-400" aria-label={t('Locked')} />
       </div>
     );
   }
@@ -89,7 +90,7 @@ export default function ShopSelector({ variant = 'bar' }: { variant?: Variant })
   if (activeShops.length === 0) {
     return (
       <Link to="/shops" className={cn(TRIGGER, 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100')}>
-        <Plus className="h-4 w-4" /> Add branch
+        <Plus className="h-4 w-4" /> {' '}{t('Add branch')}
       </Link>
     );
   }
@@ -97,8 +98,8 @@ export default function ShopSelector({ variant = 'bar' }: { variant?: Variant })
   const select = (shopId: string, name: string) => {
     setCurrentShop(shopId);
     setOpen(false);
-    toast.success(`Switched to ${name}`, {
-      description: shopId === ALL_SHOPS ? 'Reports and lists now combine every branch.' : 'POS, cash register and reports now use this branch.',
+    toast.success(t('Switched to {{name}}', { name }), {
+      description: shopId === ALL_SHOPS ? t('Reports and lists now combine every branch.') : t('POS, cash register and reports now use this branch.'),
     });
   };
 
@@ -109,7 +110,7 @@ export default function ShopSelector({ variant = 'bar' }: { variant?: Variant })
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        title="Switch branch"
+        title={t('Switch branch')}
         className={cn(
           TRIGGER,
           variant === 'row' && 'w-full',
@@ -119,27 +120,27 @@ export default function ShopSelector({ variant = 'bar' }: { variant?: Variant })
         )}
       >
         {isAll ? <Layers className="h-4 w-4 shrink-0 text-violet-600" /> : <Store className="h-4 w-4 shrink-0 text-brand-600" />}
-        <span className={nameClass}>{isAll ? 'All Shops' : currentShop?.name || 'Select branch'}</span>
+        <span className={nameClass}>{isAll ? t('All Shops') : currentShop?.name || t('Select branch')}</span>
         {isAll && <Tag tone="violet" className={tagClass}>{activeShops.length}</Tag>}
-        {!isAll && currentShop?.isMain && <Tag className={tagClass}>Main</Tag>}
-        <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform', variant === 'row' && 'ml-auto', open && 'rotate-180')} />
+        {!isAll && currentShop?.isMain && <Tag className={tagClass}>{t('Main')}</Tag>}
+        <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform', variant === 'row' && 'ms-auto', open && 'rotate-180')} />
       </button>
 
-      <Panel open={open} onClose={close} widthClass="sm:w-[21rem]" label="Switch branch">
+      <Panel open={open} onClose={close} widthClass="sm:w-[21rem]" label={t('Switch branch')}>
         <div className="px-4 pb-2 pt-3">
-          <h2 className="text-[0.9375rem] font-semibold text-slate-900">Branches</h2>
-          <p className="text-[0.75rem] text-slate-500">{activeShops.length} active branch{activeShops.length !== 1 ? 'es' : ''}</p>
+          <h2 className="text-[0.9375rem] font-semibold text-slate-900">{t('Branches')}</h2>
+          <p className="text-[0.75rem] text-slate-500">{t('{{count}} active branch{{value}}', { count: activeShops.length, value: activeShops.length !== 1 ? t('es') : '' })}</p>
         </div>
 
-        <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2 pt-0 sm:max-h-[24rem]" role="listbox" aria-label="Branches">
+        <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2 pt-0 sm:max-h-[24rem]" role="listbox" aria-label={t('Branches')}>
           {activeShops.length > 1 && (
             <ShopOption
               active={isAll}
               icon={<Layers className="h-[1.125rem] w-[1.125rem]" />}
               iconClass={isAll ? 'bg-violet-600 text-white' : 'bg-violet-50 text-violet-600'}
-              title="All Shops"
-              subtitle={`Combined view of ${activeShops.length} branches. Selling still needs one branch.`}
-              onClick={() => select(ALL_SHOPS, 'All Shops')}
+              title={t('All Shops')}
+              subtitle={t('Combined view of {{count}} branches. Selling still needs one branch.', { count: activeShops.length })}
+              onClick={() => select(ALL_SHOPS, t('All Shops'))}
             />
           )}
           {activeShops.map((shop) => {
@@ -151,7 +152,7 @@ export default function ShopSelector({ variant = 'bar' }: { variant?: Variant })
                 icon={<Store className="h-[1.125rem] w-[1.125rem]" />}
                 iconClass={active ? 'bg-brand-600 text-brand-fg' : 'bg-slate-100 text-slate-500'}
                 title={shop.name}
-                tags={<>{shop.isMain && <Tag>Main</Tag>}{shop.type && shop.type !== 'SHOP' && <Tag tone="neutral">{shop.type}</Tag>}</>}
+                tags={<>{shop.isMain && <Tag>{t('Main')}</Tag>}{shop.type && shop.type !== 'SHOP' && <Tag tone="neutral">{shop.type}</Tag>}</>}
                 subtitle={shop.address ? <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3 w-3 shrink-0" /><span className="truncate">{shop.address}</span></span> : undefined}
                 onClick={() => select(shop.id, shop.name)}
               />
@@ -161,7 +162,7 @@ export default function ShopSelector({ variant = 'bar' }: { variant?: Variant })
 
         <Link to="/shops" onClick={close}
           className="flex items-center gap-2 border-t border-slate-200 px-4 py-2.5 text-[0.8125rem] font-semibold text-slate-700 transition hover:bg-slate-50">
-          <Plus className="h-4 w-4 text-brand-600" /> Manage branches
+          <Plus className="h-4 w-4 text-brand-600" /> {' '}{t('Manage branches')}
         </Link>
       </Panel>
     </div>
@@ -177,7 +178,7 @@ function ShopOption({ active, icon, iconClass, title, tags, subtitle, onClick }:
       role="option"
       aria-selected={active}
       onClick={onClick}
-      className={cn('flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition', active ? 'bg-brand-50 ring-1 ring-inset ring-brand-200' : 'hover:bg-slate-50')}
+      className={cn('flex w-full items-center gap-3 rounded-xl p-2.5 text-start transition', active ? 'bg-brand-50 ring-1 ring-inset ring-brand-200' : 'hover:bg-slate-50')}
     >
       <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg', iconClass)}>{icon}</span>
       <span className="min-w-0 flex-1">
@@ -187,7 +188,7 @@ function ShopOption({ active, icon, iconClass, title, tags, subtitle, onClick }:
         </span>
         {subtitle && <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{subtitle}</span>}
       </span>
-      {active && <Check className="h-4 w-4 shrink-0 text-brand-600" aria-label="Selected" />}
+      {active && <Check className="h-4 w-4 shrink-0 text-brand-600" aria-label={t('Selected')} />}
     </button>
   );
 }

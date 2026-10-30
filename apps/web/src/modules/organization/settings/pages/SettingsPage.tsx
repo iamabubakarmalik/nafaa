@@ -24,6 +24,7 @@ import { searchSettings, visibleSettingsGroups, type SettingsHit } from '@app/sh
 import { useSecurityScore, useSettings } from '../hooks/useSettings';
 import { OnboardingSyncBanner } from '../components/OnboardingSyncBanner';
 import { SETTING_FIND_KEY } from '../components/SettingsFrame';
+import { t } from '@core/i18n';
 
 /** Where each tab of the old single settings page lives now. */
 const OLD_TABS: Record<string, string> = {
@@ -73,24 +74,24 @@ function SettingsOverview() {
     if (!s) return [];
     const design = receipt.data?.design;
     const list: Check[] = [
-      { key: 'logo', label: 'Store ka logo', hint: s.logoUrl ? 'Bill aur invoice par lag raha hai' : 'Bill par logo se store pehchana jata hai', done: !!s.logoUrl, to: '/settings/store', find: 'Store logo' },
-      { key: 'contact', label: 'Phone aur pata', hint: s.shopPhone && s.shopAddress ? 'Bill par chhap rahe hain' : 'Customer ko bill par rabta nazar aaye', done: !!(s.shopPhone && s.shopAddress), to: '/settings/store', find: 'Contact' },
-      { key: 'pin', label: 'Malik ka PIN', hint: s.hasManagerPin ? 'Cost aur locked pages mehfooz hain' : 'PIN ke bagair Cost aur Profit sab ko dikhta hai', done: !!s.hasManagerPin, to: '/settings/security', find: 'Malik ka PIN' },
-      { key: 'counter-pins', label: 'Bill cancel aur Return par PIN', hint: s.requirePinForVoid && s.requirePinForRefund ? 'Counter par chori ka raasta band' : 'Cashier bina pooche bill cancel ya Return na kar sake', done: !!(s.requirePinForVoid && s.requirePinForRefund), to: '/settings/counter', find: 'Malik ka PIN kab maangein' },
+      { key: 'logo', label: t('Store ka logo'), hint: s.logoUrl ? t('Bill aur invoice par lag raha hai') : t('Bill par logo se store pehchana jata hai'), done: !!s.logoUrl, to: '/settings/store', find: t('Store logo') },
+      { key: 'contact', label: t('Phone aur pata'), hint: s.shopPhone && s.shopAddress ? t('Bill par chhap rahe hain') : t('Customer ko bill par rabta nazar aaye'), done: !!(s.shopPhone && s.shopAddress), to: '/settings/store', find: t('Contact') },
+      { key: 'pin', label: t('Malik ka PIN'), hint: s.hasManagerPin ? t('Cost aur locked pages mehfooz hain') : t('PIN ke bagair Cost aur Profit sab ko dikhta hai'), done: !!s.hasManagerPin, to: '/settings/security', find: t('Malik ka PIN') },
+      { key: 'counter-pins', label: t('Bill cancel aur Return par PIN'), hint: s.requirePinForVoid && s.requirePinForRefund ? t('Counter par chori ka raasta band') : t('Cashier bina pooche bill cancel ya Return na kar sake'), done: !!(s.requirePinForVoid && s.requirePinForRefund), to: '/settings/counter', find: t('Malik ka PIN kab maangein') },
       {
-        key: 'tax', label: 'Tax ki maloomat',
-        hint: s.enableTax ? (s.taxNumber ? `${s.taxRate}% ${s.taxLabel || 'tax'} · NTN laga hai` : 'Tax chalu hai magar NTN nahi likha') : 'Tax band hai — GST registered hain to chalu karein',
-        done: !s.enableTax || !!s.taxNumber, to: '/settings/tax', find: s.enableTax ? 'Tax number (NTN)' : 'Sale par tax',
+        key: 'tax', label: t('Tax ki maloomat'),
+        hint: s.enableTax ? (s.taxNumber ? t('{{taxRate}}% {{value}} · NTN laga hai', { taxRate: s.taxRate, value: s.taxLabel || 'tax' }) : t('Tax chalu hai magar NTN nahi likha')) : t('Tax band hai — GST registered hain to chalu karein'),
+        done: !s.enableTax || !!s.taxNumber, to: '/settings/tax', find: s.enableTax ? t('Tax number (NTN)') : t('Sale par tax'),
       },
-      { key: 'receipt', label: 'Receipt par apna message', hint: design?.footer || design?.terms ? 'Bill ke neeche aap ki likhai aati hai' : 'Return ke usool ya shukriya ki line likhein', done: !!(design?.footer || design?.terms), to: '/settings/receipt', find: 'Neeche apna message' },
-      { key: 'report', label: 'Rozana closing report', hint: s.notifyDailySummary ? `Roz ${s.dailySummaryTime || '21:00'} par aati hai` : 'Din ka poora hisaab khud aap ke paas aaye', done: !!s.notifyDailySummary, to: '/settings/reports', find: 'Rozana closing report' },
+      { key: 'receipt', label: t('Receipt par apna message'), hint: design?.footer || design?.terms ? t('Bill ke neeche aap ki likhai aati hai') : t('Return ke usool ya shukriya ki line likhein'), done: !!(design?.footer || design?.terms), to: '/settings/receipt', find: t('Neeche apna message') },
+      { key: 'report', label: t('Rozana closing report'), hint: s.notifyDailySummary ? t('Roz {{value}} par aati hai', { value: s.dailySummaryTime || '21:00' }) : t('Din ka poora hisaab khud aap ke paas aaye'), done: !!s.notifyDailySummary, to: '/settings/reports', find: t('Rozana closing report') },
     ];
     const email = score?.checks.find((c) => c.key === 'emailVerified');
-    if (email) list.push({ key: 'email', label: 'Email tasdeeq', hint: email.done ? 'Password reset aur reports email par aa sakti hain' : 'Email tasdeeq karein — password bhoolne par kaam aati hai', done: email.done, to: '/profile' });
+    if (email) list.push({ key: 'email', label: t('Email tasdeeq'), hint: email.done ? t('Password reset aur reports email par aa sakti hain') : t('Email tasdeeq karein — password bhoolne par kaam aati hai'), done: email.done, to: '/profile' });
     if (canBackup && backup.data) {
       const at = backup.data.lastBackup?.at;
       const days = at ? Math.floor((Date.now() - new Date(at).getTime()) / 86_400_000) : null;
-      list.push({ key: 'backup', label: 'Haal ka backup', hint: days == null ? 'Abhi tak koi backup nahi liya' : days === 0 ? 'Aaj backup liya' : `Aakhri backup ${days} din pehle`, done: days != null && days <= 7, to: '/backup' });
+      list.push({ key: 'backup', label: t('Haal ka backup'), hint: days == null ? t('Abhi tak koi backup nahi liya') : days === 0 ? t('Aaj backup liya') : t('Aakhri backup {{days}} din pehle', { days }), done: days != null && days <= 7, to: '/backup' });
     }
     return list;
   }, [s, receipt.data, score, canBackup, backup.data]);
@@ -105,15 +106,15 @@ function SettingsOverview() {
 
       {s ? (
         <KpiRow cols={4}>
-          <KpiCard icon={KeyRound} color={s.hasManagerPin ? '#059669' : '#d97706'} label="Malik ka PIN" value={s.hasManagerPin ? 'Laga hua' : 'Nahi laga'}
-            hint="Security & PIN" onClick={() => go('/settings/security', 'Malik ka PIN')} />
-          <KpiCard icon={Percent} color="#d97706" label="Discount ki had" value={s.allowDiscount ? `${s.maxDiscountPercent}%` : 'Band'}
-            hint="Counter rules" onClick={() => go('/settings/counter', 'Discount')} />
-          <KpiCard icon={BookOpen} color="#7c3aed" label="Udhaar" value={s.allowCredit ? 'Chalu' : 'Band'}
-            hint={s.allowCredit ? (s.defaultCreditLimit ? `Naye customer ki had Rs ${Number(s.defaultCreditLimit).toLocaleString()}` : 'Koi had nahi') : 'Credit & loyalty'}
-            onClick={() => go('/settings/credit-loyalty', 'Udhaar')} />
-          <KpiCard icon={Award} color="#db2777" label="Loyalty" value={s.enableLoyalty ? 'Chalu' : 'Band'}
-            hint="Credit & loyalty" onClick={() => go('/settings/credit-loyalty', 'Loyalty points')} />
+          <KpiCard icon={KeyRound} color={s.hasManagerPin ? '#059669' : '#d97706'} label={t('Malik ka PIN')} value={s.hasManagerPin ? t('Laga hua') : t('Nahi laga')}
+            hint={t('Security & PIN')} onClick={() => go('/settings/security', t('Malik ka PIN'))} />
+          <KpiCard icon={Percent} color="#d97706" label={t('Discount ki had')} value={s.allowDiscount ? `${s.maxDiscountPercent}%` : t('Band')}
+            hint={t('Counter rules')} onClick={() => go('/settings/counter', t('Discount'))} />
+          <KpiCard icon={BookOpen} color="#7c3aed" label={t('Udhaar')} value={s.allowCredit ? t('Chalu') : t('Band')}
+            hint={s.allowCredit ? (s.defaultCreditLimit ? t('Naye customer ki had Rs {{defaultCreditLimit}}', { defaultCreditLimit: Number(s.defaultCreditLimit).toLocaleString() }) : t('Koi had nahi')) : t('Credit & loyalty')}
+            onClick={() => go('/settings/credit-loyalty', t('Udhaar'))} />
+          <KpiCard icon={Award} color="#db2777" label={t('Loyalty')} value={s.enableLoyalty ? t('Chalu') : t('Band')}
+            hint={t('Credit & loyalty')} onClick={() => go('/settings/credit-loyalty', t('Loyalty points'))} />
         </KpiRow>
       ) : isLoading ? (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-[4.75rem]" />)}</div>
@@ -121,12 +122,12 @@ function SettingsOverview() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
         <div className="min-w-0 space-y-4">
-          <Input size="lg" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Settings search karein"
-            placeholder="Koi bhi setting dhoondein — PIN, logo, Discount, GST, printer…"
+          <Input size="lg" value={q} onChange={(e) => setQ(e.target.value)} aria-label={t('Settings search karein')}
+            placeholder={t('Koi bhi setting dhoondein — PIN, logo, Discount, GST, printer…')}
             onKeyDown={(e) => { if (e.key === 'Enter' && hits[0]) open(hits[0]); if (e.key === 'Escape') setQ(''); }}
             leftIcon={<Search className="h-5 w-5" />}
             rightIcon={q ? (
-              <IconButton label="Search saaf karein" size="sm" onClick={() => setQ('')} className="-mr-2">
+              <IconButton label={t('Search saaf karein')} size="sm" onClick={() => setQ('')} className="-me-2">
                 <X className="h-4 w-4" />
               </IconButton>
             ) : undefined} />
@@ -136,20 +137,20 @@ function SettingsOverview() {
               {hits.length === 0 ? (
                 <div className="px-4 py-12 text-center">
                   <SearchX className="mx-auto h-8 w-8 text-slate-300" />
-                  <p className="mt-2 font-semibold text-slate-800">“{q.trim()}” nahi mila</p>
-                  <p className="mt-0.5 text-sm text-slate-500">Koi aur lafz likhein, jaise “PIN”, “logo” ya “Discount”</p>
+                  <p className="mt-2 font-semibold text-slate-800">{t('“{{value}}” nahi mila', { value: q.trim() })}</p>
+                  <p className="mt-0.5 text-sm text-slate-500">{t('Koi aur lafz likhein, jaise “PIN”, “logo” ya “Discount”')}</p>
                 </div>
               ) : (
                 <ul className="divide-y divide-slate-100">
                   {hits.map((h) => (
                     <li key={`${h.to}|${h.find ?? ''}`}>
-                      <button type="button" onClick={() => open(h)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50">
+                      <button type="button" onClick={() => open(h)} className="flex w-full items-center gap-3 px-4 py-3 text-start transition hover:bg-slate-50">
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600"><h.icon className="h-4 w-4" /></span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-semibold text-slate-900">{h.label}</span>
-                          <span className="block truncate text-xs text-slate-500">{h.find ? h.sub : `Page · ${h.sub}`}</span>
+                          <span className="block truncate text-xs text-slate-500">{h.find ? h.sub : t('Page · {{sub}}', { sub: h.sub })}</span>
                         </span>
-                        {h.external ? <ArrowUpRight className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400" />}
+                        {h.external ? <ArrowUpRight className="h-4 w-4 text-slate-400" /> : <ChevronRight className="h-4 w-4 text-slate-400 rtl-flip" />}
                       </button>
                     </li>
                   ))}
@@ -179,7 +180,7 @@ function SettingsOverview() {
                           </span>
                           {i.external
                             ? <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-300 group-hover:text-brand-600" />
-                            : <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600" />}
+                            : <ChevronRight className="h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand-600 rtl-flip" />}
                         </Link>
                       </li>
                     ))}
@@ -196,8 +197,8 @@ function SettingsOverview() {
               <div className="flex items-center gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-success-50 text-success-700"><HeartPulse className="h-5 w-5" /></span>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-[0.9375rem] font-semibold text-slate-900">Setup ki sehat</h2>
-                  <p className="text-xs text-slate-500">{checks.length ? `${done} / ${checks.length} kaam poore` : 'Check ho raha hai…'}</p>
+                  <h2 className="text-[0.9375rem] font-semibold text-slate-900">{t('Setup ki sehat')}</h2>
+                  <p className="text-xs text-slate-500">{checks.length ? t('{{done}} / {{count}} kaam poore', { done, count: checks.length }) : t('Check ho raha hai…')}</p>
                 </div>
                 <span className={cn('text-2xl font-bold tabular-nums', pct >= 80 ? 'text-success-700' : pct >= 50 ? 'text-amber-700' : 'text-rose-700')}>{pct}%</span>
               </div>
@@ -211,7 +212,7 @@ function SettingsOverview() {
               <ul className="divide-y divide-slate-100">
                 {ordered.map((c) => (
                   <li key={c.key}>
-                    <button type="button" onClick={() => go(c.to, c.find)} className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-slate-50">
+                    <button type="button" onClick={() => go(c.to, c.find)} className="flex w-full items-start gap-3 px-4 py-3 text-start transition hover:bg-slate-50">
                       {c.done
                         ? <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-success-600" />
                         : <CircleDashed className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />}
@@ -219,7 +220,7 @@ function SettingsOverview() {
                         <span className={cn('block text-sm font-semibold', c.done ? 'text-slate-700' : 'text-slate-900')}>{c.label}</span>
                         <span className="block text-xs leading-snug text-slate-500">{c.hint}</span>
                       </span>
-                      {!c.done && <span className="mt-0.5 shrink-0 text-xs font-semibold text-brand-700">Theek karein</span>}
+                      {!c.done && <span className="mt-0.5 shrink-0 text-xs font-semibold text-brand-700">{t('Theek karein')}</span>}
                     </button>
                   </li>
                 ))}

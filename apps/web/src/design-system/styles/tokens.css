@@ -28,6 +28,7 @@
   /* Typography */
   --font-latin: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-urdu: 'Noto Naskh Arabic', 'Segoe UI', Tahoma, serif;
+  --font-urdu-ui: 'Inter', 'Noto Naskh Arabic', 'Segoe UI', Tahoma, serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Consolas, ui-monospace, monospace;
 
   --ring-color: 16 185 129;
@@ -85,10 +86,47 @@
  * (a :lang(ur) selector would also match it).
  */
 [lang='ur'] {
-  font-family: var(--font-urdu);
+  font-family: var(--font-urdu-ui, var(--font-urdu));
 }
 html[lang='ur'] body {
   line-height: 1.9;
+}
+
+/*
+ * Right-to-left (Urdu). Layout classes are logical (ms/me, ps/pe, start/end),
+ * so they mirror on their own; these rules cover what classes cannot.
+ *  - .rtl-flip mirrors direction icons (chevrons, arrows). It keeps any
+ *    Tailwind translate/rotate on the element.
+ *  - Phone numbers, emails, links, codes and amounts typed into fields, and
+ *    charts, read left to right in every language.
+ *  - .dir-ltr does the same for any element (barcodes, SKUs, card numbers).
+ */
+[dir='rtl'] .rtl-flip {
+  --tw-scale-x: -1;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+.dir-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+[dir='rtl'] input[type='tel'],
+[dir='rtl'] input[type='email'],
+[dir='rtl'] input[type='url'],
+[dir='rtl'] input[type='number'],
+[dir='rtl'] input[type='password'] {
+  /* Typed text runs left to right, but the box keeps the page direction so
+     logical padding (ps/pe) still leaves room for icons on the right side. */
+  unicode-bidi: plaintext;
+  text-align: right;
+}
+[dir='rtl'] .tabular-nums {
+  unicode-bidi: isolate;
+}
+[dir='rtl'] .recharts-wrapper,
+[dir='rtl'] code,
+[dir='rtl'] kbd,
+[dir='rtl'] pre {
+  direction: ltr;
 }
 
 /*

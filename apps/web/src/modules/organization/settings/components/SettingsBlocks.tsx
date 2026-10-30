@@ -76,7 +76,7 @@ export function NumberInput({ value, onChange, min, max, step = 1, disabled, pre
   return (
     <div className={cn(controlClass(), 'flex h-10 items-center focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20',
       disabled && 'bg-slate-50 opacity-60')}>
-      {prefix && <span className="select-none pl-3 text-sm font-medium text-slate-500">{prefix}</span>}
+      {prefix && <span className="select-none ps-3 text-sm font-medium text-slate-500">{prefix}</span>}
       <input type="number" inputMode="decimal" value={text} min={min} max={max} step={step} disabled={disabled}
         onChange={(e) => {
           setText(e.target.value);
@@ -84,7 +84,7 @@ export function NumberInput({ value, onChange, min, max, step = 1, disabled, pre
         }}
         onBlur={() => { if (text === '') { setText(String(min ?? 0)); onChange(min ?? 0); } }}
         className="h-full w-full min-w-0 rounded-lg bg-transparent px-3 text-sm font-semibold tabular-nums text-slate-900 outline-none disabled:cursor-not-allowed" />
-      {suffix && <span className="select-none pr-3 text-sm font-medium text-slate-500">{suffix}</span>}
+      {suffix && <span className="select-none pe-3 text-sm font-medium text-slate-500">{suffix}</span>}
     </div>
   );
 }
@@ -104,7 +104,7 @@ export function ChoiceGroup({ value, onChange, options, columns = 2 }: {
         const I = o.icon;
         return (
           <button key={String(o.value)} type="button" role="radio" aria-checked={on} onClick={() => onChange(o.value)}
-            className={cn('rounded-lg border p-3 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.99]',
+            className={cn('rounded-lg border p-3 text-start shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 active:scale-[0.99]',
               on ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50')}>
             <span className={cn('flex items-center gap-1.5 text-sm font-semibold', on ? 'text-brand-800' : 'text-slate-900')}>
               {o.emoji && <span className="text-base leading-none">{o.emoji}</span>}
@@ -177,7 +177,7 @@ export function PageLink({ to, icon: I, title, desc }: { to: string; icon: Icon;
         <span className="block truncate text-sm font-semibold text-slate-900">{title}</span>
         {desc && <span className="block truncate text-xs text-slate-500">{desc}</span>}
       </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-brand-600" />
+      <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-0.5 group-hover:text-brand-600 rtl-flip" />
     </Link>
   );
 }

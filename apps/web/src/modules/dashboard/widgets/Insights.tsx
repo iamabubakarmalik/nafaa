@@ -19,10 +19,11 @@ import { useChartTheme } from '../engine/useChartTheme';
 import { useMasked } from '../engine/useMasked';
 import { axisMoney, EmptyHint, fmtQty, WidgetCard } from '../engine/parts';
 import { WidgetToolbar } from './WidgetToolbar';
+import { t } from '@core/i18n';
 
-const WEEKDAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const WEEKDAYS = [t('Itwar'), t('Peer'), t('Mangal'), t('Budh'), t('Jumeraat'), t('Juma'), t('Hafta')];
 const PALETTE = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#4a3aa7', '#0891b2', '#e34948', '#65a30d', '#9333ea'];
-const SHOW_OPTIONS = [{ value: '5', label: 'Top 5' }, { value: '10', label: 'Top 10' }, { value: '50', label: 'Sab' }];
+const SHOW_OPTIONS = [{ value: '5', label: t('Top 5') }, { value: '10', label: t('Top 10') }, { value: '50', label: t('Sab') }];
 
 function Loading() {
   return <div className="space-y-2">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-8 w-full" />)}</div>;
@@ -44,24 +45,24 @@ export function CategoryMix() {
   const max = Math.max(...rows.map((r) => r[sort]), 1);
 
   return (
-    <WidgetCard title="Category ke hisaab se" icon={Layers} description={`${periodLabel(s.days)} · ${all.length} categories`}>
+    <WidgetCard title={t('Category ke hisaab se')} icon={Layers} description={t('{{days}} · {{count}} categories', { days: periodLabel(s.days), count: all.length })}>
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Category ke hisaab se sale', subtitle: periodLabel(s.days),
+          title: t('Category ke hisaab se sale'), subtitle: periodLabel(s.days),
           sections: [{
             kind: 'table',
-            columns: [{ label: 'Category' }, { label: 'Qty', align: 'right' }, { label: 'Sale', align: 'right' }, ...(costHidden ? [] : [{ label: 'Profit', align: 'right' as const }]), { label: 'Hissa', align: 'right', wideOnly: true }],
+            columns: [{ label: t('Category') }, { label: t('Qty'), align: 'right' }, { label: t('Sale'), align: 'right' }, ...(costHidden ? [] : [{ label: t('Profit'), align: 'right' as const }]), { label: t('Hissa'), align: 'right', wideOnly: true }],
             rows: all.map((r) => [r.name, fmtQty(r.qty), sales(r.revenue), ...(costHidden ? [] : [cost(r.profit)]), `${total ? Math.round((r.revenue / total) * 100) : 0}%`]),
-            footer: ['Kul', fmtQty(all.reduce((x, r) => x + r.qty, 0)), sales(total), ...(costHidden ? [] : [cost(all.reduce((x, r) => x + r.profit, 0))]), '100%'],
+            footer: [t('Kul'), fmtQty(all.reduce((x, r) => x + r.qty, 0)), sales(total), ...(costHidden ? [] : [cost(all.reduce((x, r) => x + r.profit, 0))]), '100%'],
           }],
         })}>
-        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
-        <MiniSelect label="Sort" value={sort} onChange={(v) => set({ sort: v })}
-          options={[{ value: 'revenue', label: 'Sale se' }, { value: 'qty', label: 'Ginti se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Profit se' }])]} />
-        <MiniSelect label="Kitni" value={s.show} onChange={(v) => set({ show: v })} options={SHOW_OPTIONS} />
-        <MiniSelect label="Dikhawa" value={s.view} onChange={(v) => set({ view: v })} options={[{ value: 'donut', label: 'Gol chart' }, { value: 'bars', label: 'Sirf patiyan' }]} />
+        <MiniSelect label={t('Period')} value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
+        <MiniSelect label={t('Sort')} value={sort} onChange={(v) => set({ sort: v })}
+          options={[{ value: 'revenue', label: t('Sale se') }, { value: 'qty', label: t('Ginti se') }, ...(costHidden ? [] : [{ value: 'profit', label: t('Profit se') }])]} />
+        <MiniSelect label={t('Kitni')} value={s.show} onChange={(v) => set({ show: v })} options={SHOW_OPTIONS} />
+        <MiniSelect label={t('Dikhawa')} value={s.view} onChange={(v) => set({ view: v })} options={[{ value: 'donut', label: t('Gol chart') }, { value: 'bars', label: t('Sirf patiyan') }]} />
       </WidgetToolbar>
-      {isLoading ? <Loading /> : rows.length === 0 ? <EmptyHint icon={Layers} text="Is period me koi sale nahi" /> : (
+      {isLoading ? <Loading /> : rows.length === 0 ? <EmptyHint icon={Layers} text={t('Is period me koi sale nahi')} /> : (
         <div className={cn('grid gap-4', s.view === 'donut' && !salesHidden && 'sm:grid-cols-[150px_minmax(0,1fr)] sm:items-center')}>
           {s.view === 'donut' && !salesHidden && (
             <div className="mx-auto h-[150px] w-[150px]">
@@ -83,14 +84,14 @@ export function CategoryMix() {
                   <span className="min-w-0 flex-1 truncate font-medium text-slate-800">{r.name}</span>
                   <span className="shrink-0 font-semibold tabular-nums text-slate-900">{value(r)}</span>
                 </div>
-                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100 ml-[18px]">
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100 ms-[18px]">
                   <div className="h-full rounded-full" style={{ width: `${(r[sort] / max) * 100}%`, backgroundColor: r.fill }} />
                 </div>
-                <div className="ml-[18px] mt-0.5 flex flex-wrap gap-x-3 text-[0.6875rem] text-slate-500">
-                  {sort !== 'qty' && <span>{fmtQty(r.qty)} pcs</span>}
-                  {sort !== 'revenue' && <span>sale {sales(r.revenue)}</span>}
-                  {!costHidden && sort !== 'profit' && r.revenue > 0 && <span>profit {cost(r.profit)}</span>}
-                  <span>{total ? Math.round((r.revenue / total) * 100) : 0}% hissa</span>
+                <div className="ms-[18px] mt-0.5 flex flex-wrap gap-x-3 text-[0.6875rem] text-slate-500">
+                  {sort !== 'qty' && <span>{t('{{qty}} pcs', { qty: fmtQty(r.qty) })}</span>}
+                  {sort !== 'revenue' && <span>{t('sale {{revenue}}', { revenue: sales(r.revenue) })}</span>}
+                  {!costHidden && sort !== 'profit' && r.revenue > 0 && <span>{t('profit {{profit}}', { profit: cost(r.profit) })}</span>}
+                  <span>{t('{{value}}% hissa', { value: total ? Math.round((r.revenue / total) * 100) : 0 })}</span>
                 </div>
               </li>
             ))}
@@ -113,27 +114,27 @@ export function StaffBoard() {
   const value = (r: (typeof rows)[number]) => (sort === 'bills' ? `${r.bills} bill` : sort === 'profit' ? cost(r.profit) : sort === 'average' ? sales(r.average) : sales(r.total));
 
   return (
-    <WidgetCard title="Staff ki sale" icon={Medal} description={periodLabel(s.days)} to="/staff/commission" linkLabel="Commission">
+    <WidgetCard title={t('Staff ki sale')} icon={Medal} description={periodLabel(s.days)} to="/staff/commission" linkLabel={t('Commission')}>
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Staff ki sale', subtitle: periodLabel(s.days),
+          title: t('Staff ki sale'), subtitle: periodLabel(s.days),
           sections: [{
             kind: 'table',
-            columns: [{ label: '#' }, { label: 'Naam' }, { label: 'Bill', align: 'right' }, { label: 'Ausat', align: 'right', wideOnly: true }, { label: 'Sale', align: 'right' }],
+            columns: [{ label: '#' }, { label: t('Naam') }, { label: t('Bill'), align: 'right' }, { label: t('Ausat'), align: 'right', wideOnly: true }, { label: t('Sale'), align: 'right' }],
             rows: rows.map((r, i) => [String(i + 1), r.name, String(r.bills), sales(r.average), sales(r.total)]),
           }],
         })}>
-        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
-        <MiniSelect label="Ranking" value={sort} onChange={(v) => set({ sort: v })}
-          options={[{ value: 'total', label: 'Sale se' }, { value: 'bills', label: 'Bill se' }, { value: 'average', label: 'Ausat bill se' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Profit se' }])]} />
+        <MiniSelect label={t('Period')} value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
+        <MiniSelect label={t('Ranking')} value={sort} onChange={(v) => set({ sort: v })}
+          options={[{ value: 'total', label: t('Sale se') }, { value: 'bills', label: t('Bill se') }, { value: 'average', label: t('Ausat bill se') }, ...(costHidden ? [] : [{ value: 'profit', label: t('Profit se') }])]} />
       </WidgetToolbar>
-      {isLoading ? <Loading /> : rows.length === 0 ? <EmptyHint icon={Users} text="Is period me koi sale nahi" /> : (
+      {isLoading ? <Loading /> : rows.length === 0 ? <EmptyHint icon={Users} text={t('Is period me koi sale nahi')} /> : (
         <ul className="space-y-3">
           {rows.map((p, i) => (
             <li key={p.userId} className="flex items-center gap-3">
               <div className="relative shrink-0">
                 <Avatar name={p.name} url={p.avatarUrl ?? undefined} size={34} />
-                {i < 3 && <span className={cn('absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[0.625rem] font-bold ring-2 ring-white', MEDALS[i])}>{i + 1}</span>}
+                {i < 3 && <span className={cn('absolute -bottom-1 -end-1 flex h-4 w-4 items-center justify-center rounded-full text-[0.625rem] font-bold ring-2 ring-white', MEDALS[i])}>{i + 1}</span>}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline justify-between gap-2 text-[0.8125rem]">
@@ -144,7 +145,7 @@ export function StaffBoard() {
                   <div className="h-full rounded-full bg-brand-500" style={{ width: `${(p[sort] / max) * 100}%` }} />
                 </div>
                 <div className="mt-0.5 text-[0.6875rem] text-slate-500">
-                  {p.bills} bill · ausat {sales(p.average)}{sort !== 'total' && ` · sale ${sales(p.total)}`}{!costHidden && sort !== 'profit' && ` · profit ${cost(p.profit)}`}
+                  {t('{{bills}} bill · ausat {{average}}{{value}}{{value2}}', { bills: p.bills, average: sales(p.average), value: sort !== 'total' ? t(' · sale {{total}}', { total: sales(p.total) }) : '', value2: !costHidden && sort !== 'profit' ? t(' · profit {{profit}}', { profit: cost(p.profit) }) : '' })}
                 </div>
               </div>
             </li>
@@ -169,19 +170,19 @@ export function WeekdayPattern() {
   const hidden = salesHidden && metric === 'average';
 
   return (
-    <WidgetCard title="Hafte ke din" icon={CalendarDays}
-      description={best && best[metric] ? `Sab se acha ${best.full}${worst && worst !== best ? ` · sab se halka ${worst.full}` : ''}` : 'Rozana ausat'}>
+    <WidgetCard title={t('Hafte ke din')} icon={CalendarDays}
+      description={best && best[metric] ? t('Sab se acha {{full}}{{value}}', { full: best.full, value: worst && worst !== best ? t(' · sab se halka {{full}}', { full: worst.full }) : '' }) : t('Rozana ausat')}>
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Hafte ke din', subtitle: `Pichhle ${s.days} din ka rozana ausat`,
-          sections: [{ kind: 'table', columns: [{ label: 'Din' }, { label: 'Ausat bill', align: 'right' }, { label: 'Ausat sale', align: 'right' }],
+          title: t('Hafte ke din'), subtitle: t('Pichhle {{days}} din ka rozana ausat', { days: s.days }),
+          sections: [{ kind: 'table', columns: [{ label: t('Din') }, { label: t('Ausat bill'), align: 'right' }, { label: t('Ausat sale'), align: 'right' }],
             rows: rows.map((r) => [r.full, r.bills.toFixed(1), sales(r.average)]) }],
         })}>
-        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={[{ value: '30', label: '30 din' }, { value: '90', label: '90 din' }]} />
-        <MiniSelect label="Kya dikhayein" value={s.metric} onChange={(v) => set({ metric: v })} options={[{ value: 'average', label: 'Ausat sale' }, { value: 'bills', label: 'Ausat bill' }]} />
+        <MiniSelect label={t('Period')} value={s.days} onChange={(v) => set({ days: v })} options={[{ value: '30', label: t('30 din') }, { value: '90', label: t('90 din') }]} />
+        <MiniSelect label={t('Kya dikhayein')} value={s.metric} onChange={(v) => set({ metric: v })} options={[{ value: 'average', label: t('Ausat sale') }, { value: 'bills', label: t('Ausat bill') }]} />
       </WidgetToolbar>
-      {isLoading ? <Loading /> : hidden ? <EmptyHint icon={CalendarDays} text="Sale chhupi hui hai" /> : rows.every((r) => !r.total) ? (
-        <EmptyHint icon={CalendarDays} text="Abhi data kam hai" />
+      {isLoading ? <Loading /> : hidden ? <EmptyHint icon={CalendarDays} text={t('Sale chhupi hui hai')} /> : rows.every((r) => !r.total) ? (
+        <EmptyHint icon={CalendarDays} text={t('Abhi data kam hai')} />
       ) : (
         <div className="h-[220px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -189,7 +190,7 @@ export function WeekdayPattern() {
               <CartesianGrid stroke={theme.grid} vertical={false} />
               <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
               <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={metric === 'average' ? axisMoney : undefined} width={44} />
-              <Tooltip formatter={(v) => [metric === 'average' ? formatPKR(Number(v)) : Number(v).toFixed(1), metric === 'average' ? 'Ausat sale' : 'Ausat bill']}
+              <Tooltip formatter={(v) => [metric === 'average' ? formatPKR(Number(v)) : Number(v).toFixed(1), metric === 'average' ? t('Ausat sale') : t('Ausat bill')]}
                 labelFormatter={(_, p) => p?.[0]?.payload?.full ?? ''} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor} />
               <Bar dataKey={metric} radius={[6, 6, 0, 0]}>
                 {rows.map((r) => <Cell key={r.day} fill={r.day === best?.day ? theme.primary : theme.primarySoft} />)}
@@ -212,20 +213,20 @@ export function TopCustomers() {
     .slice(0, Number(s.limit)), [data, s]);
 
   return (
-    <WidgetCard title="Behtareen customers" icon={Crown} description={periodLabel(s.days)} to="/customers">
+    <WidgetCard title={t('Behtareen customers')} icon={Crown} description={periodLabel(s.days)} to="/customers">
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Behtareen customers', subtitle: periodLabel(s.days),
-          sections: [{ kind: 'table', columns: [{ label: 'Naam' }, { label: 'Phone', wideOnly: true }, { label: 'Bill', align: 'right' }, { label: 'Khareeda', align: 'right' }, { label: 'Udhaar', align: 'right' }],
+          title: t('Behtareen customers'), subtitle: periodLabel(s.days),
+          sections: [{ kind: 'table', columns: [{ label: t('Naam') }, { label: t('Phone'), wideOnly: true }, { label: t('Bill'), align: 'right' }, { label: t('Khareeda'), align: 'right' }, { label: t('Udhaar'), align: 'right' }],
             rows: rows.map((c) => [c.name, c.phone ?? '', String(c.bills), sales(c.total), cost(c.balance)]) }],
         })}>
-        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
-        <MiniSelect label="Sort" value={s.sort} onChange={(v) => set({ sort: v })}
-          options={[{ value: 'total', label: 'Khareedari se' }, { value: 'bills', label: 'Bill se' }, { value: 'balance', label: 'Udhaar se' }]} />
-        <MiniSelect label="Kitne" value={s.limit} onChange={(v) => set({ limit: v })} options={[{ value: '5', label: 'Top 5' }, { value: '10', label: 'Top 10' }, { value: '20', label: 'Top 20' }]} />
-        <MiniSelect label="Filter" value={s.filter} onChange={(v) => set({ filter: v })} options={[{ value: 'all', label: 'Sab' }, { value: 'credit', label: 'Jin par udhaar' }]} />
+        <MiniSelect label={t('Period')} value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
+        <MiniSelect label={t('Sort')} value={s.sort} onChange={(v) => set({ sort: v })}
+          options={[{ value: 'total', label: t('Khareedari se') }, { value: 'bills', label: t('Bill se') }, { value: 'balance', label: t('Udhaar se') }]} />
+        <MiniSelect label={t('Kitne')} value={s.limit} onChange={(v) => set({ limit: v })} options={[{ value: '5', label: t('Top 5') }, { value: '10', label: t('Top 10') }, { value: '20', label: t('Top 20') }]} />
+        <MiniSelect label={t('Filter')} value={s.filter} onChange={(v) => set({ filter: v })} options={[{ value: 'all', label: t('Sab') }, { value: 'credit', label: t('Jin par udhaar') }]} />
       </WidgetToolbar>
-      {isLoading ? <Loading /> : rows.length === 0 ? <EmptyHint icon={Users} text="Is period me naam wale customer ki sale nahi" /> : (
+      {isLoading ? <Loading /> : rows.length === 0 ? <EmptyHint icon={Users} text={t('Is period me naam wale customer ki sale nahi')} /> : (
         <ul className="-mx-2 divide-y divide-slate-100">
           {rows.map((c, i) => (
             <li key={c.customerId}>
@@ -235,7 +236,7 @@ export function TopCustomers() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[0.8125rem] font-medium text-slate-900">{c.name}</span>
                   <span className="block truncate text-[0.6875rem] text-slate-500">
-                    {c.bills} bill{c.phone ? ` · ${c.phone}` : ''}{c.balance > 0 ? <> · <span className="font-medium text-amber-700">udhaar {cost(c.balance)}</span></> : ''}
+                    {t('{{bills}} bill{{value}}', { bills: c.bills, value: c.phone ? ` · ${c.phone}` : '' })}{c.balance > 0 ? <> · <span className="font-medium text-amber-700">{t('udhaar {{balance}}', { balance: cost(c.balance) })}</span></> : ''}
                   </span>
                 </span>
                 <span className="shrink-0 text-[0.8125rem] font-semibold tabular-nums text-slate-900">{s.sort === 'balance' ? cost(c.balance) : sales(c.total)}</span>
@@ -265,24 +266,24 @@ export function MonthlyTrend() {
   const change = last && prev && prev.sales > 0 ? ((last.sales - prev.sales) / prev.sales) * 100 : null;
 
   return (
-    <WidgetCard title={`${months} mahine ka muqabla`} icon={CalendarRange}
-      description={change !== null && !salesHidden ? `Is mahine pichhle se ${change >= 0 ? '+' : ''}${change.toFixed(1)}%` : 'Har mahine ki sale, expense aur profit'}>
+    <WidgetCard title={t('{{months}} mahine ka muqabla', { months })} icon={CalendarRange}
+      description={change !== null && !salesHidden ? t('Is mahine pichhle se {{value}}{{value2}}%', { value: change >= 0 ? '+' : '', value2: change.toFixed(1) }) : t('Har mahine ki sale, expense aur profit')}>
       <WidgetToolbar inset={false}
         print={() => ({
-          title: `${months} mahine ka muqabla`,
+          title: t('{{months}} mahine ka muqabla', { months }),
           sections: [{
             kind: 'table',
-            columns: [{ label: 'Mahina' }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' }, ...(costHidden ? [] : [{ label: 'Expense', align: 'right' as const }, { label: 'Profit', align: 'right' as const }])],
+            columns: [{ label: t('Mahina') }, { label: t('Bill'), align: 'right' }, { label: t('Sale'), align: 'right' }, ...(costHidden ? [] : [{ label: t('Expense'), align: 'right' as const }, { label: t('Profit'), align: 'right' as const }])],
             rows: rows.map((m) => [monthName(m.month, true), String(m.bills), sales(m.sales), ...(costHidden ? [] : [cost(m.expenses), cost(m.profit)])]),
           }],
         })}>
-        <MiniSelect label="Mahine" value={s.months} onChange={(v) => set({ months: v })} options={[{ value: '6', label: '6 mahine' }, { value: '12', label: '12 mahine' }]} />
+        <MiniSelect label={t('Mahine')} value={s.months} onChange={(v) => set({ months: v })} options={[{ value: '6', label: t('6 mahine') }, { value: '12', label: t('12 mahine') }]} />
         {!costHidden && (
-          <MiniSelect label="Kya dikhayein" value={s.series} onChange={(v) => set({ series: v })}
-            options={[{ value: 'all', label: 'Sab' }, { value: 'sales', label: 'Sirf sale' }, { value: 'profit', label: 'Sale + profit' }, { value: 'expenses', label: 'Sale + expense' }]} />
+          <MiniSelect label={t('Kya dikhayein')} value={s.series} onChange={(v) => set({ series: v })}
+            options={[{ value: 'all', label: t('Sab') }, { value: 'sales', label: t('Sirf sale') }, { value: 'profit', label: t('Sale + profit') }, { value: 'expenses', label: t('Sale + expense') }]} />
         )}
       </WidgetToolbar>
-      {isLoading ? <Skeleton className="h-[260px] w-full" /> : salesHidden ? <EmptyHint icon={CalendarRange} text="Sale chhupi hui hai" /> : (
+      {isLoading ? <Skeleton className="h-[260px] w-full" /> : salesHidden ? <EmptyHint icon={CalendarRange} text={t('Sale chhupi hui hai')} /> : (
         <>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -298,7 +299,7 @@ export function MonthlyTrend() {
             </ResponsiveContainer>
           </div>
           <div className="mt-3 flex flex-wrap justify-center gap-4 text-[0.75rem] text-slate-500">
-            {[{ c: theme.primary, l: 'Sale', on: true }, { c: '#f59e0b', l: 'Expense', on: showExpenses }, { c: theme.profit, l: 'Profit', on: showProfit }].filter((x) => x.on).map((x) => (
+            {[{ c: theme.primary, l: t('Sale'), on: true }, { c: '#f59e0b', l: t('Expense'), on: showExpenses }, { c: theme.profit, l: t('Profit'), on: showProfit }].filter((x) => x.on).map((x) => (
               <span key={x.l} className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: x.c }} />{x.l}</span>
             ))}
           </div>

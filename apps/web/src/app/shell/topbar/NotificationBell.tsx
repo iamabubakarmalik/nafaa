@@ -19,6 +19,7 @@ import { useNotificationSound } from '@core/hooks/useNotificationSound';
 import { cn } from '@core/lib/cn';
 import { IconButton } from '@/design-system/components';
 import { Panel, useDismiss } from '../ui';
+import { t as tr } from '@core/i18n';
 
 type Tone = 'info' | 'success' | 'warning' | 'danger' | 'violet' | 'cyan' | 'orange' | 'neutral';
 
@@ -61,12 +62,12 @@ const URGENT_TYPES: NotificationType[] = ['OUT_OF_STOCK', 'PAYMENT_REJECTED', 'C
 function formatTime(value: string) {
   const date = new Date(value);
   const mins = Math.floor((Date.now() - date.getTime()) / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return tr('Just now');
+  if (mins < 60) return tr('{{mins}}m ago', { mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return tr('{{hours}}h ago', { hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return tr('{{days}}d ago', { days });
   return new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(date);
 }
 
@@ -138,37 +139,37 @@ export default function NotificationBell() {
 
   const shown = tab === 'unread' ? notifications.filter((n) => !n.isRead) : notifications;
   const groups = [
-    { label: 'Today', items: shown.filter((n) => isToday(n.createdAt)) },
-    { label: 'Earlier', items: shown.filter((n) => !isToday(n.createdAt)) },
+    { label: tr('Today'), items: shown.filter((n) => isToday(n.createdAt)) },
+    { label: tr('Earlier'), items: shown.filter((n) => !isToday(n.createdAt)) },
   ].filter((g) => g.items.length);
 
   return (
     <div className="relative" ref={ref}>
       <IconButton
-        label={unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+        label={unreadCount ? tr('Notifications, {{unreadCount}} unread', { unreadCount }) : tr('Notifications')}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         className={cn('relative h-9 w-9', open && 'bg-slate-900/5 text-slate-900')}
       >
         <Bell className="h-[1.125rem] w-[1.125rem]" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-rose-600 px-1 text-[0.625rem] font-bold tabular-nums text-white ring-2 ring-shell-bar">
+          <span className="absolute -end-0.5 -top-0.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-rose-600 px-1 text-[0.625rem] font-bold tabular-nums text-white ring-2 ring-shell-bar">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </IconButton>
 
-      <Panel open={open} onClose={close} widthClass="sm:w-[24rem]" label="Notifications">
+      <Panel open={open} onClose={close} widthClass="sm:w-[24rem]" label={tr('Notifications')}>
         <div className="flex items-center justify-between gap-2 px-4 pb-2 pt-3">
           <div className="flex items-baseline gap-2">
-            <h2 className="text-[0.9375rem] font-semibold text-slate-900">Notifications</h2>
-            {unreadCount > 0 && <span className="text-[0.75rem] font-medium text-slate-500">{unreadCount} unread</span>}
+            <h2 className="text-[0.9375rem] font-semibold text-slate-900">{tr('Notifications')}</h2>
+            {unreadCount > 0 && <span className="text-[0.75rem] font-medium text-slate-500">{tr('{{unreadCount}} unread', { unreadCount })}</span>}
           </div>
           <div className="flex items-center gap-0.5">
-            <IconButton label={muted ? 'Turn sound on' : 'Turn sound off'} onClick={toggleSound} className="h-8 w-8">
+            <IconButton label={muted ? tr('Turn sound on') : tr('Turn sound off')} onClick={toggleSound} className="h-8 w-8">
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </IconButton>
-            <Link to="/settings/notifications" onClick={close} aria-label="Notification settings" title="Notification settings"
+            <Link to="/settings/notifications" onClick={close} aria-label={tr('Notification settings')} title={tr('Notification settings')}
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-900/5 hover:text-slate-900">
               <SettingsIcon className="h-4 w-4" />
             </Link>
@@ -189,14 +190,14 @@ export default function NotificationBell() {
                   tab === t ? 'border-brand-600 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800',
                 )}
               >
-                {t === 'all' ? 'All' : `Unread${unreadCount ? ` (${unreadCount})` : ''}`}
+                {t === 'all' ? tr('All') : tr('Unread{{value}}', { value: unreadCount ? ` (${unreadCount})` : '' })}
               </button>
             ))}
           </div>
           {unreadCount > 0 && (
             <button type="button" onClick={() => markAll.mutate()} disabled={markAll.isPending}
               className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700 transition hover:text-brand-800 disabled:opacity-50">
-              <CheckCheck className="h-3.5 w-3.5" /> Mark all read
+              <CheckCheck className="h-3.5 w-3.5" /> {' '}{tr('Mark all read')}
             </button>
           )}
         </div>
@@ -208,10 +209,10 @@ export default function NotificationBell() {
                 <BellOff className="h-5 w-5" />
               </span>
               <div className="mt-3 text-[0.875rem] font-semibold text-slate-900">
-                {tab === 'unread' ? 'You are all caught up' : 'No notifications yet'}
+                {tab === 'unread' ? tr('You are all caught up') : tr('No notifications yet')}
               </div>
               <p className="mx-auto mt-1 max-w-[16rem] text-[0.8125rem] text-slate-500">
-                Sales, stock alerts and payments will show up here.
+                {tr('Sales, stock alerts and payments will show up here.')}
               </p>
             </div>
           ) : (
@@ -240,16 +241,16 @@ export default function NotificationBell() {
                               <span className={cn('min-w-0 flex-1 text-[0.8125rem] leading-snug', n.isRead ? 'font-medium text-slate-700' : 'font-semibold text-slate-900')}>
                                 {n.title}
                               </span>
-                              {!n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-600" aria-label="Unread" />}
+                              {!n.isRead && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-brand-600" aria-label={tr('Unread')} />}
                             </div>
                             {n.message && <p className="mt-0.5 line-clamp-2 text-[0.75rem] leading-relaxed text-slate-500">{n.message}</p>}
                             <div className="mt-1 flex items-center gap-2 text-[0.6875rem] text-slate-400">
                               <span>{formatTime(n.createdAt)}</span>
-                              {urgent && <span className="rounded bg-rose-50 px-1.5 py-0.5 font-semibold text-rose-700">Urgent</span>}
+                              {urgent && <span className="rounded bg-rose-50 px-1.5 py-0.5 font-semibold text-rose-700">{tr('Urgent')}</span>}
                               {typeof n.metadata?.whatsappUrl === 'string' && n.metadata.whatsappUrl.startsWith('https://wa.me/') && (
                                 <a href={n.metadata.whatsappUrl} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()}
                                   className="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 font-semibold text-emerald-700 hover:bg-emerald-100">
-                                  <MessageCircle className="h-3 w-3" /> WhatsApp par bhejein
+                                  <MessageCircle className="h-3 w-3" /> {' '}{tr('WhatsApp par bhejein')}
                                 </a>
                               )}
                             </div>
@@ -257,8 +258,8 @@ export default function NotificationBell() {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); remove.mutate(n.id); }}
-                            aria-label="Delete notification"
-                            title="Delete"
+                            aria-label={tr('Delete notification')}
+                            title={tr('Delete')}
                             className="h-7 w-7 shrink-0 self-center rounded-md text-slate-400 opacity-0 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-60"
                           >
                             <Trash2 className="mx-auto h-3.5 w-3.5" />
@@ -275,7 +276,7 @@ export default function NotificationBell() {
 
         <Link to="/notifications" onClick={close}
           className="block border-t border-slate-200 px-4 py-2.5 text-center text-[0.8125rem] font-semibold text-brand-700 transition hover:bg-slate-50">
-          View all notifications
+          {tr('View all notifications')}
         </Link>
       </Panel>
     </div>

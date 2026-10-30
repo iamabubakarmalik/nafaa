@@ -1,0 +1,6 @@
+{
+  "Kam se kam Rs {{minPurchase}} ki khareedari par chalta hai": "Kam se kam Rs {{minPurchase}} ki purchase par chalta hai",
+  "OTP create nahi ho saka — DB check karo": "OTP nahi ban saka — dobara try karein",
+  "Stock kam hai — {{item}}: {{shop}} me {{available}} pada hai, cart me kul {{wanted}}. Pehle stock barhayein, ya Settings → Stock rules me minus stock ki ijazat dein.": "Stock kam hai — {{item}}: {{shop}} me {{available}} pada hai, cart me kul {{wanted}}. Pehle stock barhayein, ya Settings → Stock rules me minus stock ki permission dein.",
+  "Stock kam hai — {{item}}: {{shop}} me {{available}} pada hai, chahiye {{wanted}}. Pehle stock barhayein, ya Settings → Stock rules me minus stock ki ijazat dein.": "Stock kam hai — {{item}}: {{shop}} me {{available}} pada hai, chahiye {{wanted}}. Pehle stock barhayein, ya Settings → Stock rules me minus stock ki permission dein."
+}

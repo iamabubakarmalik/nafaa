@@ -11,6 +11,7 @@ import { ChevronDown, SlidersHorizontal, X, type LucideIcon } from 'lucide-react
 import { cn } from '@core/lib/cn';
 import { Button } from './Button';
 import type { FilterOption } from './FilterMenu';
+import { t as tr } from '@core/i18n';
 
 export interface FilterGroup {
   id: string;
@@ -23,7 +24,7 @@ export interface FilterGroup {
   onChange: (v: string) => void;
 }
 
-export function MoreFilters({ groups, label = 'Aur filters', align = 'left' }: {
+export function MoreFilters({ groups, label = tr('Aur filters'), align = 'left' }: {
   groups: FilterGroup[];
   label?: string;
   align?: 'left' | 'right';
@@ -77,7 +78,7 @@ export function MoreFilters({ groups, label = 'Aur filters', align = 'left' }: {
                   const on = o.value === g.value;
                   return (
                     <button key={o.value} type="button" role="radio" aria-checked={on} title={o.hint} onClick={() => g.onChange(o.value)}
-                      className={cn('inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full px-3 py-1 text-left text-[0.8125rem] font-medium transition',
+                      className={cn('inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full px-3 py-1 text-start text-[0.8125rem] font-medium transition',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
                         on ? 'bg-brand-600 text-brand-fg shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80')}>
                       {o.color && <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: o.color }} />}
@@ -93,9 +94,9 @@ export function MoreFilters({ groups, label = 'Aur filters', align = 'left' }: {
       <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
         <button type="button" disabled={activeCount === 0} onClick={() => groups.forEach((g) => { if (g.value !== g.empty) g.onChange(g.empty); })}
           className="inline-flex h-9 items-center gap-1 rounded-xl px-3 text-[0.8125rem] font-semibold text-rose-700 hover:bg-rose-50 disabled:text-slate-400 disabled:hover:bg-transparent">
-          <X className="h-3.5 w-3.5" />Saaf karein
+          <X className="h-3.5 w-3.5" />{tr('Saaf karein')}
         </button>
-        <Button size="sm" onClick={() => setOpen(false)}>Theek hai</Button>
+        <Button size="sm" onClick={() => setOpen(false)}>{tr('Theek hai')}</Button>
       </div>
     </>
   );
@@ -113,7 +114,7 @@ export function MoreFilters({ groups, label = 'Aur filters', align = 'left' }: {
       </button>
       {open && !sheet && (
         <div ref={panelRef} role="dialog" aria-label={label}
-          className={cn('absolute top-full z-40 mt-2 w-96 max-w-[calc(100vw-1rem)] rounded-2xl bg-white p-4 shadow-xl ring-1 ring-slate-200', side === 'right' ? 'right-0' : 'left-0')}>
+          className={cn('absolute top-full z-40 mt-2 w-96 max-w-[calc(100vw-1rem)] rounded-2xl bg-white p-4 shadow-xl ring-1 ring-slate-200', side === 'right' ? 'end-0' : 'start-0')}>
           {body}
         </div>
       )}

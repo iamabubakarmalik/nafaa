@@ -7,6 +7,7 @@
 
 import { toast } from 'sonner';
 import { useComboBundles, useProductCatalog, type PosEngineApi, type PosIndustryConfig } from '@modules/pos/engine';
+import { t } from '@core/i18n';
 
 const SCALE_LABEL = /^2\d{12}$/;
 const WEIGHT_UNITS: Record<string, number> = { kg: 1000, kilogram: 1000, gram: 1, g: 1, gm: 1 };
@@ -19,17 +20,17 @@ async function scaleLabel(code: string, api: PosEngineApi) {
   const perGram = item ? WEIGHT_UNITS[(item.unit || '').toLowerCase()] : undefined;
   if (!item || !perGram) return false;
   const grams = Number(code.slice(7, 12));
-  if (!(grams > 0)) { toast.error('Tarazu ke label par wazan 0 hai'); return true; }
+  if (!(grams > 0)) { toast.error(t('Tarazu ke label par wazan 0 hai')); return true; }
   api.addItem(item, { qty: Number((grams / perGram).toFixed(3)) });
   return true;
 }
 
 export const retailPos: PosIndustryConfig = {
   id: 'retail',
-  label: 'Retail',
+  label: t('Retail'),
   useCatalog: () => useProductCatalog(),
   useBundles: useComboBundles,
   quickKeys: true,
   scan: scaleLabel,
-  searchHint: 'Naam, barcode ya tarazu ka label scan karein',
+  searchHint: t('Naam, barcode ya tarazu ka label scan karein'),
 };

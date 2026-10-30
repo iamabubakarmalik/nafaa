@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '@core/stores/auth.store';
 import { SHOP_HEADER } from '@core/lib/shopScope';
+import { hasTranslation, t, type Params } from '@core/i18n/runtime';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
@@ -23,12 +24,37 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+/**
+ * Server messages are written in the source language (Roman Urdu or English).
+ * They are translated here, once, so every screen that shows
+ * `error.response.data.message` gets the user's language without changes.
+ * Messages with values come as `messageKey` + `params` (see the API's
+ * common/i18n/api-message.ts).
+ */
+function translateBody(body: unknown, isError: boolean) {
+  if (!body || typeof body !== 'object') return;
+  const b = body as { message?: unknown; messageKey?: unknown; params?: unknown };
+  if (typeof b.messageKey === 'string') {
+    b.message = t(b.messageKey, (b.params ?? undefined) as Params | undefined);
+  } else if (typeof b.message === 'string') {
+    if (isError || hasTranslation(b.message)) b.message = t(b.message);
+  } else if (Array.isArray(b.message) && isError) {
+    b.message = b.message.map((m) => (typeof m === 'string' ? t(m) : m));
+  }
+}
+
 let isRefreshing = false;
 let pendingQueue: Array<(t: string) => void> = [];
 
 apiClient.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    translateBody(res.data, false);
+    // Most success bodies are wrapped: { success, data: { message } }.
+    translateBody((res.data as { data?: unknown } | undefined)?.data, false);
+    return res;
+  },
   async (error) => {
+    translateBody(error.response?.data, true);
     const original = error.config;
     const status = error.response?.status;
 

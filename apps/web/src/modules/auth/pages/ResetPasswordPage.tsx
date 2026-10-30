@@ -12,14 +12,15 @@ import { Alert, Button } from '@/design-system/components';
 import { AuthHeading, AuthLayout } from '../components/AuthLayout';
 import { PasswordField } from '../components/PasswordField';
 import { authErrorMessage } from '../lib/auth-errors';
+import { t as tr } from '@core/i18n';
 
 const schema = z
   .object({
-    newPassword: z.string().min(8, 'Password kam se kam 8 huroof ka rakhein'),
-    confirmPassword: z.string().min(1, 'Password dobara likhein'),
+    newPassword: z.string().min(8, tr('Password kam se kam 8 huroof ka rakhein')),
+    confirmPassword: z.string().min(1, tr('Password dobara likhein')),
   })
   .refine((d) => d.newPassword === d.confirmPassword, {
-    message: 'Dono password ek jaise nahi hain',
+    message: tr('Dono password ek jaise nahi hain'),
     path: ['confirmPassword'],
   });
 
@@ -55,7 +56,7 @@ export default function ResetPasswordPage() {
     onError: (err: any) => {
       const raw = String(err?.response?.data?.message ?? '');
       setLinkExpired(/token/i.test(raw));
-      setFormError(authErrorMessage(err, 'Password nahi badla ja saka. Dobara koshish karein.'));
+      setFormError(authErrorMessage(err, tr('Password nahi badla ja saka. Dobara koshish karein.')));
     },
   });
 
@@ -64,11 +65,11 @@ export default function ResetPasswordPage() {
       <AuthLayout side="signin">
         <AuthHeading
           icon={<LinkIcon className="h-5 w-5" />}
-          title="Link adhoora hai"
-          subtitle="Email wala pura link kholein, ya naya link mangwa lein."
+          title={tr('Link adhoora hai')}
+          subtitle={tr('Email wala pura link kholein, ya naya link mangwa lein.')}
         />
-        <Button size="xl" fullWidth onClick={() => navigate('/forgot-password')}>Naya link mangwaein</Button>
-        <Link to="/login" className="mt-4 block text-center text-sm font-semibold text-slate-600 hover:text-slate-900">Login par wapas</Link>
+        <Button size="xl" fullWidth onClick={() => navigate('/forgot-password')}>{tr('Naya link mangwaein')}</Button>
+        <Link to="/login" className="mt-4 block text-center text-sm font-semibold text-slate-600 hover:text-slate-900">{tr('Login par wapas')}</Link>
       </AuthLayout>
     );
   }
@@ -79,50 +80,50 @@ export default function ResetPasswordPage() {
         <div>
           <AuthHeading
             icon={<CheckCircle2 className="h-5 w-5" />}
-            title="Naya password lag gaya"
-            subtitle={`Ab naye password se login karein. ${countdown} second me login page khul jayega.`}
+            title={tr('Naya password lag gaya')}
+            subtitle={tr('Ab naye password se login karein. {{countdown}} second me login page khul jayega.', { countdown })}
           />
-          <Button size="xl" fullWidth onClick={() => navigate('/login', { replace: true })} rightIcon={<ArrowRight className="h-4 w-4" />}>
-            Abhi login karein
+          <Button size="xl" fullWidth onClick={() => navigate('/login', { replace: true })} rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>
+            {tr('Abhi login karein')}
           </Button>
         </div>
       ) : (
         <>
           <AuthHeading
             icon={<KeyRound className="h-5 w-5" />}
-            title="Naya password banayein"
-            subtitle="Aisa password rakhein jo yaad rahe lekin doosre andaza na laga saken."
+            title={tr('Naya password banayein')}
+            subtitle={tr('Aisa password rakhein jo yaad rahe lekin doosre andaza na laga saken.')}
           />
           <form onSubmit={form.handleSubmit((d) => { setFormError(null); mutation.mutate(d); })} className="space-y-4" noValidate>
             {formError && (
               <Alert
                 tone="danger"
-                action={linkExpired ? <Link to="/forgot-password" className="text-xs font-semibold underline">Naya link</Link> : undefined}
+                action={linkExpired ? <Link to="/forgot-password" className="text-xs font-semibold underline">{tr('Naya link')}</Link> : undefined}
               >
                 {formError}
               </Alert>
             )}
             <PasswordField
-              label="Naya password"
+              label={tr('Naya password')}
               autoComplete="new-password"
-              placeholder="Kam se kam 8 huroof"
+              placeholder={tr('Kam se kam 8 huroof')}
               autoFocus
               strengthOf={password}
               {...form.register('newPassword')}
               error={form.formState.errors.newPassword?.message}
             />
             <PasswordField
-              label="Password dobara likhein"
+              label={tr('Password dobara likhein')}
               autoComplete="new-password"
-              placeholder="Wahi password"
+              placeholder={tr('Wahi password')}
               {...form.register('confirmPassword')}
               error={form.formState.errors.confirmPassword?.message}
             />
-            <Button type="submit" size="xl" fullWidth loading={mutation.isPending} rightIcon={<ArrowRight className="h-4 w-4" />}>
-              Password badlein
+            <Button type="submit" size="xl" fullWidth loading={mutation.isPending} rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>
+              {tr('Password badlein')}
             </Button>
           </form>
-          <Link to="/login" className="mt-6 block text-center text-sm font-semibold text-slate-600 hover:text-slate-900">Login par wapas</Link>
+          <Link to="/login" className="mt-6 block text-center text-sm font-semibold text-slate-600 hover:text-slate-900">{tr('Login par wapas')}</Link>
         </>
       )}
     </AuthLayout>

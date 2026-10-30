@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Sparkles } from 'lucide-react';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t } from '@core/i18n';
 
 /**
  * OnboardingGate — BLOCKS render until onboarding state is known.
@@ -53,7 +54,7 @@ export default function OnboardingGate() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-violet-50">
         <div className="text-center">
           <Sparkles className="h-12 w-12 text-violet-600 animate-pulse mx-auto" />
-          <p className="mt-3 text-sm font-bold text-slate-600">Setting up your shop...</p>
+          <p className="mt-3 text-sm font-bold text-slate-600">{t('Setting up your shop...')}</p>
         </div>
       </div>
     );

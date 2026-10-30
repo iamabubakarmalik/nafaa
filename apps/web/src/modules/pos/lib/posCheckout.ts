@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { customerLedgerApi } from '@modules/customers/khata/api/customer-ledger.api';
 import type { SalePaymentPart } from '@modules/sales/sales/api/sales.api';
 import type { PosCheckoutResult } from '../components/PosCheckoutModal';
+import { t } from '@core/i18n';
 
 /**
  * Payment fields of the sale. An advance kept in khata is not change: the
@@ -28,11 +29,11 @@ export async function keepAdvance(d: PosCheckoutResult, total: number, customerI
       amount: Number((d.paidAmount - total).toFixed(2)),
       paymentMethod: d.paymentMethod,
       reference: saleNumber,
-      note: `Bill ${saleNumber ?? ''} par zyada diya — advance`,
+      note: t('Bill {{value}} par zyada diya — advance', { value: saleNumber ?? '' }),
     });
     return true;
   } catch {
-    toast.error('Advance khate mein jama nahi hua — customer ko wapas dein ya Khata se jama karein');
+    toast.error(t('Advance khate mein jama nahi hua — customer ko wapas dein ya Khata se jama karein'));
     return false;
   }
 }

@@ -9,6 +9,7 @@ import { cn } from '@core/lib/cn';
 import { useVisibleNav } from '../navigation/useVisibleNav';
 import { Kbd, controlClass } from '@/design-system/components';
 import { hasHover, Panel, useDismiss } from '../ui';
+import { t } from '@core/i18n';
 
 interface Props {
   role: any;
@@ -73,43 +74,43 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
 
   const sections = useMemo<Section[]>(() => {
     const start: Action[] = [
-      { key: 'sale', to: '/pos', label: 'New sale', sub: 'Open the POS counter', icon: ShoppingCart, tone: 'brand', permission: PERMISSIONS.POS_USE, keywords: 'bill checkout' },
-      { key: 'booking', to: '/bookings/new', label: 'New booking', sub: 'Advance or reserve', icon: BookmarkPlus, tone: 'blue', permission: PERMISSIONS.SALES_VIEW },
+      { key: 'sale', to: '/pos', label: t('New sale'), sub: t('Open the POS counter'), icon: ShoppingCart, tone: 'brand', permission: PERMISSIONS.POS_USE, keywords: 'bill checkout' },
+      { key: 'booking', to: '/bookings/new', label: t('New booking'), sub: t('Advance or reserve'), icon: BookmarkPlus, tone: 'blue', permission: PERMISSIONS.SALES_VIEW },
     ];
     const create: Action[] = [
-      { key: 'product', to: '/products/new', label: 'Add product', icon: Package, tone: 'violet', permission: PERMISSIONS.PRODUCTS_CREATE, keywords: 'item' },
-      { key: 'customer', to: '/customers/new', label: 'Add customer', icon: Users, tone: 'pink', permission: PERMISSIONS.CUSTOMERS_EDIT },
-      { key: 'supplier', to: '/suppliers/new', label: 'Add supplier', icon: Truck, tone: 'orange', permission: PERMISSIONS.SUPPLIERS_VIEW, keywords: 'vendor' },
-      { key: 'expense', to: '/expenses', label: 'Record expense', icon: Wallet, tone: 'amber', permission: PERMISSIONS.EXPENSES_VIEW, keywords: 'kharcha' },
-      { key: 'income', to: '/income?new=1', label: 'Doosri aamdani likhein', icon: Wallet, tone: 'amber', permission: PERMISSIONS.INCOME_MANAGE, keywords: 'income incentive scheme claim commission kiraya aamdani' },
-      { key: 'purchase', to: '/purchases/new', label: 'New purchase', icon: PackagePlus, tone: 'rose', permission: PERMISSIONS.PURCHASES_CREATE, keywords: 'buy stock' },
-      { key: 'transfer', to: '/transfers', label: 'Stock transfer', icon: ArrowRightLeft, tone: 'cyan', permission: PERMISSIONS.STOCK_TRANSFERS_MANAGE },
+      { key: 'product', to: '/products/new', label: t('Add product'), icon: Package, tone: 'violet', permission: PERMISSIONS.PRODUCTS_CREATE, keywords: 'item' },
+      { key: 'customer', to: '/customers/new', label: t('Add customer'), icon: Users, tone: 'pink', permission: PERMISSIONS.CUSTOMERS_EDIT },
+      { key: 'supplier', to: '/suppliers/new', label: t('Add supplier'), icon: Truck, tone: 'orange', permission: PERMISSIONS.SUPPLIERS_VIEW, keywords: 'vendor' },
+      { key: 'expense', to: '/expenses', label: t('Record expense'), icon: Wallet, tone: 'amber', permission: PERMISSIONS.EXPENSES_VIEW, keywords: 'kharcha' },
+      { key: 'income', to: '/income?new=1', label: t('Doosri aamdani likhein'), icon: Wallet, tone: 'amber', permission: PERMISSIONS.INCOME_MANAGE, keywords: 'income incentive scheme claim commission kiraya aamdani' },
+      { key: 'purchase', to: '/purchases/new', label: t('New purchase'), icon: PackagePlus, tone: 'rose', permission: PERMISSIONS.PURCHASES_CREATE, keywords: 'buy stock' },
+      { key: 'transfer', to: '/transfers', label: t('Stock transfer'), icon: ArrowRightLeft, tone: 'cyan', permission: PERMISSIONS.STOCK_TRANSFERS_MANAGE },
     ];
     const industry: Action[] = [];
     if (isCarpet) {
       industry.push(
-        { key: 'rolls', to: '/carpet-rolls', label: 'Carpet rolls', sub: 'Manage rolls', icon: Layers, tone: 'brand' },
-        { key: 'cuts', to: '/carpet-cut-pieces', label: 'Cut pieces', sub: 'Leftover pieces', icon: Tag, tone: 'violet' },
+        { key: 'rolls', to: '/carpet-rolls', label: t('Carpet rolls'), sub: t('Manage rolls'), icon: Layers, tone: 'brand' },
+        { key: 'cuts', to: '/carpet-cut-pieces', label: t('Cut pieces'), sub: t('Leftover pieces'), icon: Tag, tone: 'violet' },
       );
     }
-    if (isMobileShop) industry.push({ key: 'imei', to: '/imei-inventory', label: 'IMEI inventory', sub: 'Add IMEIs', icon: Smartphone, tone: 'blue' });
+    if (isMobileShop) industry.push({ key: 'imei', to: '/imei-inventory', label: t('IMEI inventory'), sub: t('Add IMEIs'), icon: Smartphone, tone: 'blue' });
     const daily: Action[] = [
-      { key: 'attendance', to: '/staff/attendance', label: 'Mark attendance', icon: CheckCircle2, tone: 'cyan', permission: PERMISSIONS.STAFF_VIEW },
-      { key: 'register', to: '/cash-register', label: 'Cash register', icon: Wallet, tone: 'brand', permission: PERMISSIONS.CASH_REGISTER_VIEW, keywords: 'till close day' },
+      { key: 'attendance', to: '/staff/attendance', label: t('Mark attendance'), icon: CheckCircle2, tone: 'cyan', permission: PERMISSIONS.STAFF_VIEW },
+      { key: 'register', to: '/cash-register', label: t('Cash register'), icon: Wallet, tone: 'brand', permission: PERMISSIONS.CASH_REGISTER_VIEW, keywords: 'till close day' },
     ];
     const jump: Action[] = [
-      { key: 'online', to: '/online-orders', label: 'Online orders', icon: ShoppingBag, tone: 'slate', permission: PERMISSIONS.SALES_VIEW },
-      { key: 'low', to: '/low-stock', label: 'Low stock', icon: AlertTriangle, tone: 'slate', permission: PERMISSIONS.LOW_STOCK_VIEW },
-      { key: 'khata', to: '/khata', label: 'Khata (credit)', icon: BookOpen, tone: 'slate', permission: PERMISSIONS.KHATA_VIEW, keywords: 'udhaar' },
-      { key: 'reports', to: '/reports', label: 'Reports', icon: BarChart3, tone: 'slate', permission: PERMISSIONS.REPORTS_VIEW },
+      { key: 'online', to: '/online-orders', label: t('Online orders'), icon: ShoppingBag, tone: 'slate', permission: PERMISSIONS.SALES_VIEW },
+      { key: 'low', to: '/low-stock', label: t('Low stock'), icon: AlertTriangle, tone: 'slate', permission: PERMISSIONS.LOW_STOCK_VIEW },
+      { key: 'khata', to: '/khata', label: t('Khata (credit)'), icon: BookOpen, tone: 'slate', permission: PERMISSIONS.KHATA_VIEW, keywords: 'udhaar' },
+      { key: 'reports', to: '/reports', label: t('Reports'), icon: BarChart3, tone: 'slate', permission: PERMISSIONS.REPORTS_VIEW },
     ];
 
     const base: Section[] = [
-      { title: 'Start', items: start.filter(allowed), tiles: true },
-      { title: isCarpet ? 'Carpet' : 'Your shop', items: industry.filter(allowed) },
-      { title: 'Create', items: create.filter(allowed) },
-      { title: 'Daily', items: daily.filter(allowed) },
-      { title: 'Go to', items: jump.filter(allowed) },
+      { title: t('Start'), items: start.filter(allowed), tiles: true },
+      { title: isCarpet ? t('Carpet') : t('Your shop'), items: industry.filter(allowed) },
+      { title: t('Create'), items: create.filter(allowed) },
+      { title: t('Daily'), items: daily.filter(allowed) },
+      { title: t('Go to'), items: jump.filter(allowed) },
     ].filter((s) => s.items.length);
 
     const query = q.trim().toLowerCase();
@@ -126,12 +127,12 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
     const settings: Action[] = settingsItems
       .filter((i) => hit(`${i.label} ${i.desc} ${i.keywords ?? ''}`))
       .slice(0, 6)
-      .map((i) => ({ key: `set-${i.to}`, to: i.to, label: i.label, sub: `Settings · ${i.desc}`, icon: i.icon ?? Settings, tone: 'slate' as Tone }));
+      .map((i) => ({ key: `set-${i.to}`, to: i.to, label: i.label, sub: t('Settings · {{desc}}', { desc: i.desc }), icon: i.icon ?? Settings, tone: 'slate' as Tone }));
 
     return [
-      { title: 'Actions', items: actions },
-      { title: 'Pages', items: pages },
-      { title: 'Settings', items: settings },
+      { title: t('Actions'), items: actions },
+      { title: t('Pages'), items: pages },
+      { title: t('Settings'), items: settings },
     ].filter((s) => s.items.length);
   }, [q, isCarpet, isMobileShop, allowed, groups, settingsItems]);
 
@@ -163,29 +164,29 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
         onClick={() => (open ? close() : setOpen(true))}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label="Create and quick actions"
+        aria-label={t('Create and quick actions')}
         className={cn(
           'inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-brand-fg shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 lg:px-3 dark:focus-visible:ring-offset-ink-900',
           open ? 'bg-brand-800' : 'bg-brand-600 hover:bg-brand-700',
         )}
       >
         <Plus className="h-4 w-4" />
-        <span className="hidden lg:inline">Create</span>
-        <Kbd className="ml-0.5 hidden border-white/25 bg-white/15 text-white/90 xl:inline-flex dark:border-ink-white/25 dark:bg-ink-white/15 dark:text-ink-white/90">⌥N</Kbd>
+        <span className="hidden lg:inline">{t('Create')}</span>
+        <Kbd className="ms-0.5 hidden border-white/25 bg-white/15 text-white/90 xl:inline-flex dark:border-ink-white/25 dark:bg-ink-white/15 dark:text-ink-white/90">⌥N</Kbd>
       </button>
 
-      <Panel open={open} onClose={close} widthClass="sm:w-[25rem]" label="Quick actions">
+      <Panel open={open} onClose={close} widthClass="sm:w-[25rem]" label={t('Quick actions')}>
         <div className="border-b border-slate-100 p-3">
           <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               ref={inputRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               onKeyDown={onKeyDown}
-              placeholder="Search actions, pages, settings…"
-              aria-label="Search actions"
-              className={cn(controlClass(), 'h-11 rounded-xl pl-9 pr-3 text-[0.875rem]')}
+              placeholder={t('Search actions, pages, settings…')}
+              aria-label={t('Search actions')}
+              className={cn(controlClass(), 'h-11 rounded-xl ps-9 pe-3 text-[0.875rem]')}
             />
           </div>
         </div>
@@ -202,7 +203,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
                     const Icon = a.icon;
                     return (
                       <button key={a.key} data-idx={i} onClick={() => go(a)} onMouseEnter={() => setIdx(i)}
-                        className={cn('flex flex-col items-start gap-2 rounded-xl border p-3 text-left transition',
+                        className={cn('flex flex-col items-start gap-2 rounded-xl border p-3 text-start transition',
                           idx === i ? 'border-brand-300 bg-brand-50'
                             : 'border-slate-200 hover:border-slate-300')}>
                         <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', TONE[a.tone])}><Icon className="h-[1.125rem] w-[1.125rem]" /></span>
@@ -221,7 +222,7 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
                   const Icon = a.icon;
                   return (
                     <button key={a.key} data-idx={i} onClick={() => go(a)} onMouseEnter={() => setIdx(i)}
-                      className={cn('flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition',
+                      className={cn('flex w-full items-center gap-3 rounded-xl px-2 py-2 text-start transition',
                         idx === i ? 'bg-slate-100' : 'hover:bg-slate-50')}>
                       <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', TONE[a.tone])}><Icon className="h-4 w-4" /></span>
                       <span className="min-w-0 flex-1">
@@ -229,8 +230,8 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
                         {a.sub && <span className="block truncate text-[0.75rem] text-slate-500">{a.sub}</span>}
                       </span>
                       {idx === i
-                        ? <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                        : <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-300" />}
+                        ? <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-slate-400 rtl-flip" />
+                        : <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-300 rtl-flip" />}
                     </button>
                   );
                 })
@@ -240,17 +241,17 @@ export function QuickActionsDropdown({ role, permissions, businessType }: Props)
           {flat.length === 0 && (
             <div className="px-4 py-10 text-center">
               <Search className="mx-auto h-7 w-7 text-slate-300" />
-              <div className="mt-2 text-[0.875rem] font-semibold">Nothing found for “{q}”</div>
-              <div className="text-[0.75rem] text-slate-500">Try a page name like “khata” or “products”.</div>
+              <div className="mt-2 text-[0.875rem] font-semibold">{t('Nothing found for “{{q}}”', { q })}</div>
+              <div className="text-[0.75rem] text-slate-500">{t('Try a page name like “khata” or “products”.')}</div>
             </div>
           )}
         </div>
 
         <div className="hidden items-center gap-3 border-t border-slate-100 px-3 py-2 text-[0.6875rem] text-slate-500 sm:flex">
-          <span className="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> move</span>
-          <span className="flex items-center gap-1"><Kbd>↵</Kbd> open</span>
-          <span className="flex items-center gap-1"><Kbd>esc</Kbd> close</span>
-          <span className="ml-auto flex items-center gap-1"><Kbd>⌥N</Kbd> anywhere</span>
+          <span className="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> {' '}{t('move')}</span>
+          <span className="flex items-center gap-1"><Kbd>↵</Kbd> {' '}{t('open')}</span>
+          <span className="flex items-center gap-1"><Kbd>esc</Kbd> {' '}{t('close')}</span>
+          <span className="ms-auto flex items-center gap-1"><Kbd>⌥N</Kbd> {' '}{t('anywhere')}</span>
         </div>
       </Panel>
     </div>

@@ -20,6 +20,7 @@ import { settingsApi, type TenantSettings } from '../api/settings.api';
 import { Field, SectionCard } from '../components/SettingsBlocks';
 import { HeaderActions } from '../components/SettingsFrame';
 import { SaveStatusBar } from './_SaveStatus';
+import { t } from '@core/i18n';
 
 export function WhatsappSection({ settings }: { settings: TenantSettings }) {
   const qc = useQueryClient();
@@ -41,10 +42,10 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
   const saveMut = useMutation({
     mutationFn: () => settingsApi.update({ whatsappTemplates: drafts } as any),
     onSuccess: () => {
-      toast.success('Messages save ho gaye');
+      toast.success(t('Messages save ho gaye'));
       qc.invalidateQueries({ queryKey: ['settings'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save nahi hua'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Save nahi hua')),
   });
 
   /** Sample values so the owner sees how a real message reads. */
@@ -66,10 +67,10 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
   const insertField = (f: string) => setDrafts((d) => ({ ...d, [active]: `${d[active]}{{${f}}}` }));
   const resetOne = () => {
     setDrafts((d) => ({ ...d, [active]: DEFAULT_TEMPLATES[active] }));
-    toast.success('Tayyar message wapas aa gaya');
+    toast.success(t('Tayyar message wapas aa gaya'));
   };
   const copy = async () => {
-    try { await navigator.clipboard.writeText(preview); toast.success('Copy ho gaya'); } catch { toast.error('Copy nahi hua'); }
+    try { await navigator.clipboard.writeText(preview); toast.success(t('Copy ho gaya')); } catch { toast.error(t('Copy nahi hua')); }
   };
 
   return (
@@ -77,20 +78,20 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
       <SaveStatusBar saving={saveMut.isPending} dirty={dirty} />
       {dirty && (
         <HeaderActions>
-          <Button size="sm" variant="secondary" onClick={() => setDrafts(resolveTemplates(saved))}>Cancel</Button>
-          <Button size="sm" loading={saveMut.isPending} onClick={() => saveMut.mutate()} leftIcon={<Save className="h-4 w-4" />}>Save</Button>
+          <Button size="sm" variant="secondary" onClick={() => setDrafts(resolveTemplates(saved))}>{t('Cancel')}</Button>
+          <Button size="sm" loading={saveMut.isPending} onClick={() => saveMut.mutate()} leftIcon={<Save className="h-4 w-4" />}>{t('Save')}</Button>
         </HeaderActions>
       )}
 
-      <Alert tone="success" title="Koi API ya fees nahi" icon={<Smartphone className="h-4 w-4" />}>
-        Bhejte waqt aap ke phone ya computer par <strong>WhatsApp khud khulta hai</strong> aur message pehle se likha hota hai — bas <strong>Send</strong> dabana hai.
+      <Alert tone="success" title={t('Koi API ya fees nahi')} icon={<Smartphone className="h-4 w-4" />}>
+        {t('Bhejte waqt aap ke phone ya computer par')}{' '} <strong>{t('WhatsApp khud khulta hai')}</strong> {' '}{t('aur message pehle se likha hota hai — bas')}{' '} <strong>{t('Send')}</strong> {' '}{t('dabana hai.')}
       </Alert>
 
-      <SectionCard title="WhatsApp messages" desc="Kaun sa message badalna hai — chunein" icon={MessageCircle} color="emerald">
+      <SectionCard title={t('WhatsApp messages')} desc={t('Kaun sa message badalna hai — chunein')} icon={MessageCircle} color="emerald">
         <div role="tablist" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {TEMPLATE_META.map((m) => (
             <button key={m.key} type="button" role="tab" aria-selected={active === m.key} onClick={() => setActive(m.key)}
-              className={cn('rounded-lg border p-3 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
+              className={cn('rounded-lg border p-3 text-start shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
                 active === m.key ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50')}>
               <span className="text-xl leading-none">{m.emoji}</span>
               <span className="mt-1 block text-sm font-semibold text-slate-900">{m.label}</span>
@@ -101,12 +102,12 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
       </SectionCard>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <SectionCard title={`${meta.label} ka message`} desc="Apne alfaaz me likhein; {{khane}} me har customer ki asal maloomat aati hai" icon={Info} color="blue"
-          action={<Button size="sm" variant="ghost" onClick={resetOne} leftIcon={<RotateCcw className="h-3.5 w-3.5" />}>Tayyar message</Button>}>
-          <Textarea label="Message" hint="Lambi line theek hai — WhatsApp khud tod deta hai." className="leading-relaxed"
+        <SectionCard title={t('{{label}} ka message', { label: meta.label })} desc={t('Apne alfaaz me likhein; {{khane}} me har customer ki asal maloomat aati hai')} icon={Info} color="blue"
+          action={<Button size="sm" variant="ghost" onClick={resetOne} leftIcon={<RotateCcw className="h-3.5 w-3.5" />}>{t('Tayyar message')}</Button>}>
+          <Textarea label={t('Message')} hint={t('Lambi line theek hai — WhatsApp khud tod deta hai.')} className="leading-relaxed"
             value={drafts[active]} onChange={(e) => setDrafts((d) => ({ ...d, [active]: e.target.value }))} rows={12} />
           <div className="mt-3">
-            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Khane — dabayein to message me jur jata hai</p>
+            <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Khane — dabayein to message me jur jata hai')}</p>
             <div className="flex flex-wrap gap-1.5">
               {meta.fields.map((f) => (
                 <button key={f} type="button" onClick={() => insertField(f)} title={FIELD_HELP[f]}
@@ -119,30 +120,30 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
           </div>
         </SectionCard>
 
-        <SectionCard title="Customer ko aisa jayega" desc="Misaal ki maloomat ke saath — asal me har customer ka naam aur Amount aata hai" icon={Eye} color="emerald">
+        <SectionCard title={t('Customer ko aisa jayega')} desc={t('Misaal ki maloomat ke saath — asal me har customer ka naam aur Amount aata hai')} icon={Eye} color="emerald">
           <div className="min-h-[16rem] rounded-lg bg-slate-100 p-4">
-            <div className="ml-auto max-w-[88%] rounded-2xl rounded-tr-sm bg-success-100 p-3 shadow-sm">
+            <div className="ms-auto max-w-[88%] rounded-2xl rounded-se-sm bg-success-100 p-3 shadow-sm">
               <pre className="whitespace-pre-wrap break-words font-sans text-[0.8125rem] leading-relaxed text-slate-900">
-                {preview || <span className="text-slate-400">Message khaali hai…</span>}
+                {preview || <span className="text-slate-400">{t('Message khaali hai…')}</span>}
               </pre>
-              <div className="mt-1 text-right text-[0.6875rem] text-slate-500">
+              <div className="mt-1 text-end text-[0.6875rem] text-slate-500">
                 {new Intl.DateTimeFormat('en-PK', { hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date())} ✓✓
               </div>
             </div>
           </div>
           <div className="mt-4">
-            <Field label="Khud par test karein" hint="Apna number likhein — WhatsApp yahi message le kar khulega.">
+            <Field label={t('Khud par test karein')} hint={t('Apna number likhein — WhatsApp yahi message le kar khulega.')}>
               <div className="flex gap-2">
-                <Input value={testPhone} onChange={(e) => setTestPhone(e.target.value)} placeholder="0300 1234567" aria-label="Test ke liye number" type="tel" wrapperClassName="min-w-0 flex-1" />
+                <Input value={testPhone} onChange={(e) => setTestPhone(e.target.value)} placeholder="0300 1234567" aria-label={t('Test ke liye number')} type="tel" wrapperClassName="min-w-0 flex-1" />
                 {testLink ? (
                   <a href={testLink} target="_blank" rel="noreferrer"
                     className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-success-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-success-700">
-                    <Send className="h-4 w-4" /> Bhejein
+                    <Send className="h-4 w-4" /> {' '}{t('Bhejein')}
                   </a>
                 ) : (
-                  <Button variant="secondary" disabled leftIcon={<Send className="h-4 w-4" />}>Bhejein</Button>
+                  <Button variant="secondary" disabled leftIcon={<Send className="h-4 w-4" />}>{t('Bhejein')}</Button>
                 )}
-                <IconButton label="Message copy karein" variant="secondary" onClick={copy} className="h-10 w-10"><Copy className="h-4 w-4" /></IconButton>
+                <IconButton label={t('Message copy karein')} variant="secondary" onClick={copy} className="h-10 w-10"><Copy className="h-4 w-4" /></IconButton>
               </div>
             </Field>
           </div>
@@ -150,8 +151,8 @@ export function WhatsappSection({ settings }: { settings: TenantSettings }) {
       </div>
 
       {dirty && (
-        <Alert tone="warning" action={<Button size="sm" loading={saveMut.isPending} onClick={() => saveMut.mutate()} leftIcon={<Save className="h-4 w-4" />}>Save karein</Button>}>
-          Tabdeeli abhi save nahi hui.
+        <Alert tone="warning" action={<Button size="sm" loading={saveMut.isPending} onClick={() => saveMut.mutate()} leftIcon={<Save className="h-4 w-4" />}>{t('Save karein')}</Button>}>
+          {t('Tabdeeli abhi save nahi hui.')}
         </Alert>
       )}
     </div>

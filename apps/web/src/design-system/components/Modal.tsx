@@ -16,6 +16,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { FIELD, focusables, isMod, triggerDialogSubmit } from '../keyboard';
+import { t } from '@core/i18n';
 
 type Size = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
@@ -137,8 +138,8 @@ export function Modal({ open, onClose, title, description, children, size = 'md'
               {description && <p id={`${id}-desc`} className="mt-1 text-[0.8125rem] text-slate-500">{description}</p>}
             </div>
             {!hideClose && (
-              <button type="button" onClick={onClose} aria-label="Close"
-                className="-mr-1.5 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
+              <button type="button" onClick={onClose} aria-label={t('Close')}
+                className="-me-1.5 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900">
                 <X className="h-4 w-4" />
               </button>
             )}

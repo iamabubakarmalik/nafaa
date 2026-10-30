@@ -16,6 +16,7 @@ import { ProfitSplitCard } from '@modules/reports/ProfitSplit';
 import { useMoneyMap, useOverview } from '../data/queries';
 import { Change, MetricTile, WidgetCard } from '../engine/parts';
 import { WidgetToolbar } from './WidgetToolbar';
+import { t } from '@core/i18n';
 
 export function ProfitLoss() {
   const { data: o } = useOverview();
@@ -38,61 +39,61 @@ export function ProfitLoss() {
 
   return (
     <WidgetCard
-      title="Profit aur nuksan"
-      description="Is mahine — bechne se haath mein bachne tak"
+      title={t('Profit aur nuksan')}
+      description={t('Is mahine — bechne se haath mein bachne tak')}
       to="/profit-loss"
-      linkLabel="Profit-loss"
+      linkLabel={t('Profit-loss')}
       icon={Target}
-      actions={<Change value={s?.salesGrowthVsLastMonth ?? 0} suffix="pichhle mahine se" />}
+      actions={<Change value={s?.salesGrowthVsLastMonth ?? 0} suffix={t('pichhle mahine se')} />}
     >
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Profit aur nuksan', subtitle: 'Is mahine',
+          title: t('Profit aur nuksan'), subtitle: t('Is mahine'),
           sections: [{ kind: 'rows', rows: [
-            { label: `Sale (${s?.ordersMonth ?? 0} bill)`, value: formatPKR(revenue) },
-            { label: '- Maal ki cost', value: formatPKR(cogs) },
-            { label: '= Bill ka profit', value: formatPKR(billProfit), strong: true },
+            { label: t('Sale ({{value}} bill)', { value: s?.ordersMonth ?? 0 }), value: formatPKR(revenue) },
+            { label: t('- Maal ki cost'), value: formatPKR(cogs) },
+            { label: t('= Bill ka profit'), value: formatPKR(billProfit), strong: true },
             ...(split ? [
-              { label: 'Haath mein aaya profit', value: formatPKR(split.realised), sub: true },
-              { label: 'Udhaar mein profit', value: formatPKR(split.pending), sub: true },
+              { label: t('Haath mein aaya profit'), value: formatPKR(split.realised), sub: true },
+              { label: t('Udhaar mein profit'), value: formatPKR(split.pending), sub: true },
             ] : []),
-            { label: '- Expenses', value: formatPKR(expenses) },
-            ...(stockLoss ? [{ label: '- Stock nuksan', value: formatPKR(stockLoss) }] : []),
-            ...(stockGain ? [{ label: '+ Stock faida', value: formatPKR(stockGain) }] : []),
-            ...(income ? [{ label: '+ Doosri aamdani', value: formatPKR(income) }] : []),
-            { label: '= Net profit', value: formatPKR(net), strong: true },
-          ] }, { kind: 'rows', title: 'Aaj', rows: [
-            { label: 'Sale', value: formatPKR(s?.salesToday ?? 0) },
-            { label: 'Expense', value: formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0) },
-            { label: 'Net profit', value: formatPKR(todayNet), strong: true },
+            { label: t('- Expenses'), value: formatPKR(expenses) },
+            ...(stockLoss ? [{ label: t('- Stock nuksan'), value: formatPKR(stockLoss) }] : []),
+            ...(stockGain ? [{ label: t('+ Stock faida'), value: formatPKR(stockGain) }] : []),
+            ...(income ? [{ label: t('+ Doosri aamdani'), value: formatPKR(income) }] : []),
+            { label: t('= Net profit'), value: formatPKR(net), strong: true },
+          ] }, { kind: 'rows', title: t('Aaj'), rows: [
+            { label: t('Sale'), value: formatPKR(s?.salesToday ?? 0) },
+            { label: t('Expense'), value: formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0) },
+            { label: t('Net profit'), value: formatPKR(todayNet), strong: true },
           ] }],
         })} />
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
-        <MetricTile icon={TrendingUp} tone="brand" label="Sale" value={formatPKR(revenue)} hint={`${s?.ordersMonth ?? 0} bill`} />
-        <MetricTile icon={TrendingDown} tone="danger" label="− Maal ki cost" value={formatPKR(cogs)} />
-        <MetricTile icon={Sparkles} tone="success" label="= Bill ka profit" value={formatPKR(billProfit)} hint={pct(billProfit)} />
+        <MetricTile icon={TrendingUp} tone="brand" label={t('Sale')} value={formatPKR(revenue)} hint={t('{{value}} bill', { value: s?.ordersMonth ?? 0 })} />
+        <MetricTile icon={TrendingDown} tone="danger" label={t('− Maal ki cost')} value={formatPKR(cogs)} />
+        <MetricTile icon={Sparkles} tone="success" label={t('= Bill ka profit')} value={formatPKR(billProfit)} hint={pct(billProfit)} />
         {paidBasis && split
-          ? <MetricTile icon={HandCoins} tone="success" label="Haath mein aaya" value={formatPKR(gross)} hint={`udhaar mein ${formatPKR(split.pending)}`} />
-          : <MetricTile icon={Wallet} tone="warning" label="− Expenses" value={formatPKR(expenses)} hint="Bijli, kiraya, tankhwah" />}
-        <MetricTile icon={Target} tone={net >= 0 ? 'success' : 'danger'} label="= Net profit" value={formatPKR(net)} hint={pct(net)} alert={net < 0} />
+          ? <MetricTile icon={HandCoins} tone="success" label={t('Haath mein aaya')} value={formatPKR(gross)} hint={t('udhaar mein {{pending}}', { pending: formatPKR(split.pending) })} />
+          : <MetricTile icon={Wallet} tone="warning" label={t('− Expenses')} value={formatPKR(expenses)} hint={t('Bijli, kiraya, tankhwah')} />}
+        <MetricTile icon={Target} tone={net >= 0 ? 'success' : 'danger'} label={t('= Net profit')} value={formatPKR(net)} hint={pct(net)} alert={net < 0} />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-500">
-        {paidBasis && split && <span>Expenses <b className="font-semibold tabular-nums text-slate-900">− {formatPKR(expenses)}</b></span>}
-        {stockLoss > 0 && <span>Stock nuksan <b className="font-semibold tabular-nums text-rose-700">− {formatPKR(stockLoss)}</b></span>}
-        {stockGain > 0 && <span>Stock faida <b className="font-semibold tabular-nums text-success-700">+ {formatPKR(stockGain)}</b></span>}
-        {income > 0 && <span>Doosri aamdani <b className="font-semibold tabular-nums text-success-700">+ {formatPKR(income)}</b></span>}
-        <span className="ml-auto text-[0.75rem]">Net = profit − expenses − stock nuksan + stock faida + doosri aamdani</span>
+        {paidBasis && split && <span>{t('Expenses')}{' '} <b className="font-semibold tabular-nums text-slate-900">− {formatPKR(expenses)}</b></span>}
+        {stockLoss > 0 && <span>{t('Stock nuksan')}{' '} <b className="font-semibold tabular-nums text-rose-700">− {formatPKR(stockLoss)}</b></span>}
+        {stockGain > 0 && <span>{t('Stock faida')}{' '} <b className="font-semibold tabular-nums text-success-700">+ {formatPKR(stockGain)}</b></span>}
+        {income > 0 && <span>{t('Doosri aamdani')}{' '} <b className="font-semibold tabular-nums text-success-700">+ {formatPKR(income)}</b></span>}
+        <span className="ms-auto text-[0.75rem]">{t('Net = profit − expenses − stock nuksan + stock faida + doosri aamdani')}</span>
       </div>
-      <ProfitSplitCard split={split} periodLabel="is mahine" compact className="mt-3" />
+      <ProfitSplitCard split={split} periodLabel={t('is mahine')} compact className="mt-3" />
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-slate-50 px-3 py-2 text-[0.8125rem]">
-        <span className="inline-flex items-center gap-1.5 font-semibold text-slate-600"><Receipt className="h-3.5 w-3.5" /> Aaj</span>
-        <span className="text-slate-500">Sale <b className="font-semibold tabular-nums text-slate-900">{formatPKR(s?.salesToday ?? 0)}</b></span>
-        <span className="text-slate-500">Expense <b className="font-semibold tabular-nums text-slate-900">{formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0)}</b></span>
+        <span className="inline-flex items-center gap-1.5 font-semibold text-slate-600"><Receipt className="h-3.5 w-3.5" /> {' '}{t('Aaj')}</span>
+        <span className="text-slate-500">{t('Sale')}{' '} <b className="font-semibold tabular-nums text-slate-900">{formatPKR(s?.salesToday ?? 0)}</b></span>
+        <span className="text-slate-500">{t('Expense')}{' '} <b className="font-semibold tabular-nums text-slate-900">{formatPKR(money?.expenses.today ?? s?.expensesToday ?? 0)}</b></span>
         {s?.profitSplitToday && s.profitSplitToday.pending > 0.5 && (
-          <span className="text-slate-500">Udhaar mein <b className="font-semibold tabular-nums text-amber-700">{formatPKR(s.profitSplitToday.pending)}</b></span>
+          <span className="text-slate-500">{t('Udhaar mein')}{' '} <b className="font-semibold tabular-nums text-amber-700">{formatPKR(s.profitSplitToday.pending)}</b></span>
         )}
         <span className="text-slate-500">
-          Net profit <b className={cn('font-semibold tabular-nums', todayNet >= 0 ? 'text-success-700' : 'text-rose-700')}>{formatPKR(todayNet)}</b>
+          {t('Net profit')}{' '} <b className={cn('font-semibold tabular-nums', todayNet >= 0 ? 'text-success-700' : 'text-rose-700')}>{formatPKR(todayNet)}</b>
         </span>
       </div>
     </WidgetCard>

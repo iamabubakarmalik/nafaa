@@ -4,6 +4,7 @@ import { Building2, Clock, FileText, MapPin } from 'lucide-react';
 import { Badge, Input } from '@/design-system/components';
 import type { OnboardingOptions } from '../api/onboarding.api';
 import { Chip, StepSection } from '../components/WizardControls';
+import { t } from '@core/i18n';
 
 export interface BranchForm {
   shopAddress: string;
@@ -20,14 +21,14 @@ export type BranchErrors = Partial<Record<keyof BranchForm, string>>;
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 const DAY_LABELS: Record<string, string> = {
-  mon: 'Pir', tue: 'Mangal', wed: 'Budh', thu: 'Jumerat', fri: 'Juma', sat: 'Hafta', sun: 'Itwar',
+  mon: t('Pir'), tue: t('Mangal'), wed: t('Budh'), thu: t('Jumerat'), fri: t('Juma'), sat: t('Hafta'), sun: t('Itwar'),
 };
 
 export function validateBranch(f: BranchForm): BranchErrors {
   const e: BranchErrors = {};
-  if (f.openTime && !TIME_RE.test(f.openTime)) e.openTime = 'Waqt sahi likhein (misaal 09:00)';
-  if (f.closeTime && !TIME_RE.test(f.closeTime)) e.closeTime = 'Waqt sahi likhein (misaal 22:00)';
-  if (f.workingDays.length === 0) e.workingDays = 'Kam se kam ek din chunein.';
+  if (f.openTime && !TIME_RE.test(f.openTime)) e.openTime = t('Waqt sahi likhein (misaal 09:00)');
+  if (f.closeTime && !TIME_RE.test(f.closeTime)) e.closeTime = t('Waqt sahi likhein (misaal 22:00)');
+  if (f.workingDays.length === 0) e.workingDays = t('Kam se kam ek din chunein.');
   return e;
 }
 
@@ -53,16 +54,16 @@ export function BranchStep({ value, onChange, errors, options, branchName }: Pro
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate text-sm font-semibold text-slate-900">{branchName}</span>
-            <Badge variant="brand">Main branch</Badge>
+            <Badge variant="brand">{t('Main branch')}</Badge>
           </div>
-          <p className="text-xs text-slate-500">Account bante hi ye branch ban gayi. Aur branches baad me Branches page se.</p>
+          <p className="text-xs text-slate-500">{t('Account bante hi ye branch ban gayi. Aur branches baad me Branches page se.')}</p>
         </div>
       </div>
 
-      <StepSection title="Dukaan kahan hai?" hint="Bill aur raseed par yahi pata chhapta hai.">
+      <StepSection title={t('Dukaan kahan hai?')} hint={t('Bill aur raseed par yahi pata chhapta hai.')}>
         <Input
-          label="Pata"
-          placeholder="Shop 12, Main Bazaar"
+          label={t('Pata')}
+          placeholder={t('Shop 12, Main Bazaar')}
           autoComplete="street-address"
           leftIcon={<MapPin className="h-4 w-4" />}
           value={value.shopAddress}
@@ -70,24 +71,24 @@ export function BranchStep({ value, onChange, errors, options, branchName }: Pro
         />
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
-            label="Ilaqa"
-            placeholder="Misaal: Gulberg"
+            label={t('Ilaqa')}
+            placeholder={t('Misaal: Gulberg')}
             value={value.shopArea}
             onChange={(e) => onChange({ shopArea: e.target.value })}
           />
           <Input
-            label="Nishani (zaroori nahi)"
-            placeholder="Misaal: Masjid ke saath"
+            label={t('Nishani (zaroori nahi)')}
+            placeholder={t('Misaal: Masjid ke saath')}
             value={value.shopLandmark}
             onChange={(e) => onChange({ shopLandmark: e.target.value })}
           />
         </div>
       </StepSection>
 
-      <StepSection title="Dukaan kab khulti hai?" hint="Ye dukaan ki maloomat me save hota hai. Baad me Settings se badal sakte hain.">
+      <StepSection title={t('Dukaan kab khulti hai?')} hint={t('Ye dukaan ki maloomat me save hota hai. Baad me Settings se badal sakte hain.')}>
         <div className="grid grid-cols-2 gap-4">
           <Input
-            label="Khulne ka waqt"
+            label={t('Khulne ka waqt')}
             type="time"
             leftIcon={<Clock className="h-4 w-4" />}
             value={value.openTime}
@@ -95,7 +96,7 @@ export function BranchStep({ value, onChange, errors, options, branchName }: Pro
             error={errors.openTime}
           />
           <Input
-            label="Band hone ka waqt"
+            label={t('Band hone ka waqt')}
             type="time"
             leftIcon={<Clock className="h-4 w-4" />}
             value={value.closeTime}
@@ -103,7 +104,7 @@ export function BranchStep({ value, onChange, errors, options, branchName }: Pro
             error={errors.closeTime}
           />
         </div>
-        <div role="group" aria-label="Kaam ke din" className="flex flex-wrap gap-2">
+        <div role="group" aria-label={t('Kaam ke din')} className="flex flex-wrap gap-2">
           {days.map((d) => (
             <Chip key={d.value} selected={value.workingDays.includes(d.value)} onToggle={() => toggleDay(d.value)}>
               {DAY_LABELS[d.value] ?? d.short}
@@ -114,10 +115,10 @@ export function BranchStep({ value, onChange, errors, options, branchName }: Pro
       </StepSection>
 
       <Input
-        label={<>NTN / tax number <span className="font-normal text-slate-500">(zaroori nahi)</span></>}
+        label={<>{t('NTN / tax number')}{' '} <span className="font-normal text-slate-500">{t('(zaroori nahi)')}</span></>}
         placeholder="1234567-8"
         leftIcon={<FileText className="h-4 w-4" />}
-        hint="FBR ya provincial tax me registered hain to likhein. Bill par bhi aa sakta hai."
+        hint={t('FBR ya provincial tax me registered hain to likhein. Bill par bhi aa sakta hai.')}
         value={value.taxNumber}
         onChange={(e) => onChange({ taxNumber: e.target.value })}
       />

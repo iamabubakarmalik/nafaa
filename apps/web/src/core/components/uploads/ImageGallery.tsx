@@ -1,5 +1,6 @@
 import { Star, StarOff, Trash2, GripVertical } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 export interface GalleryImage {
   id: string;
@@ -28,7 +29,7 @@ export function ImageGallery({
   if (!images.length) {
     return (
       <div className="rounded-xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
-        No images yet — upload some above
+        {t('No images yet — upload some above')}
       </div>
     );
   }
@@ -71,8 +72,8 @@ export function ImageGallery({
           </div>
 
           {img.isPrimary && (
-            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-bold shadow">
-              ⭐ PRIMARY
+            <div className="absolute top-2 start-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-bold shadow">
+              {t('⭐ PRIMARY')}
             </div>
           )}
 
@@ -83,7 +84,7 @@ export function ImageGallery({
                   type="button"
                   onClick={() => onSetPrimary(img.id)}
                   className="h-7 w-7 rounded-lg bg-white text-amber-600 hover:bg-amber-50 flex items-center justify-center shadow"
-                  title="Set as primary"
+                  title={t('Set as primary')}
                 >
                   <StarOff className="h-3.5 w-3.5" />
                 </button>
@@ -114,7 +115,7 @@ export function ImageGallery({
                 type="button"
                 onClick={() => onRemove(img.id)}
                 className="h-7 w-7 rounded-lg bg-rose-600 hover:bg-rose-700 flex items-center justify-center shadow"
-                title="Delete"
+                title={t('Delete')}
               >
                 <Trash2 className="h-3.5 w-3.5 text-white" />
               </button>

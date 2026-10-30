@@ -8,9 +8,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowDownRight, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import { Card } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 /** Widget surface: Card with title, short description and an optional "see all" link. */
-export function WidgetCard({ title, icon: Icon, description, to, linkLabel = 'Sab dekhein', actions, flush, children, className }: {
+export function WidgetCard({ title, icon: Icon, description, to, linkLabel = t('Sab dekhein'), actions, flush, children, className }: {
   title: ReactNode;
   icon?: LucideIcon;
   description?: ReactNode;
@@ -23,7 +24,7 @@ export function WidgetCard({ title, icon: Icon, description, to, linkLabel = 'Sa
 }) {
   const link = to && (
     <Link to={to} className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
-      {linkLabel} <ArrowRight className="h-3.5 w-3.5" />
+      {linkLabel} <ArrowRight className="h-3.5 w-3.5 rtl-flip" />
     </Link>
   );
   return (
@@ -80,7 +81,7 @@ export function ListRow({ icon, leading, title, meta, value, valueHint, to }: {
         {meta && <span className="mt-0.5 block truncate text-[0.75rem] text-slate-500">{meta}</span>}
       </span>
       {(value !== undefined || valueHint) && (
-        <span className="shrink-0 text-right">
+        <span className="shrink-0 text-end">
           {value !== undefined && <span className="block text-[0.875rem] font-semibold tabular-nums text-slate-900">{value}</span>}
           {valueHint && <span className="mt-0.5 block text-[0.75rem]">{valueHint}</span>}
         </span>
@@ -117,7 +118,7 @@ export function Change({ value, suffix }: { value: number; suffix?: string }) {
   return (
     <span className={cn('inline-flex items-center gap-0.5 text-[0.75rem] font-semibold', up ? 'text-success-700' : 'text-rose-700')}>
       <Icon className="h-3.5 w-3.5" />
-      {up ? '+' : ''}{value.toFixed(1)}%{suffix && <span className="ml-1 font-normal text-slate-500">{suffix}</span>}
+      {up ? '+' : ''}{value.toFixed(1)}%{suffix && <span className="ms-1 font-normal text-slate-500">{suffix}</span>}
     </span>
   );
 }
@@ -160,7 +161,7 @@ export const fmtQty = (q: number | string | null | undefined) => {
 export const fmtDateTime = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(new Date(v));
 
-export const hourLabel = (h: number) => (h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`);
+export const hourLabel = (h: number) => (h === 0 ? t('12 AM') : h < 12 ? t('{{h}} AM', { h }) : h === 12 ? t('12 PM') : t('{{value}} PM', { value: h - 12 }));
 export const hourTick = (h: number) => (h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`);
 
 /** Short axis labels: 950, 12K, 1.5L, 2.1Cr. */

@@ -5,6 +5,7 @@ import {
 import { useImageUpload, type UploadingItem } from '@core/hooks/useImageUpload';
 import type { UploadPurpose, UploadRecord } from '@modules/organization/settings/api/uploads.api';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 interface Props {
   purpose?: string;
@@ -99,10 +100,10 @@ export function UploadDropzone({
 
         <div className="mt-2">
           <div className="text-base font-bold text-slate-900">
-            {dragActive ? 'Drop your images here' : 'Click to upload or drag-drop'}
+            {dragActive ? t('Drop your images here') : t('Click to upload or drag-drop')}
           </div>
           <div className="text-xs text-slate-500 mt-1">
-            {hint || `JPG, PNG, WebP, GIF — max ${maxSizeMB} MB each${multiple ? ` • up to ${maxFiles} files` : ''}`}
+            {hint || t('JPG, PNG, WebP, GIF — max {{maxSizeMB}} MB each{{value}}', { maxSizeMB, value: multiple ? t(' • up to {{maxFiles}} files', { maxFiles: maxFiles }) : '' })}
           </div>
         </div>
       </div>
@@ -133,7 +134,7 @@ function UploadCard({ item, onRemove }: { item: UploadingItem; onRemove: () => v
         <div className="absolute inset-0 bg-slate-900/40 flex flex-col items-center justify-center">
           <Loader2 className="h-7 w-7 text-white animate-spin" />
           <div className="mt-2 text-white text-xs font-bold">{item.progress}%</div>
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/30">
+          <div className="absolute bottom-0 start-0 end-0 h-1 bg-white/30">
             <div
               className="h-full bg-brand-500 transition-all"
               style={{ width: `${item.progress}%` }}
@@ -143,7 +144,7 @@ function UploadCard({ item, onRemove }: { item: UploadingItem; onRemove: () => v
       )}
 
       {item.status === 'done' && (
-        <div className="absolute top-2 right-2 h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+        <div className="absolute top-2 end-2 h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
           <CheckCircle2 className="h-4 w-4 text-white" />
         </div>
       )}
@@ -163,7 +164,7 @@ function UploadCard({ item, onRemove }: { item: UploadingItem; onRemove: () => v
           e.stopPropagation();
           onRemove();
         }}
-        className="absolute top-2 left-2 h-7 w-7 rounded-full bg-slate-900/70 hover:bg-slate-900 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-2 start-2 h-7 w-7 rounded-full bg-slate-900/70 hover:bg-slate-900 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
       >
         <X className="h-3.5 w-3.5 text-white" />
       </button>

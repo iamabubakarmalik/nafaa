@@ -15,6 +15,7 @@
 
 import { Building2, Package, ReceiptText, Store, Users, type LucideIcon } from 'lucide-react';
 import type { OnboardingProgress } from '../api/onboarding.api';
+import { t } from '@core/i18n';
 
 export type WizardStepId = 'business' | 'branch' | 'products' | 'receipt' | 'staff';
 export type WizardPosition = WizardStepId | 'finish';
@@ -30,11 +31,11 @@ export interface WizardStep {
 }
 
 export const WIZARD_STEPS: readonly WizardStep[] = [
-  { id: 'business', title: 'Aap ka business', description: 'Kaise bechte hain, kya kaam hai aur shahar — is se app aap ke hisaab se set hoti hai.', icon: Store, minutes: 1, skippable: false },
-  { id: 'branch', title: 'Pehli branch', description: 'Dukaan ka pata, khulne ka waqt aur chhutti ke din.', icon: Building2, minutes: 1, skippable: true },
-  { id: 'products', title: 'Pehle products', description: 'Misaal wale products, khud likhein ya file se import.', icon: Package, minutes: 2, skippable: true },
-  { id: 'receipt', title: 'Bill aur payment', description: 'Parchi ka size, payment ke tareeqe aur tax.', icon: ReceiptText, minutes: 1, skippable: true },
-  { id: 'staff', title: 'Staff bulayein', description: 'Cashier ya manager ke liye alag login.', icon: Users, minutes: 1, skippable: true },
+  { id: 'business', title: t('Aap ka business'), description: t('Kaise bechte hain, kya kaam hai aur shahar — is se app aap ke hisaab se set hoti hai.'), icon: Store, minutes: 1, skippable: false },
+  { id: 'branch', title: t('Pehli branch'), description: t('Dukaan ka pata, khulne ka waqt aur chhutti ke din.'), icon: Building2, minutes: 1, skippable: true },
+  { id: 'products', title: t('Pehle products'), description: t('Misaal wale products, khud likhein ya file se import.'), icon: Package, minutes: 2, skippable: true },
+  { id: 'receipt', title: t('Bill aur payment'), description: t('Parchi ka size, payment ke tareeqe aur tax.'), icon: ReceiptText, minutes: 1, skippable: true },
+  { id: 'staff', title: t('Staff bulayein'), description: t('Cashier ya manager ke liye alag login.'), icon: Users, minutes: 1, skippable: true },
 ];
 
 export function isStepDone(id: WizardStepId, p: OnboardingProgress): boolean {

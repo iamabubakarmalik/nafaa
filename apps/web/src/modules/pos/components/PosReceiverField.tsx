@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { UserCheck, X, Clock } from 'lucide-react';
 import { salesApi, type SaleReceiver } from '@modules/sales/sales/api/sales.api';
+import { t } from '@core/i18n';
 
 export interface PosReceiverValue {
   name: string;
@@ -75,12 +76,12 @@ export function PosReceiverField({
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-xs font-semibold text-slate-900 dark:text-ink-white leading-tight">
-            Maal lene kaun aaya hai?
+            {t('Maal lene kaun aaya hai?')}
           </div>
           <div className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 truncate">
             {customerName
-              ? `${customerName} khud aaye hain to khali chhor dein`
-              : 'Optional — khali bhi chhor sakte hain'}
+              ? t('{{customerName}} khud aaye hain to khali chhor dein', { customerName })
+              : t('Optional — khali bhi chhor sakte hain')}
           </div>
         </div>
       </div>
@@ -89,14 +90,14 @@ export function PosReceiverField({
         <input
           value={value.name}
           onChange={(e) => onChange({ ...value, name: e.target.value })}
-          placeholder="Naam — jaise Bilal (driver)"
+          placeholder={t('Naam — jaise Bilal (driver)')}
           className="h-11 flex-1 min-w-0 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-white dark:bg-ink-900 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
         />
         {value.name.trim() && (
           <button
             type="button"
             onClick={() => { onChange(emptyReceiver()); setShowPhone(false); }}
-            title="Saaf karein"
+            title={t('Saaf karein')}
             className="h-11 w-11 rounded-xl bg-white dark:bg-ink-900 border border-amber-200 dark:border-amber-500/30 text-slate-500 flex items-center justify-center shrink-0 hover:border-rose-400 transition"
           >
             <X className="h-4 w-4" />
@@ -109,7 +110,7 @@ export function PosReceiverField({
           <input
             value={value.phone}
             onChange={(e) => onChange({ ...value, phone: e.target.value })}
-            placeholder="Phone (optional)"
+            placeholder={t('Phone (optional)')}
             inputMode="tel"
             className="mt-2 h-10 w-full rounded-xl border border-amber-200 dark:border-amber-500/30 bg-white dark:bg-ink-900 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
           />
@@ -119,7 +120,7 @@ export function PosReceiverField({
             onClick={() => setShowPhone(true)}
             className="mt-1.5 text-[0.6875rem] font-semibold text-amber-800 dark:text-amber-300 hover:underline"
           >
-            + Phone bhi likhein
+            {t('+ Phone bhi likhein')}
           </button>
         )
       )}
@@ -127,7 +128,7 @@ export function PosReceiverField({
       {chips.length > 0 && (
         <div className="mt-2.5">
           <div className="flex items-center gap-1 text-[0.6875rem] uppercase tracking-wider font-semibold text-amber-800 dark:text-amber-300 mb-1.5">
-            <Clock className="h-3 w-3" /> Pehle aaye hain
+            <Clock className="h-3 w-3" /> {' '}{t('Pehle aaye hain')}
           </div>
           <div className="flex flex-wrap gap-1.5">
             {chips.map((r) => (

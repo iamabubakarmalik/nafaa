@@ -2,6 +2,7 @@
 
 import { Mail, Plus, Trash2, UserPlus } from 'lucide-react';
 import { Alert, Button, IconButton, Input, Select } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 export interface StaffMember {
   fullName: string;
@@ -17,9 +18,9 @@ export interface StaffForm {
 export type StaffErrors = Record<number, Partial<Record<keyof StaffMember, string>>>;
 
 const ROLES = [
-  { value: 'CASHIER', label: 'Cashier — counter par sale' },
-  { value: 'MANAGER', label: 'Manager — billing ke ilawa sab' },
-  { value: 'STAFF', label: 'Staff — stock ka kaam' },
+  { value: 'CASHIER', label: t('Cashier — counter par sale') },
+  { value: 'MANAGER', label: t('Manager — billing ke ilawa sab') },
+  { value: 'STAFF', label: t('Staff — stock ka kaam') },
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,12 +41,12 @@ export function validateStaff(f: StaffForm): StaffErrors {
   f.members.forEach((m, i) => {
     if (isBlank(m)) return;
     const e: Partial<Record<keyof StaffMember, string>> = {};
-    if (m.fullName.trim().length < 2) e.fullName = 'Naam likhein';
+    if (m.fullName.trim().length < 2) e.fullName = t('Naam likhein');
     const email = m.email.trim().toLowerCase();
-    if (!EMAIL_RE.test(email)) e.email = 'Email sahi likhein';
-    else if (seen.has(email)) e.email = 'Ye email upar bhi likha hai';
+    if (!EMAIL_RE.test(email)) e.email = t('Email sahi likhein');
+    else if (seen.has(email)) e.email = t('Ye email upar bhi likha hai');
     seen.add(email);
-    if (m.password.length < 6) e.password = 'Kam se kam 6 huroof';
+    if (m.password.length < 6) e.password = t('Kam se kam 6 huroof');
     if (Object.keys(e).length) errors[i] = e;
   });
   return errors;
@@ -65,8 +66,8 @@ export function StaffStep({ value, onChange, errors, addedCount, isOwner }: Prop
 
   if (!isOwner) {
     return (
-      <Alert tone="info" title="Staff sirf malik add kar sakta hai">
-        Ye step chhor dein. Malik baad me Staff page se logins bana sakta hai.
+      <Alert tone="info" title={t('Staff sirf malik add kar sakta hai')}>
+        {t('Ye step chhor dein. Malik baad me Staff page se logins bana sakta hai.')}
       </Alert>
     );
   }
@@ -74,12 +75,12 @@ export function StaffStep({ value, onChange, errors, addedCount, isOwner }: Prop
   return (
     <div className="space-y-5">
       {addedCount > 0 && (
-        <Alert tone="success" title={`${addedCount} staff pehle hi add ho chuke`}>
-          Mazeed chahiye to neeche likhein, warna aage barh jayein.
+        <Alert tone="success" title={t('{{addedCount}} staff pehle hi add ho chuke', { addedCount })}>
+          {t('Mazeed chahiye to neeche likhein, warna aage barh jayein.')}
         </Alert>
       )}
       <p className="text-sm text-slate-600">
-        Har banda apne email aur password se login karega, taake pata rahe kis ne kya becha. Branch aur permissions baad me Staff page se set hoti hain.
+        {t('Har banda apne email aur password se login karega, taake pata rahe kis ne kya becha. Branch aur permissions baad me Staff page se set hoti hain.')}
       </p>
 
       {value.members.length === 0 ? (
@@ -89,8 +90,8 @@ export function StaffStep({ value, onChange, errors, addedCount, isOwner }: Prop
           className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-white p-8 text-slate-600 transition hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
         >
           <UserPlus className="h-6 w-6" aria-hidden />
-          <span className="text-sm font-semibold">Pehla staff member add karein</span>
-          <span className="text-xs text-slate-500">Ya abhi chhor dein — baad me bhi ho jayega</span>
+          <span className="text-sm font-semibold">{t('Pehla staff member add karein')}</span>
+          <span className="text-xs text-slate-500">{t('Ya abhi chhor dein — baad me bhi ho jayega')}</span>
         </button>
       ) : (
         <div className="space-y-3">
@@ -98,18 +99,18 @@ export function StaffStep({ value, onChange, errors, addedCount, isOwner }: Prop
             const e = errors[i] ?? {};
             return (
               <fieldset key={i} className="rounded-xl border border-slate-200 bg-white p-4">
-                <legend className="sr-only">Staff {i + 1}</legend>
+                <legend className="sr-only">{t('Staff {{value}}', { value: i + 1 })}</legend>
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Staff {i + 1}</span>
-                  <IconButton label="Hatayein" size="sm" onClick={() => onChange({ members: value.members.filter((_, idx) => idx !== i) })}>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{t('Staff {{value}}', { value: i + 1 })}</span>
+                  <IconButton label={t('Hatayein')} size="sm" onClick={() => onChange({ members: value.members.filter((_, idx) => idx !== i) })}>
                     <Trash2 className="h-4 w-4" />
                   </IconButton>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Input label="Naam" placeholder="Bilal" value={m.fullName} onChange={(ev) => setMember(i, { fullName: ev.target.value })} error={e.fullName} />
-                  <Select label="Kaam" options={ROLES} value={m.role} onChange={(ev) => setMember(i, { role: ev.target.value as StaffMember['role'] })} />
+                  <Input label={t('Naam')} placeholder={t('Bilal')} value={m.fullName} onChange={(ev) => setMember(i, { fullName: ev.target.value })} error={e.fullName} />
+                  <Select label={t('Kaam')} options={ROLES} value={m.role} onChange={(ev) => setMember(i, { role: ev.target.value as StaffMember['role'] })} />
                   <Input
-                    label="Login email"
+                    label={t('Login email')}
                     type="email"
                     inputMode="email"
                     autoCapitalize="none"
@@ -121,11 +122,11 @@ export function StaffStep({ value, onChange, errors, addedCount, isOwner }: Prop
                     error={e.email}
                   />
                   <Input
-                    label="Password"
+                    label={t('Password')}
                     type="text"
                     autoComplete="off"
-                    placeholder="Kam se kam 6 huroof"
-                    hint={e.password ? undefined : 'Ye password staff ko bata dein.'}
+                    placeholder={t('Kam se kam 6 huroof')}
+                    hint={e.password ? undefined : t('Ye password staff ko bata dein.')}
                     value={m.password}
                     onChange={(ev) => setMember(i, { password: ev.target.value })}
                     error={e.password}
@@ -136,7 +137,7 @@ export function StaffStep({ value, onChange, errors, addedCount, isOwner }: Prop
           })}
           {value.members.length < MAX_MEMBERS && (
             <Button variant="secondary" size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => onChange({ members: [...value.members, emptyMember()] })}>
-              Ek aur staff
+              {t('Ek aur staff')}
             </Button>
           )}
         </div>

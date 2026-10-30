@@ -8,6 +8,7 @@ import { Percent, Banknote, X } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { controlClass } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 export type DiscountMode = 'pct' | 'rs';
 
@@ -84,12 +85,12 @@ export function PosDiscountBar({
         {showLabel && (
           <div className="flex shrink-0 items-center gap-1 text-[0.6875rem] font-bold text-slate-600 sm:text-xs">
             <Percent className="h-3.5 w-3.5 text-brand-600 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline">Discount:</span>
+            <span className="hidden sm:inline">{t('Discount:')}</span>
           </div>
         )}
 
         {!legacy && (
-          <div className="flex shrink-0 rounded-xl border border-slate-200 bg-white p-0.5" role="radiogroup" aria-label="Discount ka tareeqa">
+          <div className="flex shrink-0 rounded-xl border border-slate-200 bg-white p-0.5" role="radiogroup" aria-label={t('Discount ka tareeqa')}>
             <button type="button" role="radio" aria-checked={m === 'pct'} onClick={() => onMode?.('pct')} className={modeBtn(m === 'pct')}>
               <Percent className="h-3 w-3" /> %
             </button>
@@ -103,22 +104,22 @@ export function PosDiscountBar({
           {m === 'pct'
             ? steps.map((d) => (
                 <button key={d} type="button" onClick={() => setPct(d)} className={chip(pctVal === d)}>
-                  {d === 0 ? 'None' : `${d}%`}
+                  {d === 0 ? t('None') : `${d}%`}
                 </button>
               ))
             : (
               <>
                 {rsOptions.map((v) => (
                   <button key={v} type="button" onClick={() => setRs(v)} className={chip(rsVal === v)}>
-                    {v >= 1000 ? `${v / 1000}k` : v}
+                    {v >= 1000 ? t('{{value}}k', { value: v / 1000 }) : v}
                   </button>
                 ))}
                 <input
                   type="number" min={0} max={subtotal || undefined}
                   value={rsVal || ''}
                   onChange={(e) => setRs(Number(e.target.value || 0))}
-                  placeholder="Khud"
-                  aria-label="Discount rupay"
+                  placeholder={t('Khud')}
+                  aria-label={t('Discount rupay')}
                   className={cn(controlClass(), 'h-9 w-20 rounded-xl px-2 text-center text-[0.6875rem] font-bold tabular-nums sm:h-10 sm:text-xs')}
                 />
               </>
@@ -128,7 +129,7 @@ export function PosDiscountBar({
         {has && (
           <button type="button"
             onClick={() => { setPct(0); onRs?.(0); }}
-            title="Discount hatao" aria-label="Discount hatao"
+            title={t('Discount hatao')} aria-label={t('Discount hatao')}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 sm:h-10 sm:w-10">
             <X className="h-4 w-4" />
           </button>
@@ -138,7 +139,7 @@ export function PosDiscountBar({
       {has && subtotal > 0 && (
         <div className="flex items-center justify-between px-1 text-[0.6875rem] font-bold tabular-nums">
           <span className="text-slate-500">
-            {m === 'pct' ? `${pctVal}% discount` : `${formatPKR(rsVal)} kam`}
+            {m === 'pct' ? t('{{pctVal}}% discount', { pctVal }) : t('{{rsVal}} kam', { rsVal: formatPKR(rsVal) })}
             {' '}<span className="text-slate-400">({((amount / subtotal) * 100).toFixed(1)}%)</span>
           </span>
           <span className="text-brand-700">−{formatPKR(amount)}</span>

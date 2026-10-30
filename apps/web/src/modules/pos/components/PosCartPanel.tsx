@@ -28,6 +28,7 @@ import type { PosCartLine } from '../lib/posCart';
 import { PosCustomerPicker } from './PosCustomerPicker';
 import { PosDeliveryPanel, type PosDeliveryState } from './PosDeliveryPanel';
 import { PosReceiverField, type PosReceiverValue } from './PosReceiverField';
+import { t as tr } from '@core/i18n';
 
 /** Quick payment tiles under the cash button. */
 export type PosQuickPay = { method: PaymentMethod } | { mode: 'credit' | 'partial' };
@@ -123,10 +124,10 @@ const money = (n: number, hidden?: boolean) => (hidden ? '••••' : format
 const qtyText = (n: number) => String(Number(n.toFixed(3)));
 
 const QUICK: Array<{ label: string; icon: typeof CreditCard; color: string; q: PosQuickPay; key: string }> = [
-  { label: 'Card', icon: CreditCard, color: '#2563eb', q: { method: 'CARD' }, key: '2' },
-  { label: 'JazzCash', icon: Smartphone, color: '#ea580c', q: { method: 'JAZZCASH' }, key: '3' },
-  { label: 'Easypaisa', icon: Smartphone, color: '#16a34a', q: { method: 'EASYPAISA' }, key: '4' },
-  { label: 'Udhaar', icon: BookOpen, color: '#d97706', q: { mode: 'credit' }, key: '5' },
+  { label: tr('Card'), icon: CreditCard, color: '#2563eb', q: { method: 'CARD' }, key: '2' },
+  { label: tr('JazzCash'), icon: Smartphone, color: '#ea580c', q: { method: 'JAZZCASH' }, key: '3' },
+  { label: tr('Easypaisa'), icon: Smartphone, color: '#16a34a', q: { method: 'EASYPAISA' }, key: '4' },
+  { label: tr('Udhaar'), icon: BookOpen, color: '#d97706', q: { mode: 'credit' }, key: '5' },
 ];
 
 export function PosCartPanel(props: PosCartPanelProps) {
@@ -173,12 +174,12 @@ export function PosCartPanel(props: PosCartPanelProps) {
     <Table className="overflow-visible [&>table]:table-fixed [&>table]:text-[0.8125rem]">
       <THead className="sticky top-0 z-10 border-b-0 text-[0.6875rem]">
         <Tr>
-          <Th className="w-10 py-2 pl-3 pr-0">No.</Th>
-          <Th className="px-0 py-2">Item</Th>
-          <Th align="center" className="w-32 px-0 py-2">Qty</Th>
-          <Th align="right" className="w-28 px-0 py-2">Rate</Th>
-          <Th align="right" className="w-28 px-0 py-2">Total</Th>
-          <Th className="w-14 px-0 py-2" aria-label="Hatayein" />
+          <Th className="w-10 py-2 ps-3 pe-0">{tr('No.')}</Th>
+          <Th className="px-0 py-2">{tr('Item')}</Th>
+          <Th align="center" className="w-32 px-0 py-2">{tr('Qty')}</Th>
+          <Th align="right" className="w-28 px-0 py-2">{tr('Rate')}</Th>
+          <Th align="right" className="w-28 px-0 py-2">{tr('Total')}</Th>
+          <Th className="w-14 px-0 py-2" aria-label={tr('Hatayein')} />
         </Tr>
       </THead>
       <TBody>
@@ -193,7 +194,7 @@ export function PosCartPanel(props: PosCartPanelProps) {
 
   return (
     <aside
-      aria-label="Bill"
+      aria-label={tr('Bill')}
       // Clicking a button keeps the keyboard where it was (search box or bill lines).
       onMouseDown={(ev) => { if (!isMobile && (ev.target as HTMLElement).closest('button')) ev.preventDefault(); }}
       className={cn(isMobile
@@ -204,30 +205,30 @@ export function PosCartPanel(props: PosCartPanelProps) {
       <header className="flex shrink-0 items-center justify-between gap-2 px-3 pb-1.5 pt-2.5">
         <div className="flex min-w-0 items-center gap-2">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><Receipt className="h-4 w-4" /></span>
-          <h2 className="text-[0.9375rem] font-semibold text-slate-900">Bill</h2>
+          <h2 className="text-[0.9375rem] font-semibold text-slate-900">{tr('Bill')}</h2>
           {cart.length > 0 && (
             <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.75rem] font-semibold tabular-nums text-slate-700">
-              {cart.length} items · {qtyText(totalQty)} qty
+              {tr('{{count}} items · {{totalQty}} qty', { count: cart.length, totalQty: qtyText(totalQty) })}
             </span>
           )}
         </div>
         <div className="flex items-center gap-0.5">
           {heldCount > 0 && onOpenHeld && (
-            <button type="button" onClick={onOpenHeld} title="Hold bill (F6)"
+            <button type="button" onClick={onOpenHeld} title={tr('Hold bill (F6)')}
               className="inline-flex h-7 items-center gap-1 rounded-lg bg-amber-100 px-2 text-[0.75rem] font-semibold text-amber-900 hover:bg-amber-200">
               <Pause className="h-3.5 w-3.5" />{heldCount}
             </button>
           )}
           {cart.length > 0 && (
             <>
-              <button type="button" onClick={onHold} title="Hold — baad me resume (F6)"
+              <button type="button" onClick={onHold} title={tr('Hold — baad me resume (F6)')}
                 className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[0.75rem] font-medium text-slate-600 hover:bg-slate-100">
-                <Pause className="h-3.5 w-3.5" /> Hold <Kbd className="hidden h-4 xl:inline-flex">F6</Kbd>
+                <Pause className="h-3.5 w-3.5" /> {' '}{tr('Hold')}{' '} <Kbd className="hidden h-4 xl:inline-flex">F6</Kbd>
               </button>
-              <IconButton label="Bill khaali karein" size="sm" onClick={onClear} className="hover:text-rose-600"><Trash2 className="h-4 w-4" /></IconButton>
+              <IconButton label={tr('Bill khaali karein')} size="sm" onClick={onClear} className="hover:text-rose-600"><Trash2 className="h-4 w-4" /></IconButton>
             </>
           )}
-          {isMobile && <IconButton label="Band karein" size="sm" onClick={onCloseMobile}><X className="h-4 w-4" /></IconButton>}
+          {isMobile && <IconButton label={tr('Band karein')} size="sm" onClick={onCloseMobile}><X className="h-4 w-4" /></IconButton>}
         </div>
       </header>
 
@@ -238,25 +239,25 @@ export function PosCartPanel(props: PosCartPanelProps) {
             <PosCustomerPicker customers={customers} customerId={customerId} setCustomerId={setCustomerId} compact
               selectedCustomer={selectedCustomer} onAddCustomer={onAddCustomer} openKey={customerOpenKey} onClosed={onCustomerClosed} />
           </div>
-          <IconButton label="Naya customer" variant="secondary" onClick={() => onAddCustomer()} className="h-9 w-9 rounded-lg"><UserPlus className="h-4 w-4" /></IconButton>
+          <IconButton label={tr('Naya customer')} variant="secondary" onClick={() => onAddCustomer()} className="h-9 w-9 rounded-lg"><UserPlus className="h-4 w-4" /></IconButton>
         </div>
         {(balance > 0 || showReceiverChip || customerExtra) && (
           <div className="flex flex-wrap items-center gap-1.5">
             {balance > 0 && (
               <span className="inline-flex h-6 items-center gap-1 rounded-full bg-amber-50 px-2 text-[0.6875rem] font-semibold text-amber-800 ring-1 ring-amber-200">
-                <AlertTriangle className="h-3 w-3" /> Pichhla udhaar {money(balance, hidePrices)}
+                <AlertTriangle className="h-3 w-3" /> {' '}{tr('Pichhla udhaar {{balance}}', { balance: money(balance, hidePrices) })}
               </span>
             )}
             {showReceiverChip && !receiverOpen && (
               receiver!.name.trim() ? (
-                <span className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 pl-2 text-[0.6875rem] font-semibold text-slate-700">
-                  <button type="button" onClick={() => setReceiverOpen(true)} className="inline-flex items-center gap-1"><UserCheck className="h-3 w-3" /> Lene wala: {receiver!.name}</button>
-                  <button type="button" aria-label="Lene wala hatayein" onClick={() => onReceiverChange!({ name: '', phone: '' })} className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-slate-200"><X className="h-3 w-3" /></button>
+                <span className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-100 ps-2 text-[0.6875rem] font-semibold text-slate-700">
+                  <button type="button" onClick={() => setReceiverOpen(true)} className="inline-flex items-center gap-1"><UserCheck className="h-3 w-3" /> {' '}{tr('Lene wala: {{name}}', { name: receiver!.name })}</button>
+                  <button type="button" aria-label={tr('Lene wala hatayein')} onClick={() => onReceiverChange!({ name: '', phone: '' })} className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-slate-200"><X className="h-3 w-3" /></button>
                 </span>
               ) : (
-                <button type="button" onClick={() => setReceiverOpen(true)} title="Maal lene koi aur aaya hai? (Alt+L)"
+                <button type="button" onClick={() => setReceiverOpen(true)} title={tr('Maal lene koi aur aaya hai? (Alt+L)')}
                   className="inline-flex h-6 items-center gap-1 rounded-full border border-dashed border-slate-300 px-2 text-[0.6875rem] font-semibold text-slate-600 hover:border-brand-400 hover:text-brand-700">
-                  <Plus className="h-3 w-3" /> Lene wala
+                  <Plus className="h-3 w-3" /> {' '}{tr('Lene wala')}
                 </button>
               )
             )}
@@ -268,15 +269,15 @@ export function PosCartPanel(props: PosCartPanelProps) {
           <div className="relative" ref={receiverBox}
             onKeyDown={(ev) => { if (ev.key === 'Escape' || (ev.key === 'Enter' && (ev.target as HTMLElement).tagName === 'INPUT')) { ev.preventDefault(); ev.stopPropagation(); closeReceiver(); } }}>
             <PosReceiverField customerId={customerId} customerName={selectedCustomer.name} value={receiver!} onChange={onReceiverChange!} compact />
-            <button type="button" aria-label="Band karein" onClick={closeReceiver}
-              className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-md text-slate-500 hover:bg-amber-100"><X className="h-3.5 w-3.5" /></button>
+            <button type="button" aria-label={tr('Band karein')} onClick={closeReceiver}
+              className="absolute end-2 top-2 flex h-6 w-6 items-center justify-center rounded-md text-slate-500 hover:bg-amber-100"><X className="h-3.5 w-3.5" /></button>
           </div>
         )}
       </div>
 
       <div className={cn('flex min-h-0 flex-1', side ? 'flex-row' : 'flex-col')}>
         <div ref={setListRef} tabIndex={cart.length ? 0 : -1} onKeyDown={onListKeyDown} onFocus={onListFocus}
-          aria-label="Bill ki cheezein (F3)" role="listbox" data-own-keys
+          aria-label={tr('Bill ki cheezein (F3)')} role="listbox" data-own-keys
           className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-slate-100 outline-none',
             cartFocused && 'shadow-[inset_0_0_0_2px_rgb(var(--brand-500))]',
             density === 'comfortable' && '[--row-py:0.625rem]', touch && '[--row-py:0.75rem]')}
@@ -307,27 +308,27 @@ function rowProps(p: PosCartPanelProps, l: PosCartLine) {
 function EmptyBill({ hint, lastBill, hidePrices, onReprint, onRepeat }: {
   hint?: string; lastBill?: { number: string; total: number; change: number } | null; hidePrices?: boolean; onReprint?: () => void; onRepeat?: () => void;
 }) {
-  const keys: Array<[string, string]> = [['Naam / barcode', 'Type'], ['Customer', 'F2'], ['Cash + print', 'F12'], ['Sab shortcuts', '?']];
+  const keys: Array<[string, string]> = [[tr('Naam / barcode'), tr('Type')], [tr('Customer'), 'F2'], [tr('Cash + print'), 'F12'], [tr('Sab shortcuts'), '?']];
   return (
     <div className="flex h-full flex-col items-center justify-center px-5 py-6 text-center">
       <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 text-brand-fg shadow-md">
         <ScanLine className="h-6 w-6" />
       </span>
-      <p className="mt-3 text-[0.9375rem] font-semibold text-slate-800">Bill shuru karein</p>
-      <p className="mt-0.5 max-w-[17rem] text-[0.8125rem] text-slate-500">{hint ?? 'Barcode scan karein ya naam likh kar Enter dabayein.'}</p>
+      <p className="mt-3 text-[0.9375rem] font-semibold text-slate-800">{tr('Bill shuru karein')}</p>
+      <p className="mt-0.5 max-w-[17rem] text-[0.8125rem] text-slate-500">{hint ?? tr('Barcode scan karein ya naam likh kar Enter dabayein.')}</p>
       {lastBill && (
-        <div className="mt-3 w-full max-w-[18rem] rounded-xl bg-success-50 px-3 py-2 text-left ring-1 ring-success-200">
+        <div className="mt-3 w-full max-w-[18rem] rounded-xl bg-success-50 px-3 py-2 text-start ring-1 ring-success-200">
           <div className="flex items-center justify-between text-[0.75rem] text-success-800">
-            <span>Pichhla bill {lastBill.number}</span><span className="tabular-nums">{money(lastBill.total, hidePrices)}</span>
+            <span>{tr('Pichhla bill {{number}}', { number: lastBill.number })}</span><span className="tabular-nums">{money(lastBill.total, hidePrices)}</span>
           </div>
-          {lastBill.change > 0 && <div className="text-[1.125rem] font-bold tabular-nums text-success-700">Wapas: {money(lastBill.change, hidePrices)}</div>}
+          {lastBill.change > 0 && <div className="text-[1.125rem] font-bold tabular-nums text-success-700">{tr('Wapas: {{change}}', { change: money(lastBill.change, hidePrices) })}</div>}
           <div className="mt-1.5 flex gap-1.5">
-            {onReprint && <button type="button" onClick={onReprint} className="inline-flex h-7 flex-1 items-center justify-center gap-1 rounded-lg bg-white text-[0.75rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Printer className="h-3.5 w-3.5" /> Print <Kbd className="h-4">Ctrl P</Kbd></button>}
-            {onRepeat && <button type="button" onClick={onRepeat} className="inline-flex h-7 flex-1 items-center justify-center gap-1 rounded-lg bg-white text-[0.75rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Repeat className="h-3.5 w-3.5" /> Dobara <Kbd className="h-4">Alt R</Kbd></button>}
+            {onReprint && <button type="button" onClick={onReprint} className="inline-flex h-7 flex-1 items-center justify-center gap-1 rounded-lg bg-white text-[0.75rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Printer className="h-3.5 w-3.5" /> {' '}{tr('Print')}{' '} <Kbd className="h-4">Ctrl P</Kbd></button>}
+            {onRepeat && <button type="button" onClick={onRepeat} className="inline-flex h-7 flex-1 items-center justify-center gap-1 rounded-lg bg-white text-[0.75rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50"><Repeat className="h-3.5 w-3.5" /> {' '}{tr('Dobara')}{' '} <Kbd className="h-4">Alt R</Kbd></button>}
           </div>
         </div>
       )}
-      <div className="mt-3 grid w-full max-w-[18rem] gap-1 text-left text-[0.75rem] text-slate-500">
+      <div className="mt-3 grid w-full max-w-[18rem] gap-1 text-start text-[0.75rem] text-slate-500">
         {keys.map(([label, key]) => (
           <span key={label} className="flex items-center justify-between rounded-lg bg-slate-50 px-2.5 py-1">{label}<Kbd>{key}</Kbd></span>
         ))}
@@ -351,11 +352,11 @@ function BillSummary(p: PosCartPanelProps & { side?: boolean }) {
   const chip = 'inline-flex h-7 items-center gap-1 rounded-full px-2.5 text-[0.75rem] font-semibold transition';
 
   return (
-    <footer className={cn('shrink-0 space-y-2 border-slate-100 bg-white px-3 pb-3 pt-2', side ? 'flex w-[22rem] flex-col border-l' : 'border-t')}>
+    <footer className={cn('shrink-0 space-y-2 border-slate-100 bg-white px-3 pb-3 pt-2', side ? 'flex w-[22rem] flex-col border-s' : 'border-t')}>
       {side && (
         // Express: a big total the cashier and customer can both read.
-        <div className="flex flex-1 flex-col justify-center rounded-xl bg-slate-900 px-4 py-4 text-right text-white">
-          <span className="text-[0.75rem] font-medium uppercase tracking-wide text-slate-400">Kul bill · {cart.length} items</span>
+        <div className="flex flex-1 flex-col justify-center rounded-xl bg-slate-900 px-4 py-4 text-end text-white">
+          <span className="text-[0.75rem] font-medium uppercase tracking-wide text-slate-400">{tr('Kul bill · {{count}} items', { count: cart.length })}</span>
           <span className="text-[2.5rem] font-bold leading-tight tabular-nums tracking-tight">{money(total, hidePrices)}</span>
           {p.selectedCustomer && <span className="truncate text-[0.8125rem] text-slate-300">{p.selectedCustomer.name}</span>}
         </div>
@@ -363,27 +364,27 @@ function BillSummary(p: PosCartPanelProps & { side?: boolean }) {
       {(showDiscount || (delivery && onDeliveryChange)) && (
         <div className="flex flex-wrap items-center gap-1.5">
           {showDiscount && (hasDiscount ? (
-            <span className={cn(chip, 'bg-amber-100 pr-1 text-amber-900')}>
+            <span className={cn(chip, 'bg-amber-100 pe-1 text-amber-900')}>
               <button type="button" onClick={onOpenDiscount} className="inline-flex items-center gap-1">
-                <Tag className="h-3.5 w-3.5" />{discountMode === 'pct' ? `${discountPct}%` : 'Discount'} −{money(discountAmount, hidePrices)}
+                <Tag className="h-3.5 w-3.5" />{discountMode === 'pct' ? `${discountPct}%` : tr('Discount')} −{money(discountAmount, hidePrices)}
               </button>
-              <button type="button" aria-label="Discount hatayein" onClick={onClearDiscount} className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-amber-200"><X className="h-3 w-3" /></button>
+              <button type="button" aria-label={tr('Discount hatayein')} onClick={onClearDiscount} className="flex h-5 w-5 items-center justify-center rounded-full hover:bg-amber-200"><X className="h-3 w-3" /></button>
             </span>
           ) : (
             <>
               <button type="button" onClick={onOpenDiscount} className={cn(chip, 'border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50')}>
-                <Tag className="h-3.5 w-3.5" /> Discount <Kbd className="h-4">F4</Kbd>
+                <Tag className="h-3.5 w-3.5" /> {' '}{tr('Discount')}{' '} <Kbd className="h-4">F4</Kbd>
               </button>
               {onQuickDiscount && quickDiscounts.map((pct) => (
-                <button key={pct} type="button" onClick={() => onQuickDiscount(pct)} title={`${pct}% Discount`}
+                <button key={pct} type="button" onClick={() => onQuickDiscount(pct)} title={tr('{{pct}}% Discount', { pct })}
                   className={cn(chip, 'bg-slate-100 text-slate-700 hover:bg-amber-100 hover:text-amber-900')}>{pct}%</button>
               ))}
             </>
           ))}
           {delivery && onDeliveryChange && !delivery.on && (
-            <button type="button" onClick={() => onDeliveryChange({ ...delivery, on: true })} title="Ghar bhejna hai? (Alt+D)"
+            <button type="button" onClick={() => onDeliveryChange({ ...delivery, on: true })} title={tr('Ghar bhejna hai? (Alt+D)')}
               className={cn(chip, 'border border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50')}>
-              <Truck className="h-3.5 w-3.5" /> Delivery
+              <Truck className="h-3.5 w-3.5" /> {' '}{tr('Delivery')}
             </button>
           )}
         </div>
@@ -393,16 +394,16 @@ function BillSummary(p: PosCartPanelProps & { side?: boolean }) {
       {(!side || breakdown) && <div className="rounded-xl bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200/70">
         {breakdown && (
           <dl className="mb-1 space-y-0.5 border-b border-dashed border-slate-300 pb-1 text-[0.75rem]">
-            <div className="flex justify-between text-slate-500"><dt>Subtotal</dt><dd className="tabular-nums">{money(subtotal, hidePrices)}</dd></div>
-            {totalSavings > 0 && <div className="flex justify-between text-success-700"><dt className="inline-flex items-center gap-1"><Sparkles className="h-3 w-3" />Combo bachat</dt><dd className="tabular-nums">{money(totalSavings, hidePrices)}</dd></div>}
-            {hasDiscount && <div className="flex justify-between text-amber-700"><dt>Discount</dt><dd className="tabular-nums">−{money(discountAmount, hidePrices)}</dd></div>}
+            <div className="flex justify-between text-slate-500"><dt>{tr('Subtotal')}</dt><dd className="tabular-nums">{money(subtotal, hidePrices)}</dd></div>
+            {totalSavings > 0 && <div className="flex justify-between text-success-700"><dt className="inline-flex items-center gap-1"><Sparkles className="h-3 w-3" />{tr('Combo bachat')}</dt><dd className="tabular-nums">{money(totalSavings, hidePrices)}</dd></div>}
+            {hasDiscount && <div className="flex justify-between text-amber-700"><dt>{tr('Discount')}</dt><dd className="tabular-nums">−{money(discountAmount, hidePrices)}</dd></div>}
             {extras.map((x) => <div key={x.label} className="flex justify-between text-violet-700"><dt>{x.label}</dt><dd className="tabular-nums">−{money(x.amount, hidePrices)}</dd></div>)}
-            {deliveryFee > 0 && <div className="flex justify-between text-slate-600"><dt>Delivery</dt><dd className="tabular-nums">+{money(deliveryFee, hidePrices)}</dd></div>}
+            {deliveryFee > 0 && <div className="flex justify-between text-slate-600"><dt>{tr('Delivery')}</dt><dd className="tabular-nums">+{money(deliveryFee, hidePrices)}</dd></div>}
           </dl>
         )}
         {!side && (
           <div className="flex items-baseline justify-between">
-            <span className="text-[0.8125rem] font-medium text-slate-500">Kul</span>
+            <span className="text-[0.8125rem] font-medium text-slate-500">{tr('Kul')}</span>
             <span className={cn('font-bold leading-tight tabular-nums tracking-tight text-slate-900', touch ? 'text-[2rem]' : 'text-[1.5rem]')}>{money(total, hidePrices)}</span>
           </div>
         )}
@@ -412,7 +413,7 @@ function BillSummary(p: PosCartPanelProps & { side?: boolean }) {
 
       <button type="button" onClick={onInstantCash} disabled={disabled}
         className={cn('flex w-full items-center justify-between gap-3 rounded-xl bg-brand-600 px-4 text-brand-fg shadow-md shadow-brand-600/20 transition hover:bg-brand-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50', touch ? 'h-16' : 'h-11')}>
-        <span className="inline-flex items-center gap-2 text-[0.9375rem] font-semibold"><Banknote className="h-5 w-5" /> Cash · print</span>
+        <span className="inline-flex items-center gap-2 text-[0.9375rem] font-semibold"><Banknote className="h-5 w-5" /> {' '}{tr('Cash · print')}</span>
         <span className="inline-flex items-center gap-2">
           <span className="text-lg font-bold tabular-nums">{money(total, hidePrices)}</span>
           <kbd className="rounded-md bg-white/20 px-1.5 py-0.5 font-mono text-[0.6875rem]">F12</kbd>
@@ -423,27 +424,27 @@ function BillSummary(p: PosCartPanelProps & { side?: boolean }) {
         <div className={cn('grid grid-cols-5 gap-1', touch && 'gap-1.5')}>
           {QUICK.map((q) => (
             <button key={q.label} type="button" disabled={disabled || ('mode' in q.q && !customerId)} onClick={() => onQuickPay(q.q)}
-              title={'mode' in q.q && !customerId ? 'Udhaar ke liye customer chunein' : `${q.label} (F8 phir ${q.key})`}
+              title={'mode' in q.q && !customerId ? tr('Udhaar ke liye customer chunein') : tr('{{label}} (F8 phir {{key}})', { label: q.label, key: q.key })}
               className={cn('flex flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white text-[0.6875rem] font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40', touch ? 'h-14' : 'h-10')}>
               <q.icon className="h-4 w-4" style={{ color: q.color }} />
               {q.label}
             </button>
           ))}
-          <button type="button" disabled={disabled} onClick={onCheckout} title="Checkout — sab tareeqe, split (Ctrl+Enter)"
+          <button type="button" disabled={disabled} onClick={onCheckout} title={tr('Checkout — sab tareeqe, split (Ctrl+Enter)')}
             className={cn('flex flex-col items-center justify-center gap-0.5 rounded-lg border border-slate-200 bg-white text-[0.6875rem] font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-40', touch ? 'h-14' : 'h-10')}>
-            <span className="font-mono text-[0.625rem] font-bold text-slate-500">Ctrl ↵</span>
-            Checkout
+            <span className="font-mono text-[0.625rem] font-bold text-slate-500">{tr('Ctrl ↵')}</span>
+            {tr('Checkout')}
           </button>
         </div>
       ) : (
         <button type="button" onClick={onCheckout} disabled={disabled}
           className="flex h-10 w-full items-center justify-between gap-3 rounded-xl border border-slate-300 bg-white px-4 text-[0.875rem] font-semibold text-slate-800 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
-          <span>Card · JazzCash · udhaar · kuch paisa</span>
+          <span>{tr('Card · JazzCash · udhaar · kuch paisa')}</span>
           <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[0.6875rem] text-slate-500">Ctrl ↵</kbd>
         </button>
       )}
-      <p className="hidden text-center text-[0.6875rem] text-slate-400 xl:block [@media(max-height:820px)]:!hidden">F8 tareeqa chunein · F9 aur kaam · ? sab shortcuts</p>
-      {!canCheckout && <p className="text-center text-[0.75rem] font-medium text-rose-700">Pehle upar se shop chunein</p>}
+      <p className="hidden text-center text-[0.6875rem] text-slate-400 xl:block [@media(max-height:820px)]:!hidden">{tr('F8 tareeqa chunein · F9 aur kaam · ? sab shortcuts')}</p>
+      {!canCheckout && <p className="text-center text-[0.75rem] font-medium text-rose-700">{tr('Pehle upar se shop chunein')}</p>}
     </footer>
   );
 }
@@ -489,49 +490,49 @@ export function PosCartRow(props: {
   const tags = [
     l.variantName && { t: l.variantName, c: 'bg-slate-100 text-slate-600' },
     l.serialNumber && { t: `S/N ${l.serialNumber}`, c: 'bg-slate-100 font-mono text-slate-600' },
-    l.imei && { t: `IMEI ${l.imei}`, c: 'bg-slate-100 font-mono text-slate-600' },
-    l.type === 'combo' && { t: 'Combo', c: 'bg-violet-50 text-violet-700' },
-    l.dist?.free && { t: 'Scheme free', c: 'bg-success-50 text-success-700' },
+    l.imei && { t: tr('IMEI {{imei}}', { imei: l.imei }), c: 'bg-slate-100 font-mono text-slate-600' },
+    l.type === 'combo' && { t: tr('Combo'), c: 'bg-violet-50 text-violet-700' },
+    l.dist?.free && { t: tr('Scheme free'), c: 'bg-success-50 text-success-700' },
     l.dist && !l.dist.free && l.dist.schemeNote && { t: l.dist.schemeNote, c: 'bg-violet-50 text-violet-700' },
-    l.dist && !l.dist.free && !l.dist.schemeNote && { t: 'List rate', c: 'bg-orange-50 text-orange-700' },
-    customPriced && { t: 'Rate badla', c: 'bg-amber-50 text-amber-700' },
+    l.dist && !l.dist.free && !l.dist.schemeNote && { t: tr('List rate'), c: 'bg-orange-50 text-orange-700' },
+    customPriced && { t: tr('Rate badla'), c: 'bg-amber-50 text-amber-700' },
     l.warrantyMonths && { t: `${l.warrantyMonths}m warranty`, c: 'bg-sky-50 text-sky-700' },
   ].filter(Boolean) as Array<{ t: string; c: string }>;
 
   const qtyField = editingQty
-    ? <NumberEdit initial={l.quantity} label="Qty" width="w-14" onCommit={(v) => { if (v !== l.quantity) onSetQty(v); onEndQtyEdit?.(); }} onCancel={() => onEndQtyEdit?.()}
+    ? <NumberEdit initial={l.quantity} label={tr('Qty')} width="w-14" onCommit={(v) => { if (v !== l.quantity) onSetQty(v); onEndQtyEdit?.(); }} onCancel={() => onEndQtyEdit?.()}
         onTab={canEditPrice ? () => { onEndQtyEdit?.(); onStartPriceEdit(); } : undefined} />
     : null;
   const priceField = editingPrice
-    ? <NumberEdit initial={l.unitPrice} label="Rate" width="w-20" tone="amber" onCommit={(v) => onSetPrice(v)} onCancel={onCancelPriceEdit}
-        extra={customPriced ? <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => onSetPrice(l.basePrice)} className="text-[0.6875rem] font-medium text-slate-500 hover:text-slate-800">Asal rate</button> : undefined} />
+    ? <NumberEdit initial={l.unitPrice} label={tr('Rate')} width="w-20" tone="amber" onCommit={(v) => onSetPrice(v)} onCancel={onCancelPriceEdit}
+        extra={customPriced ? <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => onSetPrice(l.basePrice)} className="text-[0.6875rem] font-medium text-slate-500 hover:text-slate-800">{tr('Asal rate')}</button> : undefined} />
     : null;
   const rate = (
-    <button type="button" tabIndex={-1} onClick={canEditPrice ? onStartPriceEdit : undefined} title={canEditPrice ? 'Rate badlein (Enter phir Tab, ya R)' : undefined}
+    <button type="button" tabIndex={-1} onClick={canEditPrice ? onStartPriceEdit : undefined} title={canEditPrice ? tr('Rate badlein (Enter phir Tab, ya R)') : undefined}
       className={cn('tabular-nums', canEditPrice ? 'hover:text-brand-700 hover:underline' : 'cursor-default')}>
-      {money(l.unitPrice, hidePrices)}{customPriced && <span className="ml-1 text-slate-400 line-through">{money(l.basePrice, hidePrices)}</span>}
+      {money(l.unitPrice, hidePrices)}{customPriced && <span className="ms-1 text-slate-400 line-through">{money(l.basePrice, hidePrices)}</span>}
     </button>
   );
   const stepper = (always: boolean) => (
     <span className={cn('inline-flex items-center overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200', touch ? 'h-8' : 'h-6',
       !always && !active && 'invisible group-hover:visible')}>
-      <button type="button" tabIndex={-1} aria-label="Kam" disabled={l.lockQty} onClick={() => onChangeQty(-1)}
+      <button type="button" tabIndex={-1} aria-label={tr('Kam')} disabled={l.lockQty} onClick={() => onChangeQty(-1)}
         className={cn('flex items-center justify-center text-slate-600 hover:bg-slate-200 disabled:opacity-30', touch ? 'h-8 w-8' : 'h-6 w-6')}><Minus className="h-3 w-3" /></button>
       {always && (qtyField ?? (
         <button type="button" tabIndex={-1} onClick={onStartQtyEdit} disabled={l.lockQty} className="min-w-8 px-1 text-center text-[0.8125rem] font-bold tabular-nums text-slate-900">{qtyText(l.quantity)}</button>
       ))}
-      <button type="button" tabIndex={-1} aria-label="Zyada" disabled={l.lockQty} onClick={() => onChangeQty(1)}
+      <button type="button" tabIndex={-1} aria-label={tr('Zyada')} disabled={l.lockQty} onClick={() => onChangeQty(1)}
         className={cn('flex items-center justify-center bg-brand-600 text-brand-fg hover:bg-brand-700 disabled:opacity-30', touch ? 'h-8 w-8' : 'h-6 w-6')}><Plus className="h-3 w-3" /></button>
     </span>
   );
   const removeBtn = (
-    <button type="button" tabIndex={-1} aria-label="Hatayein" onClick={onRemove}
+    <button type="button" tabIndex={-1} aria-label={tr('Hatayein')} onClick={onRemove}
       className={cn('flex h-6 w-6 items-center justify-center rounded-md text-slate-300 hover:bg-rose-50 hover:text-rose-600', !active && 'invisible group-hover:visible max-lg:visible')}>
       <Trash2 className="h-3.5 w-3.5" />
     </button>
   );
   const noteBtn = lineNotes && !editingNote && (
-    <button type="button" tabIndex={-1} aria-label="Note (N)" title="Note (N)" onClick={onStartNoteEdit}
+    <button type="button" tabIndex={-1} aria-label={tr('Note (N)')} title={tr('Note (N)')} onClick={onStartNoteEdit}
       className={cn('flex h-6 w-6 items-center justify-center rounded-md text-slate-300 hover:bg-slate-100 hover:text-slate-700', !active && !l.customNote && 'invisible group-hover:visible')}>
       <StickyNote className="h-3.5 w-3.5" />
     </button>
@@ -548,7 +549,7 @@ export function PosCartRow(props: {
       {editingNote ? (
         <NoteEdit initial={l.customNote ?? ''} onCommit={(v) => { onSetNote?.(v); onEndNoteEdit?.(); }} onCancel={() => onEndNoteEdit?.()} />
       ) : l.customNote ? (
-        <button type="button" tabIndex={-1} onClick={onStartNoteEdit} className="block max-w-full truncate text-left text-[0.6875rem] italic text-slate-500">“{l.customNote}”</button>
+        <button type="button" tabIndex={-1} onClick={onStartNoteEdit} className="block max-w-full truncate text-start text-[0.6875rem] italic text-slate-500">“{l.customNote}”</button>
       ) : null}
     </div>
   );
@@ -562,8 +563,8 @@ export function PosCartRow(props: {
   if (table) {
     return (
       <tr data-line-id={l.id} role="option" aria-selected={!!active} onClick={onSelect} className={cn(rowClass, 'align-middle')}>
-        <td className={cn('pl-3 text-[0.75rem] tabular-nums text-slate-400', comfy ? 'py-2' : 'py-1')}>{index + 1}</td>
-        <td className={cn('pr-2', comfy ? 'py-2' : 'py-1')}>
+        <td className={cn('ps-3 text-[0.75rem] tabular-nums text-slate-400', comfy ? 'py-2' : 'py-1')}>{index + 1}</td>
+        <td className={cn('pe-2', comfy ? 'py-2' : 'py-1')}>
           <div className="flex items-center gap-2">
             {thumb}
             <div className="min-w-0">
@@ -575,8 +576,8 @@ export function PosCartRow(props: {
         <td className="text-center">
           <div className="flex items-center justify-center gap-1">{stepper(true)}{(isWeightUnit(l.unitName) || l.conversionRate !== 1) && <span className="text-[0.625rem] text-slate-400">{l.unitName}</span>}</div>
         </td>
-        <td className="text-right">{priceField ?? rate}</td>
-        <td className="text-right font-bold tabular-nums text-slate-900">{money(l.lineTotal, hidePrices)}</td>
+        <td className="text-end">{priceField ?? rate}</td>
+        <td className="text-end font-bold tabular-nums text-slate-900">{money(l.lineTotal, hidePrices)}</td>
         <td><div className="flex items-center justify-center">{noteBtn}{removeBtn}</div></td>
       </tr>
     );
@@ -600,7 +601,7 @@ export function PosCartRow(props: {
             <>
               <span className={cn('shrink-0 items-center gap-1 text-[0.75rem] tabular-nums text-slate-500', active ? 'hidden' : 'flex group-hover:hidden')}>
                 <b className="font-semibold text-slate-700">{qtyText(l.quantity)}</b>{!isWeightUnit(l.unitName) && l.conversionRate === 1 ? '' : ` ${l.unitName}`} × {money(l.unitPrice, hidePrices)}
-                {customPriced && <span className="rounded bg-amber-50 px-1 text-[0.625rem] font-semibold text-amber-700">rate badla</span>}
+                {customPriced && <span className="rounded bg-amber-50 px-1 text-[0.625rem] font-semibold text-amber-700">{tr('rate badla')}</span>}
               </span>
               <span className={cn('shrink-0 items-center gap-1', active ? 'flex' : 'hidden group-hover:flex')}>
                 {noteBtn}
@@ -610,10 +611,10 @@ export function PosCartRow(props: {
               </span>
             </>
           )}
-          <p className="min-w-[4.75rem] shrink-0 whitespace-nowrap text-right text-[0.8125rem] font-bold tabular-nums text-slate-900">{money(l.lineTotal, hidePrices)}</p>
+          <p className="min-w-[4.75rem] shrink-0 whitespace-nowrap text-end text-[0.8125rem] font-bold tabular-nums text-slate-900">{money(l.lineTotal, hidePrices)}</p>
           <span className={cn('shrink-0', active ? 'block' : 'hidden group-hover:block max-lg:block')}>{removeBtn}</span>
         </div>
-        {meta && <div className={cn(showImages && 'pl-8')}>{meta}</div>}
+        {meta && <div className={cn(showImages && 'ps-8')}>{meta}</div>}
       </li>
     );
   }
@@ -685,7 +686,7 @@ function NoteEdit({ initial, onCommit, onCancel }: { initial: string; onCommit: 
   const done = useRef(false);
   const commit = () => { if (done.current) return; done.current = true; onCommit(draft); };
   return (
-    <input autoFocus value={draft} maxLength={120} placeholder="Is cheez ka note — Enter se save" aria-label="Line note"
+    <input autoFocus value={draft} maxLength={120} placeholder={tr('Is cheez ka note — Enter se save')} aria-label={tr('Line note')}
       onClick={(e) => e.stopPropagation()} onChange={(e) => setDraft(e.target.value)}
       onKeyDown={(e) => {
         e.stopPropagation();

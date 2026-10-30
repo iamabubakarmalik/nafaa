@@ -17,6 +17,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { cleanModels } from '@core/lib/business-models';
 import { onboardingApi } from '@modules/onboarding/api/onboarding.api';
 import { subscriptionsApi } from '@modules/billing/subscriptions/api/subscriptions.api';
+import { msg, t } from '@core/i18n';
 
 const PACK_TO_BUSINESS_TYPE: ReadonlyArray<[packId: string, businessType: string]> = [
   ['retail', 'GROCERY'],
@@ -66,33 +67,34 @@ export interface IndustryChoice {
   color: string;
 }
 
+/** Labels are source text, translated when the cards are built; keywords stay as typed (search). */
 type Tailored = ReadonlyArray<[packId: string, label: string, keywords: string]>;
 
 /** Wholesale and distribution: what Pakistani distributors and wholesalers mostly deal in. */
 const SELLS_TO_SHOPS: Tailored = [
-  ['distribution', 'FMCG distributor', 'kiryana fmcg drinks snacks supply company'],
-  ['retail', 'Kiryana wholesale', 'grocery general store wholesale'],
-  ['pharmacy', 'Pharma / medicine', 'pharma medicine dawai'],
-  ['hardware', 'Hardware & paint', 'paint sanitary electric'],
-  ['garments', 'Kapra / textile', 'cloth textile clothing fabric'],
-  ['electronics', 'Electronics', 'gadgets'],
-  ['cosmetics', 'Cosmetics', 'beauty skincare'],
-  ['agri', 'Agri: khaad, beej', 'fertilizer seeds pesticide'],
-  ['autoparts', 'Auto parts', 'spare parts'],
-  ['mobile', 'Mobile & accessories', 'phone'],
-  ['bookstore', 'Stationery', 'books paper'],
+  ['distribution', msg('FMCG distributor'), 'kiryana fmcg drinks snacks supply company'],
+  ['retail', msg('Kiryana wholesale'), 'grocery general store wholesale'],
+  ['pharmacy', msg('Pharma / medicine'), 'pharma medicine dawai'],
+  ['hardware', msg('Hardware & paint'), 'paint sanitary electric'],
+  ['garments', msg('Kapra / textile'), 'cloth textile clothing fabric'],
+  ['electronics', msg('Electronics'), 'gadgets'],
+  ['cosmetics', msg('Cosmetics'), 'beauty skincare'],
+  ['agri', msg('Agri: khaad, beej'), 'fertilizer seeds pesticide'],
+  ['autoparts', msg('Auto parts'), 'spare parts'],
+  ['mobile', msg('Mobile & accessories'), 'phone'],
+  ['bookstore', msg('Stationery'), 'books paper'],
 ];
 
 /** Online sellers: what sells most on Daraz, Shopify, Instagram and WhatsApp. */
 const SELLS_ONLINE: Tailored = [
-  ['garments', 'Clothing / fashion', 'kapre clothes fashion'],
-  ['cosmetics', 'Cosmetics & skincare', 'beauty makeup'],
-  ['electronics', 'Electronics & gadgets', 'gadgets'],
-  ['mobile', 'Mobile & accessories', 'phone covers chargers'],
-  ['shoe', 'Shoes & bags', 'joote bags'],
-  ['jewelry', 'Jewellery', 'artificial gold'],
-  ['toystore', 'Toys & baby', 'kids baby'],
-  ['retail', 'Grocery / general', 'kiryana'],
+  ['garments', msg('Clothing / fashion'), 'kapre clothes fashion'],
+  ['cosmetics', msg('Cosmetics & skincare'), 'beauty makeup'],
+  ['electronics', msg('Electronics & gadgets'), 'gadgets'],
+  ['mobile', msg('Mobile & accessories'), 'phone covers chargers'],
+  ['shoe', msg('Shoes & bags'), 'joote bags'],
+  ['jewelry', msg('Jewellery'), 'artificial gold'],
+  ['toystore', msg('Toys & baby'), 'kids baby'],
+  ['retail', msg('Grocery / general'), 'kiryana'],
 ];
 
 /**
@@ -116,14 +118,14 @@ export function industryChoices(models?: readonly string[]): IndustryChoice[] {
     const front: IndustryChoice[] = [];
     for (const [packId, label, keywords] of tailored) {
       const c = list.find((x) => x.packId === packId);
-      if (c) front.push({ ...c, label, hint: `${c.label} ${c.hint ?? ''} ${keywords}` });
+      if (c) front.push({ ...c, label: t(label), hint: `${c.label} ${c.hint ?? ''} ${keywords}` });
     }
     ordered = [...front, ...list.filter((c) => !tailored.some(([id]) => id === c.packId))];
   }
   const general = industryIdentity('standard');
   return [
     ...ordered.map(({ businessType, label, hint, icon, color }) => ({ businessType, label, hint, icon, color })),
-    { businessType: GENERAL_TYPE, label: 'Koi aur kaam', hint: 'General store other', icon: general.icon, color: general.color },
+    { businessType: GENERAL_TYPE, label: t('Koi aur kaam'), hint: 'General store other kiryana' /* i18n-ignore: search words */, icon: general.icon, color: general.color },
   ];
 }
 

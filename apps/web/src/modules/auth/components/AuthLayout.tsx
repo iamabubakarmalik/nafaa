@@ -13,27 +13,29 @@ import { BarChart3, BookOpenCheck, Building2, CheckCircle2, Lock, WifiOff } from
 import { Logo } from '@core/components/brand/Logo';
 import { cn } from '@core/lib/cn';
 import { ThemeToggle } from './ThemeToggle';
+import { LanguageSwitch } from '@core/i18n/components/LanguagePicker';
+import { t } from '@core/i18n';
 
 type Side = 'signin' | 'signup';
 
 const POINTS: Record<Side, { title: ReactNode; text: string; items: Array<{ icon: typeof Lock; label: string; text: string }> }> = {
   signin: {
-    title: <>Aap ki dukaan,<br />aap ke haath me.</>,
-    text: 'Sale, stock, khata aur profit — sab ek jagah, har din ka pura hisaab.',
+    title: t('Aap ki dukaan,\naap ke haath me.'),
+    text: t('Sale, stock, khata aur profit — sab ek jagah, har din ka pura hisaab.'),
     items: [
-      { icon: WifiOff, label: 'Net ke bina bhi chalta hai', text: 'Sale ruk-ti nahi, net aate hi sab sync.' },
-      { icon: BookOpenCheck, label: 'Khata aur udhaar', text: 'Har customer ka hisaab saaf.' },
-      { icon: BarChart3, label: 'Net profit', text: 'Cost, expenses aur return ke baad.' },
-      { icon: Building2, label: 'Har branch alag', text: 'Ek account, kai dukaanen.' },
+      { icon: WifiOff, label: t('Net ke bina bhi chalta hai'), text: t('Sale ruk-ti nahi, net aate hi sab sync.') },
+      { icon: BookOpenCheck, label: t('Khata aur udhaar'), text: t('Har customer ka hisaab saaf.') },
+      { icon: BarChart3, label: t('Net profit'), text: t('Cost, expenses aur return ke baad.') },
+      { icon: Building2, label: t('Har branch alag'), text: t('Ek account, kai dukaanen.') },
     ],
   },
   signup: {
-    title: <>Do minute me<br />dukaan tayyar.</>,
-    text: 'Apna kaam chunein — Nafaa usi hisaab se screens, bill aur reports set kar deta hai.',
+    title: t('Do minute me\ndukaan tayyar.'),
+    text: t('Apna kaam chunein — Nafaa usi hisaab se screens, bill aur reports set kar deta hai.'),
     items: [
-      { icon: CheckCircle2, label: 'Aap ke kaam ke hisaab se', text: 'Pharmacy, kiryana, mobile, restaurant aur bohat kuch.' },
-      { icon: WifiOff, label: 'Net ke bina bhi', text: 'Sale chalti rahe, baad me sync.' },
-      { icon: Lock, label: 'Data mehfooz', text: 'Har login aur device ka record.' },
+      { icon: CheckCircle2, label: t('Aap ke kaam ke hisaab se'), text: t('Pharmacy, kiryana, mobile, restaurant aur bohat kuch.') },
+      { icon: WifiOff, label: t('Net ke bina bhi'), text: t('Sale chalti rahe, baad me sync.') },
+      { icon: Lock, label: t('Data mehfooz'), text: t('Har login aur device ka record.') },
     ],
   },
 };
@@ -50,8 +52,8 @@ export function AuthLayout({ children, side = 'signin', wide }: AuthLayoutProps)
   return (
     <div className="min-h-dvh bg-slate-50 lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
       <aside className="relative hidden overflow-hidden bg-brand-800 p-10 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-500 opacity-40 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-96 w-96 rounded-full bg-brand-600 opacity-50 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -end-24 -top-24 h-96 w-96 rounded-full bg-brand-500 opacity-40 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-32 -start-20 h-96 w-96 rounded-full bg-brand-600 opacity-50 blur-3xl" />
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
@@ -61,13 +63,13 @@ export function AuthLayout({ children, side = 'signin', wide }: AuthLayoutProps)
         <div className="relative flex items-center gap-3">
           <Logo size={44} />
           <div>
-            <div className="text-xl font-bold tracking-tight">Nafaa</div>
-            <div className="text-xs text-white/70">Dukaan ka pura hisaab</div>
+            <div className="text-xl font-bold tracking-tight">{t('Nafaa')}</div>
+            <div className="text-xs text-white/70">{t('Dukaan ka pura hisaab')}</div>
           </div>
         </div>
 
         <div className="relative max-w-md">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight xl:text-[2.75rem]">{copy.title}</h1>
+          <h1 className="whitespace-pre-line text-4xl font-bold leading-tight tracking-tight xl:text-[2.75rem]">{copy.title}</h1>
           <p className="mt-4 text-base leading-relaxed text-white/80">{copy.text}</p>
           <ul className="mt-8 space-y-3">
             {copy.items.map(({ icon: Icon, label, text }) => (
@@ -85,21 +87,24 @@ export function AuthLayout({ children, side = 'signin', wide }: AuthLayoutProps)
         </div>
 
         <div className="relative flex items-center justify-between text-xs text-white/70">
-          <span>© {new Date().getFullYear()} Nafaa</span>
+          <span>{t('© {{value}} Nafaa', { value: new Date().getFullYear() })}</span>
           <span className="flex items-center gap-3">
-            <Link to="/legal" className="hover:text-white">Privacy</Link>
-            <Link to="/legal" className="hover:text-white">Terms</Link>
+            <Link to="/legal" className="hover:text-white">{t('Privacy')}</Link>
+            <Link to="/legal" className="hover:text-white">{t('Terms')}</Link>
           </span>
         </div>
       </aside>
 
       <main className="flex min-h-dvh flex-col px-4 py-5 sm:px-8">
         <div className="flex items-center justify-between gap-3">
-          <Link to="/login" className="flex items-center gap-2 lg:invisible" aria-label="Nafaa">
+          <Link to="/login" className="flex shrink-0 items-center gap-2 lg:invisible" aria-label="Nafaa">{/* i18n-ignore: brand */}
             <Logo size={32} />
-            <span className="text-lg font-bold tracking-tight text-slate-900">Nafaa</span>
+            <span className="hidden text-lg font-bold tracking-tight text-slate-900 min-[420px]:inline">Nafaa</span>{/* i18n-ignore: brand */}
           </Link>
-          <ThemeToggle />
+          <div className="flex min-w-0 items-center gap-2">
+            <LanguageSwitch className="w-[13rem] sm:w-[14.5rem]" />
+            <ThemeToggle className="shrink-0" />
+          </div>
         </div>
 
         <div className={cn('mx-auto flex w-full flex-1 flex-col justify-center py-8', wide ? 'max-w-xl' : 'max-w-[26rem]')}>
@@ -107,7 +112,7 @@ export function AuthLayout({ children, side = 'signin', wide }: AuthLayoutProps)
         </div>
 
         <p className="flex items-center justify-center gap-1.5 text-center text-xs text-slate-500">
-          <Lock className="h-3 w-3" aria-hidden /> Mehfooz connection · aap ka password kabhi kisi ko nahi dikhta
+          <Lock className="h-3 w-3" aria-hidden /> {' '}{t('Mehfooz connection · aap ka password kabhi kisi ko nahi dikhta')}
         </p>
       </main>
     </div>
@@ -130,7 +135,7 @@ export function AuthHeading({ icon, title, subtitle }: { icon?: ReactNode; title
 }
 
 /** "ya" divider between Google and the email form. */
-export function OrDivider({ label = 'ya email se' }: { label?: string }) {
+export function OrDivider({ label = t('ya email se') }: { label?: string }) {
   return (
     <div className="relative my-5 flex items-center" role="separator">
       <div className="h-px flex-1 bg-slate-200" />

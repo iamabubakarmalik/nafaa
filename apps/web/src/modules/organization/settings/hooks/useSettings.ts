@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { settingsApi, type TenantSettings } from '@modules/organization/settings/api/settings.api';
 import { toast } from 'sonner';
+import { t } from '@core/i18n';
 
 export function useSettings(options: { enabled?: boolean; retry?: boolean | number } = {}) {
   return useQuery({
@@ -17,11 +18,11 @@ export function useUpdateSettings() {
     mutationFn: (data: Partial<TenantSettings>) => settingsApi.update(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['settings'] });
-      toast.success('Save ho gaya ✅');
+      toast.success(t('Save ho gaya ✅'));
     },
     onError: (e: any) => {
       const msg = e?.response?.data?.message;
-      toast.error(Array.isArray(msg) ? msg[0] : msg || 'Save fail ho gaya');
+      toast.error(Array.isArray(msg) ? msg[0] : msg || t('Save fail ho gaya'));
     },
   });
 }

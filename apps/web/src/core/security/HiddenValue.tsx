@@ -6,6 +6,7 @@ import { cn } from '@core/lib/cn';
 import { usePrivacyStore } from '../stores/privacy.store';
 import { usePermission } from '../hooks/usePermission';
 import { PERMISSIONS } from '../lib/permissions';
+import { t as tr } from '@core/i18n';
 
 /* Cost and profit hiding.
    Staff should see sale prices but not purchase cost. The owner unlocks cost
@@ -107,15 +108,15 @@ export function PrivacyToggle({ compact = false }: { compact?: boolean }) {
     }
     if (isUnlocked) {
       store.lock();
-      toast.success('🔒 Cost dobara chhup gayi');
+      toast.success(tr('🔒 Cost dobara chhup gayi'));
     } else {
       setShowPinPrompt(true);
     }
   };
 
   const label = !hasPin
-    ? (store.hideCost ? 'Cost chhupi' : 'Cost khuli')
-    : (isUnlocked ? 'Khula hai' : 'PIN Lock 🔒');
+    ? (store.hideCost ? tr('Cost chhupi') : tr('Cost khuli'))
+    : (isUnlocked ? tr('Khula hai') : tr('PIN Lock 🔒'));
 
   const Icon = !hasPin
     ? (store.hideCost ? EyeOff : Eye)
@@ -126,8 +127,8 @@ export function PrivacyToggle({ compact = false }: { compact?: boolean }) {
       <button
         onClick={onClick}
         title={hasPin
-          ? (isUnlocked ? 'Dobara lock karein' : 'PIN daal kar cost dekhein')
-          : (store.hideCost ? 'Cost dikhayein' : 'Cost chhupayein')}
+          ? (isUnlocked ? tr('Dobara lock karein') : tr('PIN daal kar cost dekhein'))
+          : (store.hideCost ? tr('Cost dikhayein') : tr('Cost chhupayein'))}
         type="button"
         className={cn(
           'inline-flex items-center gap-1.5 rounded-lg border text-xs font-semibold shadow-sm transition',
@@ -161,7 +162,7 @@ const onlyDigits = (v: string) => v.replace(/\D/g, '').slice(0, 8);
 /* ─────────────────── PIN prompt ─────────────────── */
 
 export function PinPromptModal({
-  onClose, onSuccess, title = 'Cost dekhne ke liye PIN', subtitle = 'Sirf malik ko dikhega',
+  onClose, onSuccess, title = tr('Cost dekhne ke liye PIN'), subtitle = tr('Sirf malik ko dikhega'),
 }: {
   onClose: () => void;
   onSuccess: () => void;
@@ -176,17 +177,17 @@ export function PinPromptModal({
   const [forgot, setForgot] = useState(false);
 
   const submit = async () => {
-    if (pin.length < 4) return setError('PIN kam se kam 4 hindson ka hai');
+    if (pin.length < 4) return setError(tr('PIN kam se kam 4 hindson ka hai'));
     setBusy(true);
     setError('');
     try {
       const ok = await store.verifyPin(pin);
       if (!ok) {
-        setError('Ghalat PIN');
+        setError(tr('Ghalat PIN'));
         return;
       }
       store.unlock(duration);
-      toast.success(`🔓 ${duration} minute ke liye cost khul gayi`);
+      toast.success(tr('🔓 {{duration}} minute ke liye cost khul gayi', { duration }));
       onSuccess();
     } finally {
       setBusy(false);
@@ -206,16 +207,16 @@ export function PinPromptModal({
       description={subtitle}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>Wapas</Button>
+          <Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button>
           <Button onClick={submit} loading={busy} disabled={pin.length < 4} leftIcon={<Unlock className="h-4 w-4" />}>
-            {duration} minute ke liye kholein
+            {tr('{{duration}} minute ke liye kholein', { duration })}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
         <Input
-          label="PIN"
+          label={tr('PIN')}
           autoFocus
           data-autofocus
           type="password"
@@ -230,7 +231,7 @@ export function PinPromptModal({
         />
 
         <div>
-          <div className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Kitni der ke liye khula rahe?</div>
+          <div className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{tr('Kitni der ke liye khula rahe?')}</div>
           <div className="grid grid-cols-4 gap-1.5">
             {[5, 15, 30, 60].map((m) => (
               <Button
@@ -240,7 +241,7 @@ export function PinPromptModal({
                 onClick={() => setDuration(m)}
                 aria-pressed={duration === m}
               >
-                {m < 60 ? `${m}m` : '1h'}
+                {m < 60 ? tr('{{m}}m', { m }) : '1h'}
               </Button>
             ))}
           </div>
@@ -251,7 +252,7 @@ export function PinPromptModal({
           onClick={() => setForgot(true)}
           className="inline-flex w-full items-center justify-center gap-1 text-xs font-medium text-slate-500 transition hover:text-brand-700"
         >
-          <HelpCircle className="h-3.5 w-3.5" /> PIN bhool gaye?
+          <HelpCircle className="h-3.5 w-3.5" /> {' '}{tr('PIN bhool gaye?')}
         </button>
       </div>
     </Modal>
@@ -269,17 +270,17 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
   const [error, setError] = useState('');
 
   const submit = async () => {
-    if (!password) return setError('Apna account password likhein');
-    if (newPin.length < 4) return setError('Naya PIN kam se kam 4 hindson ka ho');
-    if (newPin !== pin2) return setError('Dono PIN aik jaise nahi hain');
+    if (!password) return setError(tr('Apna account password likhein'));
+    if (newPin.length < 4) return setError(tr('Naya PIN kam se kam 4 hindson ka ho'));
+    if (newPin !== pin2) return setError(tr('Dono PIN aik jaise nahi hain'));
     setBusy(true);
     setError('');
     try {
       await store.resetPinWithPassword(password, newPin);
-      toast.success('Naya PIN set ho gaya ✓');
+      toast.success(tr('Naya PIN set ho gaya ✓'));
       onDone();
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'PIN reset nahi hua');
+      setError(e?.response?.data?.message || tr('PIN reset nahi hua'));
     } finally {
       setBusy(false);
     }
@@ -290,25 +291,25 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
       open
       onClose={onClose}
       size="sm"
-      title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-amber-600" />Password se naya PIN</span>}
-      description="Wohi password jis se aap login karte hain"
+      title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-amber-600" />{tr('Password se naya PIN')}</span>}
+      description={tr('Wohi password jis se aap login karte hain')}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>Wapas</Button>
+          <Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button>
           <Button
             onClick={submit}
             loading={busy}
             disabled={!password || newPin.length < 4 || newPin !== pin2}
             leftIcon={<KeyRound className="h-4 w-4" />}
           >
-            Naya PIN set karein
+            {tr('Naya PIN set karein')}
           </Button>
         </>
       }
     >
       <div className="space-y-3">
         <Input
-          label="Account password"
+          label={tr('Account password')}
           autoFocus
           data-autofocus
           type="password"
@@ -319,7 +320,7 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
         />
         <div className="grid grid-cols-2 gap-2">
           <Input
-            label="Naya PIN"
+            label={tr('Naya PIN')}
             type="password"
             inputMode="numeric"
             maxLength={8}
@@ -329,7 +330,7 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
             className={PIN_INPUT_SMALL}
           />
           <Input
-            label="Dobara likhein"
+            label={tr('Dobara likhein')}
             type="password"
             inputMode="numeric"
             maxLength={8}
@@ -342,7 +343,7 @@ export function ForgotPinModal({ onClose, onDone }: { onClose: () => void; onDon
         </div>
         {error && <p role="alert" className="text-center text-xs font-medium text-rose-600">{error}</p>}
         <p className="text-center text-xs leading-relaxed text-slate-500">
-          Password bhool gaye hain? Login safhe par "Password bhool gaye" se email par link aa jata hai.
+          {tr('Password bhool gaye hain? Login safhe par "Password bhool gaye" se email par link aa jata hai.')}
         </p>
       </div>
     </Modal>
@@ -362,17 +363,17 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
 
   const savePin = async () => {
-    if (pin.length < 4) return setError('PIN kam se kam 4 hindson ka ho');
-    if (pin !== pin2) return setError('Dono PIN aik jaise nahi hain');
-    if (hasPin && currentPin.length < 4) return setError('Purana PIN bhi likhein');
+    if (pin.length < 4) return setError(tr('PIN kam se kam 4 hindson ka ho'));
+    if (pin !== pin2) return setError(tr('Dono PIN aik jaise nahi hain'));
+    if (hasPin && currentPin.length < 4) return setError(tr('Purana PIN bhi likhein'));
     setBusy(true);
     setError('');
     try {
       await store.setPin(pin, hasPin ? currentPin : undefined);
-      toast.success(hasPin ? 'PIN badal gaya ✓' : '🔐 PIN set ho gaya — ab cost chhupi hai');
+      toast.success(hasPin ? tr('PIN badal gaya ✓') : tr('🔐 PIN set ho gaya — ab cost chhupi hai'));
       onClose();
     } catch (e: any) {
-      setError(e?.response?.data?.message || 'PIN save nahi hua');
+      setError(e?.response?.data?.message || tr('PIN save nahi hua'));
     } finally {
       setBusy(false);
     }
@@ -383,8 +384,8 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
     setError('');
     const ok = await store.removePin({ currentPin });
     setBusy(false);
-    if (!ok) return setError('Ghalat PIN');
-    toast.success('PIN hata diya — ab cost sab ko dikhegi');
+    if (!ok) return setError(tr('Ghalat PIN'));
+    toast.success(tr('PIN hata diya — ab cost sab ko dikhegi'));
     onClose();
   };
 
@@ -392,27 +393,27 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
     return <ForgotPinModal onClose={onClose} onDone={onClose} />;
   }
 
-  const heading = step === 'set' ? (hasPin ? 'PIN badlein' : 'PIN set karein')
-    : step === 'remove' ? 'PIN hatayein'
-      : 'PIN Settings';
+  const heading = step === 'set' ? (hasPin ? tr('PIN badlein') : tr('PIN set karein'))
+    : step === 'remove' ? tr('PIN hatayein')
+      : tr('PIN Settings');
 
   const footer = step === 'set' ? (
     <>
-      <Button variant="secondary" onClick={onClose}>Wapas</Button>
+      <Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button>
       <Button
         onClick={savePin}
         loading={busy}
         disabled={pin.length < 4 || pin !== pin2 || (hasPin && currentPin.length < 4)}
         leftIcon={<KeyRound className="h-4 w-4" />}
       >
-        PIN save karein
+        {tr('PIN save karein')}
       </Button>
     </>
   ) : step === 'remove' ? (
     <>
-      <Button variant="secondary" onClick={onClose}>Wapas</Button>
+      <Button variant="secondary" onClick={onClose}>{tr('Wapas')}</Button>
       <Button variant="danger" onClick={removePin} loading={busy} disabled={currentPin.length < 4} leftIcon={<Trash2 className="h-4 w-4" />}>
-        PIN hatayein
+        {tr('PIN hatayein')}
       </Button>
     </>
   ) : undefined;
@@ -423,7 +424,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       size="sm"
       title={<span className="inline-flex items-center gap-2"><KeyRound className="h-4 w-4 text-brand-600" />{heading}</span>}
-      description="Har device par yehi PIN chalega"
+      description={tr('Har device par yehi PIN chalega')}
       footer={footer}
     >
       <div className="space-y-3">
@@ -432,22 +433,22 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
             <MenuOption
               tone="brand"
               icon={<KeyRound className="h-5 w-5" />}
-              title="Naya PIN set karein"
-              hint="Purana PIN bhi likhna hoga"
+              title={tr('Naya PIN set karein')}
+              hint={tr('Purana PIN bhi likhna hoga')}
               onClick={() => setStep('set')}
             />
             <MenuOption
               tone="amber"
               icon={<HelpCircle className="h-5 w-5" />}
-              title="PIN bhool gaye?"
-              hint="Account password se naya PIN"
+              title={tr('PIN bhool gaye?')}
+              hint={tr('Account password se naya PIN')}
               onClick={() => setStep('forgot')}
             />
             <MenuOption
               tone="rose"
               icon={<Trash2 className="h-5 w-5" />}
-              title="PIN hatayein"
-              hint="Cost sab ko dikhne lagegi, page lock bhi hat jayenge"
+              title={tr('PIN hatayein')}
+              hint={tr('Cost sab ko dikhne lagegi, page lock bhi hat jayenge')}
               onClick={() => setStep('remove')}
             />
           </>
@@ -457,7 +458,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
           <>
             {hasPin && (
               <Input
-                label="Purana PIN"
+                label={tr('Purana PIN')}
                 autoFocus
                 data-autofocus
                 type="password"
@@ -470,7 +471,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
               />
             )}
             <Input
-              label="Naya PIN (4-8 hindsay)"
+              label={tr('Naya PIN (4-8 hindsay)')}
               autoFocus={!hasPin}
               data-autofocus={hasPin ? undefined : true}
               type="password"
@@ -482,7 +483,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
               className={PIN_INPUT}
             />
             <Input
-              label="Dobara likhein"
+              label={tr('Dobara likhein')}
               type="password"
               inputMode="numeric"
               maxLength={8}
@@ -494,8 +495,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
             />
             {error && <p role="alert" className="text-center text-xs font-medium text-rose-600">{error}</p>}
             <div className="rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
-              🔐 Ye PIN server par mehfooz hai — aap jis bhi mobile ya computer se login karein, wohi PIN chalega.
-              Kisi ko bata dein to wo bhi apne phone se cost dekh sakega.
+              {tr('🔐 Ye PIN server par mehfooz hai — aap jis bhi mobile ya computer se login karein, wohi PIN chalega. Kisi ko bata dein to wo bhi apne phone se cost dekh sakega.')}
             </div>
             {hasPin && (
               <button
@@ -503,7 +503,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
                 onClick={() => setStep('forgot')}
                 className="w-full text-xs font-medium text-slate-500 transition hover:text-brand-700"
               >
-                Purana PIN yaad nahi? Password se badlein
+                {tr('Purana PIN yaad nahi? Password se badlein')}
               </button>
             )}
           </>
@@ -511,7 +511,7 @@ export function PinSetupModal({ onClose }: { onClose: () => void }) {
 
         {step === 'remove' && (
           <Input
-            label="Mojooda PIN"
+            label={tr('Mojooda PIN')}
             autoFocus
             data-autofocus
             type="password"
@@ -545,7 +545,7 @@ function MenuOption({ tone, icon, title, hint, onClick }: {
 }) {
   const t = MENU_TONES[tone];
   return (
-    <button type="button" onClick={onClick} className={cn('flex w-full items-center gap-3 rounded-xl border p-3.5 text-left transition', t.box)}>
+    <button type="button" onClick={onClick} className={cn('flex w-full items-center gap-3 rounded-xl border p-3.5 text-start transition', t.box)}>
       <span className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white', t.icon)}>{icon}</span>
       <span>
         <span className={cn('block text-sm font-semibold', t.title)}>{title}</span>
@@ -563,7 +563,7 @@ export function PinSettingsButton() {
   return (
     <>
       <Button variant="secondary" onClick={() => setOpen(true)} leftIcon={<KeyRound className="h-4 w-4 text-brand-600" />}>
-        {hasPin ? 'PIN Settings' : 'Cost PIN Set Karein'}
+        {hasPin ? tr('PIN Settings') : tr('Cost PIN Set Karein')}
       </Button>
       {open && <PinSetupModal onClose={() => setOpen(false)} />}
     </>

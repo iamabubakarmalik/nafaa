@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { UserCheck, ChevronDown } from 'lucide-react';
 import { commissionApi } from '@modules/hr/commission/api/commission.api';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t, Trans } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
    BIKRI KIS KE NAAM
@@ -56,10 +57,10 @@ export function PosSellerPicker({
     return (
       <label className="flex h-9 items-center gap-2 rounded-lg bg-slate-100/70 px-2.5 text-[0.8125rem]">
         <UserCheck className={`h-4 w-4 shrink-0 ${isMe ? 'text-slate-400' : 'text-success-600'}`} />
-        <span className="shrink-0 text-slate-500">Sale</span>
-        <select value={current} onChange={(e) => onChange(e.target.value || undefined)} aria-label="Sale kis ke naam"
+        <span className="shrink-0 text-slate-500">{t('Sale')}</span>
+        <select value={current} onChange={(e) => onChange(e.target.value || undefined)} aria-label={t('Sale kis ke naam')}
           className="min-w-0 flex-1 cursor-pointer appearance-none truncate bg-transparent font-medium text-slate-900 outline-none">
-          {me?.id && <option value={me.id}>{meSeller?.name ?? me.fullName ?? 'Main'} (main)</option>}
+          {me?.id && <option value={me.id}>{t('{{value}} (main)', { value: meSeller?.name ?? me.fullName ?? 'Main' })}</option>}
           {sellers.filter((p) => p.userId !== me?.id).map((p) => <option key={p.userId} value={p.userId}>{p.name}</option>)}
         </select>
         <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
@@ -70,16 +71,16 @@ export function PosSellerPicker({
   return (
     <div className="mt-2">
       <label className="block mb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-ink-400">
-        Sale kis ke naam
+        {t('Sale kis ke naam')}
       </label>
       <div className="relative">
-        <UserCheck className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none ${
+        <UserCheck className={`absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none ${
           isMe ? 'text-slate-400' : 'text-emerald-600'
         }`} />
         <select
           value={current}
           onChange={(e) => onChange(e.target.value || undefined)}
-          className={`h-11 w-full rounded-xl border bg-white dark:bg-ink-800 pl-9 pr-8 text-sm font-bold text-slate-900 dark:text-ink-white appearance-none focus:outline-none transition ${
+          className={`h-11 w-full rounded-xl border bg-white dark:bg-ink-800 ps-9 pe-8 text-sm font-bold text-slate-900 dark:text-ink-white appearance-none focus:outline-none transition ${
             isMe
               ? 'border-slate-200 dark:border-ink-700 focus:border-sky-500'
               : 'border-emerald-400 dark:border-emerald-500/60 focus:border-emerald-500'
@@ -88,7 +89,7 @@ export function PosSellerPicker({
           {/* Apna naam hamesha pehle — aam din yehi chuna rehta hai */}
           {me?.id && (
             <option value={me.id}>
-              {meSeller?.name ?? me.fullName ?? 'Main'} (main khud)
+              {t('{{value}} (main khud)', { value: meSeller?.name ?? me.fullName ?? 'Main' })}
             </option>
           )}
           {sellers
@@ -97,16 +98,16 @@ export function PosSellerPicker({
               <option key={p.userId} value={p.userId}>{p.name}</option>
             ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+        <ChevronDown className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
       </div>
       {!isMe && chosen && (
         <p className="mt-1 text-[0.6875rem] font-semibold text-emerald-700 dark:text-emerald-400">
-          Is bill ki commission <strong>{chosen.name}</strong> ko jayegi
+          <Trans text="Is bill ki commission {{name}} ko jayegi" values={{ name: <strong>{chosen.name}</strong> }} />
         </p>
       )}
       {isMe && !meSeller && (
         <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
-          Aap par commission chaalu nahi — is bill ki koi commission nahi banegi
+          {t('Aap par commission chaalu nahi — is bill ki koi commission nahi banegi')}
         </p>
       )}
     </div>

@@ -29,6 +29,7 @@ import { onlineOrdersApi } from '@integrations/online-orders/api/online-orders.a
 import { useDistributionState } from '@modules/distribution/hooks/useDistribution';
 import { useMasked } from '../engine/useMasked';
 import { MetricTile, WidgetCard } from '../engine/parts';
+import { t as tr } from '@core/i18n';
 
 export function BusinessModelStrip() {
   const { sellsOnline, sellsToShops } = useBusinessModels();
@@ -68,26 +69,26 @@ function OnlinePanel() {
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-sky-700 ring-1 ring-sky-200"><Globe className="h-5 w-5" /></span>
           <div className="min-w-0">
-            <h2 className="text-[0.9375rem] font-semibold text-slate-900">Connect your first channel</h2>
+            <h2 className="text-[0.9375rem] font-semibold text-slate-900">{tr('Connect your first channel')}</h2>
             <p className="mt-0.5 text-[0.8125rem] leading-snug text-slate-600">
-              Online orders seedha Nafaa me aayenge, stock khud kam hoga aur har order ka profit dikhega.
+              {tr('Online orders seedha Nafaa me aayenge, stock khud kam hoga aur har order ka profit dikhega.')}
             </p>
           </div>
         </div>
         <ol className="grid gap-1 text-[0.75rem] text-slate-600 sm:grid-cols-3">
-          {['Channel chunein', 'Login karke Connect', 'Products match — bas'].map((t, i) => (
+          {[tr('Channel chunein'), tr('Login karke Connect'), tr('Products match — bas')].map((t, i) => (
             <li key={t} className="flex items-center gap-1.5">
               <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-sky-600 text-[0.625rem] font-bold text-white">{i + 1}</span>{t}
             </li>
           ))}
         </ol>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5" aria-label="Shopify, WooCommerce, Daraz, website, WhatsApp">
+          <div className="flex items-center gap-1.5" aria-label={tr('Shopify, WooCommerce, Daraz, website, WhatsApp')}>
             {CHANNEL_LOGOS.map((b) => <BrandLogo key={b} name={b} size={26} />)}
           </div>
           {canConnect
-            ? <Link to="/online-store/connect"><Button size="sm" leftIcon={<Plus className="h-4 w-4" />}>Connect channel</Button></Link>
-            : <span className="text-xs text-slate-500">Dukaan ke malik se kahein</span>}
+            ? <Link to="/online-store/connect"><Button size="sm" leftIcon={<Plus className="h-4 w-4" />}>{tr('Connect channel')}</Button></Link>
+            : <span className="text-xs text-slate-500">{tr('Dukaan ke malik se kahein')}</span>}
         </div>
       </section>
     );
@@ -97,11 +98,11 @@ function OnlinePanel() {
   const s = orders.data?.stats;
   const waiting = orders.data?.counts?.PENDING ?? 0;
   return (
-    <WidgetCard title="Online store — aaj" icon={ShoppingBag} to="/online-orders" linkLabel="Orders" className="h-auto">
+    <WidgetCard title={tr('Online store — aaj')} icon={ShoppingBag} to="/online-orders" linkLabel={tr('Orders')} className="h-auto">
       <div className="grid grid-cols-3 gap-2">
-        <MetricTile icon={ShoppingBag} tone="info" label="Orders" value={orders.isLoading ? '…' : String(s?.todayOrders ?? 0)} hint={sales(s?.todayValue ?? 0)} to="/online-orders" />
-        <MetricTile icon={Clock} tone={waiting ? 'warning' : 'neutral'} label="Naye, baqi" value={orders.isLoading ? '…' : String(waiting)} hint="Accept karein" to="/online-orders" alert={waiting > 0} />
-        <MetricTile icon={Wallet} tone="brand" label="COD aana hai" value={orders.isLoading ? '…' : String(s?.codDueCount ?? 0)} hint={sales(s?.codDueValue ?? 0)} to="/online-orders/cod" />
+        <MetricTile icon={ShoppingBag} tone="info" label={tr('Orders')} value={orders.isLoading ? '…' : String(s?.todayOrders ?? 0)} hint={sales(s?.todayValue ?? 0)} to="/online-orders" />
+        <MetricTile icon={Clock} tone={waiting ? 'warning' : 'neutral'} label={tr('Naye, baqi')} value={orders.isLoading ? '…' : String(waiting)} hint={tr('Accept karein')} to="/online-orders" alert={waiting > 0} />
+        <MetricTile icon={Wallet} tone="brand" label={tr('COD aana hai')} value={orders.isLoading ? '…' : String(s?.codDueCount ?? 0)} hint={sales(s?.codDueValue ?? 0)} to="/online-orders/cod" />
       </div>
     </WidgetCard>
   );
@@ -126,18 +127,18 @@ function WholesalePanel({ distributor }: { distributor: boolean }) {
           </span>
           <div className="min-w-0">
             <h2 className="text-[0.9375rem] font-semibold text-slate-900">
-              {plan ? `${wantsFull ? 'Distribution' : 'Wholesale'} tools aap ke plan me nahi` : 'Distribution band hai'}
+              {plan ? tr('{{value}} tools aap ke plan me nahi', { value: wantsFull ? tr('Distribution') : tr('Wholesale') }) : tr('Distribution band hai')}
             </h2>
             <p className="mt-0.5 text-[0.8125rem] leading-snug text-slate-600">
               {plan
-                ? `Price list, order, udhaar ki limit aur recovery${wantsFull ? ', booker app aur load sheet' : ''} — plan upgrade karte hi chalu.${data?.access.planName ? ` Abhi: ${data.access.planName}.` : ''}`
-                : 'Settings me Distribution on karein — phir order, price list aur recovery yahan milenge.'}
+                ? tr('Price list, order, udhaar ki limit aur recovery{{value}} — plan upgrade karte hi chalu.{{value2}}', { value: wantsFull ? tr(', booker app aur load sheet') : '', value2: data?.access.planName ? tr(' Abhi: {{planName}}.', { planName: data.access.planName }) : '' })
+                : tr('Settings me Distribution on karein — phir order, price list aur recovery yahan milenge.')}
             </p>
           </div>
         </div>
         <div className="flex justify-end">
-          {plan && canPlans && <Link to="/plans"><Button size="sm" rightIcon={<ArrowRight className="h-4 w-4" />}>See plans</Button></Link>}
-          {!plan && canSettings && <Link to="/settings/distribution"><Button size="sm" leftIcon={<Power className="h-4 w-4" />}>Turn on</Button></Link>}
+          {plan && canPlans && <Link to="/plans"><Button size="sm" rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>{tr('See plans')}</Button></Link>}
+          {!plan && canSettings && <Link to="/settings/distribution"><Button size="sm" leftIcon={<Power className="h-4 w-4" />}>{tr('Turn on')}</Button></Link>}
         </div>
       </section>
     );
@@ -146,15 +147,15 @@ function WholesalePanel({ distributor }: { distributor: boolean }) {
   if (!canOrders) return null;
   const full = data?.settings.mode !== 'WHOLESALE';
   const links = [
-    { to: '/distribution/orders', icon: Truck, label: 'Orders', hint: 'Book, approve, Invoice' },
-    { to: '/distribution/price-lists', icon: Tag, label: 'Price lists', hint: 'Har group ka rate' },
-    { to: '/distribution/recoveries', icon: HandCoins, label: 'Recoveries', hint: 'Udhaar wasooli' },
+    { to: '/distribution/orders', icon: Truck, label: tr('Orders'), hint: tr('Book, approve, Invoice') },
+    { to: '/distribution/price-lists', icon: Tag, label: tr('Price lists'), hint: tr('Har group ka rate') },
+    { to: '/distribution/recoveries', icon: HandCoins, label: tr('Recoveries'), hint: tr('Udhaar wasooli') },
     full
-      ? { to: '/distribution/load-sheets', icon: Truck, label: 'Load sheets', hint: 'Gaari aur delivery' }
-      : { to: '/distribution/schemes', icon: BadgePercent, label: 'Schemes', hint: '10+1, % off' },
+      ? { to: '/distribution/load-sheets', icon: Truck, label: tr('Load sheets'), hint: tr('Gaari aur delivery') }
+      : { to: '/distribution/schemes', icon: BadgePercent, label: tr('Schemes'), hint: tr('10+1, % off') },
   ];
   return (
-    <WidgetCard title={full ? 'Distribution' : 'Wholesale'} icon={Warehouse} to="/distribution" linkLabel="Dashboard" className="h-auto">
+    <WidgetCard title={full ? tr('Distribution') : tr('Wholesale')} icon={Warehouse} to="/distribution" linkLabel={tr('Dashboard')} className="h-auto">
       <div className="grid grid-cols-2 gap-2">
         {links.map((l) => (
           <Link key={l.to} to={l.to} className="flex items-center gap-2.5 rounded-lg border border-slate-200 p-2.5 transition hover:border-slate-300 hover:bg-slate-50">

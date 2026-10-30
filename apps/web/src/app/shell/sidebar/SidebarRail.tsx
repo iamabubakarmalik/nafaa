@@ -17,6 +17,7 @@ import { useFavorites, useRecentPaths } from '../navigation/useNavMemory';
 import { BrandMark } from './BrandMark';
 import { CountPill, ItemBadge, OnlineOrdersCount } from './NavBadges';
 import type { SidebarProps } from './Sidebar';
+import { t } from '@core/i18n';
 
 type Flyout = { key: string; top: number; label: string; group?: NavGroup };
 
@@ -85,8 +86,8 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
       <button
         type="button"
         onClick={onToggleCollapse}
-        aria-label="Expand sidebar (Ctrl+B)"
-        onMouseEnter={(e) => show('brand', e.currentTarget, 'Expand sidebar  Ctrl+B')}
+        aria-label={t('Expand sidebar (Ctrl+B)')}
+        onMouseEnter={(e) => show('brand', e.currentTarget, t('Expand sidebar (Ctrl+B)'))}
         onMouseLeave={hideSoon}
         className="group relative mb-1 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
       >
@@ -144,12 +145,12 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
       </div>
 
       <div className="flex shrink-0 flex-col items-center gap-1 border-t border-shell-line px-2 pt-2">
-        <NavLink to={settingsHome} aria-label="Settings" className={railButton(isSettingsPath(location.pathname))}
-          onMouseEnter={(e) => show('settings', e.currentTarget, 'Settings')} onMouseLeave={hideSoon}>
+        <NavLink to={settingsHome} aria-label={t('Settings')} className={railButton(isSettingsPath(location.pathname))}
+          onMouseEnter={(e) => show('settings', e.currentTarget, t('Settings'))} onMouseLeave={hideSoon}>
           <Settings className="h-[1.125rem] w-[1.125rem]" />
         </NavLink>
-        <NavLink to="/help" aria-label="Help center" className={railButton(isActivePath(location.pathname, '/help'))}
-          onMouseEnter={(e) => show('help', e.currentTarget, 'Help center')} onMouseLeave={hideSoon}>
+        <NavLink to="/help" aria-label={t('Help center')} className={railButton(isActivePath(location.pathname, '/help'))}
+          onMouseEnter={(e) => show('help', e.currentTarget, t('Help center'))} onMouseLeave={hideSoon}>
           <HelpCircle className="h-[1.125rem] w-[1.125rem]" />
         </NavLink>
       </div>
@@ -182,7 +183,7 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
                       key={it.to}
                       onClick={() => { navigate(it.to); setFly(null); }}
                       className={cn(
-                        'flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[0.84375rem] transition-colors',
+                        'flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-start text-[0.84375rem] transition-colors',
                         active
                           ? 'bg-brand-50 font-semibold text-slate-900 dark:bg-brand-500/10 dark:text-ink-white'
                           : 'font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-ink-300 dark:hover:bg-ink-800/60 dark:hover:text-ink-white',

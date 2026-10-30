@@ -18,13 +18,14 @@ import { db } from '@core/lib/offline/db';
 import { cn } from '@core/lib/cn';
 import { Button } from '@/design-system/components';
 import { Panel, useDismiss } from '../ui';
+import { t } from '@core/i18n';
 
 function formatRelativeTime(ts: number | null): string {
-  if (!ts) return 'Never';
+  if (!ts) return t('Never');
   const diff = Date.now() - ts;
-  if (diff < 60_000) return 'Just now';
-  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} min ago`;
-  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} hr ago`;
+  if (diff < 60_000) return t('Just now');
+  if (diff < 3_600_000) return t('{{value}} min ago', { value: Math.floor(diff / 60_000) });
+  if (diff < 86_400_000) return t('{{value}} hr ago', { value: Math.floor(diff / 3_600_000) });
   return new Date(ts).toLocaleDateString('en-PK');
 }
 
@@ -68,11 +69,11 @@ export function SyncStatusIndicator() {
         : pending ? 'pending'
           : 'synced';
 
-  const label = state === 'syncing' ? (status.progress ? `${status.progress.done}/${status.progress.total}` : 'Syncing…')
-    : state === 'offline' ? 'Offline'
-      : state === 'pending' ? (isOnline ? `${pending} pending` : `Offline · ${pending}`)
-        : state === 'failed' ? (failed ? `${status.failedTotal} failed` : 'Sync error')
-          : 'Synced';
+  const label = state === 'syncing' ? (status.progress ? `${status.progress.done}/${status.progress.total}` : t('Syncing…'))
+    : state === 'offline' ? t('Offline')
+      : state === 'pending' ? (isOnline ? t('{{pending}} pending', { pending }) : t('Offline · {{pending}}', { pending }))
+        : state === 'failed' ? (failed ? t('{{failedTotal}} failed', { failedTotal: status.failedTotal }) : t('Sync error'))
+          : t('Synced');
 
   const icon = state === 'syncing' ? <RefreshCw className="h-3.5 w-3.5 animate-spin" />
     : state === 'offline' || (state === 'pending' && !isOnline) ? <WifiOff className="h-3.5 w-3.5" />
@@ -81,7 +82,7 @@ export function SyncStatusIndicator() {
           : <Check className="h-3.5 w-3.5 text-success-600" />;
 
   const syncNow = async () => {
-    if (!isOnline) { toast.error('Connect to the internet first'); return; }
+    if (!isOnline) { toast.error(t('Connect to the internet first')); return; }
     await fullSync(false, true);
   };
 
@@ -91,7 +92,7 @@ export function SyncStatusIndicator() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={`Sync status: ${label}`}
+        aria-label={t('Sync status: {{label}}', { label })}
         title={label}
         className={cn(
           'relative inline-flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-[0.8125rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
@@ -106,20 +107,20 @@ export function SyncStatusIndicator() {
           </span>
         )}
         {pending > 0 && !status.isSyncing && (
-          <span className="absolute -right-1.5 -top-1.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[0.625rem] font-bold tabular-nums text-white ring-2 ring-shell-bar xl:hidden">
+          <span className="absolute -end-1.5 -top-1.5 flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-amber-500 px-1 text-[0.625rem] font-bold tabular-nums text-white ring-2 ring-shell-bar xl:hidden">
             {pending > 9 ? '9+' : pending}
           </span>
         )}
       </button>
 
-      <Panel open={open} onClose={close} widthClass="sm:w-[20rem]" label="Sync status">
+      <Panel open={open} onClose={close} widthClass="sm:w-[20rem]" label={t('Sync status')}>
         <div className="flex items-center gap-3 px-4 pb-3 pt-3">
           <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', isOnline ? 'bg-success-50 text-success-600' : 'bg-amber-50 text-amber-600')}>
             {isOnline ? <Wifi className="h-[1.125rem] w-[1.125rem]" /> : <WifiOff className="h-[1.125rem] w-[1.125rem]" />}
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-[0.9375rem] font-semibold text-slate-900">{isOnline ? 'Connected' : 'Offline mode'}</h2>
-            <p className="text-[0.75rem] text-slate-500">{isOnline ? 'Changes sync automatically' : 'Keep selling — data is saved on this device'}</p>
+            <h2 className="text-[0.9375rem] font-semibold text-slate-900">{isOnline ? t('Connected') : t('Offline mode')}</h2>
+            <p className="text-[0.75rem] text-slate-500">{isOnline ? t('Changes sync automatically') : t('Keep selling — data is saved on this device')}</p>
           </div>
         </div>
 
@@ -127,7 +128,7 @@ export function SyncStatusIndicator() {
           {status.isSyncing && status.progress && status.progress.total > 0 && (
             <div>
               <div className="mb-1 flex justify-between text-[0.75rem] font-medium text-slate-600">
-                <span>Uploading</span>
+                <span>{t('Uploading')}</span>
                 <span className="tabular-nums">{status.progress.done} / {status.progress.total}</span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
@@ -138,9 +139,9 @@ export function SyncStatusIndicator() {
 
           <dl className="grid grid-cols-3 gap-2 text-center">
             {[
-              ['Last sync', formatRelativeTime(status.lastSync)],
-              ['Products', cached.products.toLocaleString('en-PK')],
-              ['Customers', cached.customers.toLocaleString('en-PK')],
+              [t('Last sync'), formatRelativeTime(status.lastSync)],
+              [t('Products'), cached.products.toLocaleString('en-PK')],
+              [t('Customers'), cached.customers.toLocaleString('en-PK')],
             ].map(([term, value]) => (
               <div key={term} className="flex flex-col-reverse rounded-lg bg-slate-50 px-2 py-2 ring-1 ring-inset ring-slate-200">
                 <dt className="text-[0.6875rem] text-slate-500">{term}</dt>
@@ -149,19 +150,19 @@ export function SyncStatusIndicator() {
             ))}
           </dl>
           <p className="flex items-center gap-1.5 text-[0.75rem] text-slate-500">
-            <Database className="h-3.5 w-3.5 shrink-0" /> Products and customers are cached for offline selling.
+            <Database className="h-3.5 w-3.5 shrink-0" /> {' '}{t('Products and customers are cached for offline selling.')}
           </p>
 
           {pending > 0 && (
             <div className="rounded-lg bg-amber-50 px-3 py-2.5 ring-1 ring-inset ring-amber-200">
               <div className="flex items-center gap-2 text-[0.8125rem] font-semibold text-amber-800">
-                <CloudUpload className="h-4 w-4" /> Waiting to upload
+                <CloudUpload className="h-4 w-4" /> {' '}{t('Waiting to upload')}
               </div>
               <div className="mt-1.5 space-y-1 text-[0.75rem] text-amber-800">
-                {status.pendingSales > 0 && <div className="flex justify-between"><span>Sales</span><span className="font-semibold tabular-nums">{status.pendingSales}</span></div>}
-                {status.pendingQueue > 0 && <div className="flex justify-between"><span>Other changes</span><span className="font-semibold tabular-nums">{status.pendingQueue}</span></div>}
+                {status.pendingSales > 0 && <div className="flex justify-between"><span>{t('Sales')}</span><span className="font-semibold tabular-nums">{status.pendingSales}</span></div>}
+                {status.pendingQueue > 0 && <div className="flex justify-between"><span>{t('Other changes')}</span><span className="font-semibold tabular-nums">{status.pendingQueue}</span></div>}
               </div>
-              {!isOnline && <p className="mt-1.5 text-[0.75rem] text-amber-700">They upload by themselves when the internet is back.</p>}
+              {!isOnline && <p className="mt-1.5 text-[0.75rem] text-amber-700">{t('They upload by themselves when the internet is back.')}</p>}
             </div>
           )}
 
@@ -169,22 +170,22 @@ export function SyncStatusIndicator() {
             <Link to="/sync" onClick={close} className="block rounded-lg bg-rose-50 px-3 py-2.5 ring-1 ring-inset ring-rose-200 transition hover:bg-rose-100">
               <div className="flex items-center gap-2 text-[0.8125rem] font-semibold text-rose-700">
                 <AlertCircle className="h-4 w-4" />
-                {failed ? `${status.failedTotal} item${status.failedTotal > 1 ? 's' : ''} failed` : 'Last sync error'}
-                <ArrowRight className="ml-auto h-3.5 w-3.5" />
+                {failed ? t('{{count}} items failed', { count: status.failedTotal }) : t('Last sync error')}
+                <ArrowRight className="ms-auto h-3.5 w-3.5 rtl-flip" />
               </div>
-              <p className="mt-1 line-clamp-2 text-[0.75rem] text-rose-700">{failed ? 'Review them in the Sync Center.' : status.lastError}</p>
+              <p className="mt-1 line-clamp-2 text-[0.75rem] text-rose-700">{failed ? t('Review them in the Sync Center.') : status.lastError}</p>
             </Link>
           )}
 
           <Button size="sm" fullWidth onClick={syncNow} disabled={!isOnline || status.isSyncing}
             leftIcon={<RefreshCw className={cn('h-4 w-4', status.isSyncing && 'animate-spin')} />}>
-            {status.isSyncing ? 'Syncing…' : 'Sync now'}
+            {status.isSyncing ? t('Syncing…') : t('Sync now')}
           </Button>
         </div>
 
         <Link to="/sync" onClick={close}
           className="flex items-center justify-center gap-1 border-t border-slate-200 px-4 py-2.5 text-[0.8125rem] font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
-          Open Sync Center <ArrowRight className="h-3.5 w-3.5" />
+          {t('Open Sync Center')}{' '} <ArrowRight className="h-3.5 w-3.5 rtl-flip" />
         </Link>
       </Panel>
     </div>

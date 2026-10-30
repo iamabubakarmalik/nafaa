@@ -12,6 +12,7 @@ import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { PRICE_TIER_LABEL, tierPrice, type PriceTier } from '@core/lib/priceTiers';
 import type { PosCartLine } from '../lib/posCart';
+import { t as tr } from '@core/i18n';
 
 const ICON: Record<PriceTier, typeof Store> = { RETAIL: Store, WHOLESALE: Truck, CREDIT: BookOpen };
 
@@ -35,14 +36,14 @@ export function PosTierBar({ tier, choices, canPick, onPick, udhaar, udhaarExtra
   const shown: PriceTier = udhaar ? 'CREDIT' : tier;
   return (
     <div className={cn('rounded-xl p-1 ring-1 transition-colors', TIER_TINT[shown].bar)}>
-      <div role="radiogroup" aria-label="Price tier (Alt+T)" className="flex items-center gap-1">
+      <div role="radiogroup" aria-label={tr('Price tier (Alt+T)')} className="flex items-center gap-1">
         {choices.map((t) => {
           const Icon = ICON[t];
           const locked = !canPick(t);
           const active = t === tier;
           return (
             <button key={t} type="button" role="radio" aria-checked={active} disabled={locked && !active}
-              title={locked ? 'Price tier badalne ki permission nahi' : `${PRICE_TIER_LABEL[t]} price (Alt+T)`}
+              title={locked ? tr('Price tier badalne ki permission nahi') : tr('{{value}} price (Alt+T)', { value: PRICE_TIER_LABEL[t] })}
               onClick={() => onPick(t)}
               className={cn('inline-flex h-8 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-2 text-[0.8125rem] font-semibold transition',
                 active ? TIER_TINT[t].on : 'text-slate-600 hover:bg-white/70 hover:text-slate-900',
@@ -56,7 +57,7 @@ export function PosTierBar({ tier, choices, canPick, onPick, udhaar, udhaarExtra
       </div>
       {udhaar && tier !== 'CREDIT' && (
         <p className="px-1.5 pb-0.5 pt-1 text-[0.75rem] font-medium text-amber-900">
-          Udhaar bill: Credit price lag gayi{udhaarExtra > 0.005 && !hidePrices ? ` (+${formatPKR(udhaarExtra)})` : ''}
+          {tr('Udhaar bill: Credit price lag gayi{{value}}', { value: udhaarExtra > 0.005 && !hidePrices ? ` (+${formatPKR(udhaarExtra)})` : '' })}
         </p>
       )}
     </div>
@@ -86,24 +87,24 @@ export function PosLineTier({ line, billTier, choices, canPick, onPick, editable
     return () => window.removeEventListener('mousedown', close);
   }, [open]);
   const tier = line.priceTier ?? 'RETAIL';
-  const label = `${PRICE_TIER_LABEL[tier]} price${line.tierLocked && tier !== billTier ? ' (sirf ye line)' : ''}`;
+  const label = tr('{{value}} price{{value2}}', { value: PRICE_TIER_LABEL[tier], value2: line.tierLocked && tier !== billTier ? tr(' (sirf ye line)') : '' });
   if (!editable || !line.tierSrc) {
     return <span className={cn('inline-flex h-5 items-center rounded-full px-1.5 text-[0.6875rem] font-semibold ring-1', TIER_TINT[tier].chip)}>{label}</span>;
   }
   return (
     <div ref={box} className="relative inline-block">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} title="Is line ki price tier (T)"
-        className={cn('inline-flex h-5 items-center gap-0.5 rounded-full pl-1.5 pr-1 text-[0.6875rem] font-semibold ring-1', TIER_TINT[tier].chip)}>
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-haspopup="menu" aria-expanded={open} title={tr('Is line ki price tier (T)')}
+        className={cn('inline-flex h-5 items-center gap-0.5 rounded-full ps-1.5 pe-1 text-[0.6875rem] font-semibold ring-1', TIER_TINT[tier].chip)}>
         {label}<ChevronDown className="h-3 w-3" />
       </button>
       {open && (
-        <div role="menu" className="absolute left-0 top-6 z-20 w-48 overflow-hidden rounded-lg bg-white py-1 shadow-lg ring-1 ring-slate-200">
+        <div role="menu" className="absolute start-0 top-6 z-20 w-48 overflow-hidden rounded-lg bg-white py-1 shadow-lg ring-1 ring-slate-200">
           {choices.map((t) => {
             const locked = !canPick(t);
             return (
               <button key={t} type="button" role="menuitemradio" aria-checked={t === tier} disabled={locked}
                 onClick={() => { setOpen(false); onPick(t); }}
-                className={cn('flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-[0.8125rem] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50',
+                className={cn('flex w-full items-center justify-between gap-2 px-3 py-1.5 text-start text-[0.8125rem] hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50',
                   t === tier && 'font-semibold text-slate-900')}>
                 <span className="inline-flex items-center gap-1.5">{locked && <Lock className="h-3 w-3" />}{PRICE_TIER_LABEL[t]}</span>
                 <span className="tabular-nums text-slate-500">{hidePrices ? '••••' : formatPKR(tierPrice(line.tierSrc!, t))}</span>

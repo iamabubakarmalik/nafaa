@@ -13,6 +13,7 @@ import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { safeDayStart, zonedToUtc } from '../../../common/helpers/business-time.helper';
 import { CreateDiscountDto, UpdateDiscountDto } from './dto/create-discount.dto';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 const KEY = /^\d{4}-\d{2}-\d{2}$/;
 const DAY = 86_400_000;
@@ -179,9 +180,9 @@ export class DiscountsService {
     if (dc.perCustomerLimit) {
       if (!opts.customerId) throw new BadRequestException('Is code ke liye customer chunein');
       const used = await this.prisma.sale.count({ where: { tenantId: user.tenantId, discountCodeId: dc.id, customerId: opts.customerId, status: { not: 'VOIDED' } } });
-      if (used >= dc.perCustomerLimit) throw new BadRequestException(`Yeh customer is code ko ${dc.perCustomerLimit} dafa istemal kar chuka hai`);
+      if (used >= dc.perCustomerLimit) throw new BadRequestException(apiMessage('Yeh customer is code ko {{perCustomerLimit}} dafa istemal kar chuka hai', { perCustomerLimit: dc.perCustomerLimit }));
     }
-    if (amount < dc.minPurchase) throw new BadRequestException(`Kam se kam Rs ${dc.minPurchase} ki khareedari par chalta hai`);
+    if (amount < dc.minPurchase) throw new BadRequestException(apiMessage('Kam se kam Rs {{minPurchase}} ki khareedari par chalta hai', { minPurchase: dc.minPurchase }));
 
     let discount = dc.type === 'PERCENTAGE' ? (amount * dc.value) / 100 : dc.value;
     if (dc.type === 'PERCENTAGE' && dc.maxDiscount && discount > dc.maxDiscount) discount = dc.maxDiscount;

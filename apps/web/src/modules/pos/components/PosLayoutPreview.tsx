@@ -6,6 +6,7 @@
 import { Check } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { POS_LAYOUTS, type PosLayout } from '../lib/posCounterConfig';
+import { t } from '@core/i18n';
 
 const tile = 'rounded-[3px] bg-slate-300/80';
 const line = 'h-1.5 rounded-sm bg-slate-300/80';
@@ -81,13 +82,13 @@ export function PosLayoutPicker({ value, onChange, allowDefault, defaultLayout, 
   disabled?: boolean;
 }) {
   return (
-    <div role="radiogroup" aria-label="POS layout" className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+    <div role="radiogroup" aria-label={t('POS layout')} className="grid grid-cols-2 gap-2 lg:grid-cols-4">
       {POS_LAYOUTS.map((l) => {
         const on = value === l.id || (value === null && allowDefault && defaultLayout === l.id);
         return (
           <button key={l.id} type="button" role="radio" aria-checked={on} disabled={disabled}
             onClick={() => onChange(allowDefault && value === l.id ? null : l.id)}
-            className={cn('group relative flex flex-col gap-1.5 rounded-xl border p-2 text-left transition disabled:cursor-not-allowed disabled:opacity-60',
+            className={cn('group relative flex flex-col gap-1.5 rounded-xl border p-2 text-start transition disabled:cursor-not-allowed disabled:opacity-60',
               on ? 'border-brand-500 bg-brand-50/50 ring-2 ring-brand-500/30' : 'border-slate-200 bg-white hover:border-slate-300')}>
             <PosLayoutDrawing layout={l.id} />
             <span className="flex items-center justify-between gap-1">
@@ -96,7 +97,7 @@ export function PosLayoutPicker({ value, onChange, allowDefault, defaultLayout, 
             </span>
             <span className="line-clamp-2 text-[0.6875rem] leading-snug text-slate-500">{l.hint}</span>
             {allowDefault && value === null && defaultLayout === l.id && (
-              <span className="absolute left-3 top-3 rounded-full bg-slate-900/80 px-1.5 py-0.5 text-[0.5625rem] font-semibold text-white">Dukaan ka</span>
+              <span className="absolute start-3 top-3 rounded-full bg-slate-900/80 px-1.5 py-0.5 text-[0.5625rem] font-semibold text-white">{t('Dukaan ka')}</span>
             )}
           </button>
         );

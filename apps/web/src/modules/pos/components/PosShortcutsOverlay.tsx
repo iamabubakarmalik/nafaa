@@ -1,72 +1,73 @@
 /** Every counter shortcut on one screen ("?" or F1 then "Shortcuts"). */
 
 import { Kbd, Modal } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 export const POS_SHORTCUTS: Array<{ title: string; keys: Array<[string, string]> }> = [
   {
-    title: 'Search aur bill',
+    title: t('Search aur bill'),
     keys: [
-      ['Type', 'Naam, SKU, barcode ya Urdu naam'],
-      ['↑ ↓', 'Results me upar neeche'],
-      ['Enter', 'Chuni hui cheez bill me'],
-      ['3* Enter', 'Aakhri / chuni line ki qty 3'],
-      ['3*naam', 'Naam wali cheez 3 dafa'],
-      ['+  −', 'Aakhri / chuni line ki qty'],
-      ['Esc', 'Search saaf / dialog band'],
-      ['Alt 1–9', 'Aksar bikne wali cheez'],
+      [t('Type'), t('Naam, SKU, barcode ya Urdu naam')],
+      ['↑ ↓', t('Results me upar neeche')],
+      [t('Enter'), t('Chuni hui cheez bill me')],
+      ['3* Enter', t('Aakhri / chuni line ki qty 3')],
+      ['3*naam', t('Naam wali cheez 3 dafa')],
+      ['+  −', t('Aakhri / chuni line ki qty')],
+      [t('Esc'), t('Search saaf / dialog band')],
+      [t('Alt 1–9'), t('Aksar bikne wali cheez')],
     ],
   },
   {
-    title: 'Bill ki lines',
+    title: t('Bill ki lines'),
     keys: [
-      ['F3', 'Bill ki lines par jayein'],
-      ['↑ ↓', 'Line chunein'],
-      ['+  −', 'Qty kam / zyada'],
-      ['Enter', 'Qty likhein (Tab: rate)'],
-      ['R', 'Rate badlein'],
-      ['T', 'Is line ki price tier'],
-      ['N', 'Line ka note'],
-      ['Delete', 'Line hatayein'],
-      ['Esc', 'Wapas search'],
+      ['F3', t('Bill ki lines par jayein')],
+      ['↑ ↓', t('Line chunein')],
+      ['+  −', t('Qty kam / zyada')],
+      [t('Enter'), t('Qty likhein (Tab: rate)')],
+      ['R', t('Rate badlein')],
+      ['T', t('Is line ki price tier')],
+      ['N', t('Line ka note')],
+      [t('Delete'), t('Line hatayein')],
+      [t('Esc'), t('Wapas search')],
     ],
   },
   {
-    title: 'Counter',
+    title: t('Counter'),
     keys: [
-      ['F2', 'Customer dhoondein / naya'],
-      ['F4', 'Discount'],
-      ['F6', 'Hold / resume'],
-      ['F7', 'Products / Combos'],
-      ['F8', 'Payment ka tareeqa (1–5)'],
-      ['F9', 'Aur kaam'],
-      ['F10', 'Quick keys'],
-      ['F12', 'Cash aur print'],
-      ['Ctrl Enter', 'Checkout'],
-      ['Ctrl P', 'Pichhla bill dobara print'],
-      ['Alt R', 'Pichhla bill dobara bechein'],
-      ['Alt L', 'Lene wala'],
-      ['Alt D', 'Delivery'],
-      ['Alt T', 'Retail / Wholesale / Credit price'],
-      ['F1', 'Guide'],
+      ['F2', t('Customer dhoondein / naya')],
+      ['F4', t('Discount')],
+      ['F6', t('Hold / resume')],
+      ['F7', t('Products / Combos')],
+      ['F8', t('Payment ka tareeqa (1–5)')],
+      ['F9', t('Aur kaam')],
+      ['F10', t('Quick keys')],
+      ['F12', t('Cash aur print')],
+      [t('Ctrl Enter'), t('Checkout')],
+      [t('Ctrl P'), t('Pichhla bill dobara print')],
+      [t('Alt R'), t('Pichhla bill dobara bechein')],
+      [t('Alt L'), t('Lene wala')],
+      [t('Alt D'), t('Delivery')],
+      [t('Alt T'), t('Retail / Wholesale / Credit price')],
+      ['F1', t('Guide')],
     ],
   },
   {
-    title: 'Checkout',
+    title: t('Checkout'),
     keys: [
-      ['Type', 'Kitne paise mile'],
-      ['Enter', 'Bill complete'],
-      ['Tab', 'Agla khana'],
-      ['F1 F3 F4 F5 F7', 'Cash, JazzCash, Easypaisa, Card, Bank'],
-      ['F6', 'Poora udhaar'],
-      ['Alt S', 'Split payment'],
-      ['Alt A', 'Split me aur tareeqa'],
+      [t('Type'), t('Kitne paise mile')],
+      [t('Enter'), t('Bill complete')],
+      [t('Tab'), t('Agla khana')],
+      ['F1 F3 F4 F5 F7', t('Cash, JazzCash, Easypaisa, Card, Bank')],
+      ['F6', t('Poora udhaar')],
+      [t('Alt S'), t('Split payment')],
+      [t('Alt A'), t('Split me aur tareeqa')],
     ],
   },
 ];
 
 export function PosShortcutsOverlay({ onClose }: { onClose: () => void }) {
   return (
-    <Modal open onClose={onClose} size="xl" title="Keyboard shortcuts" description="Mouse ke bagair poori sale — ? dabayein to ye list khulti hai">
+    <Modal open onClose={onClose} size="xl" title={t('Keyboard shortcuts')} description={t('Mouse ke bagair poori sale — ? dabayein to ye list khulti hai')}>
       <div className="grid gap-5 sm:grid-cols-2">
         {POS_SHORTCUTS.map((g) => (
           <section key={g.title}>

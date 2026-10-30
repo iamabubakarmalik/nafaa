@@ -22,6 +22,7 @@ import { PrintButton } from '@core/print';
 import { TIER_DOT } from '@modules/reports/center/components/PriceTierSplit';
 import { ProfitSplitCard } from '@modules/reports/ProfitSplit';
 import { categoryTotals, dayReportDoc, prettyDate, reportText } from './exportReport';
+import { t as tr } from '@core/i18n';
 
 const toKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const shift = (key: string, days: number) => {
@@ -34,7 +35,7 @@ function Line({ label, value, sign, strong, muted }: { label: string; value: str
   return (
     <div className={cn('flex items-baseline justify-between gap-3 py-1.5 text-[0.8125rem]', strong && 'mt-1 border-t border-slate-200 pt-2.5')}>
       <span className={cn(strong ? 'font-semibold text-slate-900' : muted ? 'text-slate-400' : 'text-slate-600')}>
-        {sign && <span className={cn('mr-1 inline-block w-3 font-semibold', sign === '+' ? 'text-success-600' : 'text-rose-600')}>{sign}</span>}
+        {sign && <span className={cn('me-1 inline-block w-3 font-semibold', sign === '+' ? 'text-success-600' : 'text-rose-600')}>{sign}</span>}
         {label}
       </span>
       <span className={cn('tabular-nums', strong ? 'text-base font-bold text-slate-900' : 'font-medium text-slate-900')}>{value}</span>
@@ -58,28 +59,28 @@ function CashColumn({ r }: { r: DayReport }) {
   const c = r.cash;
   const closing = c.countedClosing ?? c.expectedClosing;
   return (
-    <Section title="Galla (cash)" icon={Banknote}>
-      <Line label="Opening balance" value={sales(c.opening)} />
-      <Line label="Cash sale" value={sales(c.cashSales)} sign="+" />
-      {(c.khataCollected ?? 0) > 0 && <Line label="Udhaar wapas aaya (cash)" value={sales(c.khataCollected ?? 0)} sign="+" />}
-      {(c.otherIncome ?? 0) > 0 && <Line label="Doosri aamdani" value={sales(c.otherIncome ?? 0)} sign="+" />}
-      {c.cashIn > 0 && <Line label="Cash in" value={sales(c.cashIn)} sign="+" />}
-      {c.expenses > 0 && <Line label="Cash expense" value={cost(c.expenses)} sign="−" />}
-      {c.refunds > 0 && <Line label="Return" value={sales(c.refunds)} sign="−" />}
-      {c.purchases > 0 && <Line label="Maal ki payment" value={cost(c.purchases)} sign="−" />}
-      {c.supplierPaid > 0 && <Line label="Supplier ko diya" value={cost(c.supplierPaid)} sign="−" />}
-      {c.cashOut > 0 && <Line label="Cash out" value={sales(c.cashOut)} sign="−" />}
-      <Line label={c.countedClosing == null ? 'Closing balance' : 'Closing (gina hua)'} value={sales(closing)} strong />
+    <Section title={tr('Galla (cash)')} icon={Banknote}>
+      <Line label={tr('Opening balance')} value={sales(c.opening)} />
+      <Line label={tr('Cash sale')} value={sales(c.cashSales)} sign="+" />
+      {(c.khataCollected ?? 0) > 0 && <Line label={tr('Udhaar wapas aaya (cash)')} value={sales(c.khataCollected ?? 0)} sign="+" />}
+      {(c.otherIncome ?? 0) > 0 && <Line label={tr('Doosri aamdani')} value={sales(c.otherIncome ?? 0)} sign="+" />}
+      {c.cashIn > 0 && <Line label={tr('Cash in')} value={sales(c.cashIn)} sign="+" />}
+      {c.expenses > 0 && <Line label={tr('Cash expense')} value={cost(c.expenses)} sign="−" />}
+      {c.refunds > 0 && <Line label={tr('Return')} value={sales(c.refunds)} sign="−" />}
+      {c.purchases > 0 && <Line label={tr('Maal ki payment')} value={cost(c.purchases)} sign="−" />}
+      {c.supplierPaid > 0 && <Line label={tr('Supplier ko diya')} value={cost(c.supplierPaid)} sign="−" />}
+      {c.cashOut > 0 && <Line label={tr('Cash out')} value={sales(c.cashOut)} sign="−" />}
+      <Line label={c.countedClosing == null ? tr('Closing balance') : tr('Closing (gina hua)')} value={sales(closing)} strong />
       {c.countedClosing == null ? (
         <p className="mt-1 text-[0.75rem] text-slate-500">
-          {c.registers === 0 ? 'Is din register nahi khula — opening 0 maana gaya.' : 'Register abhi khula hai — ye andaza hai.'}
+          {c.registers === 0 ? tr('Is din register nahi khula — opening 0 maana gaya.') : tr('Register abhi khula hai — ye andaza hai.')}
         </p>
       ) : c.difference ? (
         <p className={cn('mt-1 text-[0.75rem] font-medium', c.difference < 0 ? 'text-rose-700' : 'text-amber-700')}>
-          Ginti me farq: {sales(c.difference)}
+          {tr('Ginti me farq: {{difference}}', { difference: sales(c.difference) })}
         </p>
       ) : (
-        <p className="mt-1 text-[0.75rem] font-medium text-success-700">Ginti bilkul theek</p>
+        <p className="mt-1 text-[0.75rem] font-medium text-success-700">{tr('Ginti bilkul theek')}</p>
       )}
     </Section>
   );
@@ -100,7 +101,7 @@ function ItemsColumn({ r, full }: { r: DayReport; full: boolean }) {
   const PER_GROUP = full ? Infinity : 5;
 
   return (
-    <Section title="Kya bika" icon={Package} className="lg:row-span-2">
+    <Section title={tr('Kya bika')} icon={Package} className="lg:row-span-2">
       {totals.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-1.5">
           {r.categories.filter((c) => c.qty > 0).map((c) => (
@@ -113,13 +114,13 @@ function ItemsColumn({ r, full }: { r: DayReport; full: boolean }) {
       )}
       {full && r.items.length > 8 && (
         <label className="relative mb-3 block">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Item search"
-            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-3 text-[0.8125rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+          <Search className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Item search')}
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white ps-8 pe-3 text-[0.8125rem] outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
         </label>
       )}
       {groups.length === 0 ? (
-        <EmptyHint icon={Package} text={q ? 'Koi item nahi mila' : 'Is din kuch nahi bika'} />
+        <EmptyHint icon={Package} text={q ? tr('Koi item nahi mila') : tr('Is din kuch nahi bika')} />
       ) : (
         <div className="space-y-3">
           {groups.map((g) => {
@@ -135,10 +136,10 @@ function ItemsColumn({ r, full }: { r: DayReport; full: boolean }) {
                 <ul>
                   {shown.map((i) => (
                     <li key={i.productId ?? i.name} className="flex items-baseline gap-2 py-1 text-[0.8125rem]">
-                      <span className="w-10 shrink-0 text-right font-bold tabular-nums text-slate-900">{fmtQty(i.qty)}</span>
+                      <span className="w-10 shrink-0 text-end font-bold tabular-nums text-slate-900">{fmtQty(i.qty)}</span>
                       <span className="min-w-0 flex-1 truncate text-slate-700">
                         {i.name}
-                        {i.returnedQty > 0 && <span className="ml-1 text-[0.6875rem] text-rose-600">({fmtQty(i.returnedQty)} wapas)</span>}
+                        {i.returnedQty > 0 && <span className="ms-1 text-[0.6875rem] text-rose-600">{tr('({{returnedQty}} wapas)', { returnedQty: fmtQty(i.returnedQty) })}</span>}
                       </span>
                       <span className="shrink-0 tabular-nums text-slate-500">{sales(i.revenue)}</span>
                     </li>
@@ -146,7 +147,7 @@ function ItemsColumn({ r, full }: { r: DayReport; full: boolean }) {
                 </ul>
                 {!expanded && g.list.length > PER_GROUP && (
                   <button type="button" onClick={() => setOpen(key)} className="mt-0.5 text-[0.75rem] font-semibold text-brand-700 hover:underline">
-                    +{g.list.length - PER_GROUP} aur
+                    {tr('+{{value}} aur', { value: g.list.length - PER_GROUP })}
                   </button>
                 )}
               </div>
@@ -163,15 +164,15 @@ function MoneyColumn({ r }: { r: DayReport }) {
   const max = Math.max(...r.payments.map((p) => p.collected), 1);
   return (
     <>
-      <Section title="Paisa kaise aaya" icon={Wallet}>
-        <Line label={`Total sale · ${r.sales.bills} bill`} value={sales(r.sales.total)} />
+      <Section title={tr('Paisa kaise aaya')} icon={Wallet}>
+        <Line label={tr('Total sale · {{bills}} bill', { bills: r.sales.bills })} value={sales(r.sales.total)} />
         {!!r.priceTiers?.length && (
           <ul className="mb-1 space-y-1 rounded-lg bg-slate-50 px-2.5 py-2">
             {r.priceTiers.map((t) => (
               <li key={t.tier} className="flex items-baseline justify-between gap-2 text-[0.8125rem]">
                 <span className="flex min-w-0 items-center gap-1.5 text-slate-600">
                   <span className={cn('h-2 w-2 shrink-0 rounded-full', TIER_DOT[t.tier])} />
-                  {t.label} <span className="text-slate-400">· {t.bills} bill</span>
+                  {t.label} <span className="text-slate-400">{tr('· {{bills}} bill', { bills: t.bills })}</span>
                 </span>
                 <span className="font-medium tabular-nums text-slate-900">{sales(t.total)}</span>
               </li>
@@ -193,22 +194,22 @@ function MoneyColumn({ r }: { r: DayReport }) {
         </div>
         <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
           <div className="rounded-lg bg-success-50 px-2.5 py-2">
-            <div className="text-[0.6875rem] font-medium text-success-800">Cash</div>
+            <div className="text-[0.6875rem] font-medium text-success-800">{tr('Cash')}</div>
             <div className="text-[0.9375rem] font-bold tabular-nums text-success-900">{sales(r.cashCollected)}</div>
           </div>
           <div className="rounded-lg bg-sky-50 px-2.5 py-2">
-            <div className="text-[0.6875rem] font-medium text-sky-800">Online</div>
+            <div className="text-[0.6875rem] font-medium text-sky-800">{tr('Online')}</div>
             <div className="text-[0.9375rem] font-bold tabular-nums text-sky-900">{sales(r.onlineCollected)}</div>
           </div>
         </div>
-        {r.sales.credit > 0 && <Line label="Udhaar par diya" value={sales(r.sales.credit)} />}
-        {r.sales.discount > 0 && <Line label="Discount" value={sales(r.sales.discount)} />}
-        {r.sales.refunds > 0 && <Line label={`Return · ${r.sales.refundCount}`} value={sales(r.sales.refunds)} />}
+        {r.sales.credit > 0 && <Line label={tr('Udhaar par diya')} value={sales(r.sales.credit)} />}
+        {r.sales.discount > 0 && <Line label={tr('Discount')} value={sales(r.sales.discount)} />}
+        {r.sales.refunds > 0 && <Line label={tr('Return · {{refundCount}}', { refundCount: r.sales.refundCount })} value={sales(r.sales.refunds)} />}
       </Section>
       <ProfitBlock r={r} />
-      <Section title="Expense" icon={Wallet}>
+      <Section title={tr('Expense')} icon={Wallet}>
         {r.expenses.list.length === 0 ? (
-          <p className="py-2 text-[0.8125rem] text-slate-500">Is din koi expense nahi</p>
+          <p className="py-2 text-[0.8125rem] text-slate-500">{tr('Is din koi expense nahi')}</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {r.expenses.list.slice(0, 6).map((e) => (
@@ -219,7 +220,7 @@ function MoneyColumn({ r }: { r: DayReport }) {
             ))}
           </ul>
         )}
-        <Line label="Kul expense" value={cost(r.expenses.total)} strong />
+        <Line label={tr('Kul expense')} value={cost(r.expenses.total)} strong />
       </Section>
     </>
   );
@@ -232,14 +233,14 @@ function ProfitBlock({ r }: { r: DayReport }) {
   if (costHidden || !p?.split || p.netProfit == null) return null;
   const s = p.split;
   return (
-    <Section title="Profit" icon={Target}>
-      <Line label={s.basis === 'PAID' ? 'Haath mein aaya profit' : 'Bill ka profit'} value={cost(s.headline)} />
+    <Section title={tr('Profit')} icon={Target}>
+      <Line label={s.basis === 'PAID' ? tr('Haath mein aaya profit') : tr('Bill ka profit')} value={cost(s.headline)} />
       <ProfitSplitCard split={s} money={cost} periodLabel="aaj" compact className="my-2" />
-      <Line label="Expense" value={cost(p.expenses)} sign="−" />
-      {!!p.stockLoss && <Line label="Stock nuksan" value={cost(p.stockLoss)} sign="−" />}
-      {!!p.stockGain && <Line label="Stock faida" value={cost(p.stockGain)} sign="+" />}
-      {!!p.otherIncome && <Line label="Doosri aamdani" value={cost(p.otherIncome)} sign="+" />}
-      <Line label="Net profit" value={cost(p.netProfit)} strong />
+      <Line label={tr('Expense')} value={cost(p.expenses)} sign="−" />
+      {!!p.stockLoss && <Line label={tr('Stock nuksan')} value={cost(p.stockLoss)} sign="−" />}
+      {!!p.stockGain && <Line label={tr('Stock faida')} value={cost(p.stockGain)} sign="+" />}
+      {!!p.otherIncome && <Line label={tr('Doosri aamdani')} value={cost(p.otherIncome)} sign="+" />}
+      <Line label={tr('Net profit')} value={cost(p.netProfit)} strong />
     </Section>
   );
 }
@@ -262,9 +263,9 @@ export function DayReportView({ full = false }: { full?: boolean }) {
     if (!r) return;
     try {
       await navigator.clipboard.writeText(reportText(r, money, shopName));
-      toast.success('Report copy ho gaya');
+      toast.success(tr('Report copy ho gaya'));
     } catch {
-      toast.error('Copy nahi hua');
+      toast.error(tr('Copy nahi hua'));
     }
   };
 
@@ -276,33 +277,33 @@ export function DayReportView({ full = false }: { full?: boolean }) {
         <div className="min-w-0">
           <h2 className="flex items-center gap-2 text-[1.0625rem] font-semibold text-slate-900">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-brand-fg"><FileText className="h-4 w-4" /></span>
-            Din ka hisaab
-            {isToday && <Badge variant="brand" size="xs" dot pulse>Live</Badge>}
+            {tr('Din ka hisaab')}
+            {isToday && <Badge variant="brand" size="xs" dot pulse>{tr('Live')}</Badge>}
           </h2>
           <p className="mt-0.5 text-[0.8125rem] text-slate-500">
-            {key ? prettyDate(key) : 'Aaj'}
-            {r && prevDiff !== null && <> · pichhle din se <b className={prevDiff >= 0 ? 'text-success-700' : 'text-rose-700'}>{prevDiff >= 0 ? '+' : ''}{prevDiff.toFixed(1)}%</b></>}
+            {key ? prettyDate(key) : tr('Aaj')}
+            {r && prevDiff !== null && <> {' '}{tr('· pichhle din se')}{' '} <b className={prevDiff >= 0 ? 'text-success-700' : 'text-rose-700'}>{prevDiff >= 0 ? '+' : ''}{prevDiff.toFixed(1)}%</b></>}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <div className="flex items-center rounded-lg border border-slate-200 bg-white">
-            <IconButton label="Pichhla din" size="sm" onClick={() => go(-1)} disabled={!key}><ChevronLeft className="h-4 w-4" /></IconButton>
+            <IconButton label={tr('Pichhla din')} size="sm" onClick={() => go(-1)} disabled={!key}><ChevronLeft className="h-4 w-4 rtl-flip" /></IconButton>
             <label className="relative flex h-8 items-center gap-1.5 px-2 text-[0.8125rem] font-medium text-slate-700">
               <CalendarDays className="h-4 w-4 text-slate-400" />
               <span className="tabular-nums">{key ?? '—'}</span>
-              <input type="date" value={key ?? ''} max={toKey(new Date())} aria-label="Date chunein"
+              <input type="date" value={key ?? ''} max={toKey(new Date())} aria-label={tr('Date chunein')}
                 onChange={(e) => e.target.value && setDate(e.target.value)}
                 className="absolute inset-0 cursor-pointer opacity-0" />
             </label>
-            <IconButton label="Agla din" size="sm" onClick={() => go(1)} disabled={!key || isToday}><ChevronRight className="h-4 w-4" /></IconButton>
+            <IconButton label={tr('Agla din')} size="sm" onClick={() => go(1)} disabled={!key || isToday}><ChevronRight className="h-4 w-4 rtl-flip" /></IconButton>
           </div>
-          {!isToday && <Button size="sm" variant="ghost" onClick={() => setDate(undefined)}>Aaj</Button>}
-          <IconButton label="WhatsApp par bhejein" variant="secondary" size="md" onClick={share} disabled={!r}><MessageCircle className="h-4 w-4" /></IconButton>
-          <IconButton label="Copy karein" variant="secondary" size="md" onClick={copy} disabled={!r}><Copy className="h-4 w-4" /></IconButton>
+          {!isToday && <Button size="sm" variant="ghost" onClick={() => setDate(undefined)}>{tr('Aaj')}</Button>}
+          <IconButton label={tr('WhatsApp par bhejein')} variant="secondary" size="md" onClick={share} disabled={!r}><MessageCircle className="h-4 w-4" /></IconButton>
+          <IconButton label={tr('Copy karein')} variant="secondary" size="md" onClick={copy} disabled={!r}><Copy className="h-4 w-4" /></IconButton>
           <PrintButton doc={() => dayReportDoc(r!, money, shopName)} disabled={!r} />
           {!full && (
-            <Link to="/day-report" className="ml-1 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
-              Poora report <ArrowRight className="h-3.5 w-3.5" />
+            <Link to="/day-report" className="ms-1 inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">
+              {tr('Poora report')}{' '} <ArrowRight className="h-3.5 w-3.5 rtl-flip" />
             </Link>
           )}
         </div>
@@ -312,18 +313,18 @@ export function DayReportView({ full = false }: { full?: boolean }) {
         {isLoading ? (
           <div className="grid gap-3 lg:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-64 rounded-xl" />)}</div>
         ) : isError || !r ? (
-          <EmptyHint icon={FileText} text="Report load nahi hua — dobara koshish karein" />
+          <EmptyHint icon={FileText} text={tr('Report load nahi hua — dobara koshish karein')} />
         ) : (
           <div className="grid gap-3 lg:grid-cols-3">
             <CashColumn r={r} />
             <ItemsColumn r={r} full={full} />
             <div className="space-y-3 lg:row-span-2"><MoneyColumn r={r} /></div>
             {r.staff.length > 0 && (
-              <Section title="Kis ne kitna becha" icon={Package}>
+              <Section title={tr('Kis ne kitna becha')} icon={Package}>
                 <ul className="space-y-1.5">
                   {r.staff.map((p) => (
                     <li key={p.userId} className="flex items-baseline justify-between gap-2 text-[0.8125rem]">
-                      <span className="truncate text-slate-700">{p.name} <span className="text-slate-400">· {p.bills} bill</span></span>
+                      <span className="truncate text-slate-700">{p.name} <span className="text-slate-400">{tr('· {{bills}} bill', { bills: p.bills })}</span></span>
                       <span className="font-medium tabular-nums text-slate-900">{sales(p.total)}</span>
                     </li>
                   ))}

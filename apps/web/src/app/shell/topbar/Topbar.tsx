@@ -24,6 +24,7 @@ import { ProfileDropdown } from './ProfileDropdown';
 import { QuickActionsDropdown } from './QuickActionsDropdown';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import { AiTopbarButton } from '@modules/ai-assistant';
+import { t as tr } from '@core/i18n';
 
 interface TopbarProps {
   user: any;
@@ -33,10 +34,10 @@ interface TopbarProps {
 }
 
 const greetingFor = (hour: number) =>
-  hour >= 5 && hour < 12 ? 'Good morning'
-    : hour >= 12 && hour < 17 ? 'Good afternoon'
-      : hour >= 17 && hour < 21 ? 'Good evening'
-        : 'Working late';
+  hour >= 5 && hour < 12 ? tr('Good morning')
+    : hour >= 12 && hour < 17 ? tr('Good afternoon')
+      : hour >= 17 && hour < 21 ? tr('Good evening')
+        : tr('Working late');
 
 export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarProps) {
   const [now, setNow] = useState(() => new Date());
@@ -56,15 +57,15 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarPr
     <header className="sticky top-0 z-30 shrink-0 border-b border-shell-line bg-shell-bar print:hidden">
       <div className="flex h-14 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-4 xl:px-5">
         <div className="flex shrink-0 items-center gap-2">
-          <IconButton label="Open menu" onClick={onOpenMobileSidebar} className="h-9 w-9 border border-slate-200 lg:hidden dark:border-ink-white/10">
+          <IconButton label={tr('Open menu')} onClick={onOpenMobileSidebar} className="h-9 w-9 border border-slate-200 lg:hidden dark:border-ink-white/10">
             <Menu className="h-5 w-5" />
           </IconButton>
           <WorkspaceSwitcher />
-          <div className="hidden pl-1 2xl:block">
+          <div className="hidden ps-1 2xl:block">
             <div className="text-[0.6875rem] font-medium text-slate-500">
               {greetingFor(now.getHours())} · {now.toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit', hour12: true })}
             </div>
-            <div className="whitespace-nowrap text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">Hi, {firstName}</div>
+            <div className="whitespace-nowrap text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">{tr('Hi, {{firstName}}', { firstName })}</div>
           </div>
         </div>
 
@@ -72,8 +73,8 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarPr
           <div className="w-full max-w-[35rem]"><GlobalSearchTrigger /></div>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
-          <IconButton label="Search (Ctrl+K)" onClick={() => openSearch(true)} className="h-9 w-9 md:hidden">
+        <div className="ms-auto flex shrink-0 items-center gap-1 sm:gap-1.5">
+          <IconButton label={tr('Search (Ctrl+K)')} onClick={() => openSearch(true)} className="h-9 w-9 md:hidden">
             <Search className="h-[1.125rem] w-[1.125rem]" />
           </IconButton>
           {!isMarketplace && <div className="hidden sm:block"><ShopSelector /></div>}

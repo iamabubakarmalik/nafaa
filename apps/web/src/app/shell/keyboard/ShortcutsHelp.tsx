@@ -10,6 +10,7 @@ import { create } from 'zustand';
 import { Kbd, Modal } from '@/design-system/components';
 import { isVisible } from '@/design-system/keyboard/keys';
 import { GO_TO } from './useGlobalKeys';
+import { t } from '@core/i18n';
 
 export const useShortcutsHelp = create<{ open: boolean; setOpen: (open: boolean) => void }>((set) => ({
   open: false,
@@ -17,8 +18,8 @@ export const useShortcutsHelp = create<{ open: boolean; setOpen: (open: boolean)
 }));
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
-const MOD = isMac ? '⌘' : 'Ctrl';
-const ALT = isMac ? '⌥' : 'Alt';
+const MOD = isMac ? '⌘' : t('Ctrl');
+const ALT = isMac ? '⌥' : t('Alt');
 
 type Row = [keys: ReactNode, label: string];
 
@@ -51,47 +52,47 @@ export function ShortcutsHelp() {
   if (!open) return null;
 
   const sections: Array<{ title: string; rows: Row[] }> = [
-    ...(page.length ? [{ title: 'Is page par', rows: page }] : []),
+    ...(page.length ? [{ title: t('Is page par'), rows: page }] : []),
     {
-      title: 'Har jagah',
+      title: t('Har jagah'),
       rows: [
-        [keys(MOD, 'K'), 'Search aur commands (page, product, customer, bill)'],
-        [keys(ALT, 'N'), 'Create menu (naya bill, product, customer…)'],
-        [keys('/'), 'Page ka search box'],
-        [keys('?'), 'Yeh shortcuts'],
-        [keys(MOD, 'B'), 'Sidebar chhota / bara'],
-        [keys('Tab'), 'Agli cheez par (Shift+Tab: pichli)'],
+        [keys(MOD, 'K'), t('Search aur commands (page, product, customer, bill)')],
+        [keys(ALT, 'N'), t('Create menu (naya bill, product, customer…)')],
+        [keys('/'), t('Page ka search box')],
+        [keys('?'), t('Yeh shortcuts')],
+        [keys(MOD, 'B'), t('Sidebar chhota / bara')],
+        [keys(t('Tab')), t('Agli cheez par (Shift+Tab: pichli)')],
       ],
     },
     {
-      title: 'Seedha jayein: G phir…',
+      title: t('Seedha jayein: G phir…'),
       rows: GO_TO.map((g) => [keys('G', g.key.toUpperCase()), g.label] as Row),
     },
     {
-      title: 'List aur table',
+      title: t('List aur table'),
       rows: [
-        [keys('↑', '↓'), 'Agli / pichli line (search se ↓ list mein)'],
-        [keys('Enter'), 'Line kholein'],
-        [keys('Space'), 'Line chunein (jahan select hota hai)'],
-        [keys('Home', 'End'), 'Pehli / aakhri line'],
-        [keys('PgUp', 'PgDn'), 'Pichla / agla page'],
-        [keys('Esc'), 'Search saaf karein, phir bahar'],
+        [keys('↑', '↓'), t('Agli / pichli line (search se ↓ list mein)')],
+        [keys(t('Enter')), t('Line kholein')],
+        [keys(t('Space')), t('Line chunein (jahan select hota hai)')],
+        [keys(t('Home'), t('End')), t('Pehli / aakhri line')],
+        [keys('PgUp', 'PgDn'), t('Pichla / agla page')],
+        [keys(t('Esc')), t('Search saaf karein, phir bahar')],
       ],
     },
     {
-      title: 'Form aur dialog',
+      title: t('Form aur dialog'),
       rows: [
-        [keys(MOD, 'S'), 'Save karein'],
-        [keys(MOD, 'Enter'), 'Dialog ka form bhejein'],
-        [keys('Enter'), 'Agla khana (jaldi wale form) / ek khane wala dialog bhejein'],
-        [keys('Esc'), 'Band karein ya wapas jayein'],
-        [keys('↑', '↓'), 'Menu aur filter ke andar chalein, Enter se chunein'],
+        [keys(MOD, 'S'), t('Save karein')],
+        [keys(MOD, t('Enter')), t('Dialog ka form bhejein')],
+        [keys(t('Enter')), t('Agla khana (jaldi wale form) / ek khane wala dialog bhejein')],
+        [keys(t('Esc')), t('Band karein ya wapas jayein')],
+        [keys('↑', '↓'), t('Menu aur filter ke andar chalein, Enter se chunein')],
       ],
     },
   ];
 
   return (
-    <Modal open onClose={() => setOpen(false)} size="lg" title="Keyboard shortcuts" description="Mouse ke bagair poori app chalayein">
+    <Modal open onClose={() => setOpen(false)} size="lg" title={t('Keyboard shortcuts')} description={t('Mouse ke bagair poori app chalayein')}>
       <div className="grid gap-4 sm:grid-cols-2">
         {sections.map((s) => (
           <section key={s.title} className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">

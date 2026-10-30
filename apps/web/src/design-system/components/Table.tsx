@@ -17,7 +17,7 @@ import { cn } from '@core/lib/cn';
 export function Table({ children, className, minWidth }: { children: ReactNode; className?: string; minWidth?: string }) {
   return (
     <div className={cn('overflow-x-auto', className)}>
-      <table className="w-full border-collapse text-left text-sm" style={minWidth ? { minWidth } : undefined}>{children}</table>
+      <table className="w-full border-collapse text-start text-sm" style={minWidth ? { minWidth } : undefined}>{children}</table>
     </div>
   );
 }
@@ -35,7 +35,7 @@ export const Tr = ({ interactive, ...props }: HTMLAttributes<HTMLTableRowElement
 );
 
 type Align = { align?: 'left' | 'center' | 'right' };
-const alignClass = (a?: string) => (a === 'right' ? 'text-right' : a === 'center' ? 'text-center' : 'text-left');
+const alignClass = (a?: string) => (a === 'right' ? 'text-end' : a === 'center' ? 'text-center' : 'text-start');
 
 export const Th = ({ align, ...props }: ThHTMLAttributes<HTMLTableCellElement> & Align) => (
   <th scope="col" {...props} className={cn('whitespace-nowrap px-4 py-2.5', alignClass(align), props.className)} />

@@ -24,7 +24,6 @@ import {
 } from '../tokens/hero';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
-export type Language = 'en' | 'roman_ur' | 'ur';
 export type CanvasTone = 'soft' | 'white' | 'warm' | 'cool' | 'tinted';
 export type SidebarStyle = 'light' | 'dark' | 'brand';
 export type SidebarMode = 'auto' | 'expanded' | 'collapsed';
@@ -48,7 +47,6 @@ export interface Appearance {
   reduceMotion: boolean;
   /** "high" darkens secondary text and lines for readability. */
   contrast: 'normal' | 'high';
-  language: Language;
   /** Page header (PageHero) look: style, background pattern, size and stats layout. */
   heroStyle: HeroStyle;
   heroPattern: HeroPattern;
@@ -72,7 +70,6 @@ export const DEFAULT_APPEARANCE: Appearance = {
   pageWidth: 'wide',
   reduceMotion: false,
   contrast: 'normal',
-  language: 'roman_ur',
   heroStyle: 'modern',
   heroPattern: 'dots',
   heroSize: 'comfortable',

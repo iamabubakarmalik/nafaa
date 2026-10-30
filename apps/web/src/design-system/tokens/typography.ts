@@ -10,6 +10,7 @@
  * layouts that were only checked on a Mac.
  */
 
+import { t } from '@core/i18n';
 export interface FontOption {
   id: string;
   label: string;
@@ -53,20 +54,20 @@ const LATIN_FALLBACK = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica
 const URDU_FALLBACK = "'Noto Naskh Arabic', 'Segoe UI', Tahoma, serif";
 
 export const LATIN_FONTS: readonly FontOption[] = [
-  { id: 'inter', label: 'Inter', stack: `'Inter', ${LATIN_FALLBACK}`, google: 'Inter:wght@400;500;600;700;800;900', sample: 'Aa 123' },
-  { id: 'jakarta', label: 'Plus Jakarta Sans', stack: `'Plus Jakarta Sans', ${LATIN_FALLBACK}`, google: 'Plus+Jakarta+Sans:wght@400;500;600;700;800', sample: 'Aa 123' },
-  { id: 'manrope', label: 'Manrope', stack: `'Manrope', ${LATIN_FALLBACK}`, google: 'Manrope:wght@400;500;600;700;800', sample: 'Aa 123' },
-  { id: 'poppins', label: 'Poppins', stack: `'Poppins', ${LATIN_FALLBACK}`, google: 'Poppins:wght@400;500;600;700;800', sample: 'Aa 123' },
-  { id: 'nunito', label: 'Nunito', stack: `'Nunito', ${LATIN_FALLBACK}`, google: 'Nunito:wght@400;500;600;700;800;900', sample: 'Aa 123' },
-  { id: 'ibm-plex', label: 'IBM Plex Sans', stack: `'IBM Plex Sans', ${LATIN_FALLBACK}`, google: 'IBM+Plex+Sans:wght@400;500;600;700', sample: 'Aa 123' },
-  { id: 'system', label: 'System font', stack: LATIN_FALLBACK, google: null, sample: 'Aa 123' },
+  { id: 'inter', label: t('Inter'), stack: `'Inter', ${LATIN_FALLBACK}`, google: 'Inter:wght@400;500;600;700;800;900', sample: t('Aa 123') },
+  { id: 'jakarta', label: t('Plus Jakarta Sans'), stack: `'Plus Jakarta Sans', ${LATIN_FALLBACK}`, google: 'Plus+Jakarta+Sans:wght@400;500;600;700;800', sample: t('Aa 123') },
+  { id: 'manrope', label: t('Manrope'), stack: `'Manrope', ${LATIN_FALLBACK}`, google: 'Manrope:wght@400;500;600;700;800', sample: t('Aa 123') },
+  { id: 'poppins', label: t('Poppins'), stack: `'Poppins', ${LATIN_FALLBACK}`, google: 'Poppins:wght@400;500;600;700;800', sample: t('Aa 123') },
+  { id: 'nunito', label: t('Nunito'), stack: `'Nunito', ${LATIN_FALLBACK}`, google: 'Nunito:wght@400;500;600;700;800;900', sample: t('Aa 123') },
+  { id: 'ibm-plex', label: t('IBM Plex Sans'), stack: `'IBM Plex Sans', ${LATIN_FALLBACK}`, google: 'IBM+Plex+Sans:wght@400;500;600;700', sample: t('Aa 123') },
+  { id: 'system', label: t('System font'), stack: LATIN_FALLBACK, google: null, sample: t('Aa 123') },
 ];
 
 export const URDU_FONTS: readonly FontOption[] = [
-  { id: 'naskh', label: 'Noto Naskh (clear)', stack: `'Noto Naskh Arabic', ${URDU_FALLBACK}`, google: 'Noto+Naskh+Arabic:wght@400;500;600;700', sample: 'نفع — آپ کا کاروبار' },
-  { id: 'nastaliq', label: 'Noto Nastaliq (classic)', stack: `'Noto Nastaliq Urdu', ${URDU_FALLBACK}`, google: 'Noto+Nastaliq+Urdu:wght@400;500;600;700', sample: 'نفع — آپ کا کاروبار' },
-  { id: 'gulzar', label: 'Gulzar (Nastaliq)', stack: `'Gulzar', ${URDU_FALLBACK}`, google: 'Gulzar', sample: 'نفع — آپ کا کاروبار' },
-  { id: 'noto-sans-arabic', label: 'Noto Sans Arabic (modern)', stack: `'Noto Sans Arabic', ${URDU_FALLBACK}`, google: 'Noto+Sans+Arabic:wght@400;500;600;700', sample: 'نفع — آپ کا کاروبار' },
+  { id: 'naskh', label: t('Noto Naskh (clear)'), stack: `'Noto Naskh Arabic', ${URDU_FALLBACK}`, google: 'Noto+Naskh+Arabic:wght@400;500;600;700', sample: t('نفع — آپ کا کاروبار') },
+  { id: 'nastaliq', label: t('Noto Nastaliq (classic)'), stack: `'Noto Nastaliq Urdu', ${URDU_FALLBACK}`, google: 'Noto+Nastaliq+Urdu:wght@400;500;600;700', sample: t('نفع — آپ کا کاروبار') },
+  { id: 'gulzar', label: t('Gulzar (Nastaliq)'), stack: `'Gulzar', ${URDU_FALLBACK}`, google: 'Gulzar', sample: t('نفع — آپ کا کاروبار') },
+  { id: 'noto-sans-arabic', label: t('Noto Sans Arabic (modern)'), stack: `'Noto Sans Arabic', ${URDU_FALLBACK}`, google: 'Noto+Sans+Arabic:wght@400;500;600;700', sample: t('نفع — آپ کا کاروبار') },
 ];
 
 export const MONO_STACK = "'JetBrains Mono', 'Cascadia Code', 'SF Mono', Consolas, ui-monospace, monospace";
@@ -84,9 +85,9 @@ export const findUrduFont = (id: string | undefined): FontOption =>
  * rem, so one value resizes every screen consistently.
  */
 export const TEXT_SCALES = {
-  sm: { label: 'Small', rootPercent: 93.75 },
-  md: { label: 'Normal', rootPercent: 100 },
-  lg: { label: 'Large', rootPercent: 106.25 },
-  xl: { label: 'Extra large', rootPercent: 112.5 },
+  sm: { label: t('Small'), rootPercent: 93.75 },
+  md: { label: t('Normal'), rootPercent: 100 },
+  lg: { label: t('Large'), rootPercent: 106.25 },
+  xl: { label: t('Extra large'), rootPercent: 112.5 },
 } as const;
 export type TextScale = keyof typeof TEXT_SCALES;

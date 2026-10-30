@@ -10,6 +10,7 @@
 import type { LucideIcon } from 'lucide-react';
 import { Globe, Store, Truck, Warehouse } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t } from '@core/i18n';
 
 export type BusinessModel = 'RETAIL' | 'WHOLESALE' | 'DISTRIBUTION' | 'ONLINE';
 
@@ -22,10 +23,10 @@ export interface BusinessModelOption {
 }
 
 export const BUSINESS_MODEL_OPTIONS: readonly BusinessModelOption[] = [
-  { id: 'RETAIL', title: 'Dukaan / Retail', hint: 'Counter par customer ko bechte hain', icon: Store, color: '#059669' },
-  { id: 'WHOLESALE', title: 'Wholesale', hint: 'Dukaanon ko bulk, udhaar aur price list par', icon: Warehouse, color: '#4f46e5' },
-  { id: 'DISTRIBUTION', title: 'Distribution', hint: 'Booker order lete hain, gaari delivery karti hai', icon: Truck, color: '#ea580c' },
-  { id: 'ONLINE', title: 'Online', hint: 'Shopify, Daraz, website, WhatsApp, Instagram', icon: Globe, color: '#0284c7' },
+  { id: 'RETAIL', title: t('Dukaan / Retail'), hint: t('Counter par customer ko bechte hain'), icon: Store, color: '#059669' },
+  { id: 'WHOLESALE', title: t('Wholesale'), hint: t('Dukaanon ko bulk, udhaar aur price list par'), icon: Warehouse, color: '#4f46e5' },
+  { id: 'DISTRIBUTION', title: t('Distribution'), hint: t('Booker order lete hain, gaari delivery karti hai'), icon: Truck, color: '#ea580c' },
+  { id: 'ONLINE', title: t('Online'), hint: t('Shopify, Daraz, website, WhatsApp, Instagram'), icon: Globe, color: '#0284c7' },
 ];
 
 const ORDER: BusinessModel[] = ['RETAIL', 'WHOLESALE', 'DISTRIBUTION', 'ONLINE'];

@@ -1,5 +1,6 @@
 // apps/web/src/modules/organization/settings/api/business-config.api.ts
 import { apiClient } from '@core/api/client';
+import { t } from '@core/i18n';
 
 export interface BusinessFeatures {
   // Core inventory
@@ -130,10 +131,10 @@ const DEFAULT_FEATURES: BusinessFeatures = {
 };
 
 const FALLBACK_TEMPLATE = {
-  label: 'General Retail',
+  label: t('General Retail'),
   labelUrdu: '',
   emoji: '🏬',
-  description: 'General business configuration',
+  description: t('General business configuration'),
   color: '#6b7280',
   quickUnits: ['pcs', 'kg', 'meter'],
   suggestedCategories: [],

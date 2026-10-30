@@ -16,15 +16,9 @@ import { DENSITIES, PAGE_WIDTHS, RADII } from '../tokens/layout';
 import { CANVAS_TONES } from '../tokens/surfaces';
 import { findLatinFont, findUrduFont, MONO_STACK, TEXT_SCALES, type FontOption } from '../tokens/typography';
 import type { ResolvedAppearance } from './appearance';
+import { currentLocale, localeInfo } from '@core/i18n';
 
 export const BOOT_CACHE_KEY = 'nafaa-appearance-boot';
-
-/**
- * Right-to-left layout for Urdu script. Off until screens are translated and
- * converted to logical (start/end) spacing; turning it on earlier would flip
- * untranslated layouts for businesses that already saved "Urdu" as language.
- */
-export const RTL_ENABLED = false;
 
 export interface BootCache {
   dark: boolean;
@@ -74,6 +68,9 @@ export function themeVariables(a: ResolvedAppearance, dark = false): Record<stri
 
   vars['--font-latin'] = findLatinFont(a.latinFont).stack;
   vars['--font-urdu'] = findUrduFont(a.urduFont).stack;
+  // Urdu screens: Latin letters and digits keep the Latin face, Urdu script
+  // falls through to the Urdu font (the Latin face has no Arabic glyphs).
+  vars['--font-urdu-ui'] = `${findLatinFont(a.latinFont).stack.split(',')[0]}, ${findUrduFont(a.urduFont).stack}`;
   vars['--font-mono'] = MONO_STACK;
 
   vars['--density-scale'] = String((DENSITIES[a.density] ?? DENSITIES.comfortable).scale);
@@ -171,6 +168,9 @@ export function applyAppearance(a: ResolvedAppearance, systemPrefersDark: boolea
   const root = document.documentElement;
   const dark = isDarkMode(a, systemPrefersDark);
   const vars = themeVariables(a, dark);
+  // Urdu screens: every element that asks for the UI font gets the Latin face
+  // for Latin text and the Urdu face for Urdu script.
+  if (currentLocale() === 'ur') vars['--font-latin'] = vars['--font-urdu-ui'];
 
   root.classList.toggle('dark', dark);
   root.style.colorScheme = dark ? 'dark' : 'light';
@@ -182,13 +182,15 @@ export function applyAppearance(a: ResolvedAppearance, systemPrefersDark: boolea
   root.dataset.radius = a.radius;
   root.dataset.motion = a.reduceMotion ? 'reduce' : 'full';
 
-  const lang = a.language === 'ur' ? 'ur' : a.language === 'roman_ur' ? 'ur-Latn' : 'en';
-  const dir = RTL_ENABLED && a.language === 'ur' ? 'rtl' : 'ltr';
+  // The UI language belongs to core/i18n (per user); appearance only applies it.
+  const locale = localeInfo(currentLocale());
+  const lang = locale.htmlLang;
+  const dir = locale.dir;
   root.lang = lang;
   root.dir = dir;
 
   ensureFont(findLatinFont(a.latinFont));
-  if (a.language === 'ur') ensureFont(findUrduFont(a.urduFont));
+  if (locale.id === 'ur') ensureFont(findUrduFont(a.urduFont));
 
   updateThemeColorMeta(dark ? '#0b1220' : a.accentHex);
 

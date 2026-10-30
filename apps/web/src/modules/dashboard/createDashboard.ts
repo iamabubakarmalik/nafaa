@@ -23,6 +23,7 @@ import type { AttentionItem } from './widgets/AttentionList';
 import { makeAttention } from './widgets/CommonAttention';
 import { MorningSummaryWidget } from '@modules/ai-assistant/components/MorningSummaryWidget';
 import type { MoneyMapOptions } from './widgets/MoneyMap';
+import { t } from '@core/i18n';
 
 export interface DashboardSpec {
   label: string;
@@ -49,26 +50,26 @@ export interface DashboardSpec {
 }
 
 const STANDARD_GUIDE: GuideItem[] = [
-  { icon: FileText, title: 'Din ka hisaab', text: 'Opening se closing tak: kaunsi cheez kitni biki, cash aur online kitna aaya, expense kitna. Purana din bhi khol sakte hain — WhatsApp par bhejein ya print (A4 ya thermal) karein.' },
-  { icon: Target, title: 'Aaj ka kaam', text: 'Jo abhi karna hai, sab se zaroori upar — har line par seedha button.' },
-  { icon: BarChart3, title: 'Rujhan aur muqabla', text: 'Sale ka rujhan, hafte ke din, 6 mahine ka muqabla aur category ka hissa — har chart par period badal sakte hain.' },
-  { icon: Clock, title: 'Rush ka waqt', text: 'Gehra rang sab se masroof ghanta hai. Staff aur maal us se pehle tayyar rakhein.' },
-  { icon: PiggyBank, title: 'Paisa kahan hai', text: 'Dukaan ka maal, purchase, expense, logon se lena, suppliers ko dena aur galle ka cash.' },
-  { icon: Wallet, title: 'Profit-loss', text: 'Sale → cost → seedha profit → expenses → haath me bacha.' },
-  { icon: Hourglass, title: 'Lists par poora control', text: 'Sab se zyada bika, atka maal, kam stock aur haaliya sale — har list me period, sort, kitne items aur category chun sakte hain, aur print bhi.' },
-  { icon: Users, title: 'Apni marzi ka dashboard', text: '"Customize" se hisse chhupayein, ghaseet kar sort badlein, chaurai (S/M/L/Full) chunein, upar ke numbers chunein aur rozana target lagayein. Aap ke account me save hota hai — har device par wahi.' },
+  { icon: FileText, title: t('Din ka hisaab'), text: t('Opening se closing tak: kaunsi cheez kitni biki, cash aur online kitna aaya, expense kitna. Purana din bhi khol sakte hain — WhatsApp par bhejein ya print (A4 ya thermal) karein.') },
+  { icon: Target, title: t('Aaj ka kaam'), text: t('Jo abhi karna hai, sab se zaroori upar — har line par seedha button.') },
+  { icon: BarChart3, title: t('Rujhan aur muqabla'), text: t('Sale ka rujhan, hafte ke din, 6 mahine ka muqabla aur category ka hissa — har chart par period badal sakte hain.') },
+  { icon: Clock, title: t('Rush ka waqt'), text: t('Gehra rang sab se masroof ghanta hai. Staff aur maal us se pehle tayyar rakhein.') },
+  { icon: PiggyBank, title: t('Paisa kahan hai'), text: t('Dukaan ka maal, purchase, expense, logon se lena, suppliers ko dena aur galle ka cash.') },
+  { icon: Wallet, title: t('Profit-loss'), text: t('Sale → cost → seedha profit → expenses → haath me bacha.') },
+  { icon: Hourglass, title: t('Lists par poora control'), text: t('Sab se zyada bika, atka maal, kam stock aur haaliya sale — har list me period, sort, kitne items aur category chun sakte hain, aur print bhi.') },
+  { icon: Users, title: t('Apni marzi ka dashboard'), text: t('"Customize" se hisse chhupayein, ghaseet kar sort badlein, chaurai (S/M/L/Full) chunein, upar ke numbers chunein aur rozana target lagayein. Aap ke account me save hota hai — har device par wahi.') },
 ];
 
 /** Nafaa AI's morning summary (yesterday's sale, profit, udhaar). Renders nothing without `ai.use`. */
 const aiMorning: WidgetDef = {
-  id: 'ai-morning', title: 'Subah ka khulasa (Nafaa AI)', description: 'Kal ki sale, profit, udhaar aur stock ek nazar me',
+  id: 'ai-morning', title: t('Subah ka khulasa (Nafaa AI)'), description: t('Kal ki sale, profit, udhaar aur stock ek nazar me'),
   size: 'full', sizes: ['half', 'wide', 'full'], Component: MorningSummaryWidget,
 };
 
 export function createDashboard(spec: DashboardSpec): DashboardConfig {
   const omit = new Set(spec.omit ?? []);
   const attention: WidgetDef = {
-    id: 'attention', title: 'Aaj ka kaam', description: 'Jo abhi karna hai, sab se zaroori upar',
+    id: 'attention', title: t('Aaj ka kaam'), description: t('Jo abhi karna hai, sab se zaroori upar'),
     size: 'full', sizes: ['half', 'wide', 'full'], Component: makeAttention(spec.useAttention),
   };
   const widgets: WidgetDef[] = [
@@ -102,7 +103,7 @@ export function createDashboard(spec: DashboardSpec): DashboardConfig {
   const kpis = [...(spec.kpis ?? []), ...commonKpiList];
   return {
     label: spec.label,
-    primaryAction: spec.primaryAction ?? { to: '/pos', label: 'POS', icon: ShoppingCart },
+    primaryAction: spec.primaryAction ?? { to: '/pos', label: t('POS'), icon: ShoppingCart },
     kpis,
     defaultKpis: spec.defaultKpis ?? ['profit', 'month', 'cash', 'online', 'low-stock', 'udhaar'],
     widgets,

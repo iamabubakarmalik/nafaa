@@ -3,6 +3,7 @@
 import { Link } from 'react-router-dom';
 import type { LucideIcon } from 'lucide-react';
 import { WidgetCard } from '../engine/parts';
+import { t } from '@core/i18n';
 
 export interface QuickAction {
   to: string;
@@ -14,7 +15,7 @@ export interface QuickAction {
 export function QuickActions({ useActions }: { useActions: () => QuickAction[] }) {
   const actions = useActions();
   return (
-    <WidgetCard title="Jaldi kaam">
+    <WidgetCard title={t('Jaldi kaam')}>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {actions.map((a) => (
           <Link

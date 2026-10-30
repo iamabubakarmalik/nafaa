@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 export interface MiniOption { value: string; label: string }
 
@@ -20,11 +21,11 @@ export function MiniSelect({ label, value, onChange, options, className }: {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         title={label}
-        className="h-8 max-w-[11rem] cursor-pointer appearance-none truncate rounded-lg border border-slate-200 bg-white py-0 pl-2.5 pr-7 text-[0.75rem] font-medium text-slate-700 outline-none transition hover:border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+        className="h-8 max-w-[11rem] cursor-pointer appearance-none truncate rounded-lg border border-slate-200 bg-white py-0 ps-2.5 pe-7 text-[0.75rem] font-medium text-slate-700 outline-none transition hover:border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
       >
         {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+      <ChevronDown className="pointer-events-none absolute end-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
     </label>
   );
 }
@@ -52,11 +53,11 @@ export function useWidgetState<T extends Record<string, string>>(widgetId: strin
 }
 
 export const LIMIT_OPTIONS: MiniOption[] = [
-  { value: '5', label: 'Top 5' }, { value: '10', label: 'Top 10' }, { value: '20', label: 'Top 20' }, { value: '50', label: 'Top 50' },
+  { value: '5', label: t('Top 5') }, { value: '10', label: t('Top 10') }, { value: '20', label: t('Top 20') }, { value: '50', label: t('Top 50') },
 ];
 
 export const PERIOD_OPTIONS: MiniOption[] = [
-  { value: '1', label: 'Aaj' }, { value: '7', label: '7 din' }, { value: '30', label: '30 din' }, { value: '90', label: '90 din' },
+  { value: '1', label: t('Aaj') }, { value: '7', label: t('7 din') }, { value: '30', label: t('30 din') }, { value: '90', label: t('90 din') },
 ];
 
-export const periodLabel = (days: string) => (days === '1' ? 'Aaj' : `Pichhle ${days} din`);
+export const periodLabel = (days: string) => (days === '1' ? t('Aaj') : t('Pichhle {{days}} din', { days }));

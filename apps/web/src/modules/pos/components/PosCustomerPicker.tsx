@@ -4,6 +4,7 @@ import { Search, X, User, UserPlus, ChevronDown, Check } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import { Kbd } from '@/design-system/components';
 import { looksLikePhone, phoneDigits } from '../lib/posKeys';
+import { t } from '@core/i18n';
 
 /**
  * Customer for the bill: type a name or phone to filter, arrows and Enter
@@ -119,8 +120,8 @@ export function PosCustomerPicker({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        title="Customer (F2)"
-        className={`flex ${compact ? 'h-9' : 'h-11'} w-full items-center gap-2.5 rounded-lg border bg-white px-2.5 text-left transition ${
+        title={t('Customer (F2)')}
+        className={`flex ${compact ? 'h-9' : 'h-11'} w-full items-center gap-2.5 rounded-lg border bg-white px-2.5 text-start transition ${
           open ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-slate-300 hover:border-slate-400'
         }`}
       >
@@ -128,7 +129,7 @@ export function PosCustomerPicker({
           {selectedCustomer ? <span className="text-[0.75rem] font-semibold">{(selectedCustomer.name || '?').trim().charAt(0).toUpperCase()}</span> : <User className="h-4 w-4" />}
         </span>
         <span className={`min-w-0 flex-1 ${compact ? 'flex items-baseline gap-2' : ''}`}>
-          <span className="block truncate text-[0.875rem] font-medium text-slate-900">{selectedCustomer ? selectedCustomer.name : 'Walk-in customer'}</span>
+          <span className="block truncate text-[0.875rem] font-medium text-slate-900">{selectedCustomer ? selectedCustomer.name : t('Walk-in customer')}</span>
           {selectedCustomer?.phone && <span className="block truncate text-[0.6875rem] text-slate-500 tabular-nums">{selectedCustomer.phone}</span>}
         </span>
         <Kbd className="hidden xl:inline-flex">F2</Kbd>
@@ -142,37 +143,37 @@ export function PosCustomerPicker({
             className="fixed z-[81] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
             <div className="border-b border-slate-100 p-2">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey}
-                  placeholder="Naam ya phone likhein…" aria-label="Customer search"
-                  className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[0.875rem] text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+                  placeholder={t('Naam ya phone likhein…')} aria-label={t('Customer search')}
+                  className="h-10 w-full rounded-lg border border-slate-200 bg-white ps-8 pe-8 text-[0.875rem] text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
                 {q && (
-                  <button type="button" onClick={() => { setQ(''); inputRef.current?.focus(); }} aria-label="Saaf"
-                    className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md hover:bg-slate-100">
+                  <button type="button" onClick={() => { setQ(''); inputRef.current?.focus(); }} aria-label={t('Saaf')}
+                    className="absolute end-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md hover:bg-slate-100">
                     <X className="h-3.5 w-3.5 text-slate-400" />
                   </button>
                 )}
               </div>
               <div className="mt-1.5 flex items-center justify-between px-0.5 text-[0.6875rem] text-slate-500">
-                <span>{filtered.length} customers</span>
-                {totalUdhaar > 0 && <span className="font-medium text-amber-700">Kul udhaar {formatPKR(totalUdhaar)}</span>}
+                <span>{t('{{count}} customers', { count: filtered.length })}</span>
+                {totalUdhaar > 0 && <span className="font-medium text-amber-700">{t('Kul udhaar {{totalUdhaar}}', { totalUdhaar: formatPKR(totalUdhaar) })}</span>}
               </div>
             </div>
 
             <div ref={listRef} role="listbox" className="max-h-[46vh] overflow-y-auto py-1">
               <button type="button" role="option" aria-selected={!customerId} data-hi={hi === 0 ? '1' : '0'} onClick={() => choose(null)}
-                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${hi === 0 ? 'bg-slate-100' : 'hover:bg-slate-50'}`}>
+                className={`flex w-full items-center gap-2.5 px-3 py-2 text-start transition ${hi === 0 ? 'bg-slate-100' : 'hover:bg-slate-50'}`}>
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500"><User className="h-4 w-4" /></span>
-                <span className="text-[0.875rem] text-slate-700">Walk-in customer</span>
-                {!customerId && <Check className="ml-auto h-4 w-4 shrink-0 text-brand-600" />}
+                <span className="text-[0.875rem] text-slate-700">{t('Walk-in customer')}</span>
+                {!customerId && <Check className="ms-auto h-4 w-4 shrink-0 text-brand-600" />}
               </button>
 
               {filtered.length === 0 ? (
                 <div className="px-3 py-4 text-center">
-                  <p className="text-[0.875rem] font-medium text-slate-700">Koi customer nahi mila</p>
+                  <p className="text-[0.875rem] font-medium text-slate-700">{t('Koi customer nahi mila')}</p>
                   <button type="button" onClick={addNew}
                     className="mt-2 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-[0.8125rem] font-semibold text-brand-fg hover:bg-brand-700">
-                    <UserPlus className="h-4 w-4" /> {looksLikePhone(q) ? `${q.trim()} naya customer` : `"${q.trim()}" naya customer`}
+                    <UserPlus className="h-4 w-4" /> {looksLikePhone(q) ? t('{{value}} naya customer', { value: q.trim() }) : t('"{{value}}" naya customer', { value: q.trim() })}
                     <kbd className="rounded bg-white/20 px-1 text-[0.625rem]">Enter</kbd>
                   </button>
                 </div>
@@ -182,7 +183,7 @@ export function PosCustomerPicker({
                   const bal = Number(c.balance) || 0;
                   return (
                     <button key={c.id} type="button" role="option" aria-selected={customerId === c.id} data-hi={hi === i ? '1' : '0'} onClick={() => choose(c)}
-                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${hi === i ? 'bg-slate-100' : 'hover:bg-slate-50'}`}>
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-start transition ${hi === i ? 'bg-slate-100' : 'hover:bg-slate-50'}`}>
                       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-brand-50 text-[0.75rem] font-semibold text-brand-700">
                         {(c.name || '?').trim().charAt(0).toUpperCase()}
                       </span>
@@ -200,7 +201,7 @@ export function PosCustomerPicker({
 
             <button type="button" onClick={addNew}
               className="flex h-11 w-full items-center justify-center gap-2 border-t border-slate-100 text-[0.875rem] font-semibold text-brand-700 transition hover:bg-brand-50">
-              <UserPlus className="h-4 w-4" /> Naya customer
+              <UserPlus className="h-4 w-4" /> {' '}{t('Naya customer')}
             </button>
           </div>
         </>,

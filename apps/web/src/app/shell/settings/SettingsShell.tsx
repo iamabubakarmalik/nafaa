@@ -25,6 +25,7 @@ import {
   LAST_APP_PATH_KEY, SETTINGS_HOME, canSeeSettingsItem, searchSettings, settingsGroupFor, settingsItemFor,
   visibleSettingsGroups, type SettingsGroup, type SettingsHit, type SettingsItem,
 } from '../navigation/nav-config';
+import { t } from '@core/i18n';
 
 type Props = {
   role?: any;
@@ -140,16 +141,16 @@ export function SettingsShell({ role, permissions, tenantName, tenantSlug, userN
     tenantName, tenantSlug, userName, userEmail, avatarUrl,
   };
 
-  const title = isHome ? 'Settings' : current?.label ?? 'Settings';
-  const desc = isHome ? 'Apne store ki har setting — folder kholein ya search karein' : current?.desc;
+  const title = isHome ? t('Settings') : current?.label ?? t('Settings');
+  const desc = isHome ? t('Apne store ki har setting — folder kholein ya search karein') : current?.desc;
   const danger = !!currentGroup?.danger;
 
   return (
     <div ref={rootRef} className="flex min-h-full"
       style={{ '--settings-frame': frameHeight ? `${frameHeight}px` : '100dvh' } as React.CSSProperties}>
-      <aside aria-label="Settings"
+      <aside aria-label={t('Settings')}
         className={cn(
-          'sticky top-0 hidden h-[var(--settings-frame)] shrink-0 flex-col border-r border-shell-line bg-shell-bar transition-[width] duration-200 lg:flex print:hidden',
+          'sticky top-0 hidden h-[var(--settings-frame)] shrink-0 flex-col border-e border-shell-line bg-shell-bar transition-[width] duration-200 lg:flex print:hidden',
           rail ? 'w-[72px]' : 'w-[280px]',
         )}>
         {rail ? (
@@ -163,9 +164,9 @@ export function SettingsShell({ role, permissions, tenantName, tenantSlug, userN
       </aside>
 
       {drawer && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Settings menu">
-          <button type="button" aria-label="Menu band karein" onClick={() => setDrawer(false)} className="absolute inset-0 bg-slate-950/50" />
-          <aside className="absolute inset-y-0 left-0 flex w-[300px] max-w-[86vw] flex-col bg-shell-bar shadow-2xl">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={t('Settings menu')}>
+          <button type="button" aria-label={t('Menu band karein')} onClick={() => setDrawer(false)} className="absolute inset-0 bg-slate-950/50" />
+          <aside className="absolute inset-y-0 start-0 flex w-[300px] max-w-[86vw] flex-col bg-shell-bar shadow-2xl">
             <SettingsSidebar {...sidebarProps} onClose={() => setDrawer(false)} />
           </aside>
         </div>
@@ -174,7 +175,7 @@ export function SettingsShell({ role, permissions, tenantName, tenantSlug, userN
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-20 border-b border-shell-line bg-shell-canvas/95 backdrop-blur print:hidden">
           <div className={cn(PAGE_WIDTH_CLASS, 'flex min-h-16 items-center gap-3 px-4 py-2.5 sm:px-6 lg:px-8')}>
-            <IconButton label="Settings menu" onClick={() => setDrawer(true)} variant="secondary" size="lg" className="lg:hidden">
+            <IconButton label={t('Settings menu')} onClick={() => setDrawer(true)} variant="secondary" size="lg" className="lg:hidden">
               <Menu className="h-5 w-5" />
             </IconButton>
             <span className={cn('hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl sm:flex',
@@ -183,16 +184,16 @@ export function SettingsShell({ role, permissions, tenantName, tenantSlug, userN
             </span>
             <div className="min-w-0 flex-1">
               {!isHome && (
-                <nav aria-label="Breadcrumb" className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:flex">
-                  {showHome ? <Link to="/settings" className="hover:text-slate-900 hover:underline">Settings</Link> : <span>Settings</span>}
-                  {currentGroup && !currentGroup.flat && <><ChevronRight className="h-3 w-3" /><span className="truncate">{currentGroup.title}</span></>}
+                <nav aria-label={t('Breadcrumb')} className="hidden items-center gap-1 text-[0.75rem] text-slate-500 sm:flex">
+                  {showHome ? <Link to="/settings" className="hover:text-slate-900 hover:underline">{t('Settings')}</Link> : <span>{t('Settings')}</span>}
+                  {currentGroup && !currentGroup.flat && <><ChevronRight className="h-3 w-3 rtl-flip" /><span className="truncate">{currentGroup.title}</span></>}
                 </nav>
               )}
               <h1 className="truncate text-[1.0625rem] font-semibold leading-tight text-slate-900 sm:text-[1.25rem]">{title}</h1>
               {desc && <p className="hidden truncate text-[0.8125rem] text-slate-500 md:block">{desc}</p>}
             </div>
             <div ref={setSlot} className="flex shrink-0 items-center gap-2" />
-            <IconButton label="Settings band karein" onClick={close} variant="secondary" size="lg">
+            <IconButton label={t('Settings band karein')} onClick={close} variant="secondary" size="lg">
               <X className="h-5 w-5" />
             </IconButton>
           </div>
@@ -249,8 +250,8 @@ function SettingsSidebar({ groups, showHome, current, folders, onFolder, onPick,
     <>
       <StoreMark name={tenantName} />
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{tenantName || 'My store'}</span>
-        <span className="block truncate text-[0.75rem] text-slate-500">{tenantSlug ? `@${tenantSlug}` : 'Business settings'}</span>
+        <span className="block truncate text-[0.9375rem] font-semibold text-slate-900">{tenantName || t('My store')}</span>
+        <span className="block truncate text-[0.75rem] text-slate-500">{tenantSlug ? `@${tenantSlug}` : t('Business settings')}</span>
       </span>
     </>
   );
@@ -261,51 +262,51 @@ function SettingsSidebar({ groups, showHome, current, folders, onFolder, onPick,
         {showHome
           ? <Link to="/settings" className="flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1.5 transition hover:bg-slate-100">{store}</Link>
           : <div className="flex min-w-0 flex-1 items-center gap-3 p-1.5">{store}</div>}
-        {onClose && <IconButton label="Menu band karein" onClick={onClose}><X className="h-5 w-5" /></IconButton>}
+        {onClose && <IconButton label={t('Menu band karein')} onClick={onClose}><X className="h-5 w-5" /></IconButton>}
       </div>
 
       <div className="px-3 pb-2">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Settings search karein" aria-label="Settings search karein"
+          <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('Settings search karein')} aria-label={t('Settings search karein')}
             onKeyDown={(e) => {
               if (e.key === 'ArrowDown') { e.preventDefault(); setActive((i) => Math.min(i + 1, hits.length - 1)); }
               if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => Math.max(i - 1, 0)); }
               if (e.key === 'Enter' && hits[active]) choose(hits[active]);
               if (e.key === 'Escape') setQ('');
             }}
-            className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-9 text-[0.875rem] text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
+            className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 ps-9 pe-9 text-[0.875rem] text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
           {q && (
-            <button type="button" onClick={() => setQ('')} aria-label="Search saaf karein"
-              className="absolute right-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+            <button type="button" onClick={() => setQ('')} aria-label={t('Search saaf karein')}
+              className="absolute end-1.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
       </div>
 
-      <nav aria-label="Settings" className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
+      <nav aria-label={t('Settings')} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
         {searching ? (
           hits.length === 0 ? (
             <div className="px-3 py-10 text-center">
               <SearchX className="mx-auto h-7 w-7 text-slate-300" />
-              <p className="mt-2 text-[0.8125rem] font-semibold text-slate-700">“{q.trim()}” nahi mila</p>
-              <p className="mt-0.5 text-[0.75rem] text-slate-500">Koi aur lafz likhein, jaise “PIN”, “logo” ya “Discount”</p>
+              <p className="mt-2 text-[0.8125rem] font-semibold text-slate-700">{t('“{{value}}” nahi mila', { value: q.trim() })}</p>
+              <p className="mt-0.5 text-[0.75rem] text-slate-500">{t('Koi aur lafz likhein, jaise “PIN”, “logo” ya “Discount”')}</p>
             </div>
           ) : (
-            <ul role="listbox" aria-label="Search results" className="space-y-0.5">
+            <ul role="listbox" aria-label={t('Search results')} className="space-y-0.5">
               {hits.map((h, i) => (
                 <li key={`${h.to}|${h.find ?? ''}`} role="option" aria-selected={i === active}>
                   <button type="button" onMouseEnter={() => setActive(i)} onClick={() => choose(h)}
-                    className={cn('flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition', i === active ? 'bg-slate-100' : 'hover:bg-slate-50')}>
+                    className={cn('flex w-full items-center gap-3 rounded-xl px-2 py-2 text-start transition', i === active ? 'bg-slate-100' : 'hover:bg-slate-50')}>
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
                       <h.icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{h.label}</span>
-                      <span className="block truncate text-[0.6875rem] text-slate-500">{h.find ? h.sub : `Page · ${h.sub}`}</span>
+                      <span className="block truncate text-[0.6875rem] text-slate-500">{h.find ? h.sub : t('Page · {{sub}}', { sub: h.sub })}</span>
                     </span>
-                    {i === active ? <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    {i === active ? <CornerDownLeft className="h-3.5 w-3.5 shrink-0 text-slate-400 rtl-flip" />
                       : h.external ? <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-slate-400" /> : null}
                   </button>
                 </li>
@@ -330,12 +331,12 @@ function SettingsSidebar({ groups, showHome, current, folders, onFolder, onPick,
         <Link to="/profile" className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl p-1.5 transition hover:bg-slate-100">
           <Avatar name={userName} url={avatarUrl} size={32} />
           <span className="min-w-0">
-            <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{userName || 'My profile'}</span>
+            <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{userName || t('My profile')}</span>
             {userEmail && <span className="block truncate text-[0.6875rem] text-slate-500">{userEmail}</span>}
           </span>
         </Link>
         {onCollapse && (
-          <IconButton label="Sidebar chhota karein" onClick={onCollapse}>
+          <IconButton label={t('Sidebar chhota karein')} onClick={onCollapse}>
             <PanelLeftClose className="h-[18px] w-[18px]" />
           </IconButton>
         )}
@@ -367,7 +368,7 @@ function Folder({ group, open, current, onToggle }: { group: SettingsGroup; open
   return (
     <div>
       <button type="button" onClick={() => onToggle(!open)} aria-expanded={open}
-        className={cn('flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-slate-100', holdsCurrent && !open && 'bg-slate-100/70')}>
+        className={cn('flex w-full items-center gap-3 rounded-xl px-2 py-2 text-start transition hover:bg-slate-100', holdsCurrent && !open && 'bg-slate-100/70')}>
         <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', holdsCurrent ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-600')}>
           <Icon className="h-4 w-4" />
         </span>
@@ -375,7 +376,7 @@ function Folder({ group, open, current, onToggle }: { group: SettingsGroup; open
         <ChevronDown className={cn('h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200', !open && '-rotate-90')} />
       </button>
       {open && (
-        <ul className="mb-1.5 mt-0.5 space-y-0.5 pl-[2.75rem]">
+        <ul className="mb-1.5 mt-0.5 space-y-0.5 ps-[2.75rem]">
           {group.items.map((item) => {
             const on = item === current;
             return (
@@ -384,7 +385,7 @@ function Folder({ group, open, current, onToggle }: { group: SettingsGroup; open
                   className={cn('flex items-center gap-2 rounded-lg px-3 py-[0.4375rem] text-[0.8125rem] transition',
                     on ? 'bg-brand-600 font-semibold text-brand-fg shadow-sm' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900')}>
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                  {item.external && <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-label="App ka page" />}
+                  {item.external && <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-60" aria-label={t('App ka page')} />}
                 </Link>
               </li>
             );
@@ -406,10 +407,10 @@ function SettingsRail({ groups, showHome, current, tenantName, userName, avatarU
     on ? (danger ? 'bg-rose-600 text-white' : 'bg-brand-600 text-brand-fg') : danger ? 'text-rose-600 hover:bg-rose-50' : 'text-slate-600 hover:bg-slate-100');
   return (
     <div className="flex h-full min-h-0 flex-col items-center py-3">
-      {showHome ? <Link to="/settings" title={tenantName || 'Settings'} aria-label="Settings overview"><StoreMark name={tenantName} size="sm" /></Link> : <StoreMark name={tenantName} size="sm" />}
-      <IconButton label="Settings search karein" onClick={onSearch} size="lg" className="mt-2"><Search className="h-[18px] w-[18px]" /></IconButton>
+      {showHome ? <Link to="/settings" title={tenantName || t('Settings')} aria-label={t('Settings overview')}><StoreMark name={tenantName} size="sm" /></Link> : <StoreMark name={tenantName} size="sm" />}
+      <IconButton label={t('Settings search karein')} onClick={onSearch} size="lg" className="mt-2"><Search className="h-[18px] w-[18px]" /></IconButton>
       <div className="my-2 h-px w-8 bg-slate-200" />
-      <nav aria-label="Settings" className="flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto">
+      <nav aria-label={t('Settings')} className="flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto">
         {showHome && (
           <Link to="/settings" title={SETTINGS_HOME.label} aria-label={SETTINGS_HOME.label} className={button(current === SETTINGS_HOME)}>
             <SETTINGS_HOME.icon className="h-[18px] w-[18px]" />
@@ -429,8 +430,8 @@ function SettingsRail({ groups, showHome, current, tenantName, userName, avatarU
         })}
       </nav>
       <div className="mt-2 flex flex-col items-center gap-2 border-t border-shell-line pt-3">
-        <Link to="/profile" title={userName || 'My profile'} aria-label="My profile"><Avatar name={userName} url={avatarUrl} size={32} /></Link>
-        <IconButton label="Sidebar bara karein" onClick={onExpand}><PanelLeftOpen className="h-[18px] w-[18px]" /></IconButton>
+        <Link to="/profile" title={userName || t('My profile')} aria-label={t('My profile')}><Avatar name={userName} url={avatarUrl} size={32} /></Link>
+        <IconButton label={t('Sidebar bara karein')} onClick={onExpand}><PanelLeftOpen className="h-[18px] w-[18px]" /></IconButton>
       </div>
     </div>
   );

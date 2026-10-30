@@ -4,6 +4,7 @@ import { Input, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import { freeVariantStock, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
+import { t as tr } from '@core/i18n';
 
 interface Props {
   product: Product;
@@ -46,8 +47,8 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
 
   const activeCount = variants.filter((v) => v.isActive).length;
   const stockLine = ignoreStock
-    ? 'Stock rolls me'
-    : `${totalStock.toFixed(totalStock % 1 === 0 ? 0 : 1)} Stock`;
+    ? tr('Stock rolls me')
+    : tr('{{value}} Stock', { value: totalStock.toFixed(totalStock % 1 === 0 ? 0 : 1) });
 
   return (
     <Modal
@@ -55,7 +56,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
       onClose={onClose}
       size="xl"
       title={product.name}
-      description={`Variant chunein · ${filtered.length} / ${activeCount} Variant · ${stockLine}`}
+      description={tr('Variant chunein · {{count}} / {{activeCount}} Variant · {{stockLine}}', { count: filtered.length, activeCount, stockLine })}
     >
       <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-4 border-b border-slate-100 bg-white px-5 py-3">
         <Input
@@ -64,12 +65,12 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
           size="lg"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Naam, SKU, rang ya size se Variant dhoondein"
+          placeholder={tr('Naam, SKU, rang ya size se Variant dhoondein')}
           leftIcon={<Search className="h-5 w-5" />}
           rightIcon={search ? (
             <button
               type="button"
-              aria-label="Saaf karein"
+              aria-label={tr('Saaf karein')}
               onClick={() => setSearch('')}
               className="flex h-7 w-7 items-center justify-center rounded-lg hover:bg-slate-100"
             >
@@ -85,9 +86,9 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
             <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center shadow-inner">
               <AlertCircle className="h-10 w-10 text-slate-400" />
             </div>
-            <div className="mt-4 font-semibold text-slate-900 text-lg">Koi Variant nahi mila</div>
+            <div className="mt-4 font-semibold text-slate-900 text-lg">{tr('Koi Variant nahi mila')}</div>
             <div className="text-sm text-slate-500 mt-1 font-semibold">
-              {search ? 'Kuch aur likh kar dhoondein' : 'Koi active Variant nahi'}
+              {search ? tr('Kuch aur likh kar dhoondein') : tr('Koi active Variant nahi')}
             </div>
           </div>
         ) : (
@@ -104,7 +105,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                   key={v.id}
                   disabled={outOfStock}
                   onClick={() => onSelect(v)}
-                  className={`group relative rounded-2xl border overflow-hidden text-left transition-all ${
+                  className={`group relative rounded-2xl border overflow-hidden text-start transition-all ${
                     outOfStock
                       ? 'border-slate-200 opacity-50 cursor-not-allowed'
                       : 'border-slate-200 bg-white hover:border-violet-500 hover:shadow-xl hover:shadow-violet-500/20 hover:-translate-y-1'
@@ -128,12 +129,12 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                     {outOfStock ? (
                       <div className="absolute inset-0 bg-rose-500/85 flex items-center justify-center backdrop-blur-sm">
                         <span className="px-3 py-1.5 rounded-full bg-white text-rose-700 text-xs font-semibold shadow-lg uppercase tracking-wider">
-                          Stock khatam
+                          {tr('Stock khatam')}
                         </span>
                       </div>
                     ) : lowStock ? (
-                      <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-semibold shadow-md ring-2 ring-white animate-pulse">
-                        Kam
+                      <div className="absolute top-2 start-2 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[0.6875rem] font-semibold shadow-md ring-2 ring-white animate-pulse">
+                        {tr('Kam')}
                       </div>
                     ) : null}
 
@@ -173,9 +174,9 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                       <div className="text-lg font-semibold text-emerald-700 tabular-nums leading-none">
                         {formatPKR(v.price)}
                       </div>
-                      <div className="text-xs font-semibold text-right shrink-0">
+                      <div className="text-xs font-semibold text-end shrink-0">
                         {ignoreStock ? (
-                          <span className="text-emerald-700">Rolls</span>
+                          <span className="text-emerald-700">{tr('Rolls')}</span>
                         ) : outOfStock ? (
                           <span className="text-rose-700">0</span>
                         ) : lowStock ? (
@@ -188,7 +189,7 @@ export function VariantPicker({ product, variants, onSelect, onClose, ignoreStoc
                           </span>
                         )}
                         {!ignoreStock && held > 0 && (
-                          <div className="text-[0.6875rem] text-amber-700">{held} hold par</div>
+                          <div className="text-[0.6875rem] text-amber-700">{tr('{{held}} hold par', { held })}</div>
                         )}
                       </div>
                     </div>

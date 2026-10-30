@@ -3,6 +3,7 @@
 import { Button, Kbd, Modal } from '@/design-system/components';
 import { IconBubble } from './parts';
 import type { GuideItem } from './types';
+import { t } from '@core/i18n';
 
 export function GuideDialog({ open, onClose, items }: { open: boolean; onClose: () => void; items: GuideItem[] }) {
   return (
@@ -10,9 +11,9 @@ export function GuideDialog({ open, onClose, items }: { open: boolean; onClose: 
       open={open}
       onClose={onClose}
       size="md"
-      title="Ye safha kya batata hai"
-      description="Upar se neeche, isi sort se parhein"
-      footer={<Button onClick={onClose}>Samajh gaya</Button>}
+      title={t('Ye safha kya batata hai')}
+      description={t('Upar se neeche, isi sort se parhein')}
+      footer={<Button onClick={onClose}>{t('Samajh gaya')}</Button>}
     >
       <ul className="space-y-3">
         {items.map((g) => (
@@ -26,9 +27,9 @@ export function GuideDialog({ open, onClose, items }: { open: boolean; onClose: 
         ))}
       </ul>
       <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-3 text-[0.75rem] text-slate-500">
-        <span className="inline-flex items-center gap-1.5"><Kbd>G</Kbd> Ye safha</span>
-        <span className="inline-flex items-center gap-1.5"><Kbd>R</Kbd> Taaza karein</span>
-        <span className="inline-flex items-center gap-1.5"><Kbd>Esc</Kbd> Band</span>
+        <span className="inline-flex items-center gap-1.5"><Kbd>G</Kbd> {' '}{t('Ye safha')}</span>
+        <span className="inline-flex items-center gap-1.5"><Kbd>R</Kbd> {' '}{t('Taaza karein')}</span>
+        <span className="inline-flex items-center gap-1.5"><Kbd>Esc</Kbd> {' '}{t('Band')}</span>
       </div>
     </Modal>
   );

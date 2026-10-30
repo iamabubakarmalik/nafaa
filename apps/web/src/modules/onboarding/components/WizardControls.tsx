@@ -22,7 +22,7 @@ export function ChoiceCard({ selected, onSelect, title, description, icon, class
       aria-checked={selected}
       onClick={onSelect}
       className={cn(
-        'relative flex w-full items-start gap-3 rounded-xl border bg-white p-3.5 text-left transition',
+        'relative flex w-full items-start gap-3 rounded-xl border bg-white p-3.5 text-start transition',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
         selected ? 'border-brand-500 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
         className,
@@ -33,14 +33,14 @@ export function ChoiceCard({ selected, onSelect, title, description, icon, class
           {icon}
         </span>
       )}
-      <span className="min-w-0 flex-1 pr-5">
+      <span className="min-w-0 flex-1 pe-5">
         <span className="block text-sm font-semibold text-slate-900">{title}</span>
         {description && <span className="mt-0.5 block text-xs leading-relaxed text-slate-500">{description}</span>}
       </span>
       <span
         aria-hidden
         className={cn(
-          'absolute right-3 top-3 flex h-4 w-4 items-center justify-center rounded-full border',
+          'absolute end-3 top-3 flex h-4 w-4 items-center justify-center rounded-full border',
           selected ? 'border-brand-600 bg-brand-600 text-brand-fg' : 'border-slate-300 bg-white',
         )}
       >

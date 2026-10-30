@@ -19,6 +19,8 @@ export interface AuthUser {
   authProvider?: 'EMAIL' | 'GOOGLE' | 'HYBRID';
   createdAt?: string;
   lastLoginAt?: string | null;
+  /** App language: 'en' | 'ur' | 'roman'. Null until the user's first choice is saved. */
+  language?: string | null;
 }
 
 export interface AuthTenant {

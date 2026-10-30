@@ -11,6 +11,7 @@ import { PAYMENT_COLORS, PAYMENT_LABELS, useChartTheme } from '../engine/useChar
 import { useMasked } from '../engine/useMasked';
 import { EmptyHint, WidgetCard } from '../engine/parts';
 import { WidgetToolbar } from './WidgetToolbar';
+import { t } from '@core/i18n';
 
 export function PaymentMix() {
   const [s, set] = useWidgetState('payment-mix', { days: '30', view: 'donut' });
@@ -28,17 +29,17 @@ export function PaymentMix() {
   const online = rows.filter((r) => r.key !== 'CASH' && r.key !== 'CREDIT').reduce((x, r) => x + r.value, 0);
 
   return (
-    <WidgetCard title="Paisa kaise aaya" icon={Wallet} description={periodLabel(s.days)}>
+    <WidgetCard title={t('Paisa kaise aaya')} icon={Wallet} description={periodLabel(s.days)}>
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Paisa kaise aaya', subtitle: periodLabel(s.days),
-          sections: [{ kind: 'rows', rows: [...rows.map((r) => ({ label: `${r.name}${r.bills ? ` (${r.bills} bill)` : ''}`, value: sales(r.value) })), { label: 'Kul', value: sales(total), strong: true }] }],
+          title: t('Paisa kaise aaya'), subtitle: periodLabel(s.days),
+          sections: [{ kind: 'rows', rows: [...rows.map((r) => ({ label: `${r.name}${r.bills ? ` (${r.bills} bill)` : ''}`, value: sales(r.value) })), { label: t('Kul'), value: sales(total), strong: true }] }],
         })}>
-        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
-        <MiniSelect label="Dikhawa" value={s.view} onChange={(v) => set({ view: v })} options={[{ value: 'donut', label: 'Gol chart' }, { value: 'bars', label: 'Patiyan' }]} />
+        <MiniSelect label={t('Period')} value={s.days} onChange={(v) => set({ days: v })} options={PERIOD_OPTIONS} />
+        <MiniSelect label={t('Dikhawa')} value={s.view} onChange={(v) => set({ view: v })} options={[{ value: 'donut', label: t('Gol chart') }, { value: 'bars', label: t('Patiyan') }]} />
       </WidgetToolbar>
       {isLoading ? <Skeleton className="h-48 w-full" /> : rows.length === 0 ? (
-        <EmptyHint icon={Wallet} text="Is period me koi sale nahi" />
+        <EmptyHint icon={Wallet} text={t('Is period me koi sale nahi')} />
       ) : (
         <div className="flex flex-col gap-4">
           {!salesHidden && s.view === 'donut' && (
@@ -52,7 +53,7 @@ export function PaymentMix() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[0.6875rem] text-slate-500">Kul</span>
+                <span className="text-[0.6875rem] text-slate-500">{t('Kul')}</span>
                 <span className="text-[0.875rem] font-bold tabular-nums text-slate-900">{sales(total)}</span>
               </div>
             </div>
@@ -64,10 +65,10 @@ export function PaymentMix() {
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: r.color }} />
                   <span className="min-w-0 flex-1 truncate text-slate-700">{r.name}{r.bills ? <span className="text-slate-400"> · {r.bills}</span> : null}</span>
                   <span className="tabular-nums text-slate-500">{total > 0 ? Math.round((r.value / total) * 100) : 0}%</span>
-                  <span className="w-24 text-right font-semibold tabular-nums text-slate-900">{sales(r.value)}</span>
+                  <span className="w-24 text-end font-semibold tabular-nums text-slate-900">{sales(r.value)}</span>
                 </div>
                 {s.view === 'bars' && (
-                  <div className="ml-[18px] mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                  <div className="ms-[18px] mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
                     <div className="h-full rounded-full" style={{ width: `${total ? (r.value / total) * 100 : 0}%`, backgroundColor: r.color }} />
                   </div>
                 )}
@@ -76,11 +77,11 @@ export function PaymentMix() {
           </ul>
           <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
             <div className="rounded-lg bg-success-50 px-2.5 py-2">
-              <div className="text-[0.6875rem] font-medium text-success-800">Cash</div>
+              <div className="text-[0.6875rem] font-medium text-success-800">{t('Cash')}</div>
               <div className="text-[0.875rem] font-bold tabular-nums text-success-900">{sales(cash)}</div>
             </div>
             <div className="rounded-lg bg-sky-50 px-2.5 py-2">
-              <div className="text-[0.6875rem] font-medium text-sky-800">Online</div>
+              <div className="text-[0.6875rem] font-medium text-sky-800">{t('Online')}</div>
               <div className="text-[0.875rem] font-bold tabular-nums text-sky-900">{sales(online)}</div>
             </div>
           </div>

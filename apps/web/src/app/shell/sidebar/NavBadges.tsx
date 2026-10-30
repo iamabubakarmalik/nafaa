@@ -4,6 +4,7 @@
 
 import { useLiveOnlineOrders } from '@integrations/online-orders/hooks/useLiveOnlineOrders';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 const BADGE_TONES: Record<string, string> = {
   LIVE: 'bg-rose-500 text-white',
@@ -38,7 +39,7 @@ export function OnlineOrdersCount({ compact, dot }: { compact?: boolean; dot?: b
   const n = data?.pendingCount ?? 0;
   if (!n) return null;
   if (dot) {
-    return <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-amber-500 ring-2 ring-shell-sidebar" aria-label={`${n} new online orders`} />;
+    return <span className="absolute end-1.5 top-1.5 h-2 w-2 rounded-full bg-amber-500 ring-2 ring-shell-sidebar" aria-label={t('{{n}} new online orders', { n })} />;
   }
   return (
     <span className={cn(

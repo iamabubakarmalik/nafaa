@@ -13,7 +13,7 @@ export * from './tokens/layout';
 export * from './tokens/hero';
 export * from './industries/identities';
 export * from './theme/appearance';
-export { applyAppearance, ensureFont, verifyFont, themeVariables, isDarkMode, BOOT_CACHE_KEY, RTL_ENABLED } from './theme/apply';
+export { applyAppearance, ensureFont, verifyFont, themeVariables, isDarkMode, BOOT_CACHE_KEY } from './theme/apply';
 export { appearanceApi, APPEARANCE_QUERY_KEY, type StoredAppearance } from './theme/appearance.api';
 export * from './tokens/surfaces';
 export { useAppearanceStore, useAppearance } from './theme/store';

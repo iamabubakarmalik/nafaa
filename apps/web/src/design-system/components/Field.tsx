@@ -29,7 +29,7 @@ export function Field({ label, hint, error, required, id, className, children }:
       {label && (
         <label htmlFor={controlId} className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">
           {label}
-          {required && <span className="ml-0.5 text-rose-500" aria-hidden>*</span>}
+          {required && <span className="ms-0.5 text-rose-500" aria-hidden>*</span>}
         </label>
       )}
       {children(controlId, message ? messageId : undefined)}

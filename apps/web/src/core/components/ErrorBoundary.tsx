@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, Copy, ChevronDown } from 'lucide-react';
 import { Button } from '@/design-system/components';
+import { t } from '@core/i18n';
 
 /**
  * Error boundary around every page. A render error stops only the page, not
@@ -66,9 +67,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div className="rounded-2xl bg-rose-50 p-4 text-center ring-1 ring-inset ring-rose-200">
           <AlertTriangle className="mx-auto mb-1.5 h-6 w-6 text-rose-600" />
-          <p className="text-sm font-bold text-rose-900">Ye hissa khul nahi saka</p>
+          <p className="text-sm font-bold text-rose-900">{t('Ye hissa khul nahi saka')}</p>
           <p className="mt-0.5 text-[0.75rem] text-rose-700">{error.message}</p>
-          <Button size="xs" variant="critical" className="mt-3" onClick={this.reset} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>Dobara</Button>
+          <Button size="xs" variant="critical" className="mt-3" onClick={this.reset} leftIcon={<RefreshCw className="h-3.5 w-3.5" />}>{t('Dobara')}</Button>
         </div>
       );
     }
@@ -80,25 +81,25 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 ring-1 ring-inset ring-rose-200">
               <AlertTriangle className="h-7 w-7" />
             </div>
-            <h2 className="mt-3 text-xl font-bold text-slate-900 sm:text-[1.375rem]">Ye safha khul nahi saka</h2>
-            <p className="mt-1 text-sm text-slate-600">Aap ka koi data waste nahi hua — bas ye safha ruk gaya hai.</p>
+            <h2 className="mt-3 text-xl font-bold text-slate-900 sm:text-[1.375rem]">{t('Ye safha khul nahi saka')}</h2>
+            <p className="mt-1 text-sm text-slate-600">{t('Aap ka koi data waste nahi hua — bas ye safha ruk gaya hai.')}</p>
           </div>
 
           <div className="space-y-3 p-5">
             <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
-              <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">Masla</div>
+              <div className="text-[0.6875rem] font-semibold uppercase tracking-wider text-slate-500">{t('Masla')}</div>
               <div className="break-words text-sm font-semibold text-slate-900">{error.name}: {error.message}</div>
               <div className="mt-0.5 break-all font-mono text-[0.6875rem] text-slate-500">{window.location.pathname}</div>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <Button size="lg" onClick={this.reset} leftIcon={<RefreshCw className="h-4 w-4" />}>Dobara Koshish</Button>
-              <Button size="lg" variant="secondary" onClick={() => { window.location.href = '/dashboard'; }} leftIcon={<Home className="h-4 w-4" />}>Dashboard</Button>
+              <Button size="lg" onClick={this.reset} leftIcon={<RefreshCw className="h-4 w-4" />}>{t('Dobara Koshish')}</Button>
+              <Button size="lg" variant="secondary" onClick={() => { window.location.href = '/dashboard'; }} leftIcon={<Home className="h-4 w-4" />}>{t('Dashboard')}</Button>
             </div>
 
             <Button size="sm" variant="ghost" fullWidth onClick={() => this.setState({ showDetails: !showDetails })}
               leftIcon={<ChevronDown className={showDetails ? 'h-3.5 w-3.5 rotate-180 transition' : 'h-3.5 w-3.5 transition'} />}>
-              Details {showDetails ? 'chhupayein' : 'dekhein'}
+              {t('Details {{value}}', { value: showDetails ? t('chhupayein') : t('dekhein') })}
             </Button>
 
             {showDetails && (
@@ -112,7 +113,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {showDetails && (
               <Button size="sm" variant="secondary" fullWidth onClick={this.copyDetails} leftIcon={<Copy className="h-3.5 w-3.5" />}>
-                Details copy karein (report ke liye)
+                {t('Details copy karein (report ke liye)')}
               </Button>
             )}
           </div>

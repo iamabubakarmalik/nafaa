@@ -75,7 +75,7 @@ export class AuthController {
   @Patch('me')
   updateProfile(
     @GetUser() user: AuthenticatedUser,
-    @Body() body: { fullName?: string; phone?: string; avatarUrl?: string },
+    @Body() body: { fullName?: string; phone?: string; avatarUrl?: string; language?: string },
   ) {
     return this.authService.updateProfile(user.id, body);
   }

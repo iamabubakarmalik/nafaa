@@ -13,6 +13,7 @@ import { useMasked } from '../engine/useMasked';
 import { fmtQty } from '../engine/parts';
 import { useDayReport, useMoneyMap, useOverview } from '../data/queries';
 import { splitHint } from '@modules/reports/ProfitSplit';
+import { t } from '@core/i18n';
 
 const pctChange = (now: number, before: number) => (before > 0 ? ((now - before) / before) * 100 : undefined);
 
@@ -23,7 +24,7 @@ function useLast7(key: 'sales' | 'profit' | 'orders') {
 
 export const commonKpis: Record<string, KpiDef> = {
   sales: {
-    id: 'sales', label: 'Aaj ki sale', icon: TrendingUp, tone: 'brand',
+    id: 'sales', label: t('Aaj ki sale'), icon: TrendingUp, tone: 'brand',
     useValue: () => {
       const { data, isLoading } = useOverview();
       const { sales, salesHidden } = useMasked();
@@ -31,105 +32,105 @@ export const commonKpis: Record<string, KpiDef> = {
       const s = data?.stats;
       return {
         loading: isLoading, value: sales(s?.salesToday), to: '/sales',
-        change: salesHidden ? undefined : s?.salesGrowthVsYesterday, hint: 'kal se',
+        change: salesHidden ? undefined : s?.salesGrowthVsYesterday, hint: t('kal se'),
         trend: salesHidden ? undefined : trend,
       };
     },
   },
   bills: {
-    id: 'bills', label: 'Aaj ke bill', icon: Receipt, tone: 'info',
+    id: 'bills', label: t('Aaj ke bill'), icon: Receipt, tone: 'info',
     useValue: () => {
       const { data, isLoading } = useOverview();
       const trend = useLast7('orders');
       const s = data?.stats;
       return {
         loading: isLoading, value: s?.ordersToday ?? 0, to: '/sales',
-        change: pctChange(s?.ordersToday ?? 0, s?.ordersYesterday ?? 0), hint: `kal ${s?.ordersYesterday ?? 0}`,
+        change: pctChange(s?.ordersToday ?? 0, s?.ordersYesterday ?? 0), hint: t('kal {{value}}', { value: s?.ordersYesterday ?? 0 }),
         trend,
       };
     },
   },
   average: {
-    id: 'average', label: 'Ausat bill', icon: ShoppingBasket, tone: 'neutral',
+    id: 'average', label: t('Ausat bill'), icon: ShoppingBasket, tone: 'neutral',
     useValue: () => {
       const { data, isLoading } = useOverview();
       const { sales } = useMasked();
       const s = data?.stats;
-      return { loading: isLoading, value: sales(s?.aovToday), hint: `mahine ka ${sales(s?.aovMonth)}` };
+      return { loading: isLoading, value: sales(s?.aovToday), hint: t('mahine ka {{aovMonth}}', { aovMonth: sales(s?.aovMonth) }) };
     },
   },
   profit: {
-    id: 'profit', label: 'Aaj ka profit', icon: Target, tone: 'success', sensitive: true,
+    id: 'profit', label: t('Aaj ka profit'), icon: Target, tone: 'success', sensitive: true,
     useValue: () => {
       const { data, isLoading } = useOverview();
       const trend = useLast7('profit');
       const s = data?.stats;
       // Khata bills: show what came in and what is still on khata, so nothing is hidden.
-      return { loading: isLoading, value: formatPKR(s?.netProfitToday ?? 0), hint: splitHint(s?.profitSplitToday) ?? 'cost aur expense nikal kar', trend, to: '/profit-report' };
+      return { loading: isLoading, value: formatPKR(s?.netProfitToday ?? 0), hint: splitHint(s?.profitSplitToday) ?? t('cost aur expense nikal kar'), trend, to: '/profit-report' };
     },
   },
   items: {
-    id: 'items', label: 'Items biki', icon: Package, tone: 'warning',
+    id: 'items', label: t('Items biki'), icon: Package, tone: 'warning',
     useValue: () => {
       const { data, isLoading } = useDayReport();
-      return { loading: isLoading, value: fmtQty(data?.sales.itemsSold ?? 0), hint: `${data?.items.length ?? 0} alag cheezein`, to: '/day-report' };
+      return { loading: isLoading, value: fmtQty(data?.sales.itemsSold ?? 0), hint: t('{{value}} alag cheezein', { value: data?.items.length ?? 0 }), to: '/day-report' };
     },
   },
   cash: {
-    id: 'cash', label: 'Galle me cash', icon: Banknote, tone: 'success',
+    id: 'cash', label: t('Galle me cash'), icon: Banknote, tone: 'success',
     useValue: () => {
       const { data: m, isLoading } = useMoneyMap();
       const { sales } = useMasked();
       return {
         loading: isLoading, to: '/cash-register',
         value: m?.cash.registerOpen ? sales(m.cash.expected) : '—',
-        hint: m?.cash.registerOpen ? `opening ${sales(m.cash.opening)}` : 'Register band hai',
+        hint: m?.cash.registerOpen ? t('opening {{opening}}', { opening: sales(m.cash.opening) }) : t('Register band hai'),
       };
     },
   },
   online: {
-    id: 'online', label: 'Aaj online aaya', icon: Smartphone, tone: 'info',
+    id: 'online', label: t('Aaj online aaya'), icon: Smartphone, tone: 'info',
     useValue: () => {
       const { data, isLoading } = useDayReport();
       const { sales } = useMasked();
-      return { loading: isLoading, value: sales(data?.onlineCollected), hint: `cash ${sales(data?.cashCollected)}`, to: '/day-report' };
+      return { loading: isLoading, value: sales(data?.onlineCollected), hint: t('cash {{cashCollected}}', { cashCollected: sales(data?.cashCollected) }), to: '/day-report' };
     },
   },
   expenses: {
-    id: 'expenses', label: 'Aaj ka expense', icon: Wallet, tone: 'warning', sensitive: true,
+    id: 'expenses', label: t('Aaj ka expense'), icon: Wallet, tone: 'warning', sensitive: true,
     useValue: () => {
       const { data, isLoading } = useOverview();
       const s = data?.stats;
-      return { loading: isLoading, value: formatPKR(s?.expensesToday ?? 0), hint: `mahine ${formatPKR(s?.expensesMonth ?? 0)}`, to: '/expenses' };
+      return { loading: isLoading, value: formatPKR(s?.expensesToday ?? 0), hint: t('mahine {{value}}', { value: formatPKR(s?.expensesMonth ?? 0) }), to: '/expenses' };
     },
   },
   udhaar: {
-    id: 'udhaar', label: 'Udhaar baqi', icon: BookOpen, tone: 'danger', sensitive: true,
+    id: 'udhaar', label: t('Udhaar baqi'), icon: BookOpen, tone: 'danger', sensitive: true,
     useValue: () => {
       const { data, isLoading } = useOverview();
       const s = data?.stats;
-      return { loading: isLoading, value: formatPKR(s?.totalUdhaar ?? 0), hint: `${s?.customersWithUdhaar ?? 0} customers`, to: '/khata' };
+      return { loading: isLoading, value: formatPKR(s?.totalUdhaar ?? 0), hint: t('{{value}} customers', { value: s?.customersWithUdhaar ?? 0 }), to: '/khata' };
     },
   },
   month: {
-    id: 'month', label: 'Mahine ki sale', icon: CalendarRange, tone: 'brand',
+    id: 'month', label: t('Mahine ki sale'), icon: CalendarRange, tone: 'brand',
     useValue: () => {
       const { data, isLoading } = useOverview();
       const { sales, salesHidden } = useMasked();
       const s = data?.stats;
-      return { loading: isLoading, value: sales(s?.salesMonth), change: salesHidden ? undefined : s?.salesGrowthVsLastMonth, hint: 'pichhle mahine se' };
+      return { loading: isLoading, value: sales(s?.salesMonth), change: salesHidden ? undefined : s?.salesGrowthVsLastMonth, hint: t('pichhle mahine se') };
     },
   },
   'low-stock': {
-    id: 'low-stock', label: 'Kam stock', icon: AlertTriangle, tone: 'warning',
+    id: 'low-stock', label: t('Kam stock'), icon: AlertTriangle, tone: 'warning',
     useValue: () => {
       const { data, isLoading } = useOverview();
       const s = data?.stats;
-      return { loading: isLoading, value: s?.lowStockCount ?? 0, hint: `${s?.outOfStockCount ?? 0} khatam`, to: '/low-stock', alert: (s?.outOfStockCount ?? 0) > 0 };
+      return { loading: isLoading, value: s?.lowStockCount ?? 0, hint: t('{{value}} khatam', { value: s?.outOfStockCount ?? 0 }), to: '/low-stock', alert: (s?.outOfStockCount ?? 0) > 0 };
     },
   },
   customers: {
-    id: 'customers', label: 'Customers', icon: Users, tone: 'neutral',
+    id: 'customers', label: t('Customers'), icon: Users, tone: 'neutral',
     useValue: () => {
       const { data, isLoading } = useOverview();
       return { loading: isLoading, value: data?.stats.totalCustomers ?? 0, to: '/customers' };

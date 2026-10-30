@@ -13,8 +13,9 @@ import { useOverview } from '../data/queries';
 import { IconBubble } from './parts';
 import type { DashboardConfig, WidgetSize } from './types';
 import type { CustomizeTab, DashboardContextValue } from './useDashboardLayout';
+import { t } from '@core/i18n';
 
-const SIZE_LABEL: Record<WidgetSize, string> = { third: 'S', half: 'M', wide: 'L', full: 'Full' };
+const SIZE_LABEL: Record<WidgetSize, string> = { third: t('S'), half: t('M'), wide: t('L'), full: t('Full') };
 const SIZE_ORDER: WidgetSize[] = ['third', 'half', 'wide', 'full'];
 const MAX_KPIS = 8;
 
@@ -53,23 +54,23 @@ function WidgetsTab({ layout, costHidden }: Pick<Props, 'layout' | 'costHidden'>
           >
             <GripVertical className="hidden h-4 w-4 shrink-0 cursor-grab text-slate-400 sm:block" aria-hidden />
             <div className="flex shrink-0 flex-col">
-              <IconButton label={`${widget.title} upar`} size="sm" disabled={index === 0} onClick={() => moveTo(widget.id, index - 1)}>
+              <IconButton label={t('{{title}} upar', { title: widget.title })} size="sm" disabled={index === 0} onClick={() => moveTo(widget.id, index - 1)}>
                 <ArrowUp className="h-3.5 w-3.5" />
               </IconButton>
-              <IconButton label={`${widget.title} neeche`} size="sm" disabled={index === items.length - 1} onClick={() => moveTo(widget.id, index + 1)}>
+              <IconButton label={t('{{title}} neeche', { title: widget.title })} size="sm" disabled={index === items.length - 1} onClick={() => moveTo(widget.id, index + 1)}>
                 <ArrowDown className="h-3.5 w-3.5" />
               </IconButton>
             </div>
             <div className={cn('min-w-0 flex-1', !visible && 'opacity-55')}>
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-[0.875rem] font-medium text-slate-900">{widget.title}</span>
-                {widget.sensitive && costHidden && <Badge variant="outline" size="xs"><Lock className="mr-1 h-3 w-3" />Cost lock</Badge>}
+                {widget.sensitive && costHidden && <Badge variant="outline" size="xs"><Lock className="me-1 h-3 w-3" />{t('Cost lock')}</Badge>}
               </div>
               <p className="text-[0.75rem] text-slate-500">{widget.description}</p>
             </div>
-            <div className="ml-auto flex shrink-0 items-center gap-3">
+            <div className="ms-auto flex shrink-0 items-center gap-3">
               {sizes.length > 1 && (
-                <div role="radiogroup" aria-label={`${widget.title} size`} className="inline-flex rounded-md bg-slate-100 p-0.5">
+                <div role="radiogroup" aria-label={t('{{title}} size', { title: widget.title })} className="inline-flex rounded-md bg-slate-100 p-0.5">
                   {sizes.map((s) => (
                     <button key={s} type="button" role="radio" aria-checked={size === s} disabled={!visible} onClick={() => setSize(widget.id, s)}
                       className={cn('h-6 min-w-[1.75rem] rounded px-1.5 text-[0.6875rem] font-semibold transition disabled:opacity-40',
@@ -79,7 +80,7 @@ function WidgetsTab({ layout, costHidden }: Pick<Props, 'layout' | 'costHidden'>
                   ))}
                 </div>
               )}
-              <Switch size="sm" checked={visible} onChange={(e) => setVisible(widget.id, e.target.checked)} aria-label={`${widget.title} dikhayein`} />
+              <Switch size="sm" checked={visible} onChange={(e) => setVisible(widget.id, e.target.checked)} aria-label={t('{{title}} dikhayein', { title: widget.title })} />
             </div>
           </li>
         );
@@ -97,7 +98,7 @@ function NumbersTab({ config, layout, costHidden }: Pick<Props, 'config' | 'layo
   return (
     <div>
       <p className="mb-3 text-[0.8125rem] text-slate-600">
-        Upar wale cards me kya dikhe — {MAX_KPIS} tak chunein. Jis sort se chunenge, usi sort se nazar aayenge.
+        {t('Upar wale cards me kya dikhe — {{MAX_KPIS}} tak chunein. Jis sort se chunenge, usi sort se nazar aayenge.', { MAX_KPIS })}
       </p>
       <div className="grid gap-2 sm:grid-cols-2">
         {config.kpis.map((k) => {
@@ -107,13 +108,13 @@ function NumbersTab({ config, layout, costHidden }: Pick<Props, 'config' | 'layo
             <button key={k.id} type="button" onClick={() => toggle(k.id)} aria-pressed={on}
               disabled={!on && selected.length >= MAX_KPIS}
               className={cn(
-                'flex items-center gap-3 rounded-xl border p-3 text-left transition disabled:opacity-50',
+                'flex items-center gap-3 rounded-xl border p-3 text-start transition disabled:opacity-50',
                 on ? 'border-brand-500 bg-brand-50/50 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300',
               )}>
               <IconBubble icon={k.icon} tone={k.tone ?? 'brand'} />
               <span className="min-w-0 flex-1">
                 <span className="block text-[0.875rem] font-medium text-slate-900">{k.label}</span>
-                {k.sensitive && costHidden && <span className="text-[0.6875rem] text-slate-500">Cost lock me chhupa rahega</span>}
+                {k.sensitive && costHidden && <span className="text-[0.6875rem] text-slate-500">{t('Cost lock me chhupa rahega')}</span>}
               </span>
               <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.75rem] font-bold',
                 on ? 'bg-brand-600 text-brand-fg' : 'border border-slate-300 text-transparent')}>
@@ -124,7 +125,7 @@ function NumbersTab({ config, layout, costHidden }: Pick<Props, 'config' | 'layo
         })}
       </div>
       <div className="mt-3 flex justify-end">
-        <Button size="sm" variant="ghost" onClick={() => layout.setKpis([])}>Default numbers</Button>
+        <Button size="sm" variant="ghost" onClick={() => layout.setKpis([])}>{t('Default numbers')}</Button>
       </div>
     </div>
   );
@@ -142,16 +143,16 @@ function TargetTab({ layout }: Pick<Props, 'layout'>) {
   return (
     <div className="space-y-4">
       <p className="text-[0.8125rem] text-slate-600">
-        Rozana kitni sale ka irada hai? Dashboard ke upar ring dikhayegi ke aaj kitna poora hua. Ye sirf aap ke liye hai.
+        {t('Rozana kitni sale ka irada hai? Dashboard ke upar ring dikhayegi ke aaj kitna poora hua. Ye sirf aap ke liye hai.')}
       </p>
       <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); save(Number(value) || 0); }}>
         <Input type="number" inputMode="numeric" min={0} step={500} value={value} onChange={(e) => setValue(e.target.value)}
-          placeholder="e.g. 50000" aria-label="Rozana target" leftIcon={<span className="text-[0.75rem] font-semibold text-slate-500">Rs</span>} wrapperClassName="flex-1" />
-        <Button type="submit">Save</Button>
+          placeholder={t('e.g. 50000')} aria-label={t('Rozana target')} leftIcon={<span className="text-[0.75rem] font-semibold text-slate-500">Rs</span>} wrapperClassName="flex-1" />
+        <Button type="submit">{t('Save')}</Button>
       </form>
       {suggestions.length > 0 && (
         <div>
-          <p className="mb-1.5 text-[0.75rem] text-slate-500">Pichhle 7 din ka ausat {formatPKR(avg)} — in me se chunein:</p>
+          <p className="mb-1.5 text-[0.75rem] text-slate-500">{t('Pichhle 7 din ka ausat {{avg}} — in me se chunein:', { avg: formatPKR(avg) })}</p>
           <div className="flex flex-wrap gap-2">
             {suggestions.map((s, i) => (
               <button key={s} type="button" onClick={() => save(s)}
@@ -162,7 +163,7 @@ function TargetTab({ layout }: Pick<Props, 'layout'>) {
           </div>
         </div>
       )}
-      {layout.target > 0 && <Button variant="ghost" size="sm" onClick={() => save(0)}>Target hatayein</Button>}
+      {layout.target > 0 && <Button variant="ghost" size="sm" onClick={() => save(0)}>{t('Target hatayein')}</Button>}
     </div>
   );
 }
@@ -174,12 +175,12 @@ export function CustomizeDialog({ open, tab, onTab, onClose, config, layout, cos
       open={open}
       onClose={onClose}
       size="lg"
-      title="Dashboard apni marzi ka"
-      description="Har tabdeeli foran lagti hai aur aap ke account me save hoti hai — phone aur computer dono par wahi."
+      title={t('Dashboard apni marzi ka')}
+      description={t('Har tabdeeli foran lagti hai aur aap ke account me save hoti hai — phone aur computer dono par wahi.')}
       footer={
         <>
-          <Button variant="ghost" onClick={layout.reset} disabled={!layout.isCustomized}>Sab pehle jaisa</Button>
-          <Button onClick={onClose}>Ho gaya</Button>
+          <Button variant="ghost" onClick={layout.reset} disabled={!layout.isCustomized}>{t('Sab pehle jaisa')}</Button>
+          <Button onClick={onClose}>{t('Ho gaya')}</Button>
         </>
       }
     >
@@ -188,14 +189,14 @@ export function CustomizeDialog({ open, tab, onTab, onClose, config, layout, cos
         onChange={onTab}
         className="mb-4"
         items={[
-          { value: 'widgets', label: 'Hisse', count: shown },
-          { value: 'numbers', label: 'Numbers', count: layout.kpis.length },
-          { value: 'target', label: 'Target' },
+          { value: 'widgets', label: t('Hisse'), count: shown },
+          { value: 'numbers', label: t('Numbers'), count: layout.kpis.length },
+          { value: 'target', label: t('Target') },
         ]}
       />
       {tab === 'widgets' && (
         <>
-          <p className="mb-2 hidden text-[0.75rem] text-slate-500 sm:block">Ghaseet kar sort badlein · S M L Full se chaurai chunein</p>
+          <p className="mb-2 hidden text-[0.75rem] text-slate-500 sm:block">{t('Ghaseet kar sort badlein · S M L Full se chaurai chunein')}</p>
           <WidgetsTab layout={layout} costHidden={costHidden} />
         </>
       )}

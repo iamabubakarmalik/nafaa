@@ -4,12 +4,13 @@ import type { ReactNode } from 'react';
 import { PrintButton, type PrintDoc } from '@core/print';
 import { useCategoryOptions } from '../data/queries';
 import { MiniSelect } from '../engine/controls';
+import { t } from '@core/i18n';
 
 export function WidgetToolbar({ children, print, inset = true }: { children?: ReactNode; print?: () => PrintDoc; inset?: boolean }) {
   return (
     <div className={inset ? 'flex flex-wrap items-center gap-1.5 px-4 pb-3 sm:px-5' : 'mb-3 flex flex-wrap items-center gap-1.5'}>
       {children}
-      {print && <PrintButton doc={print} size="sm" className="ml-auto" />}
+      {print && <PrintButton doc={print} size="sm" className="ms-auto" />}
     </div>
   );
 }
@@ -19,10 +20,10 @@ export function CategorySelect({ value, onChange }: { value: string; onChange: (
   if (data.length === 0) return null;
   return (
     <MiniSelect
-      label="Category"
+      label={t('Category')}
       value={value}
       onChange={onChange}
-      options={[{ value: '', label: 'Sab categories' }, ...data.map((c) => ({ value: c.id, label: c.name }))]}
+      options={[{ value: '', label: t('Sab categories') }, ...data.map((c) => ({ value: c.id, label: c.name }))]}
     />
   );
 }

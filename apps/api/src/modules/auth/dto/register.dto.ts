@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
+  IsIn,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -8,6 +9,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { APP_LANGUAGES, type AppLanguage } from '../../../common/i18n/app-language';
 
 export class RegisterDto {
   @ApiProperty({ example: 'Ahmad Bakery' })
@@ -45,4 +47,9 @@ export class RegisterDto {
   @IsString()
   @MaxLength(40)
   referralCode?: string;
+
+  @ApiPropertyOptional({ example: 'en', enum: APP_LANGUAGES })
+  @IsOptional()
+  @IsIn(APP_LANGUAGES)
+  language?: AppLanguage;
 }

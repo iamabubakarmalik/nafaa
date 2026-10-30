@@ -30,6 +30,7 @@ import { cn } from '@core/lib/cn';
 import { useShortcutsHelp } from '../keyboard/ShortcutsHelp';
 import { useVisibleNav } from '../navigation/useVisibleNav';
 import { Kbd } from '@/design-system/components';
+import { t as tr } from '@core/i18n';
 
 /* ─── Open state, shared by every trigger ─── */
 
@@ -54,7 +55,7 @@ export function GlobalSearchTrigger() {
       className="flex h-9 w-full items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[0.8125rem] text-slate-500 transition hover:border-slate-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
     >
       <Search className="h-4 w-4 shrink-0" />
-      <span className="flex-1 truncate text-left">Search products, customers, pages…</span>
+      <span className="flex-1 truncate text-start">{tr('Search products, customers, pages…')}</span>
       <Kbd className="hidden lg:inline-flex">Ctrl K</Kbd>
     </button>
   );
@@ -75,18 +76,18 @@ type ResultItem = {
 
 /** Common actions, shown first. `q` holds extra words people may type. */
 const ACTIONS: Array<{ title: string; subtitle: string; to: string; icon: typeof Receipt; permission?: string; q: string }> = [
-  { title: 'Naya bill', subtitle: 'POS counter kholein', to: '/pos', icon: ShoppingCart, permission: PERMISSIONS.POS_USE, q: 'new sale bill pos checkout' },
-  { title: 'Naya product', subtitle: 'Nayi cheez add karein', to: '/products/new', icon: Package, permission: PERMISSIONS.PRODUCTS_CREATE, q: 'add product item new' },
-  { title: 'Bulk banayein', subtitle: 'Bohat se products ek sheet me likhein', to: '/products/bulk-create', icon: PackagePlus, permission: PERMISSIONS.PRODUCTS_CREATE, q: 'bulk create many products sheet spreadsheet excel' },
-  { title: 'Bulk edit', subtitle: 'Bohat se products ki price, stock ek saath', to: '/products/bulk-edit', icon: Package, permission: PERMISSIONS.PRODUCTS_EDIT, q: 'bulk edit price stock spreadsheet many products' },
-  { title: 'Excel import', subtitle: 'File se products aur stock', to: '/products/bulk-import', icon: PackagePlus, permission: PERMISSIONS.PRODUCTS_CREATE, q: 'excel import csv upload products stock file' },
-  { title: 'Customer add', subtitle: 'Naya customer', to: '/customers/new', icon: UserPlus, permission: PERMISSIONS.CUSTOMERS_EDIT, q: 'new customer add' },
-  { title: 'Purchase', subtitle: 'Naya maal khareedein', to: '/purchases/new', icon: PackagePlus, permission: PERMISSIONS.PURCHASES_CREATE, q: 'new purchase buy stock supplier' },
-  { title: 'Expense', subtitle: 'Kharcha likhein', to: '/expenses?new=1', icon: Wallet, permission: PERMISSIONS.EXPENSES_CREATE, q: 'new expense kharcha' },
-  { title: 'Report…', subtitle: 'Sab reports', to: '/reports', icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW, q: 'reports report profit sale' },
-  { title: 'Supplier add', subtitle: 'Naya supplier', to: '/suppliers/new', icon: Truck, permission: PERMISSIONS.SUPPLIERS_VIEW, q: 'new supplier vendor' },
-  { title: 'Stock adjust', subtitle: 'Stock ginti theek karein', to: '/stock-adjustments', icon: ClipboardCheck, permission: PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, q: 'stock adjustment count' },
-  { title: 'Khata', subtitle: 'Udhaar ka hisaab', to: '/khata', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW, q: 'khata udhaar credit' },
+  { title: tr('Naya bill'), subtitle: tr('POS counter kholein'), to: '/pos', icon: ShoppingCart, permission: PERMISSIONS.POS_USE, q: tr('new sale bill pos checkout') },
+  { title: tr('Naya product'), subtitle: tr('Nayi cheez add karein'), to: '/products/new', icon: Package, permission: PERMISSIONS.PRODUCTS_CREATE, q: tr('add product item new') },
+  { title: tr('Bulk banayein'), subtitle: tr('Bohat se products ek sheet me likhein'), to: '/products/bulk-create', icon: PackagePlus, permission: PERMISSIONS.PRODUCTS_CREATE, q: tr('bulk create many products sheet spreadsheet excel') },
+  { title: tr('Bulk edit'), subtitle: tr('Bohat se products ki price, stock ek saath'), to: '/products/bulk-edit', icon: Package, permission: PERMISSIONS.PRODUCTS_EDIT, q: tr('bulk edit price stock spreadsheet many products') },
+  { title: tr('Excel import'), subtitle: tr('File se products aur stock'), to: '/products/bulk-import', icon: PackagePlus, permission: PERMISSIONS.PRODUCTS_CREATE, q: tr('excel import csv upload products stock file') },
+  { title: tr('Customer add'), subtitle: tr('Naya customer'), to: '/customers/new', icon: UserPlus, permission: PERMISSIONS.CUSTOMERS_EDIT, q: tr('new customer add') },
+  { title: tr('Purchase'), subtitle: tr('Naya maal khareedein'), to: '/purchases/new', icon: PackagePlus, permission: PERMISSIONS.PURCHASES_CREATE, q: tr('new purchase buy stock supplier') },
+  { title: tr('Expense'), subtitle: tr('Kharcha likhein'), to: '/expenses?new=1', icon: Wallet, permission: PERMISSIONS.EXPENSES_CREATE, q: tr('new expense kharcha') },
+  { title: tr('Report…'), subtitle: tr('Sab reports'), to: '/reports', icon: BarChart3, permission: PERMISSIONS.REPORTS_VIEW, q: tr('reports report profit sale') },
+  { title: tr('Supplier add'), subtitle: tr('Naya supplier'), to: '/suppliers/new', icon: Truck, permission: PERMISSIONS.SUPPLIERS_VIEW, q: tr('new supplier vendor') },
+  { title: tr('Stock adjust'), subtitle: tr('Stock ginti theek karein'), to: '/stock-adjustments', icon: ClipboardCheck, permission: PERMISSIONS.STOCK_ADJUSTMENTS_MANAGE, q: tr('stock adjustment count') },
+  { title: tr('Khata'), subtitle: tr('Udhaar ka hisaab'), to: '/khata', icon: BookOpen, permission: PERMISSIONS.KHATA_VIEW, q: tr('khata udhaar credit') },
 ];
 
 const MIN_REMOTE_QUERY = 2;
@@ -159,13 +160,13 @@ export function GlobalSearchDialog() {
     const can = (p?: string) => !p || hasPermission(user?.role as never, user?.permissions, p as PermissionKey);
     const actions = ACTIONS
       .filter((a) => can(a.permission) && hit(`${a.title} ${a.subtitle} ${a.q}`))
-      .map((a): ResultItem => ({ key: `a:${a.to}`, section: 'Actions', title: a.title, subtitle: a.subtitle, icon: <a.icon className="h-4 w-4" />, to: a.to }));
+      .map((a): ResultItem => ({ key: `a:${a.to}`, section: tr('Actions'), title: a.title, subtitle: a.subtitle, icon: <a.icon className="h-4 w-4" />, to: a.to }));
     const canAi = can(PERMISSIONS.AI_USE);
     if (canAi && hit('nafaa ai assistant sawal poochein question chat bot')) {
-      actions.unshift({ key: 'a:ai', section: 'Actions', title: 'Nafaa AI', subtitle: 'Dukaan ke baare mein kuch bhi poochein (Alt+I)', icon: <Sparkles className="h-4 w-4" />, run: () => useAiStore.getState().setOpen(true) });
+      actions.unshift({ key: 'a:ai', section: tr('Actions'), title: tr('Nafaa AI'), subtitle: tr('Dukaan ke baare mein kuch bhi poochein (Alt+I)'), icon: <Sparkles className="h-4 w-4" />, run: () => useAiStore.getState().setOpen(true) });
     }
     if (hit('keyboard shortcuts keys help madad')) {
-      actions.push({ key: 'a:help', section: 'Actions', title: 'Keyboard shortcuts', subtitle: 'Saari keys dekhein (?)', icon: <Keyboard className="h-4 w-4" />, run: () => openHelp(true) });
+      actions.push({ key: 'a:help', section: tr('Actions'), title: tr('Keyboard shortcuts'), subtitle: tr('Saari keys dekhein (?)'), icon: <Keyboard className="h-4 w-4" />, run: () => openHelp(true) });
     }
     // Every page when the box is empty; the best matches while typing.
     const seen = new Set<string>();
@@ -176,7 +177,7 @@ export function GlobalSearchDialog() {
       .slice(0, q ? 12 : undefined)
       .map(({ item, group }): ResultItem => {
         const Icon = item.icon;
-        return { key: `page:${item.to}`, section: q ? 'Pages' : 'Go to', title: item.label, subtitle: group, icon: <Icon className="h-4 w-4" />, to: item.to };
+        return { key: `page:${item.to}`, section: q ? tr('Pages') : tr('Go to'), title: item.label, subtitle: group, icon: <Icon className="h-4 w-4" />, to: item.to };
       });
     const settings = q
       ? settingsItems
@@ -184,31 +185,31 @@ export function GlobalSearchDialog() {
         .slice(0, 6)
         .map((i): ResultItem => {
           const Icon = i.icon ?? Settings;
-          return { key: `set:${i.to}`, section: 'Settings', title: i.label, subtitle: i.desc, icon: <Icon className="h-4 w-4" />, to: i.to };
+          return { key: `set:${i.to}`, section: tr('Settings'), title: i.label, subtitle: i.desc, icon: <Icon className="h-4 w-4" />, to: i.to };
         })
       : [];
     // A typed question goes straight to Nafaa AI.
     const ask: ResultItem[] = canAi && q.length >= 3
-      ? [{ key: 'ai:ask', section: 'Nafaa AI', title: `Nafaa AI se poochein: ${query.trim()}`, subtitle: 'Jawab aap ki dukaan ke data se', icon: <Sparkles className="h-4 w-4" />, run: () => useAiStore.getState().ask(query.trim()) }]
+      ? [{ key: 'ai:ask', section: tr('Nafaa AI'), title: tr('Nafaa AI se poochein: {{value}}', { value: query.trim() }), subtitle: tr('Jawab aap ki dukaan ke data se'), icon: <Sparkles className="h-4 w-4" />, run: () => useAiStore.getState().ask(query.trim()) }]
       : [];
     const local = [...actions, ...pages, ...ask, ...settings];
     if (!results) return local;
     return [
       ...local,
       ...results.products.map((p): ResultItem => ({
-        key: `p:${p.id}`, section: 'Products', title: p.name, subtitle: p.sku || undefined,
+        key: `p:${p.id}`, section: tr('Products'), title: p.name, subtitle: p.sku || undefined,
         meta: <span className="tabular-nums">{formatPKR(p.price)}</span>, icon: <Package className="h-4 w-4" />, to: `/products/${p.id}`,
       })),
       ...results.customers.map((c): ResultItem => ({
-        key: `c:${c.id}`, section: 'Customers', title: c.name, subtitle: c.phone || undefined,
+        key: `c:${c.id}`, section: tr('Customers'), title: c.name, subtitle: c.phone || undefined,
         meta: c.balance ? <HiddenValue type="sales" value={formatPKR(c.balance)} /> : undefined, icon: <Users className="h-4 w-4" />, to: `/customers/${c.id}`,
       })),
       ...results.sales.map((s): ResultItem => ({
-        key: `s:${s.id}`, section: 'Sales', title: s.saleNumber, subtitle: s.customer?.name || 'Walk-in',
+        key: `s:${s.id}`, section: tr('Sales'), title: s.saleNumber, subtitle: s.customer?.name || tr('Walk-in'),
         meta: <HiddenValue type="sales" value={formatPKR(s.total)} />, icon: <Receipt className="h-4 w-4" />, to: `/sales/${s.id}/receipt`,
       })),
       ...results.suppliers.map((s): ResultItem => ({
-        key: `su:${s.id}`, section: 'Suppliers', title: s.name, subtitle: s.phone || undefined, icon: <Truck className="h-4 w-4" />, to: `/suppliers/${s.id}`,
+        key: `su:${s.id}`, section: tr('Suppliers'), title: s.name, subtitle: s.phone || undefined, icon: <Truck className="h-4 w-4" />, to: `/suppliers/${s.id}`,
       })),
     ];
   }, [groups, settingsItems, query, results, user, openHelp]);
@@ -248,14 +249,14 @@ export function GlobalSearchDialog() {
   }, []);
 
   return createPortal(
-    <div className="fixed inset-0 z-[90] flex items-stretch justify-center sm:items-start sm:px-4 sm:pt-[12vh]" role="dialog" aria-modal="true" aria-label="Search">
+    <div className="fixed inset-0 z-[90] flex items-stretch justify-center sm:items-start sm:px-4 sm:pt-[12vh]" role="dialog" aria-modal="true" aria-label={tr('Search')}>
       <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-[2px] animate-in fade-in duration-150" onClick={() => setOpen(false)} aria-hidden />
 
       <div className="relative flex w-full flex-col overflow-hidden bg-white shadow-2xl animate-in fade-in duration-150 sm:max-h-[min(70dvh,560px)] sm:max-w-2xl sm:rounded-2xl sm:border sm:border-slate-200 sm:zoom-in-95">
         <div className="flex items-center gap-2 border-b border-slate-200 px-3 pt-[env(safe-area-inset-top)] sm:px-4">
-          <button type="button" onClick={() => setOpen(false)} aria-label="Close search"
+          <button type="button" onClick={() => setOpen(false)} aria-label={tr('Close search')}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 sm:hidden">
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="h-5 w-5 rtl-flip" />
           </button>
           <Search className="hidden h-5 w-5 shrink-0 text-slate-400 sm:block" />
           <input
@@ -263,8 +264,8 @@ export function GlobalSearchDialog() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Page, action, product, customer ya bill dhoondein…"
-            aria-label="Search"
+            placeholder={tr('Page, action, product, customer ya bill dhoondein…')}
+            aria-label={tr('Search')}
             role="combobox"
             aria-expanded="true"
             aria-autocomplete="list"
@@ -274,7 +275,7 @@ export function GlobalSearchDialog() {
           />
           {loading && <Loader2 className="h-4 w-4 shrink-0 animate-spin text-slate-400" />}
           {query && (
-            <button type="button" onClick={() => { setQuery(''); inputRef.current?.focus(); }} aria-label="Clear"
+            <button type="button" onClick={() => { setQuery(''); inputRef.current?.focus(); }} aria-label={tr('Clear')}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700">
               <X className="h-4 w-4" />
             </button>
@@ -298,7 +299,7 @@ export function GlobalSearchDialog() {
                   onMouseMove={() => setActive(index)}
                   onClick={() => go(item)}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left transition-colors',
+                    'flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-start transition-colors',
                     index === active ? 'bg-brand-50 text-slate-900' : 'text-slate-700 hover:bg-slate-50',
                   )}
                 >
@@ -310,7 +311,7 @@ export function GlobalSearchDialog() {
                     {item.subtitle && <span className="block truncate text-[0.75rem] text-slate-500">{item.subtitle}</span>}
                   </span>
                   {item.meta && <span className="shrink-0 text-[0.8125rem] font-semibold text-slate-600">{item.meta}</span>}
-                  {index === active && <CornerDownLeft className="hidden h-4 w-4 shrink-0 text-slate-400 sm:block" />}
+                  {index === active && <CornerDownLeft className="hidden h-4 w-4 shrink-0 text-slate-400 sm:block rtl-flip" />}
                 </button>
               ))}
             </div>
@@ -319,16 +320,16 @@ export function GlobalSearchDialog() {
           {!loading && trimmed.length >= MIN_REMOTE_QUERY && items.length === 0 && (
             <div className="px-4 py-12 text-center">
               <Search className="mx-auto h-8 w-8 text-slate-300" />
-              <div className="mt-2 text-[0.875rem] font-semibold text-slate-700">Nothing found for “{trimmed}”</div>
-              <div className="mt-1 text-[0.8125rem] text-slate-500">Try a product name, SKU, phone number or invoice number.</div>
+              <div className="mt-2 text-[0.875rem] font-semibold text-slate-700">{tr('Nothing found for “{{trimmed}}”', { trimmed })}</div>
+              <div className="mt-1 text-[0.8125rem] text-slate-500">{tr('Try a product name, SKU, phone number or invoice number.')}</div>
             </div>
           )}
         </div>
 
         <div className="hidden items-center gap-4 border-t border-slate-200 px-4 py-2 text-[0.6875rem] text-slate-500 sm:flex">
-          <span className="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> move</span>
-          <span className="flex items-center gap-1"><Kbd>Enter</Kbd> open</span>
-          <span className="flex items-center gap-1"><Kbd>Esc</Kbd> close</span>
+          <span className="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> {' '}{tr('move')}</span>
+          <span className="flex items-center gap-1"><Kbd>Enter</Kbd> {' '}{tr('open')}</span>
+          <span className="flex items-center gap-1"><Kbd>Esc</Kbd> {' '}{tr('close')}</span>
         </div>
       </div>
     </div>,

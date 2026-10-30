@@ -23,6 +23,7 @@ import { useDistributionState } from '@modules/distribution/hooks/useDistributio
 import { useBusinessModels } from '@core/lib/business-models';
 import { cn } from '@core/lib/cn';
 import { allShopsNavGroups, canSeeSettingsItem, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
+import { t } from '@core/i18n';
 
 type Channel = { id: string; type: string; platform?: string | null; displayName: string; isWebsite: boolean; live: boolean; pendingOrders: number };
 
@@ -73,7 +74,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
         }),
       }))
       .map((g) => (distributionTeaser && g.id === 'distribution'
-        ? { ...g, items: g.items.map((it) => (it.to === '/distribution' ? { ...it, badge: dist.state === 'plan' ? 'Plan' : 'Band' } : it)) }
+        ? { ...g, items: g.items.map((it) => (it.to === '/distribution' ? { ...it, badge: dist.state === 'plan' ? t('Plan') : t('Band') } : it)) }
         : g))
       .filter((g) => g.items.length > 0);
   }, [industry, isMarketplace, isAllShops, role, permissions, channels, manufacturing, distribution, fullDistribution, distributionTeaser, dist.state, sellsOnline, sellsToShops]);
@@ -98,7 +99,7 @@ function channelItems(channels?: Channel[]): NavItem[] {
   }));
   list.push({
     to: '/online-store/connect',
-    label: list.length ? 'Add channel' : 'Connect your website',
+    label: list.length ? t('Add channel') : t('Connect your website'),
     icon: Plus,
     permission: PERMISSIONS.SETTINGS_VIEW,
     keywords: 'woocommerce shopify website connect add',

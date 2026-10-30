@@ -39,6 +39,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: string | string[] = SERVER_ERROR_MESSAGE;
     let error = 'InternalServerError';
+    // Set by apiMessage() so the web app can translate messages that carry values.
+    let translation: { messageKey?: string; params?: unknown } = {};
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -49,6 +51,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         const r = res as Record<string, unknown>;
         message = (r.message as string | string[]) ?? message;
         error = (r.error as string) ?? exception.name;
+        if (typeof r.messageKey === 'string') translation = { messageKey: r.messageKey, params: r.params };
       }
     } else {
       const where = `${request.method} ${request.originalUrl ?? request.url}`;
@@ -76,6 +79,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       statusCode: status,
       error,
       message,
+      ...translation,
       path: request.url,
       timestamp: new Date().toISOString(),
     });

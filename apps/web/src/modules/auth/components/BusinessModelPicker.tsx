@@ -7,6 +7,7 @@
 import { Check } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { BUSINESS_MODEL_OPTIONS, cleanModels, type BusinessModel } from '@core/lib/business-models';
+import { t } from '@core/i18n';
 
 interface BusinessModelPickerProps {
   value: readonly BusinessModel[];
@@ -19,7 +20,7 @@ interface BusinessModelPickerProps {
 }
 
 export function BusinessModelPicker({
-  value, onChange, label = 'Aap kaise bechte hain?', hint = 'Ek se zyada chun sakte hain', disabled, compact,
+  value, onChange, label = t('Aap kaise bechte hain?'), hint = t('Ek se zyada chun sakte hain'), disabled, compact,
 }: BusinessModelPickerProps) {
   const toggle = (id: BusinessModel) => {
     const on = value.includes(id);
@@ -46,7 +47,7 @@ export function BusinessModelPicker({
               onClick={() => toggle(o.id)}
               data-model={o.id}
               className={cn(
-                'relative flex min-h-[6.25rem] flex-col items-start gap-1.5 rounded-xl border bg-white p-3 text-left transition',
+                'relative flex min-h-[6.25rem] flex-col items-start gap-1.5 rounded-xl border bg-white p-3 text-start transition',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-1',
                 'disabled:cursor-not-allowed disabled:opacity-60',
                 active ? 'border-brand-500 bg-brand-50/40 ring-1 ring-brand-500' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
@@ -63,7 +64,7 @@ export function BusinessModelPicker({
               <span
                 aria-hidden
                 className={cn(
-                  'absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-md border transition',
+                  'absolute end-2 top-2 flex h-5 w-5 items-center justify-center rounded-md border transition',
                   active ? 'border-brand-600 bg-brand-600 text-brand-fg' : 'border-slate-300 bg-white',
                 )}
               >

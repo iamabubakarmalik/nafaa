@@ -23,6 +23,8 @@ import { RegisterDto } from './dto/register.dto';
 import { OtpPurpose } from './dto/send-otp.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { DEFAULT_ROLE_PERMISSIONS } from '../../common/constants/permissions.constants';
+import { apiMessage } from '../../common/i18n/api-message';
+import { DEFAULT_APP_LANGUAGE, isAppLanguage } from '../../common/i18n/app-language';
 
 function makeReferralCode(seed: string): string {
   const clean = seed.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 6);
@@ -115,6 +117,7 @@ export class AuthService {
           authProvider: AuthProvider.EMAIL,
           emailVerified: false,
           permissions: DEFAULT_ROLE_PERMISSIONS[UserRole.OWNER] ?? [],
+          language: dto.language ?? DEFAULT_APP_LANGUAGE,
         },
       });
 
@@ -603,9 +606,7 @@ export class AuthService {
       const waitSec = Math.ceil(
         (recentOtp.createdAt.getTime() + 60 * 1000 - Date.now()) / 1000,
       );
-      throw new BadRequestException(
-        `Please wait ${waitSec}s before requesting a new code`,
-      );
+      throw new BadRequestException(apiMessage('Please wait {{waitSec}}s before requesting a new code', { waitSec }));
     }
 
     const code = generateOtp(6);
@@ -855,9 +856,13 @@ export class AuthService {
   // ═══════════════════════════════════════════════════════════
   async updateProfile(
     userId: string,
-    data: { fullName?: string; phone?: string; avatarUrl?: string },
+    data: { fullName?: string; phone?: string; avatarUrl?: string; language?: string },
   ) {
     const updates: any = {};
+    if (data.language !== undefined) {
+      if (!isAppLanguage(data.language)) throw new BadRequestException('Ye zaban mojood nahi');
+      updates.language = data.language;
+    }
     if (data.fullName) updates.fullName = data.fullName;
     if (data.phone !== undefined) updates.phone = data.phone || null;
     if (data.avatarUrl !== undefined) updates.avatarUrl = data.avatarUrl || null;
@@ -1033,7 +1038,7 @@ export class AuthService {
 
     return {
       success: true,
-      message: `${result.count} other device sessions revoked`,
+      ...apiMessage('{{count}} other device sessions revoked', { count: result.count }),
       count: result.count,
     };
   }

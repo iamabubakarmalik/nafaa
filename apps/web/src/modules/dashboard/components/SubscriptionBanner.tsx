@@ -13,6 +13,7 @@ import {
 import { useSubscriptionStatus } from '@core/hooks/useSubscriptionStatus';
 import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
+import { t as tr } from '@core/i18n';
 
 type Tone = 'info' | 'danger' | 'warning' | 'brand';
 
@@ -60,7 +61,7 @@ function Banner({ tone, icon, tag, tagIcon, title, text, to, cta }: {
           </div>
         </div>
         <Link to={to} className={cn('inline-flex h-10 items-center gap-1.5 rounded-lg px-4 text-sm font-semibold shadow-sm transition', t.link)}>
-          {cta} <ArrowRight className="h-4 w-4" />
+          {cta} <ArrowRight className="h-4 w-4 rtl-flip" />
         </Link>
       </div>
     </div>
@@ -78,37 +79,37 @@ export function SubscriptionBanner() {
   // Upgrade paid and waiting for admin approval.
   if (pendingUpgrade && pendingUpgrade.invoice) {
     return (
-      <Banner tone="info" icon={<Clock />} tagIcon={<Clock />} tag="Payment Verification"
-        title="Your payment is being verified"
-        text={<>Invoice <strong>{pendingUpgrade.invoice.invoiceNumber}</strong> — {formatPKR(pendingUpgrade.invoice.total)} • Admin approval pending (usually within 24 hours)</>}
-        to="/billing" cta="View Status" />
+      <Banner tone="info" icon={<Clock />} tagIcon={<Clock />} tag={tr('Payment Verification')}
+        title={tr('Your payment is being verified')}
+        text={<>{tr('Invoice')}{' '} <strong>{pendingUpgrade.invoice.invoiceNumber}</strong> {' '}{tr('— {{total}} • Admin approval pending (usually within 24 hours)', { total: formatPKR(pendingUpgrade.invoice.total) })}</>}
+        to="/billing" cta={tr('View Status')} />
     );
   }
 
   if (isExpired || isPastDue) {
     return (
-      <Banner tone="danger" icon={<XCircle />} tagIcon={<AlertTriangle />} tag="Action Required"
-        title={isExpired ? 'Your subscription has expired' : 'Payment is past due'}
-        text="Renew now to continue using all features — sales, POS, inventory access pe restrictions lag sakti hain"
-        to="/plans" cta="Renew Now" />
+      <Banner tone="danger" icon={<XCircle />} tagIcon={<AlertTriangle />} tag={tr('Action Required')}
+        title={isExpired ? tr('Your subscription has expired') : tr('Payment is past due')}
+        text={tr('Renew now to continue using all features — sales, POS, inventory access pe restrictions lag sakti hain')}
+        to="/plans" cta={tr('Renew Now')} />
     );
   }
 
   if (isTrial && isTrialExpiringSoon) {
     return (
-      <Banner tone="warning" icon={<Zap />} tagIcon={<Clock />} tag="Trial Expiring"
-        title={trialDaysLeft === 0 ? 'Last day of your trial!' : `Only ${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left in your trial`}
-        text={`Upgrade now to continue using ${subscription.plan?.name || 'Premium'} features — koi data loss nahi hoga`}
-        to="/plans" cta="Upgrade Now" />
+      <Banner tone="warning" icon={<Zap />} tagIcon={<Clock />} tag={tr('Trial Expiring')}
+        title={trialDaysLeft === 0 ? tr('Last day of your trial!') : tr('Only {{count}} days left in your trial', { count: trialDaysLeft })}
+        text={tr('Upgrade now to continue using {{value}} features — koi data loss nahi hoga', { value: subscription.plan?.name || 'Premium' })}
+        to="/plans" cta={tr('Upgrade Now')} />
     );
   }
 
   if (isTrial) {
     return (
-      <Banner tone="brand" icon={<Sparkles />} tagIcon={<Crown />} tag="Free Trial Active"
-        title={`${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left in your trial`}
-        text={`Enjoying ${subscription.plan?.name || 'Premium'}? Subscribe anytime to keep all features after trial ends`}
-        to="/plans" cta="View Plans" />
+      <Banner tone="brand" icon={<Sparkles />} tagIcon={<Crown />} tag={tr('Free Trial Active')}
+        title={tr('{{count}} days left in your trial', { count: trialDaysLeft })}
+        text={tr('Enjoying {{value}}? Subscribe anytime to keep all features after trial ends', { value: subscription.plan?.name || 'Premium' })}
+        to="/plans" cta={tr('View Plans')} />
     );
   }
 
@@ -125,11 +126,11 @@ export function SubscriptionBanner() {
             <CheckCircle2 className="h-5 w-5 text-blue-700" />
             <div className="text-sm">
               <span className="font-bold text-blue-900">{subscription.plan?.name}</span>
-              <span className="text-blue-700"> subscription renews in {daysUntilRenewal} day{daysUntilRenewal !== 1 ? 's' : ''}</span>
+              <span className="text-blue-700"> {' '}{tr('subscription renews in {{count}} days', { count: daysUntilRenewal })}</span>
             </div>
           </div>
           <Link to="/billing" className="text-[0.75rem] font-bold text-blue-700 hover:underline">
-            Manage →
+            {tr('Manage →')}
           </Link>
         </div>
       );

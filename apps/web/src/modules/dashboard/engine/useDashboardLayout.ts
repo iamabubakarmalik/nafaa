@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { preferencesApi } from '@core/api/preferences.api';
 import { useAuthStore } from '@core/stores/auth.store';
 import type { DashboardConfig, DashboardLayout, KpiDef, WidgetDef, WidgetSize } from './types';
+import { t } from '@core/i18n';
 
 const QUERY_KEY = ['preferences', 'dashboard'];
 const EMPTY: DashboardLayout = { order: [], hidden: [], sizes: {}, kpis: [], target: 0 };
@@ -150,6 +151,6 @@ export const DashboardLayoutContext = createContext<DashboardContextValue | null
 
 export function useDashboardContext() {
   const ctx = useContext(DashboardLayoutContext);
-  if (!ctx) throw new Error('useDashboardContext must be used inside DashboardView');
+  if (!ctx) throw new Error(t('useDashboardContext must be used inside DashboardView'));
   return ctx;
 }

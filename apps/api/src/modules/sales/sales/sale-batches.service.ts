@@ -11,6 +11,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope, resolveWriteShopId } from '../../../common/shop-scope';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /** Upper bound on product ids in one request. */
 const MAX_PRODUCTS = 200;
@@ -38,7 +39,7 @@ export class SaleBatchesService {
   async forProducts(user: AuthenticatedUser, scope: ShopScope, productIds: string, shopId?: string) {
     const ids = [...new Set(String(productIds ?? '').split(',').map((s) => s.trim()).filter(Boolean))];
     if (!ids.length) return [];
-    if (ids.length > MAX_PRODUCTS) throw new BadRequestException(`Ek dafa me ${MAX_PRODUCTS} products tak`);
+    if (ids.length > MAX_PRODUCTS) throw new BadRequestException(apiMessage('Ek dafa me {{max}} products tak', { max: MAX_PRODUCTS }));
     const branch = await resolveWriteShopId(this.prisma, user.tenantId, scope, shopId);
     return this.prisma.productBatch.findMany({
       where: { ...this.where(user, branch), productId: { in: ids } },

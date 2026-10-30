@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { confirmDialog } from '@/design-system/components';
 import { productsApi } from '@modules/inventory/products/api/products.api';
 import { forceRefreshProducts } from '@core/lib/offline/offlineProducts';
+import { t } from '@core/i18n';
 
 /**
  * Delete button for a product, shared by every products page.
@@ -30,20 +31,20 @@ export function ProductDeleteButton({
   const remove = useMutation({
     mutationFn: () => productsApi.remove(id, false),
     onSuccess: (r: any) => {
-      if (r?.softDeleted) toast.info(`"${name}" band kar diya`, { description: 'Is ki sale ya purchase hui hai, is liye record rehta hai.' });
-      else toast.success(`"${name}" hata diya`);
+      if (r?.softDeleted) toast.info(t('"{{name}}" band kar diya', { name }), { description: t('Is ki sale ya purchase hui hai, is liye record rehta hai.') });
+      else toast.success(t('"{{name}}" hata diya', { name }));
       queryClient.invalidateQueries();
       // The POS offline cache too, so the product does not linger at the counter.
       forceRefreshProducts().catch(() => {});
       onDeleted?.();
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Hataya nahi ja saka'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || t('Hataya nahi ja saka')),
   });
 
   const ask = async () => {
     const ok = await confirmDialog({
-      title: `"${name}" hatayein?`,
-      text: 'Jis cheez ki sale ya purchase hui ho wo mitti nahi, sirf band hoti hai — purane bill aur stock record salamat rehte hain.',
+      title: t('"{{name}}" hatayein?', { name }),
+      text: t('Jis cheez ki sale ya purchase hui ho wo mitti nahi, sirf band hoti hai — purane bill aur stock record salamat rehte hain.'),
       yes: 'Hatayein',
       danger: true,
     });
@@ -61,11 +62,11 @@ export function ProductDeleteButton({
         void ask();
       }}
       disabled={remove.isPending}
-      title="Hatayein"
+      title={t('Hatayein')}
       className={className ?? `${btnSize} bg-rose-50 hover:bg-rose-100 text-rose-600 inline-flex items-center justify-center transition disabled:opacity-50`}
     >
       <Trash2 className="h-3.5 w-3.5" />
-      {size === 'md' && <span>Hatayein</span>}
+      {size === 'md' && <span>{t('Hatayein')}</span>}
     </button>
   );
 }

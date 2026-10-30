@@ -3,18 +3,19 @@
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useAppearance, useAppearanceStore, type ThemeMode } from '@/design-system';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 const MODES: Array<{ mode: ThemeMode; label: string; icon: typeof Sun }> = [
-  { mode: 'light', label: 'Light', icon: Sun },
-  { mode: 'dark', label: 'Dark', icon: Moon },
-  { mode: 'system', label: 'System', icon: Monitor },
+  { mode: 'light', label: t('Light'), icon: Sun },
+  { mode: 'dark', label: t('Dark'), icon: Moon },
+  { mode: 'system', label: t('System'), icon: Monitor },
 ];
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { mode } = useAppearance();
   const setMode = useAppearanceStore((s) => s.setMode);
   return (
-    <div role="radiogroup" aria-label="Theme" className={cn('inline-flex rounded-lg bg-slate-100 p-0.5', className)}>
+    <div role="radiogroup" aria-label={t('Theme')} className={cn('inline-flex rounded-lg bg-slate-100 p-0.5', className)}>
       {MODES.map(({ mode: m, label, icon: Icon }) => (
         <button
           key={m}

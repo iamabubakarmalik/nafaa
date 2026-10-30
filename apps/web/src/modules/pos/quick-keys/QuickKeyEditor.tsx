@@ -17,6 +17,7 @@ import type { ProductCombo } from '@modules/inventory/combos/api/combos.api';
 import { PosQuickKeyTile } from '../components';
 import { quickKeysApi, type QuickKey, type QuickKeyPayload } from '../api/quick-keys.api';
 import { EMOJI_SETS, KEY_COLORS, POS_QK_KEY, QK_KEY } from './meta';
+import { t } from '@core/i18n';
 
 const labelCls = 'mb-1.5 block text-[0.8125rem] font-medium text-slate-700';
 const hintCls = 'mt-1 text-[0.6875rem] text-slate-500';
@@ -80,7 +81,7 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
 
   const price = kind === 'combo' ? Number(combo?.comboPrice ?? 0)
     : variant && (!unit || unit.rate === 1) ? Number(variant.price ?? 0) : (source?.price ?? 0) * (unit?.rate ?? 1);
-  const previewKey = { label: label || 'Naam likhein', icon: icon || undefined, color: color || undefined, productId: kind === 'product' ? 'p' : undefined, comboId: kind === 'combo' ? 'c' : undefined };
+  const previewKey = { label: label || t('Naam likhein'), icon: icon || undefined, color: color || undefined, productId: kind === 'product' ? 'p' : undefined, comboId: kind === 'combo' ? 'c' : undefined };
 
   const filteredCombos = combos.filter((c) => !comboQuery.trim() || c.name.toLowerCase().includes(comboQuery.trim().toLowerCase())).slice(0, 30);
 
@@ -109,41 +110,41 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
       return editing ? quickKeysApi.update(editing.id, payload) : quickKeysApi.create({ ...payload, position: nextPosition });
     },
     onSuccess: () => {
-      toast.success(editing ? 'Quick key update ho gayi' : 'Quick key ban gayi — POS par dikh rahi hai');
+      toast.success(editing ? t('Quick key update ho gayi') : t('Quick key ban gayi — POS par dikh rahi hai'));
       qc.invalidateQueries({ queryKey: [QK_KEY] });
       qc.invalidateQueries({ queryKey: [POS_QK_KEY] });
       onClose();
     },
-    onError: (e) => toast.error(e instanceof Error && !('response' in e) ? e.message : apiError(e, 'Save nahi hui')),
+    onError: (e) => toast.error(e instanceof Error && !('response' in e) ? e.message : apiError(e, t('Save nahi hui'))),
   });
 
   const remove = useMutation({
     mutationFn: () => quickKeysApi.remove(editing!.id),
     onSuccess: () => {
-      toast.success('Quick key hata di');
+      toast.success(t('Quick key hata di'));
       qc.invalidateQueries({ queryKey: [QK_KEY] });
       qc.invalidateQueries({ queryKey: [POS_QK_KEY] });
       onClose();
     },
-    onError: (e) => toast.error(apiError(e, 'Hata nahi saki')),
+    onError: (e) => toast.error(apiError(e, t('Hata nahi saki'))),
   });
 
   return (
-    <Modal open onClose={onClose} size="xl" title={editing ? 'Quick key badlein' : 'Nayi quick key'} closeOnBackdrop={false}
-      description="Counter par ek tap me bikne wali cheez — product, uski type aur pack, ya combo"
+    <Modal open onClose={onClose} size="xl" title={editing ? t('Quick key badlein') : t('Nayi quick key')} closeOnBackdrop={false}
+      description={t('Counter par ek tap me bikne wali cheez — product, uski type aur pack, ya combo')}
       footer={<>
         {editing && (
-          <Button variant="ghost" className="mr-auto text-rose-600" loading={remove.isPending}
-            onClick={async () => { if ((await confirmDialog({ title: `"${editing.label}" hata dein?`, danger: true }))) remove.mutate(); }} leftIcon={<Trash2 className="h-4 w-4" />}>
-            Hatayein
+          <Button variant="ghost" className="me-auto text-rose-600" loading={remove.isPending}
+            onClick={async () => { if ((await confirmDialog({ title: t('"{{label}}" hata dein?', { label: editing.label }), danger: true }))) remove.mutate(); }} leftIcon={<Trash2 className="h-4 w-4" />}>
+            {t('Hatayein')}
           </Button>
         )}
-        <Button variant="secondary" onClick={onClose}>Rehne dein</Button>
-        <Button onClick={() => save.mutate()} loading={save.isPending}>{editing ? 'Save karein' : 'Key banayein'}</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Rehne dein')}</Button>
+        <Button onClick={() => save.mutate()} loading={save.isPending}>{editing ? t('Save karein') : t('Key banayein')}</Button>
       </>}>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_14rem]">
         <div className="space-y-4">
-          <div role="radiogroup" aria-label="Kya bechna hai" className="inline-flex rounded-xl bg-slate-100 p-1">
+          <div role="radiogroup" aria-label={t('Kya bechna hai')} className="inline-flex rounded-xl bg-slate-100 p-1">
             {([['product', 'Product', Package], ['combo', 'Combo', Gift]] as const).map(([k, l, I]) => (
               <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
                 className={cn('inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-[0.8125rem] font-semibold transition', kind === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800')}>
@@ -159,21 +160,21 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
                   <Package className="h-5 w-5 shrink-0 text-brand-600" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold text-slate-900">{source.name}</span>
-                    <span className="block text-[0.75rem] text-slate-500">{source.sku ? `${source.sku} · ` : ''}Stock {source.stock} {source.baseUnit}</span>
+                    <span className="block text-[0.75rem] text-slate-500">{t('{{value}}Stock {{stock}} {{baseUnit}}', { value: source.sku ? `${source.sku} · ` : '', stock: source.stock, baseUnit: source.baseUnit })}</span>
                   </span>
-                  <button type="button" onClick={() => { setSource(null); setUnitId(null); setVariantId(null); }} aria-label="Product badlein" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => { setSource(null); setUnitId(null); setVariantId(null); }} aria-label={t('Product badlein')} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200"><X className="h-4 w-4" /></button>
                 </div>
               ) : (
                 <div>
                   <ProductSearch sources={sources} byCode={byCode} loading={sourcesLoading}
                     onPick={(s, u) => { setSource(s); setUnitId(u.rate !== 1 ? u.id : null); setVariantId(null); }} />
-                  <p className={hintCls}>Naam likhein ya barcode scan karein. Carton ka barcode scan karein to key carton ki banegi.</p>
+                  <p className={hintCls}>{t('Naam likhein ya barcode scan karein. Carton ka barcode scan karein to key carton ki banegi.')}</p>
                 </div>
               )}
 
               {source && source.units.length > 1 && (
                 <div>
-                  <p className={labelCls}>Kis pack me bike?</p>
+                  <p className={labelCls}>{t('Kis pack me bike?')}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {source.units.map((u) => (
                       <button key={u.name} type="button" onClick={() => setUnitId(u.rate !== 1 ? u.id : null)}
@@ -182,17 +183,17 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
                       </button>
                     ))}
                   </div>
-                  <p className={hintCls}>Key dabane par yahi pack bill me jayega — dozen, carton ya khula.</p>
+                  <p className={hintCls}>{t('Key dabane par yahi pack bill me jayega — dozen, carton ya khula.')}</p>
                 </div>
               )}
 
               {source?.hasVariants && (
                 <div>
-                  <p className={labelCls}>Type (variant)</p>
+                  <p className={labelCls}>{t('Type (variant)')}</p>
                   <div className="flex flex-wrap gap-1.5">
                     <button type="button" onClick={() => setVariantId(null)}
                       className={cn('rounded-lg px-2.5 py-1.5 text-[0.75rem] font-medium ring-1 transition', !variantId ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50')}>
-                      Counter par poochein
+                      {t('Counter par poochein')}
                     </button>
                     {variants.map((v) => (
                       <button key={v.id} type="button" onClick={() => setVariantId(v.id)}
@@ -201,45 +202,45 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
                       </button>
                     ))}
                   </div>
-                  <p className={hintCls}>Ek type chunein to seedha wahi bikegi. Warna counter par type poochi jayegi.</p>
+                  <p className={hintCls}>{t('Ek type chunein to seedha wahi bikegi. Warna counter par type poochi jayegi.')}</p>
                 </div>
               )}
             </div>
           ) : (
             <div>
               <div className="relative">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input value={comboQuery} onChange={(e) => setComboQuery(e.target.value)} placeholder="Combo search…" aria-label="Combo search" className={cn(inputCls, 'pl-9')} />
+                <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input value={comboQuery} onChange={(e) => setComboQuery(e.target.value)} placeholder={t('Combo search…')} aria-label={t('Combo search')} className={cn(inputCls, 'ps-9')} />
               </div>
               <div className="mt-2 grid max-h-52 gap-1.5 overflow-y-auto sm:grid-cols-2">
                 {filteredCombos.map((c) => (
                   <button key={c.id} type="button" onClick={() => setComboId(c.id)}
-                    className={cn('rounded-xl px-3 py-2 text-left ring-1 transition', comboId === c.id ? 'bg-brand-50 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
+                    className={cn('rounded-xl px-3 py-2 text-start ring-1 transition', comboId === c.id ? 'bg-brand-50 ring-brand-500' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
                     <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{c.name}</span>
-                    <span className="block text-[0.6875rem] text-slate-500">{c.items?.length ?? 0} cheezein · Rs {Number(c.comboPrice).toLocaleString('en-PK')}</span>
+                    <span className="block text-[0.6875rem] text-slate-500">{t('{{value}} cheezein · Rs {{comboPrice}}', { value: c.items?.length ?? 0, comboPrice: Number(c.comboPrice).toLocaleString('en-PK') })}</span>
                   </button>
                 ))}
-                {!filteredCombos.length && <p className="text-[0.75rem] text-slate-500">Koi chalu combo nahi. Pehle Combos page se banayein.</p>}
+                {!filteredCombos.length && <p className="text-[0.75rem] text-slate-500">{t('Koi chalu combo nahi. Pehle Combos page se banayein.')}</p>}
               </div>
             </div>
           )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="qk-label" className={labelCls}>Naam <span className="text-rose-600">*</span></label>
-              <input id="qk-label" value={label} maxLength={40} onChange={(e) => { setLabel(e.target.value); setLabelTouched(true); }} placeholder="Maslan: Doodh 1L" className={inputCls} />
-              <p className={hintCls}>Chhota rakhein — tile par do line tak dikhta hai. {label.length}/40</p>
+              <label htmlFor="qk-label" className={labelCls}>{t('Naam')}{' '} <span className="text-rose-600">*</span></label>
+              <input id="qk-label" value={label} maxLength={40} onChange={(e) => { setLabel(e.target.value); setLabelTouched(true); }} placeholder={t('Maslan: Doodh 1L')} className={inputCls} />
+              <p className={hintCls}>{t('Chhota rakhein — tile par do line tak dikhta hai. {{count}}/40', { count: label.length })}</p>
             </div>
             <div>
-              <label htmlFor="qk-group" className={labelCls}>Group</label>
-              <input id="qk-group" value={group} maxLength={40} list="qk-groups" onChange={(e) => setGroup(e.target.value)} placeholder="Maslan: Doodh, Cold drinks" className={inputCls} />
+              <label htmlFor="qk-group" className={labelCls}>{t('Group')}</label>
+              <input id="qk-group" value={group} maxLength={40} list="qk-groups" onChange={(e) => setGroup(e.target.value)} placeholder={t('Maslan: Doodh, Cold drinks')} className={inputCls} />
               <datalist id="qk-groups">{groups.map((g) => <option key={g} value={g} />)}</datalist>
-              <p className={hintCls}>POS par keys isi heading ke neeche jamti hain. Khali chhorein to "General".</p>
+              <p className={hintCls}>{t('POS par keys isi heading ke neeche jamti hain. Khali chhorein to "General".')}</p>
             </div>
           </div>
 
           <div>
-            <p className={labelCls}>Emoji</p>
+            <p className={labelCls}>{t('Emoji')}</p>
             <div className="space-y-1.5">
               {EMOJI_SETS.map((set) => (
                 <div key={set.name} className="flex flex-wrap items-center gap-1">
@@ -251,35 +252,35 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
                 </div>
               ))}
             </div>
-            <p className={hintCls}>Tasveer se cashier jaldi pehchanta hai. Koi na chunein to ⚡ dikhega.</p>
+            <p className={hintCls}>{t('Tasveer se cashier jaldi pehchanta hai. Koi na chunein to ⚡ dikhega.')}</p>
           </div>
 
           <div>
-            <p className={labelCls}>Rang</p>
+            <p className={labelCls}>{t('Rang')}</p>
             <div className="flex flex-wrap gap-1.5">
-              <button type="button" onClick={() => setColor('')} aria-label="Koi rang nahi"
+              <button type="button" onClick={() => setColor('')} aria-label={t('Koi rang nahi')}
                 className={cn('h-8 w-8 rounded-full bg-white ring-1 ring-slate-300', !color && 'ring-2 ring-slate-900 ring-offset-2')} />
               {KEY_COLORS.map((c) => (
                 <button key={c} type="button" onClick={() => setColor(c)} aria-label={c}
                   className={cn('h-8 w-8 rounded-full transition', color === c && 'ring-2 ring-slate-900 ring-offset-2')} style={{ backgroundColor: c }} />
               ))}
             </div>
-            <p className={hintCls}>Ek group ko ek rang dein — counter par aankh foran dhoond leti hai.</p>
+            <p className={hintCls}>{t('Ek group ko ek rang dein — counter par aankh foran dhoond leti hai.')}</p>
           </div>
 
           <div className="space-y-2 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
             <Switch size="sm" checked={branchOnly} onChange={(e) => setBranchOnly(e.target.checked)} disabled={!shop && !editing?.shopId}
-              label={shop ? `Sirf ${shop.name} me dikhe` : 'Sirf ek branch me dikhe'}
-              description={shop ? 'Band ho to har branch ke POS par dikhegi.' : 'Upar se branch chunein, phir yeh on kar sakte hain.'} />
+              label={shop ? t('Sirf {{name}} me dikhe', { name: shop.name }) : t('Sirf ek branch me dikhe')}
+              description={shop ? t('Band ho to har branch ke POS par dikhegi.') : t('Upar se branch chunein, phir yeh on kar sakte hain.')} />
             <Switch size="sm" checked={personal} onChange={(e) => setPersonal(e.target.checked)}
-              label="Sirf mere liye" description="On karein to sirf aap ko dikhegi. Band ho to sab cashiers ko." />
+              label={t('Sirf mere liye')} description={t('On karein to sirf aap ko dikhegi. Band ho to sab cashiers ko.')} />
             <Switch size="sm" checked={active} onChange={(e) => setActive(e.target.checked)}
-              label="Chalu" description="Band karne se POS se chhup jati hai, magar yahan rehti hai." />
+              label={t('Chalu')} description={t('Band karne se POS se chhup jati hai, magar yahan rehti hai.')} />
           </div>
         </div>
 
         <aside className="lg:sticky lg:top-0 lg:self-start">
-          <p className={labelCls}>Counter par aise dikhegi</p>
+          <p className={labelCls}>{t('Counter par aise dikhegi')}</p>
           <div className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
             <div className="mx-auto w-28">
               <PosQuickKeyTile qk={previewKey} products={kind === 'product' ? [{ id: 'p', price, stock: source?.stock ?? 1 }] : []}

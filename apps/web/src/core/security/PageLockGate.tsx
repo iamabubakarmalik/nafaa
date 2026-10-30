@@ -6,6 +6,7 @@ import { cn } from '@core/lib/cn';
 import { toast } from 'sonner';
 import { usePrivacyStore } from '../stores/privacy.store';
 import { ForgotPinModal } from './HiddenValue';
+import { t as tr } from '@core/i18n';
 
 /* Page lock: the owner picks which pages need the PIN.
    The owner selects pages in Settings; the shop's single server-side PIN
@@ -49,18 +50,18 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
   if (!locked) return <>{children}</>;
 
   const submit = async () => {
-    if (pin.length < 4) return setError('PIN kam se kam 4 hindson ka hai');
+    if (pin.length < 4) return setError(tr('PIN kam se kam 4 hindson ka hai'));
     setBusy(true);
     setError('');
     try {
       const ok = await store.verifyPin(pin);
       if (!ok) {
-        setError('Ghalat PIN');
+        setError(tr('Ghalat PIN'));
         setPin('');
         return;
       }
       store.unlock();
-      toast.success('🔓 Khul gaya');
+      toast.success(tr('🔓 Khul gaya'));
     } finally {
       setBusy(false);
     }
@@ -74,13 +75,13 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-[70vh] items-center justify-center p-4">
       <div className="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl">
         <div className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 p-6 text-center text-white sm:p-8">
-          <div className="absolute -right-16 -top-16 h-44 w-44 rounded-full bg-white/10 blur-3xl" aria-hidden />
+          <div className="absolute -end-16 -top-16 h-44 w-44 rounded-full bg-white/10 blur-3xl" aria-hidden />
           <div className="relative">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25">
               <Lock className="h-8 w-8" />
             </div>
-            <h2 className="mt-4 text-xl font-bold">Ye safha lock hai</h2>
-            <p className="mt-1 text-[0.8125rem] text-white/80">Malik ne is safhe par PIN laga rakha hai</p>
+            <h2 className="mt-4 text-xl font-bold">{tr('Ye safha lock hai')}</h2>
+            <p className="mt-1 text-[0.8125rem] text-white/80">{tr('Malik ne is safhe par PIN laga rakha hai')}</p>
             <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[0.6875rem] font-medium ring-1 ring-white/20">
               <Shield className="h-3 w-3" />
               <span className="font-mono">{location.pathname}</span>
@@ -94,22 +95,22 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
             onChange={(e) => { setPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder="••••"
-            aria-label="PIN"
+            aria-label={tr('PIN')}
             className={cn(controlClass(Boolean(error)), 'h-14 px-4 text-center text-2xl font-bold tabular-nums tracking-[0.4em]')}
           />
           {error && <p role="alert" className="text-center text-xs font-medium text-rose-600">{error}</p>}
 
           <Button size="xl" fullWidth onClick={submit} loading={busy} disabled={pin.length < 4} leftIcon={<Unlock className="h-5 w-5" />}>
-            Kholein
+            {tr('Kholein')}
           </Button>
 
           <p className="text-center text-[0.75rem] text-slate-500">
-            Ek dafa PIN daalne par {store.unlockMinutes} minute tak saray lock safhe khule rahenge
+            {tr('Ek dafa PIN daalne par {{unlockMinutes}} minute tak saray lock safhe khule rahenge', { unlockMinutes: store.unlockMinutes })}
           </p>
 
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="secondary" onClick={() => window.history.back()} leftIcon={<ArrowLeft className="h-4 w-4" />}>Wapas</Button>
-            <Button variant="ghost" className="text-amber-700" onClick={() => setForgot(true)} leftIcon={<HelpCircle className="h-4 w-4" />}>PIN bhool gaye?</Button>
+            <Button variant="secondary" onClick={() => window.history.back()} leftIcon={<ArrowLeft className="h-4 w-4 rtl-flip" />}>{tr('Wapas')}</Button>
+            <Button variant="ghost" className="text-amber-700" onClick={() => setForgot(true)} leftIcon={<HelpCircle className="h-4 w-4" />}>{tr('PIN bhool gaye?')}</Button>
           </div>
         </div>
       </div>

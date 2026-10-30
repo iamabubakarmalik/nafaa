@@ -26,6 +26,7 @@ import { hasPermission, PERMISSIONS } from '../../../common/constants/permission
 import { FbrService } from '../../../integrations/fbr/fbr.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { refreshSettlements } from '../../../common/helpers/sale-settlement.helper';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * Sale kahan se aayi. Sirf server ke andar se set hota hai (online order
@@ -167,9 +168,7 @@ export class SalesService {
     }
     const unavailableImei = imeis.find((i) => i.status !== 'IN_STOCK');
     if (unavailableImei) {
-      throw new BadRequestException(
-        `IMEI ${unavailableImei.imei1} is ${unavailableImei.status} — cannot sell`,
-      );
+      throw new BadRequestException(apiMessage('IMEI {{imei1}} is {{status}} — cannot sell', { imei1: unavailableImei.imei1, status: unavailableImei.status }));
     }
     const imeiDupCheck = new Set<string>();
     for (const id of imeiIds) {
@@ -183,10 +182,10 @@ export class SalesService {
       if (!item.imeiId) continue;
       const im = imeiById.get(item.imeiId)!;
       if (im.productId !== item.productId || (im.variantId ?? null) !== (item.variantId ?? null)) {
-        throw new BadRequestException(`IMEI ${im.imei1} is product/variant ka nahi`);
+        throw new BadRequestException(apiMessage('IMEI {{imei1}} is product/variant ka nahi', { imei1: im.imei1 }));
       }
       if (im.shopId && im.shopId !== sellingShopId) {
-        throw new BadRequestException(`IMEI ${im.imei1} doosri shop me hai — pehle transfer karein`);
+        throw new BadRequestException(apiMessage('IMEI {{imei1}} doosri shop me hai — pehle transfer karein', { imei1: im.imei1 }));
       }
     }
 
@@ -201,9 +200,7 @@ export class SalesService {
     }
     const unavailableSerial = serials.find((sr) => sr.status !== 'IN_STOCK');
     if (unavailableSerial) {
-      throw new BadRequestException(
-        `Serial ${unavailableSerial.serialNumber} is ${unavailableSerial.status} — bech nahi sakte`,
-      );
+      throw new BadRequestException(apiMessage('Serial {{serialNumber}} is {{status}} — bech nahi sakte', { serialNumber: unavailableSerial.serialNumber, status: unavailableSerial.status }));
     }
     const serialDupCheck = new Set<string>();
     for (const id of serialIds) {
@@ -216,10 +213,10 @@ export class SalesService {
       if (!item.serialId) continue;
       const sr = serialById.get(item.serialId)!;
       if (sr.productId !== item.productId) {
-        throw new BadRequestException(`Serial ${sr.serialNumber} is product ka nahi`);
+        throw new BadRequestException(apiMessage('Serial {{serialNumber}} is product ka nahi', { serialNumber: sr.serialNumber }));
       }
       if (sr.shopId && sr.shopId !== sellingShopId) {
-        throw new BadRequestException(`Serial ${sr.serialNumber} doosri shop me hai — pehle transfer karein`);
+        throw new BadRequestException(apiMessage('Serial {{serialNumber}} doosri shop me hai — pehle transfer karein', { serialNumber: sr.serialNumber }));
       }
     }
     // Warranty months of the serial products, for the unit's warranty dates.
@@ -248,9 +245,7 @@ export class SalesService {
     }
     const unavailableUsedPhone = usedPhones.find((p) => p.status !== 'IN_STOCK');
     if (unavailableUsedPhone) {
-      throw new BadRequestException(
-        `${unavailableUsedPhone.brand} ${unavailableUsedPhone.model} (${unavailableUsedPhone.usedPhoneCode}) is ${unavailableUsedPhone.status} — cannot sell`,
-      );
+      throw new BadRequestException(apiMessage('{{brand}} {{model}} ({{usedPhoneCode}}) is {{status}} — cannot sell', { brand: unavailableUsedPhone.brand, model: unavailableUsedPhone.model, usedPhoneCode: unavailableUsedPhone.usedPhoneCode, status: unavailableUsedPhone.status }));
     }
     const usedPhoneDupCheck = new Set<string>();
     for (const id of usedPhoneIds) {
@@ -387,9 +382,7 @@ export class SalesService {
 
       // ─── IMEI / used-phone / serial: enforce quantity = 1 ──
       if ((item.imeiId || isUsedPhoneItem || item.serialId) && quantity !== 1) {
-        throw new BadRequestException(
-          `${itemName}: quantity must be = 1`,
-        );
+        throw new BadRequestException(apiMessage('{{itemName}}: quantity must be = 1', { itemName }));
       }
 
       // ─── Stock check (skip for carpet + IMEI + used phone + services) ──
@@ -405,9 +398,7 @@ export class SalesService {
         shopStock = stockMap.get(stockKey);
 
         if (!shopStock) {
-          throw new BadRequestException(
-            `${itemName} is not available in ${shop.name}. Transfer karein ya purchase entry karein.`,
-          );
+          throw new BadRequestException(apiMessage('{{itemName}} is not available in {{shop}}. Transfer karein ya purchase entry karein.', { itemName, shop: shop.name }));
         }
 
         // Pieces held for customers (garment hold / layaway) are not free to sell.
@@ -419,7 +410,7 @@ export class SalesService {
       const lineGross = r2(unitPrice * quantity);
       const askedLineDiscount = r2(item.lineDiscount ?? 0);
       if (askedLineDiscount > lineGross + 0.005) {
-        throw new BadRequestException(`Line discount cannot exceed line total for ${itemName}`);
+        throw new BadRequestException(apiMessage('Line discount cannot exceed line total for {{itemName}}', { itemName }));
       }
       const lineDiscount = Math.min(askedLineDiscount, lineGross);
 
@@ -495,10 +486,10 @@ export class SalesService {
       });
       if (!customer) throw new NotFoundException('Customer not found');
       if (dto.loyaltyPointsToUse > customer.loyaltyPoints) {
-        throw new BadRequestException(`Itne points nahi hain (sirf ${customer.loyaltyPoints})`);
+        throw new BadRequestException(apiMessage('Itne points nahi hain (sirf {{loyaltyPoints}})', { loyaltyPoints: customer.loyaltyPoints }));
       }
       if (settings.loyaltyMinRedeem > 0 && dto.loyaltyPointsToUse < settings.loyaltyMinRedeem) {
-        throw new BadRequestException(`Kam se kam ${settings.loyaltyMinRedeem} points istemal ho sakte hain`);
+        throw new BadRequestException(apiMessage('Kam se kam {{loyaltyMinRedeem}} points istemal ho sakte hain', { loyaltyMinRedeem: settings.loyaltyMinRedeem }));
       }
       // Points may pay at most the configured share of what is left of the bill,
       // and never more than the bill itself.
@@ -694,7 +685,7 @@ export class SalesService {
             },
           });
           const updatedImei = imeiMap.get(item.imeiId)!;
-          if (!claimed.count) throw new BadRequestException(`IMEI ${updatedImei.imei1} abhi bik chuka hai`);
+          if (!claimed.count) throw new BadRequestException(apiMessage('IMEI {{imei1}} abhi bik chuka hai', { imei1: updatedImei.imei1 }));
 
           // One phone leaves this branch's shelf: one SALE_OUT movement at the
           // phone's own cost. Never below zero, as before, when the branch count
@@ -1187,16 +1178,16 @@ export class SalesService {
         : /^CORE-/i.test(code) ? await this.coreReturnTradeIn(tenantId, code)
         : /^ATI-/i.test(code) ? await this.applianceTradeIn(tenantId, code)
         : await this.usedPhoneTradeIn(tenantId, code);
-      if (seen.has(goods.code)) throw new BadRequestException(`${goods.code} bill me do dafa hai`);
+      if (seen.has(goods.code)) throw new BadRequestException(apiMessage('{{code}} bill me do dafa hai', { code: goods.code }));
       seen.add(goods.code);
       if (row.amount > goods.value + 0.01) {
-        throw new BadRequestException(`${goods.code} ki trade-in qeemat Rs ${goods.value} hai — is se zyada nahi`);
+        throw new BadRequestException(apiMessage('{{code}} ki trade-in qeemat Rs {{value}} hai — is se zyada nahi', { code: goods.code, value: goods.value }));
       }
       const used = await this.prisma.salePayment.findFirst({
         where: { tenantId, method: 'TRADE_IN', reference: goods.code, sale: { status: { not: 'VOIDED' } } },
         select: { sale: { select: { saleNumber: true } } },
       });
-      if (used) throw new BadRequestException(`${goods.code} pehle hi bill ${used.sale.saleNumber} me lag chuka hai`);
+      if (used) throw new BadRequestException(apiMessage('{{code}} pehle hi bill {{saleNumber}} me lag chuka hai', { code: goods.code, saleNumber: used.sale.saleNumber }));
       row.reference = goods.code;
       row.note = row.note || goods.label;
     }
@@ -1208,7 +1199,7 @@ export class SalesService {
       select: { usedPhoneCode: true, brand: true, model: true, source: true, status: true, buybackPrice: true },
     });
     if (!phone || phone.source !== 'EXCHANGE' || phone.status === 'DISCARDED') {
-      throw new BadRequestException(`Trade-in phone ${code} nahi mila (Used phones me "Exchange" wala phone chahiye)`);
+      throw new BadRequestException(apiMessage('Trade-in phone {{code}} nahi mila (Used phones me "Exchange" wala phone chahiye)', { code }));
     }
     return { code: phone.usedPhoneCode, value: Number(phone.buybackPrice), label: `${phone.brand} ${phone.model} (${phone.usedPhoneCode})` };
   }
@@ -1219,7 +1210,7 @@ export class SalesService {
       select: { exchangeNumber: true, purpose: true, saleId: true, netValue: true, netWeight: true, grossWeight: true },
     });
     if (!ex || ex.purpose !== 'SALE' || ex.saleId) {
-      throw new BadRequestException(`Purana zewar ${code} nahi mila — bill ke liye liya gaya zewar chunein jo abhi kisi bill par na laga ho`);
+      throw new BadRequestException(apiMessage('Purana zewar {{code}} nahi mila — bill ke liye liya gaya zewar chunein jo abhi kisi bill par na laga ho', { code }));
     }
     const grams = Number(ex.netWeight ?? ex.grossWeight) || 0;
     return { code: ex.exchangeNumber, value: Number(ex.netValue), label: `Purana zewar ${grams.toFixed(3)}g (${ex.exchangeNumber})` };
@@ -1233,7 +1224,7 @@ export class SalesService {
     });
     // A part taken with a workshop job is used on that job's own bill.
     if (!core || core.status !== 'HELD' || core.saleId || core.jobId) {
-      throw new BadRequestException(`Purana part ${code} nahi mila — counter par liya gaya part chunein jo abhi kisi bill par na laga ho`);
+      throw new BadRequestException(apiMessage('Purana part {{code}} nahi mila — counter par liya gaya part chunein jo abhi kisi bill par na laga ho', { code }));
     }
     return { code: `CORE-${core.id}`, value: Number(core.value), label: `Purana part: ${core.description}` };
   }
@@ -1245,7 +1236,7 @@ export class SalesService {
       select: { code: true, description: true, brand: true, value: true, status: true, saleId: true },
     });
     if (!t || t.status !== 'HELD' || t.saleId) {
-      throw new BadRequestException(`Purana saman ${code} nahi mila — counter par liya gaya saman chunein jo abhi kisi bill par na laga ho`);
+      throw new BadRequestException(apiMessage('Purana saman {{code}} nahi mila — counter par liya gaya saman chunein jo abhi kisi bill par na laga ho', { code }));
     }
     const name = /^purana\b/i.test(t.description) ? t.description : `Purana ${t.description}`;
     return { code: t.code, value: Number(t.value), label: `${name}${t.brand ? ` (${t.brand})` : ''} (${t.code})` };
@@ -1372,9 +1363,7 @@ export class SalesService {
       select: { usedPhoneCode: true },
     });
     if (held) {
-      throw new BadRequestException(
-        `${code} wala phone dobara khareeda ja chuka (${held.usedPhoneCode}) — pehle wo record discard karein, phir ye bill cancel karein`,
-      );
+      throw new BadRequestException(apiMessage('{{code}} wala phone dobara khareeda ja chuka ({{usedPhoneCode}}) — pehle wo record discard karein, phir ye bill cancel karein', { code, usedPhoneCode: held.usedPhoneCode }));
     }
   }
 

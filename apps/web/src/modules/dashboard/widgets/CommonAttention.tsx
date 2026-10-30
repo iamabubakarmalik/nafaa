@@ -6,16 +6,17 @@
 import { AlertTriangle, ArrowLeftRight, Banknote, PackageX } from 'lucide-react';
 import { useMoneyMap, useOverview } from '../data/queries';
 import { AttentionList, type AttentionItem } from './AttentionList';
+import { t } from '@core/i18n';
 
 export function useCommonAttention(): AttentionItem[] {
   const { data } = useOverview();
   const { data: money } = useMoneyMap();
   const s = data?.stats;
   const items: AttentionItem[] = [];
-  if (s?.outOfStockCount) items.push({ icon: PackageX, level: 'danger', text: `${s.outOfStockCount} cheezein khatam ho gayin — customer khali haath lautega`, to: '/low-stock', cta: 'Restock' });
-  if (s?.lowStockCount) items.push({ icon: AlertTriangle, level: 'warning', text: `${s.lowStockCount} cheezein kam reh gayin — mangwane ka waqt`, to: '/low-stock', cta: 'Dekhein' });
-  if (s?.pendingTransfers) items.push({ icon: ArrowLeftRight, level: 'info', text: `${s.pendingTransfers} transfer aane wale hain`, to: '/transfers', cta: 'Receive' });
-  if (money && !money.cash.registerOpen) items.push({ icon: Banknote, level: 'neutral', text: 'Cash register abhi nahi khula — galle ka hisaab register se banta hai', to: '/cash-register', cta: 'Register kholein' });
+  if (s?.outOfStockCount) items.push({ icon: PackageX, level: 'danger', text: t('{{outOfStockCount}} cheezein khatam ho gayin — customer khali haath lautega', { outOfStockCount: s.outOfStockCount }), to: '/low-stock', cta: t('Restock') });
+  if (s?.lowStockCount) items.push({ icon: AlertTriangle, level: 'warning', text: t('{{lowStockCount}} cheezein kam reh gayin — mangwane ka waqt', { lowStockCount: s.lowStockCount }), to: '/low-stock', cta: t('Dekhein') });
+  if (s?.pendingTransfers) items.push({ icon: ArrowLeftRight, level: 'info', text: t('{{pendingTransfers}} transfer aane wale hain', { pendingTransfers: s.pendingTransfers }), to: '/transfers', cta: t('Receive') });
+  if (money && !money.cash.registerOpen) items.push({ icon: Banknote, level: 'neutral', text: t('Cash register abhi nahi khula — galle ka hisaab register se banta hai'), to: '/cash-register', cta: t('Register kholein') });
   return items;
 }
 

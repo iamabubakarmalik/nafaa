@@ -766,6 +766,8 @@ model User {
   passwordResetExpires DateTime?
   pushTokens           String[]             @default([])
   permissions          String[]             @default([])
+  /// App language: 'en' | 'ur' | 'roman'. Null until the first choice is saved.
+  language             String?
   lastLoginAt          DateTime?
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt

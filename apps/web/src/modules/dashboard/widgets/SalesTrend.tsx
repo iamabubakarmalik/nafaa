@@ -11,10 +11,11 @@ import { useChartTheme } from '../engine/useChartTheme';
 import { useMasked } from '../engine/useMasked';
 import { axisMoney, ChartLegend, EmptyHint, WidgetCard } from '../engine/parts';
 import { WidgetToolbar } from './WidgetToolbar';
+import { t } from '@core/i18n';
 
-const DAYS = ['Itwar', 'Peer', 'Mangal', 'Budh', 'Jumeraat', 'Juma', 'Hafta'];
+const DAYS = [t('Itwar'), t('Peer'), t('Mangal'), t('Budh'), t('Jumeraat'), t('Juma'), t('Hafta')];
 type Metric = 'sales' | 'profit' | 'bills';
-const METRIC_LABEL: Record<Metric, string> = { sales: 'Sale', profit: 'Profit', bills: 'Bill' };
+const METRIC_LABEL: Record<Metric, string> = { sales: t('Sale'), profit: t('Profit'), bills: t('Bill') };
 
 export function SalesTrend() {
   const [s, set] = useWidgetState('sales-trend', { days: '7', metric: 'sales', chart: 'area', compare: 'yes' });
@@ -37,34 +38,34 @@ export function SalesTrend() {
   const showProfitLine = metric === 'sales' && s.compare === 'yes' && !costHidden;
   const hidden = salesHidden && metric !== 'bills';
 
-  const metricOptions = [{ value: 'sales', label: 'Sale' }, ...(costHidden ? [] : [{ value: 'profit', label: 'Profit' }]), { value: 'bills', label: 'Bill' }];
+  const metricOptions = [{ value: 'sales', label: t('Sale') }, ...(costHidden ? [] : [{ value: 'profit', label: t('Profit') }]), { value: 'bills', label: t('Bill') }];
 
   return (
-    <WidgetCard title="Sale ka rujhan" icon={TrendingUp}
-      description={hidden ? `Pichhle ${days} din` : `${days} din me ${fmt(total)} · rozana ausat ${fmt(avg)}${best && best[metric] > 0 ? ` · sab se acha ${best.label}` : ''}`}>
+    <WidgetCard title={t('Sale ka rujhan')} icon={TrendingUp}
+      description={hidden ? t('Pichhle {{days}} din', { days }) : t('{{days}} din me {{total}} · rozana ausat {{avg}}{{value}}', { days, total: fmt(total), avg: fmt(avg), value: best && best[metric] > 0 ? t(' · sab se acha {{label}}', { label: best.label }) : '' })}>
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Sale ka rujhan', subtitle: `Pichhle ${days} din · ${METRIC_LABEL[metric]}`,
+          title: t('Sale ka rujhan'), subtitle: t('Pichhle {{days}} din · {{value}}', { days, value: METRIC_LABEL[metric] }),
           sections: [{
             kind: 'table',
-            columns: [{ label: 'Date' }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' }, ...(costHidden ? [] : [{ label: 'Profit', align: 'right' as const }])],
+            columns: [{ label: t('Date') }, { label: t('Bill'), align: 'right' }, { label: t('Sale'), align: 'right' }, ...(costHidden ? [] : [{ label: t('Profit'), align: 'right' as const }])],
             rows: (data?.trend ?? []).map((p) => [p.date, String(p.bills), sales(p.sales), ...(costHidden ? [] : [cost(p.profit)])]),
-            footer: ['Kul', String((data?.trend ?? []).reduce((x, p) => x + p.bills, 0)), sales((data?.trend ?? []).reduce((x, p) => x + p.sales, 0)),
+            footer: [t('Kul'), String((data?.trend ?? []).reduce((x, p) => x + p.bills, 0)), sales((data?.trend ?? []).reduce((x, p) => x + p.sales, 0)),
               ...(costHidden ? [] : [cost((data?.trend ?? []).reduce((x, p) => x + p.profit, 0))])],
           }],
         })}>
-        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })}
-          options={[{ value: '7', label: '7 din' }, { value: '30', label: '30 din' }, { value: '90', label: '90 din' }]} />
-        <MiniSelect label="Kya dikhayein" value={metric} onChange={(v) => set({ metric: v })} options={metricOptions} />
-        <MiniSelect label="Chart" value={s.chart} onChange={(v) => set({ chart: v })} options={[{ value: 'area', label: 'Line chart' }, { value: 'bar', label: 'Bar chart' }]} />
+        <MiniSelect label={t('Period')} value={s.days} onChange={(v) => set({ days: v })}
+          options={[{ value: '7', label: t('7 din') }, { value: '30', label: t('30 din') }, { value: '90', label: t('90 din') }]} />
+        <MiniSelect label={t('Kya dikhayein')} value={metric} onChange={(v) => set({ metric: v })} options={metricOptions} />
+        <MiniSelect label={t('Chart')} value={s.chart} onChange={(v) => set({ chart: v })} options={[{ value: 'area', label: t('Line chart') }, { value: 'bar', label: t('Bar chart') }]} />
         {metric === 'sales' && !costHidden && (
-          <MiniSelect label="Profit line" value={s.compare} onChange={(v) => set({ compare: v })} options={[{ value: 'yes', label: 'Profit bhi' }, { value: 'no', label: 'Sirf sale' }]} />
+          <MiniSelect label={t('Profit line')} value={s.compare} onChange={(v) => set({ compare: v })} options={[{ value: 'yes', label: t('Profit bhi') }, { value: 'no', label: t('Sirf sale') }]} />
         )}
       </WidgetToolbar>
       {isLoading ? <Skeleton className="h-[260px] w-full" /> : hidden ? (
-        <EmptyHint icon={BarChart3} text="Sale chhupi hui hai" />
+        <EmptyHint icon={BarChart3} text={t('Sale chhupi hui hai')} />
       ) : points.every((p) => !p[metric]) ? (
-        <EmptyHint icon={BarChart3} text="Is period me koi sale nahi" />
+        <EmptyHint icon={BarChart3} text={t('Is period me koi sale nahi')} />
       ) : (
         <>
           <div className="h-[240px] sm:h-[280px]">
@@ -97,7 +98,7 @@ export function SalesTrend() {
             </ResponsiveContainer>
           </div>
           <ChartLegend items={showProfitLine
-            ? [{ color: theme.primary, label: 'Sale' }, { color: theme.profit, label: 'Profit' }]
+            ? [{ color: theme.primary, label: t('Sale') }, { color: theme.profit, label: t('Profit') }]
             : [{ color, label: METRIC_LABEL[metric] }]} />
         </>
       )}

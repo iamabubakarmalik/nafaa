@@ -24,6 +24,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { hasAnyPermission, PERMISSIONS } from '@core/lib/permissions';
 import { DIST_KEY, distSetupApi, distributionApi, type ResolvedPrice, type SchemeResult } from '@modules/distribution/api/distribution.api';
 import { posLineId, type PosCartLine } from '../lib/posCart';
+import { t as tr } from '@core/i18n';
 
 interface Options {
   customer: { id: string; name?: string; priceListId?: string | null } | undefined;
@@ -96,7 +97,7 @@ export function useDistributionPricing({ customer, cart, setCart, counterPrice, 
   useEffect(() => {
     if (active && resolved?.priceListName && told.current !== customerId) {
       told.current = customerId;
-      toast.info(`${customer?.name ?? 'Customer'}: ${resolved.priceListName} list ke rate`, { duration: 2500 });
+      toast.info(tr('{{value}}: {{priceListName}} list ke rate', { value: customer?.name ?? 'Customer', priceListName: resolved.priceListName }), { duration: 2500 });
     }
     if (!hasList) told.current = '';
   }, [active, resolved?.priceListName, customerId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -181,7 +182,7 @@ export function useDistributionPricing({ customer, cart, setCart, counterPrice, 
           unitName: res.freeProductId ? info?.unit ?? 'pcs' : l.baseUnit, unitLabel: 'FREE', emoji: '🎁',
           unitPrice: 0, basePrice: 0, quantity: qty, baseQuantity: qty, conversionRate: 1,
           baseUnit: res.freeProductId ? info?.unit ?? 'pcs' : l.baseUnit, baseStock: Number.MAX_SAFE_INTEGER,
-          lineTotal: 0, note: `Scheme: ${res.note ?? res.schemeName ?? 'free'}`, variantId: res.freeProductId ? undefined : l.variantId,
+          lineTotal: 0, note: tr('Scheme: {{value}}', { value: res.note ?? res.schemeName ?? 'free' }), variantId: res.freeProductId ? undefined : l.variantId,
           lockQty: true, fixedPrice: true,
           dist: { listPrice: 0, free: true, forLineId: l.id, schemeId: res.schemeId, schemeNote: res.note ?? res.schemeName },
         });

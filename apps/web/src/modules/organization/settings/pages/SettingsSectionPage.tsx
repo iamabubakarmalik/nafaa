@@ -27,6 +27,7 @@ import { SecuritySection } from '../sections/SecuritySection';
 import { BackupSection } from '../sections/BackupSection';
 import { DangerZoneSection } from '../sections/DangerZoneSection';
 import { DistributionSettingsSection } from '@modules/distribution/setup/settings/DistributionSettingsSection';
+import { t } from '@core/i18n';
 
 const SECTIONS = {
   store: (s: TenantSettings) => <BusinessProfileSection settings={s} />,
@@ -65,9 +66,9 @@ export default function SettingsSectionPage({ section }: { section: SettingsSect
   if (!settings) {
     return (
       <Card>
-        <EmptyState icon={<SettingsIcon className="h-6 w-6" />} title="Settings load nahi huin"
-          description="Internet check karein aur dobara koshish karein."
-          action={<Button variant="secondary" size="sm" loading={isRefetching} onClick={() => refetch()}>Dobara koshish</Button>} />
+        <EmptyState icon={<SettingsIcon className="h-6 w-6" />} title={t('Settings load nahi huin')}
+          description={t('Internet check karein aur dobara koshish karein.')}
+          action={<Button variant="secondary" size="sm" loading={isRefetching} onClick={() => refetch()}>{t('Dobara koshish')}</Button>} />
       </Card>
     );
   }
@@ -77,7 +78,7 @@ export default function SettingsSectionPage({ section }: { section: SettingsSect
       {!canEdit && (
         <div className="flex items-center gap-2.5 rounded-xl bg-slate-100 px-3.5 py-2.5 text-sm text-slate-700">
           <Eye className="h-4 w-4 shrink-0 text-slate-500" />
-          Aap yeh settings sirf dekh sakte hain. Badalne ki permission malik se lein.
+          {t('Aap yeh settings sirf dekh sakte hain. Badalne ki permission malik se lein.')}
         </div>
       )}
       {/* A disabled fieldset locks every control for people who may only look. */}

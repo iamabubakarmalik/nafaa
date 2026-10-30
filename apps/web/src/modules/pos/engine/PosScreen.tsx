@@ -48,12 +48,13 @@ import type { PosIndustryConfig, PosItem } from './types';
 import { usePosEngine } from './usePosEngine';
 import { useAiCartPrefill } from '../hooks/useAiCartPrefill';
 import { freeVariantStock } from '@modules/inventory/products/api/product-variants.api';
+import { t as tr } from '@core/i18n';
 
 function useOnline() {
   const [online, setOnline] = useState(navigator.onLine);
   useEffect(() => {
-    const on = () => { setOnline(true); toast.success('Internet wapas aa gaya'); };
-    const off = () => { setOnline(false); toast.warning('Offline — sales is computer par save hongi'); };
+    const on = () => { setOnline(true); toast.success(tr('Internet wapas aa gaya')); };
+    const off = () => { setOnline(false); toast.warning(tr('Offline — sales is computer par save hongi')); };
     window.addEventListener('online', on);
     window.addEventListener('offline', off);
     return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
@@ -159,12 +160,12 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   const addCustomer = useMutation({
     mutationFn: customersApi.create,
     onSuccess: (cu: { id: string; name: string }) => {
-      toast.success(`${cu.name} add ho gaya`);
+      toast.success(tr('{{name}} add ho gaya', { name: cu.name }));
       e.setCustomerId(cu.id);
       setNewCustomer(null);
       qc.invalidateQueries({ queryKey: ['customers-for-pos'] });
     },
-    onError: (err: { response?: { data?: { message?: string } } }) => toast.error(err?.response?.data?.message || 'Customer add nahi hua'),
+    onError: (err: { response?: { data?: { message?: string } } }) => toast.error(err?.response?.data?.message || tr('Customer add nahi hua')),
   });
   const openNewCustomer = (prefill?: string) =>
     setNewCustomer(prefill && looksLikePhone(prefill) ? { name: '', phone: prefill.replace(/\s/g, '') } : { name: prefill ?? '', phone: '' });
@@ -181,7 +182,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
 
   const focusSearch = useCallback(() => { setZone('search'); searchRef.current?.focus(); }, []);
   const focusCart = useCallback(() => {
-    if (!e.cart.length) { toast.info('Bill khaali hai'); return; }
+    if (!e.cart.length) { toast.info(tr('Bill khaali hai')); return; }
     setZone('cart');
     setSelectedId(targetId);
     cartListRef.current?.focus();
@@ -228,15 +229,15 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   /* ── Actions ── */
   const needCustomer = () => {
     if (e.rules.requireCustomer && !e.customerId) {
-      toast.error('Har bill par customer chunna zaroori hai');
+      toast.error(tr('Har bill par customer chunna zaroori hai'));
       setCustomerOpenKey((k) => k + 1);
       return true;
     }
     return false;
   };
   const cashPrint = () => { if (e.cart.length && needCustomer()) return; setMobileCart(false); e.instantCash(); };
-  const checkout = () => { if (!e.cart.length) { toast.info('Bill khaali hai'); return; } if (needCustomer()) return; setMobileCart(false); e.openCheckout('full'); };
-  const openPayPicker = () => { if (!e.cart.length) { toast.info('Bill khaali hai'); return; } if (needCustomer()) return; setPayPicker(true); };
+  const checkout = () => { if (!e.cart.length) { toast.info(tr('Bill khaali hai')); return; } if (needCustomer()) return; setMobileCart(false); e.openCheckout('full'); };
+  const openPayPicker = () => { if (!e.cart.length) { toast.info(tr('Bill khaali hai')); return; } if (needCustomer()) return; setPayPicker(true); };
   const onPayPick = (choice: PosPayChoice) => {
     setPayPicker(false);
     if ('split' in choice) { setCheckoutSplit(true); e.openCheckout('full'); }
@@ -244,18 +245,18 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
     else e.openCheckout('full', choice.method);
   };
   const openDiscount = () => {
-    if (!c.showDiscount) { toast.error('Discount ka button Settings me band hai'); return; }
-    if (!e.rules.allowDiscount) { toast.error('Is dukaan me haath se Discount band hai'); return; }
-    if (!e.cart.length) { toast.info('Bill khaali hai'); return; }
+    if (!c.showDiscount) { toast.error(tr('Discount ka button Settings me band hai')); return; }
+    if (!e.rules.allowDiscount) { toast.error(tr('Is dukaan me haath se Discount band hai')); return; }
+    if (!e.cart.length) { toast.info(tr('Bill khaali hai')); return; }
     setDiscount(true);
   };
   const holdOrResume = () => {
     if (e.cart.length) { e.hold(); focusSearch(); return; }
     if (e.heldCarts.length === 1) e.resume(e.heldCarts[0]);
     else if (e.heldCarts.length > 1) setHeldOpen(true);
-    else toast.info('Koi bill hold par nahi');
+    else toast.info(tr('Koi bill hold par nahi'));
   };
-  const bump = (d: number) => { if (!targetId) { toast.info('Bill khaali hai'); return; } e.changeQty(targetId, d); };
+  const bump = (d: number) => { if (!targetId) { toast.info(tr('Bill khaali hai')); return; } e.changeQty(targetId, d); };
   const toggleDelivery = () => {
     if (!c.showDelivery) return;
     e.setDelivery({ ...e.delivery, on: !e.delivery.on });
@@ -266,7 +267,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
     const { qty, rest } = parseQtyPrefix(e.search);
     // "3*" alone: quantity of the selected (or last) line.
     if (qty != null && !rest) {
-      if (!targetId) { toast.info('Bill khaali hai — pehle cheez add karein'); return; }
+      if (!targetId) { toast.info(tr('Bill khaali hai — pehle cheez add karein')); return; }
       e.setQty(targetId, qty);
       e.setSearch('');
       return;
@@ -276,7 +277,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
     if (looksLikePhone(rest) && !e.isCode(rest)) {
       const digits = phoneDigits(rest);
       const found = e.customers.find((cu) => phoneDigits(cu.phone || '') === digits);
-      if (found) { e.setCustomerId(found.id); toast.success(`${found.name} bill par`); }
+      if (found) { e.setCustomerId(found.id); toast.success(tr('{{name}} bill par', { name: found.name })); }
       else openNewCustomer(rest);
       e.setSearch('');
       return;
@@ -315,13 +316,13 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
         break;
       }
       case 'Enter': ev.preventDefault(); if (!line?.lockQty) setQtyEditId(targetId); setSelectedId(targetId); break;
-      case 'r': case 'R': ev.preventDefault(); if (e.canEditPrice) e.setPriceEditId(targetId); else toast.error('Rate badalne ki ijazat nahi'); setSelectedId(targetId); break;
+      case 'r': case 'R': ev.preventDefault(); if (e.canEditPrice) e.setPriceEditId(targetId); else toast.error(tr('Rate badalne ki ijazat nahi')); setSelectedId(targetId); break;
       case 't': case 'T': {
         if (!e.lineTierOverride || !line || line.fixedPrice || !line.tierSrc) break;
         ev.preventDefault();
         const open = e.tierChoices.filter(e.canPickTier);
         if (open.length > 1) e.setLineTier(targetId, open[(open.indexOf(line.priceTier ?? 'RETAIL') + 1) % open.length]);
-        else toast.error('Price tier badalne ki permission nahi');
+        else toast.error(tr('Price tier badalne ki permission nahi'));
         break;
       }
       case 'n': case 'N': if (c.lineNotes) { ev.preventDefault(); setNoteEditId(targetId); setSelectedId(targetId); } break;
@@ -345,7 +346,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       const digit = /^Digit([1-9])$/.exec(ev.code);
       if (digit && c.recentItems) { ev.preventDefault(); addRecent(Number(digit[1]) - 1); return; }
       if (ev.code === 'KeyR') { ev.preventDefault(); e.repeatLast(); return; }
-      if (ev.code === 'KeyL') { ev.preventDefault(); if (c.showReceiver && e.customerId) setReceiverOpenKey((n) => n + 1); else toast.info('Pehle customer chunein (F2)'); return; }
+      if (ev.code === 'KeyL') { ev.preventDefault(); if (c.showReceiver && e.customerId) setReceiverOpenKey((n) => n + 1); else toast.info(tr('Pehle customer chunein (F2)')); return; }
       if (ev.code === 'KeyD') { ev.preventDefault(); toggleDelivery(); return; }
       if (ev.code === 'KeyT' && e.tiersOn) { ev.preventDefault(); e.cycleTier(); return; }
     }
@@ -392,58 +393,58 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   });
 
   const moreActions: PosMoreAction[] = [
-    { id: 'checkout', label: 'Checkout — sab tareeqe, split', icon: CreditCard, keys: 'Ctrl Enter', disabled: !e.cart.length, run: checkout },
-    { id: 'reprint', label: 'Pichhla bill dobara print', hint: e.lastBill ? `${e.lastBill.number} · ${formatPKR(e.lastBill.total)}` : undefined, icon: Printer, keys: 'Ctrl P', disabled: !e.lastBill, run: e.reprintLast },
-    { id: 'repeat', label: 'Pichhla bill dobara bechein', hint: 'Wahi cheezein is bill me', icon: Repeat, keys: 'Alt R', disabled: !e.lastBill, run: e.repeatLast },
-    { id: 'held', label: `Hold kiye hue bill (${e.heldCarts.length})`, icon: Pause, keys: 'F6', disabled: !e.heldCarts.length, run: () => setHeldOpen(true) },
-    { id: 'scan', label: 'Camera se barcode scan', icon: Camera, run: () => setScanner(true) },
-    { id: 'voice', label: 'Awaaz se bill', icon: Mic, disabled: config.voice === false, run: () => document.getElementById('pos-voice-btn')?.querySelector('button')?.click() },
-    { id: 'prices', label: hidePrices ? 'Rate dikhayein' : 'Rate chhupayein', hint: 'Customer ke samne screen', icon: hidePrices ? Eye : EyeOff, run: () => setHidePrices((v: boolean) => !v) },
-    { id: 'settings', label: 'POS settings — mera layout', icon: Settings2, run: () => setSettings(true) },
-    { id: 'keys', label: 'Sab shortcuts', icon: Keyboard, keys: '?', run: () => setShortcuts(true) },
-    { id: 'guide', label: 'Guide', icon: GraduationCap, keys: 'F1', run: () => setTeacher(true) },
+    { id: 'checkout', label: tr('Checkout — sab tareeqe, split'), icon: CreditCard, keys: 'Ctrl Enter', disabled: !e.cart.length, run: checkout },
+    { id: 'reprint', label: tr('Pichhla bill dobara print'), hint: e.lastBill ? `${e.lastBill.number} · ${formatPKR(e.lastBill.total)}` : undefined, icon: Printer, keys: 'Ctrl P', disabled: !e.lastBill, run: e.reprintLast },
+    { id: 'repeat', label: tr('Pichhla bill dobara bechein'), hint: tr('Wahi cheezein is bill me'), icon: Repeat, keys: 'Alt R', disabled: !e.lastBill, run: e.repeatLast },
+    { id: 'held', label: tr('Hold kiye hue bill ({{count}})', { count: e.heldCarts.length }), icon: Pause, keys: 'F6', disabled: !e.heldCarts.length, run: () => setHeldOpen(true) },
+    { id: 'scan', label: tr('Camera se barcode scan'), icon: Camera, run: () => setScanner(true) },
+    { id: 'voice', label: tr('Awaaz se bill'), icon: Mic, disabled: config.voice === false, run: () => document.getElementById('pos-voice-btn')?.querySelector('button')?.click() },
+    { id: 'prices', label: hidePrices ? tr('Rate dikhayein') : tr('Rate chhupayein'), hint: tr('Customer ke samne screen'), icon: hidePrices ? Eye : EyeOff, run: () => setHidePrices((v: boolean) => !v) },
+    { id: 'settings', label: tr('POS settings — mera layout'), icon: Settings2, run: () => setSettings(true) },
+    { id: 'keys', label: tr('Sab shortcuts'), icon: Keyboard, keys: '?', run: () => setShortcuts(true) },
+    { id: 'guide', label: tr('Guide'), icon: GraduationCap, keys: 'F1', run: () => setTeacher(true) },
   ];
 
   /* ── Pieces shared by the layouts ── */
   const hero = (slim?: boolean) => (
     <div className={cn('relative shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 text-white shadow-md shadow-brand-900/10', slim ? 'px-3 py-2' : 'px-3 py-2 sm:px-4')}>
-      <span className="pointer-events-none absolute -right-16 -top-20 h-48 w-48 rounded-full bg-white/10 blur-3xl" aria-hidden />
+      <span className="pointer-events-none absolute -end-16 -top-20 h-48 w-48 rounded-full bg-white/10 blur-3xl" aria-hidden />
       <div className={cn('relative flex items-center justify-between gap-2', !slim && 'flex-wrap')}>
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25"><ShoppingCart className="h-4 w-4" /></span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="truncate text-[1rem] font-semibold">{config.label} POS</h1>
+              <h1 className="truncate text-[1rem] font-semibold">{tr('{{label}} POS', { label: config.label })}</h1>
               <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.625rem] font-semibold ring-1',
                 online ? 'bg-white/15 text-white ring-white/25' : 'bg-amber-400 text-amber-950 ring-amber-300')}>
-                <span className={cn('h-1.5 w-1.5 rounded-full', online ? 'animate-pulse bg-emerald-300' : 'bg-amber-900')} />{online ? 'Online' : 'Offline'}
+                <span className={cn('h-1.5 w-1.5 rounded-full', online ? 'animate-pulse bg-emerald-300' : 'bg-amber-900')} />{online ? tr('Online') : tr('Offline')}
               </span>
             </div>
-            {!slim && <p className="truncate text-[0.6875rem] text-white/75">{e.tenant?.name}{clock && ` · ${clock}`}{autoPrint && ` · auto-print ${printerWidth}mm`}</p>}
+            {!slim && <p className="truncate text-[0.6875rem] text-white/75">{e.tenant?.name}{clock && ` · ${clock}`}{autoPrint && tr(' · auto-print {{printerWidth}}mm', { printerWidth })}</p>}
           </div>
         </div>
         <div className="flex items-center gap-1.5">
           {!slim && (
             <div className="hidden items-center gap-1.5 2xl:flex">
-              <HeroStat label="Aaj ki sale" value={today.sales} />
-              <HeroStat label="Bill" value={today.bills} />
+              <HeroStat label={tr('Aaj ki sale')} value={today.sales} />
+              <HeroStat label={tr('Bill')} value={today.bills} />
             </div>
           )}
           <div className="flex shrink-0 items-center gap-0.5 rounded-xl bg-white/10 p-0.5 ring-1 ring-white/15">
             {config.voice !== false && <span id="pos-voice-btn"><VoiceSaleButton onCommand={e.onVoice} className="flex h-8 w-8 items-center justify-center rounded-lg text-white/90 transition hover:bg-white/15 hover:text-white [&_svg]:h-4 [&_svg]:w-4" /></span>}
             <DrawerButton className="flex h-8 w-8 items-center justify-center rounded-lg text-white/90 transition hover:bg-white/15" />
             {e.heldCarts.length > 0 && (
-              <button type="button" onClick={() => setHeldOpen(true)} onMouseDown={(ev) => ev.preventDefault()} title="Hold kiye hue bill (F6)"
+              <button type="button" onClick={() => setHeldOpen(true)} onMouseDown={(ev) => ev.preventDefault()} title={tr('Hold kiye hue bill (F6)')}
                 className="inline-flex h-8 items-center gap-1 rounded-lg bg-amber-400 px-2 text-[0.75rem] font-semibold text-amber-950 hover:bg-amber-300">
                 <Pause className="h-3.5 w-3.5" />{e.heldCarts.length}
               </button>
             )}
-            <HeroButton label={hidePrices ? 'Rate dikhayein' : 'Rate chhupayein'} onClick={() => setHidePrices((v: boolean) => !v)}>
+            <HeroButton label={hidePrices ? tr('Rate dikhayein') : tr('Rate chhupayein')} onClick={() => setHidePrices((v: boolean) => !v)}>
               {hidePrices ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </HeroButton>
-            <HeroButton label="Shortcuts (?)" onClick={() => setShortcuts(true)}><Keyboard className="h-4 w-4" /></HeroButton>
-            <HeroButton label="POS settings" onClick={() => setSettings(true)}><Settings2 className="h-4 w-4" /></HeroButton>
-            <HeroButton label="Guide (F1)" onClick={() => setTeacher(true)}><GraduationCap className="h-4 w-4" /></HeroButton>
+            <HeroButton label={tr('Shortcuts (?)')} onClick={() => setShortcuts(true)}><Keyboard className="h-4 w-4" /></HeroButton>
+            <HeroButton label={tr('POS settings')} onClick={() => setSettings(true)}><Settings2 className="h-4 w-4" /></HeroButton>
+            <HeroButton label={tr('Guide (F1)')} onClick={() => setTeacher(true)}><GraduationCap className="h-4 w-4" /></HeroButton>
           </div>
         </div>
       </div>
@@ -453,34 +454,34 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   const searchBox = (big?: boolean) => (
     <form className="flex min-w-0 flex-1 gap-2" onSubmit={(ev) => { ev.preventDefault(); submit(); }}>
       <label className="group relative min-w-0 flex-1">
-        <Search className={cn('pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition group-focus-within:text-brand-600', big ? 'h-6 w-6' : 'h-5 w-5')} />
+        <Search className={cn('pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition group-focus-within:text-brand-600', big ? 'h-6 w-6' : 'h-5 w-5')} />
         <input ref={searchRef} value={e.search} onChange={(ev) => e.setSearch(ev.target.value)} onKeyDown={onSearchKey} onFocus={() => setZone('search')}
           autoComplete="off" spellCheck={false} autoFocus
-          placeholder={config.searchHint ?? 'Naam, barcode ya SKU — Enter se bill mein · 3* qty · ? shortcuts'}
-          aria-label="Product search ya barcode" role="combobox" aria-expanded={!!query} aria-controls="pos-results"
-          className={cn('w-full rounded-xl border-0 bg-slate-100/80 pr-20 text-slate-900 outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-brand-500',
-            big || touch ? 'h-14 pl-12 text-[1.125rem]' : 'h-11 pl-11 text-[0.9375rem]')} />
+          placeholder={config.searchHint ?? tr('Naam, barcode ya SKU — Enter se bill mein · 3* qty · ? shortcuts')}
+          aria-label={tr('Product search ya barcode')} role="combobox" aria-expanded={!!query} aria-controls="pos-results"
+          className={cn('w-full rounded-xl border-0 bg-slate-100/80 pe-20 text-slate-900 outline-none ring-1 ring-transparent transition placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-brand-500',
+            big || touch ? 'h-14 ps-12 text-[1.125rem]' : 'h-11 ps-11 text-[0.9375rem]')} />
         {e.search ? (
-          <button type="button" onClick={() => { e.setSearch(''); focusSearch(); }} aria-label="Saaf karein (Esc)" onMouseDown={(ev) => ev.preventDefault()}
-            className="absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200">
+          <button type="button" onClick={() => { e.setSearch(''); focusSearch(); }} aria-label={tr('Saaf karein (Esc)')} onMouseDown={(ev) => ev.preventDefault()}
+            className="absolute end-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200">
             <X className="h-4 w-4" />
           </button>
         ) : (
-          <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 sm:flex"><Kbd>?</Kbd></span>
+          <span className="pointer-events-none absolute end-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 sm:flex"><Kbd>?</Kbd></span>
         )}
       </label>
-      <button type="button" onClick={() => setScanner(true)} onMouseDown={(ev) => ev.preventDefault()} title="Camera se scan (F9 → scan)"
+      <button type="button" onClick={() => setScanner(true)} onMouseDown={(ev) => ev.preventDefault()} title={tr('Camera se scan (F9 → scan)')}
         className={cn('flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 text-white shadow-sm transition hover:bg-slate-800 sm:px-3.5', big || touch ? 'h-14 w-14 sm:w-auto' : 'h-11 w-11 sm:w-auto')}>
-        <Camera className="h-5 w-5" /><span className="hidden text-[0.8125rem] font-semibold sm:inline">Scan</span>
+        <Camera className="h-5 w-5" /><span className="hidden text-[0.8125rem] font-semibold sm:inline">{tr('Scan')}</span>
       </button>
     </form>
   );
 
   const viewTabs = showTabs && (
     <div role="tablist" className="flex gap-1 rounded-xl bg-slate-100/80 p-1">
-      <PosViewTab active={e.view === 'products'} onClick={() => e.setView('products')} icon={Package} label="Products" count={e.items.length} shortcut="F7" />
-      {config.useBundles && <PosViewTab active={e.view === 'combos'} onClick={() => e.setView('combos')} icon={Sparkles} label="Combos" count={e.bundles.length} shortcut="F7" />}
-      {showQuick && <PosViewTab active={e.view === 'quickkeys'} onClick={() => e.setView('quickkeys')} icon={Zap} label="Quick" count={e.quickKeys.length} shortcut="F10" />}
+      <PosViewTab active={e.view === 'products'} onClick={() => e.setView('products')} icon={Package} label={tr('Products')} count={e.items.length} shortcut="F7" />
+      {config.useBundles && <PosViewTab active={e.view === 'combos'} onClick={() => e.setView('combos')} icon={Sparkles} label={tr('Combos')} count={e.bundles.length} shortcut="F7" />}
+      {showQuick && <PosViewTab active={e.view === 'quickkeys'} onClick={() => e.setView('quickkeys')} icon={Zap} label={tr('Quick')} count={e.quickKeys.length} shortcut="F10" />}
     </div>
   );
 
@@ -488,7 +489,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
     <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]">
       <button type="button" onMouseDown={(ev) => ev.preventDefault()} onClick={() => { e.setFilterId(''); e.setCategoryId(''); }}
         className={cn(CHIP, !e.filterId && !e.categoryId ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200')}>
-        <Grid3x3 className="h-3.5 w-3.5" /> Sab <span className="tabular-nums opacity-60">{e.items.length}</span>
+        <Grid3x3 className="h-3.5 w-3.5" /> {' '}{tr('Sab')}{' '} <span className="tabular-nums opacity-60">{e.items.length}</span>
       </button>
       {config.filters?.filter((f) => (e.filterCounts[f.id] ?? 0) > 0 || e.filterId === f.id).map((f) => {
         const on = e.filterId === f.id;
@@ -517,11 +518,11 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   );
 
   const recentRow = c.recentItems && e.recentItems.length > 0 && !query && e.view === 'products' && (
-    <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]" aria-label="Aksar bikne wali cheezein">
-      <span className="shrink-0 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">Aksar</span>
+    <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]" aria-label={tr('Aksar bikne wali cheezein')}>
+      <span className="shrink-0 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">{tr('Aksar')}</span>
       {e.recentItems.map((it, i) => (
-        <button key={it.id} type="button" onMouseDown={(ev) => ev.preventDefault()} onClick={() => e.addItem(it)} title={`${it.name} (Alt ${i + 1})`}
-          className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white pl-1 pr-2 text-[0.75rem] font-medium text-slate-700 ring-1 ring-slate-200 transition hover:ring-brand-400', touch ? 'h-10' : 'h-7')}>
+        <button key={it.id} type="button" onMouseDown={(ev) => ev.preventDefault()} onClick={() => e.addItem(it)} title={tr('{{name}} (Alt {{value}})', { name: it.name, value: i + 1 })}
+          className={cn('inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-white ps-1 pe-2 text-[0.75rem] font-medium text-slate-700 ring-1 ring-slate-200 transition hover:ring-brand-400', touch ? 'h-10' : 'h-7')}>
           <span className="flex h-5 w-5 items-center justify-center rounded bg-slate-100 font-mono text-[0.625rem] font-bold text-slate-500">{i + 1}</span>
           <span className="max-w-[9rem] truncate">{it.name}</span>
           {!hidePrices && <span className="tabular-nums text-slate-400">{formatPKR(it.price)}</span>}
@@ -531,7 +532,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
   );
 
   const quickBar = showQuick && e.quickKeys.length > 0 && !query && (
-    <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]" aria-label="Quick keys">
+    <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]" aria-label={tr('Quick keys')}>
       <Zap className="h-3.5 w-3.5 shrink-0 text-amber-500" />
       {e.quickKeys.filter((k) => k.isActive).slice(0, 14).map((k) => (
         <button key={k.id} type="button" onMouseDown={(ev) => ev.preventDefault()} onClick={() => e.addQuickKey(k)}
@@ -549,7 +550,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
         <div className={GRID}>{Array.from({ length: 12 }, (_, i) => <Skeleton key={i} className="aspect-[4/5] rounded-2xl" />)}</div>
       ) : e.view === 'products' ? (
         e.filtered.length === 0 ? (
-          <PosEmptyState icon={Package} title="Kuch nahi mila" hint={query ? `"${query}" se koi product nahi mila${looksLikePhone(query) ? ' — Enter: is number ka customer' : ''}` : 'Pehle products add karein'} onClear={e.search ? () => e.setSearch('') : undefined} />
+          <PosEmptyState icon={Package} title={tr('Kuch nahi mila')} hint={query ? tr('"{{query}}" se koi product nahi mila{{value}}', { query, value: looksLikePhone(query) ? tr(' — Enter: is number ka customer') : '' }) : tr('Pehle products add karein')} onClear={e.search ? () => e.setSearch('') : undefined} />
         ) : (
           <>
             <div className={gridMode === 'grid' || touch ? (touch ? GRID_TOUCH : GRID) : 'space-y-1.5'}>
@@ -560,13 +561,13 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
             {e.filtered.length > e.visible && (
               <button type="button" onClick={() => e.setVisible((v) => v + 60)}
                 className="mt-3 w-full rounded-xl bg-white py-3 text-[0.8125rem] font-medium text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50">
-                Aur dikhayein ({e.filtered.length - e.visible} baqi)
+                {tr('Aur dikhayein ({{value}} baqi)', { value: e.filtered.length - e.visible })}
               </button>
             )}
           </>
         )
       ) : e.view === 'combos' ? (
-        e.filteredBundles.length === 0 ? <PosEmptyState icon={Sparkles} title="Koi combo nahi" hint="Combos setup page se banayein" /> : (
+        e.filteredBundles.length === 0 ? <PosEmptyState icon={Sparkles} title={tr('Koi combo nahi')} hint={tr('Combos setup page se banayein')} /> : (
           <div className={GRID}>
             {e.filteredBundles.map((b, i) => (
               <div key={b.id} data-active={i === activeIdx ? '1' : undefined} className={cn('rounded-2xl', i === activeIdx && 'ring-[3px] ring-amber-400')}>
@@ -577,7 +578,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
           </div>
         )
       ) : Object.keys(e.groupedQuickKeys).length === 0 ? (
-        <PosEmptyState icon={Zap} title="Koi quick key nahi" hint="Quick keys setup page se banayein" />
+        <PosEmptyState icon={Zap} title={tr('Koi quick key nahi')} hint={tr('Quick keys setup page se banayein')} />
       ) : (
         <div className="space-y-5">
           {Object.entries(e.groupedQuickKeys).map(([group, keys]) => (
@@ -601,7 +602,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
     e.view === 'combos'
       ? e.filteredBundles.slice(0, limit ?? 200).map((b, i) => (
         <button key={b.id} type="button" data-active={i === activeIdx ? '1' : undefined} onMouseDown={(ev) => ev.preventDefault()} onClick={() => e.addBundle(b)}
-          className={cn('flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-left text-[0.8125rem] ring-1', i === activeIdx ? 'bg-amber-50 ring-2 ring-amber-400' : 'bg-white ring-slate-200')}>
+          className={cn('flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-start text-[0.8125rem] ring-1', i === activeIdx ? 'bg-amber-50 ring-2 ring-amber-400' : 'bg-white ring-slate-200')}>
           <span className="truncate font-medium text-slate-900">🎁 {b.name}</span>
           <span className="shrink-0 font-bold tabular-nums">{hidePrices ? '••••' : formatPKR(b.price)}</span>
         </button>
@@ -614,7 +615,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       variant={opts.variant} summarySide={opts.summarySide} density={c.density} touch={touch} showImages={c.showImages}
       cart={e.cart} totalQty={e.totalQty} subtotal={e.subtotal} total={e.total} totalSavings={e.totalSavings}
       discountMode={e.discountMode} discountPct={e.discountPct} discountAmount={e.discountAmount}
-      extraDiscounts={[{ label: e.promo ? `Code ${e.promo.code}` : 'Code', amount: e.codeDiscount }, { label: `Points (${e.loyalty.used})`, amount: e.loyaltyDiscount }]}
+      extraDiscounts={[{ label: e.promo ? tr('Code {{code}}', { code: e.promo.code }) : tr('Code'), amount: e.codeDiscount }, { label: tr('Points ({{used}})', { used: e.loyalty.used }), amount: e.loyaltyDiscount }]}
       onOpenDiscount={openDiscount} onClearDiscount={() => e.setDiscount(e.discountMode, 0, 0)}
       showDiscount={c.showDiscount && e.rules.allowDiscount}
       quickDiscounts={c.quickDiscounts.filter((p) => p <= e.quickDiscountLimit)} onQuickDiscount={(p) => e.setDiscount('pct', p, 0)}
@@ -624,7 +625,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       receiver={c.showReceiver ? e.receiver : undefined} onReceiverChange={c.showReceiver ? e.setReceiver : undefined} receiverOpenKey={receiverOpenKey}
       customerExtra={<>{CartExtra && <CartExtra customerId={e.customerId} />}<PosSellerPicker value={e.soldById} onChange={e.setSoldById} compact /></>}
       tierBar={e.tiersOn ? <PosTierBar tier={e.billTier} choices={e.tierChoices} canPick={e.canPickTier} onPick={e.pickTier} udhaar={e.udhaarTier} udhaarExtra={e.udhaarExtra} hidePrices={hidePrices} /> : undefined}
-      onHold={() => { e.hold(); focusSearch(); }} onClear={async () => { if ((await confirmDialog({ title: 'Bill khaali karein?' }))) e.clearCart(); }}
+      onHold={() => { e.hold(); focusSearch(); }} onClear={async () => { if ((await confirmDialog({ title: tr('Bill khaali karein?') }))) e.clearCart(); }}
       heldCount={e.heldCarts.length} onOpenHeld={() => setHeldOpen(true)}
       onChangeQty={e.changeQty} onSetQty={e.setQty} onRemove={e.removeLine}
       priceEditId={e.priceEditId} onStartPriceEdit={e.setPriceEditId} onSetPrice={e.setPrice} canEditPrice={e.canEditPrice}
@@ -663,7 +664,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
               <div className="flex items-center gap-2">
               {viewTabs}
               {e.view === 'products' && !touch && (
-                  <div className="flex rounded-xl bg-slate-100/80 p-1" role="radiogroup" aria-label="Dikhawa">
+                  <div className="flex rounded-xl bg-slate-100/80 p-1" role="radiogroup" aria-label={tr('Dikhawa')}>
                     {([['grid', LayoutGrid, 'Cards'], ['list', List, 'List']] as const).map(([v, Icon, label]) => (
                       <button key={v} type="button" role="radio" aria-checked={gridMode === v} title={label} onMouseDown={(ev) => ev.preventDefault()} onClick={() => setGridMode(v)}
                         className={cn('flex h-8 w-8 items-center justify-center rounded-lg transition', gridMode === v ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800')}>
@@ -694,12 +695,12 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
             <div className="absolute inset-x-3 top-[4.5rem] overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-slate-200">
               <div ref={resultsRef} id="pos-results" role="listbox" className="max-h-[27rem] space-y-1 overflow-y-auto p-2">
                 {results.length === 0
-                  ? <p className="px-3 py-6 text-center text-[0.875rem] text-slate-500">"{query}" se kuch nahi mila{looksLikePhone(query) ? ' — Enter: is number ka customer' : ''}</p>
+                  ? <p className="px-3 py-6 text-center text-[0.875rem] text-slate-500">{tr('"{{query}}" se kuch nahi mila{{value}}', { query, value: looksLikePhone(query) ? tr(' — Enter: is number ka customer') : '' })}</p>
                   : resultRows(DROPDOWN_ROWS)}
               </div>
               <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50 px-3 py-1.5 text-[0.6875rem] text-slate-500">
-                <span>{results.length} mile{results.length > DROPDOWN_ROWS ? ` · pehle ${DROPDOWN_ROWS}` : ''}</span>
-                <span className="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> chunein <Kbd>Enter</Kbd> bill me <Kbd>Esc</Kbd> saaf</span>
+                <span>{tr('{{count}} mile{{value}}', { count: results.length, value: results.length > DROPDOWN_ROWS ? tr(' · pehle {{DROPDOWN_ROWS}}', { DROPDOWN_ROWS: DROPDOWN_ROWS }) : '' })}</span>
+                <span className="flex items-center gap-1"><Kbd>↑</Kbd><Kbd>↓</Kbd> {' '}{tr('chunein')}{' '} <Kbd>Enter</Kbd> {' '}{tr('bill me')}{' '} <Kbd>Esc</Kbd> {' '}{tr('saaf')}</span>
               </div>
             </div>
           )}
@@ -729,7 +730,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
               {e.loading
                 ? Array.from({ length: 10 }, (_, i) => <Skeleton key={i} className="h-10 rounded-lg" />)
                 : results.length === 0
-                  ? <PosEmptyState icon={Package} title="Kuch nahi mila" hint={query ? `"${query}"` : undefined} onClear={e.search ? () => e.setSearch('') : undefined} />
+                  ? <PosEmptyState icon={Package} title={tr('Kuch nahi mila')} hint={query ? `"${query}"` : undefined} onClear={e.search ? () => e.setSearch('') : undefined} />
                   : resultRows()}
             </div>
           </div>
@@ -768,7 +769,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
           customerName={e.selectedCustomer?.name} customerBalance={Number(e.selectedCustomer?.balance || 0)} hasCustomer={!!e.customerId}
           initMode={e.checkout.mode} receiver={e.receiver} allowCredit={e.rules.allowCredit} tradeIns={e.tradeIns}
           onCreditChange={e.udhaarCredit}
-          notice={e.udhaarTier && e.billTier !== 'CREDIT' ? `Udhaar bill: Credit price lag gayi${e.udhaarExtra > 0.005 ? ` (+${formatPKR(e.udhaarExtra)})` : ''}` : undefined}
+          notice={e.udhaarTier && e.billTier !== 'CREDIT' ? tr('Udhaar bill: Credit price lag gayi{{value}}', { value: e.udhaarExtra > 0.005 ? ` (+${formatPKR(e.udhaarExtra)})` : '' }) : undefined}
           onConfirm={(d) => e.checkoutMutation.mutate(d)} onClose={() => e.setCheckout(null)} />
       )}
       {e.lastSale && (
@@ -787,7 +788,7 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
       )}
       {newCustomer && (
         <PosCustomerAddModal value={newCustomer} onChange={setNewCustomer} saving={addCustomer.isPending}
-          onSubmit={(v) => { if (!v.name.trim()) { toast.error('Naam likhein'); return; } addCustomer.mutate({ name: v.name.trim(), phone: v.phone?.trim() || undefined }); }}
+          onSubmit={(v) => { if (!v.name.trim()) { toast.error(tr('Naam likhein')); return; } addCustomer.mutate({ name: v.name.trim(), phone: v.phone?.trim() || undefined }); }}
           onClose={() => setNewCustomer(null)} />
       )}
       {settings && (
@@ -812,11 +813,11 @@ export function PosScreen({ config }: { config: PosIndustryConfig }) {
             className="flex h-14 w-full items-center justify-between rounded-2xl bg-brand-600 px-4 text-brand-fg shadow-lg active:scale-[0.99]">
             <span className="inline-flex items-center gap-3">
               <span className="relative"><ShoppingCart className="h-5 w-5" />
-                <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[0.625rem] font-bold text-brand-700">{e.cart.length}</span>
+                <span className="absolute -end-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[0.625rem] font-bold text-brand-700">{e.cart.length}</span>
               </span>
-              <span className="text-[0.9375rem] font-semibold">Bill dekhein</span>
+              <span className="text-[0.9375rem] font-semibold">{tr('Bill dekhein')}</span>
             </span>
-            <span className="inline-flex items-center gap-2 text-lg font-bold tabular-nums">{hidePrices ? '••••' : formatPKR(e.total)}<ArrowRight className="h-5 w-5" /></span>
+            <span className="inline-flex items-center gap-2 text-lg font-bold tabular-nums">{hidePrices ? '••••' : formatPKR(e.total)}<ArrowRight className="h-5 w-5 rtl-flip" /></span>
           </button>
         </div>
       )}

@@ -13,6 +13,7 @@ import { Delete, LockKeyhole, WifiOff } from 'lucide-react';
 import { Button, Modal } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { securityApi, type PinKind } from './security.api';
+import { t } from '@core/i18n';
 
 const MAX = 8;
 
@@ -33,15 +34,15 @@ export function ManagerPinModal({ open, reason, kind, onDone }: {
   useEffect(() => { if (open) { setPin(''); setError(''); } }, [open]);
 
   const submit = async () => {
-    if (pin.length < 4) { setError('PIN kam se kam 4 hindson ka hai'); return; }
+    if (pin.length < 4) { setError(t('PIN kam se kam 4 hindson ka hai')); return; }
     setBusy(true);
     setError('');
     try {
       const r = await securityApi.verifyPin(pin, kind);
       if (r.valid) onDone(pin);
-      else { setError(r.message || 'Ghalat PIN'); setPin(''); }
+      else { setError(r.message || t('Ghalat PIN')); setPin(''); }
     } catch {
-      setError('PIN check nahi hua — internet dekhein');
+      setError(t('PIN check nahi hua — internet dekhein'));
     } finally {
       setBusy(false);
       inputRef.current?.focus();
@@ -51,23 +52,23 @@ export function ManagerPinModal({ open, reason, kind, onDone }: {
   const press = (d: string) => { setError(''); setPin((p) => (p.length < MAX ? p + d : p)); };
 
   return (
-    <Modal open={open} onClose={() => onDone(null)} size="sm" title={kind ? 'Malik ya manager ka PIN' : 'Malik ka PIN'}
-      description={<>Is kaam ke liye PIN chahiye: <b className="text-slate-700">{reason}</b></>}
+    <Modal open={open} onClose={() => onDone(null)} size="sm" title={kind ? t('Malik ya manager ka PIN') : t('Malik ka PIN')}
+      description={<>{t('Is kaam ke liye PIN chahiye:')}{' '} <b className="text-slate-700">{reason}</b></>}
       footer={
         <div className="flex w-full gap-2">
-          <Button variant="secondary" fullWidth onClick={() => onDone(null)}>Wapas</Button>
-          <Button fullWidth loading={busy} disabled={offline || pin.length < 4} onClick={submit}>Theek hai</Button>
+          <Button variant="secondary" fullWidth onClick={() => onDone(null)}>{t('Wapas')}</Button>
+          <Button fullWidth loading={busy} disabled={offline || pin.length < 4} onClick={submit}>{t('Theek hai')}</Button>
         </div>
       }>
       {offline ? (
         <div className="flex items-start gap-3 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">
           <WifiOff className="mt-0.5 h-5 w-5 shrink-0" />
-          <p>PIN internet ke bagair check nahi hota. Net aane par dobara koshish karein.</p>
+          <p>{t('PIN internet ke bagair check nahi hota. Net aane par dobara koshish karein.')}</p>
         </div>
       ) : (
         <div className="space-y-4">
           <label className="relative block">
-            <span className="sr-only">PIN</span>
+            <span className="sr-only">{t('PIN')}</span>
             <input ref={inputRef} data-autofocus type="password" inputMode="numeric" autoComplete="off" value={pin}
               onChange={(e) => { setError(''); setPin(e.target.value.replace(/\D/g, '').slice(0, MAX)); }}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void submit(); } }}
@@ -116,7 +117,7 @@ export async function withManagerPin<T>(reason: string, run: (pin?: string) => P
     const res = (e as { response?: { status?: number; data?: { message?: string } } })?.response;
     if (res?.status !== 403 || !/PIN chahiye/.test(res.data?.message ?? '')) throw e;
     const pin = await askManagerPin(reason, kind);
-    if (!pin) throw new Error('PIN ke bagair nahi hua');
+    if (!pin) throw new Error(t('PIN ke bagair nahi hua'));
     return run(pin);
   }
 }

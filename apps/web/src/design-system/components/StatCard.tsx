@@ -25,7 +25,7 @@ export function StatCard({ label, value, icon, change, trend = 'flat', hint, onC
       type={onClick ? 'button' : undefined}
       onClick={onClick}
       className={cn(
-        'flex flex-col rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm',
+        'flex flex-col rounded-xl border border-slate-200 bg-white p-4 text-start shadow-sm',
         onClick && 'transition hover:border-slate-300 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
         className,
       )}

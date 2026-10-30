@@ -7,6 +7,7 @@ import {
 import { shopsApi, type ShopAnalyticsRow } from '@modules/organization/shops/api/shops.api';
 import { formatPKR } from '@core/lib/format';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t, Trans } from '@core/i18n';
 
 /**
  * The owner's consolidated view.
@@ -49,19 +50,21 @@ export default function AllShopsDashboard() {
           <div>
             <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[0.6875rem] font-extrabold uppercase tracking-wider">
               <Layers className="h-3.5 w-3.5" />
-              All Shops
+              {t('All Shops')}
             </div>
             <h1 className="mt-3 text-3xl sm:text-4xl font-extrabold">
-              Aaj ka mila hua profit
+              {t('Aaj ka mila hua profit')}
             </h1>
             <div className="mt-1 text-4xl sm:text-5xl font-extrabold tabular-nums">
               {formatPKR(totals?.todayNetProfit ?? 0)}
             </div>
             <p className="mt-2 text-sm font-semibold text-white/80">
               {tenantName ? `${tenantName} — ` : ''}
-              {totals?.shopCount ?? 0} branches · Sales{' '}
-              <strong>{formatPKR(totals?.todaySales ?? 0)}</strong> · Expenses{' '}
-              <strong>{formatPKR(totals?.todayExpenses ?? 0)}</strong>
+              <Trans text="{{count}} branches · Sales {{sales}} · Expenses {{expenses}}" values={{
+                count: totals?.shopCount ?? 0,
+                sales: <strong>{formatPKR(totals?.todaySales ?? 0)}</strong>,
+                expenses: <strong>{formatPKR(totals?.todayExpenses ?? 0)}</strong>,
+              }} />
             </p>
           </div>
 
@@ -70,7 +73,7 @@ export default function AllShopsDashboard() {
             className="h-11 inline-flex items-center gap-2 px-4 rounded-xl bg-white text-indigo-800 font-extrabold text-sm hover:bg-indigo-50 transition"
           >
             <Store className="h-4 w-4" />
-            Manage Shops
+            {t('Manage Shops')}
           </Link>
         </div>
       </div>
@@ -78,30 +81,30 @@ export default function AllShopsDashboard() {
       {/* ── Roll-up tiles ── */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Tile
-          label="Is mahine ki sale"
+          label={t('Is mahine ki sale')}
           value={formatPKR(totals?.monthSales ?? 0)}
-          sub={`Net ${formatPKR(totals?.monthNetProfit ?? 0)}`}
+          sub={t('Net {{value}}', { value: formatPKR(totals?.monthNetProfit ?? 0) })}
           icon={TrendingUp}
           tone="emerald"
         />
         <Tile
-          label="Kul udhaar baqi"
+          label={t('Kul udhaar baqi')}
           value={formatPKR(totals?.outstandingCredit ?? 0)}
-          sub="Sab branches milakar"
+          sub={t('Sab branches milakar')}
           icon={Wallet}
           tone="amber"
         />
         <Tile
-          label="Low stock items"
+          label={t('Low stock items')}
           value={String(totals?.lowStockCount ?? 0)}
-          sub={`${Math.round(totals?.totalStock ?? 0)} pcs total stock`}
+          sub={t('{{value}} pcs total stock', { value: Math.round(totals?.totalStock ?? 0) })}
           icon={Boxes}
           tone="rose"
         />
         <Tile
-          label="Registers khule"
+          label={t('Registers khule')}
           value={`${totals?.registersOpen ?? 0} / ${totals?.shopCount ?? 0}`}
-          sub={`${totals?.staffCount ?? 0} active staff`}
+          sub={t('{{value}} active staff', { value: totals?.staffCount ?? 0 })}
           icon={LockOpen}
           tone="indigo"
         />
@@ -112,7 +115,7 @@ export default function AllShopsDashboard() {
         <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
           <div className="flex items-center gap-2 text-amber-900 font-extrabold text-sm">
             <AlertTriangle className="h-4 w-4" />
-            Inhe dekhna zaroori hai
+            {t('Inhe dekhna zaroori hai')}
           </div>
           <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {data!.needsAttention.map((n) => (
@@ -132,16 +135,16 @@ export default function AllShopsDashboard() {
       {/* ── Branch muqabla ── */}
       <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100">
-          <h2 className="font-extrabold text-slate-900">Branch Comparison</h2>
+          <h2 className="font-extrabold text-slate-900">{t('Branch Comparison')}</h2>
           <p className="text-xs text-slate-500 font-semibold">
-            Is mahine ki sale ke hisab se — sab se upar wali sab se acha chal rahi hai
+            {t('Is mahine ki sale ke hisab se — sab se upar wali sab se acha chal rahi hai')}
           </p>
         </div>
 
         {shops.length === 0 ? (
           <div className="p-8 text-center text-sm text-slate-500 font-semibold">
-            Abhi koi active shop nahi hai.{' '}
-            <Link to="/shops" className="text-indigo-600 underline font-bold">Shop banayein</Link>
+            {t('Abhi koi active shop nahi hai.')}{' '}
+            <Link to="/shops" className="text-indigo-600 underline font-bold">{t('Shop banayein')}</Link>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
@@ -151,7 +154,7 @@ export default function AllShopsDashboard() {
       </div>
 
       <p className="text-center text-xs text-slate-500 font-semibold">
-        Kisi ek branch ka poora hisab dekhne ke liye upar dropdown se woh shop chunein.
+        {t('Kisi ek branch ka poora hisab dekhne ke liye upar dropdown se woh shop chunein.')}
       </p>
     </div>
   );
@@ -181,7 +184,7 @@ function BranchRow({ shop }: { shop: ShopAnalyticsRow }) {
             <span className="font-extrabold text-slate-900">{shop.name}</span>
             {shop.isMain && (
               <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700">
-                MAIN
+                {t('MAIN')}
               </span>
             )}
             <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-bold bg-slate-100 text-slate-600">
@@ -195,7 +198,7 @@ function BranchRow({ shop }: { shop: ShopAnalyticsRow }) {
               }`}
             >
               {shop.registerOpen ? <LockOpen className="h-2.5 w-2.5" /> : <Lock className="h-2.5 w-2.5" />}
-              {shop.registerOpen ? 'Register khula' : 'Register band'}
+              {shop.registerOpen ? t('Register khula') : t('Register band')}
             </span>
           </div>
 
@@ -208,23 +211,23 @@ function BranchRow({ shop }: { shop: ShopAnalyticsRow }) {
               />
             </div>
             <span className="text-[0.6875rem] font-extrabold text-slate-600 tabular-nums">
-              {shop.monthShare.toFixed(0)}% share
+              {t('{{value}}% share', { value: shop.monthShare.toFixed(0) })}
             </span>
           </div>
 
           <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1.5 text-[0.6875rem]">
-            <Metric label="Aaj" value={formatPKR(shop.todaySales)} />
-            <Metric label="Aaj net" value={formatPKR(shop.todayNetProfit)} />
-            <Metric label="7 din" value={formatPKR(shop.weekSales)} />
-            <Metric label="Is mahine" value={formatPKR(shop.monthSales)} />
-            <Metric label="Udhaar baqi" value={formatPKR(shop.outstandingCredit)} />
-            <Metric label="Low stock" value={`${shop.lowStockCount} items`} />
-            <Metric label="Avg bill" value={formatPKR(shop.avgOrderValue)} />
-            <Metric label="Staff" value={`${shop.staffCount}`} icon={Users} />
+            <Metric label={t('Aaj')} value={formatPKR(shop.todaySales)} />
+            <Metric label={t('Aaj net')} value={formatPKR(shop.todayNetProfit)} />
+            <Metric label={t('7 din')} value={formatPKR(shop.weekSales)} />
+            <Metric label={t('Is mahine')} value={formatPKR(shop.monthSales)} />
+            <Metric label={t('Udhaar baqi')} value={formatPKR(shop.outstandingCredit)} />
+            <Metric label={t('Low stock')} value={`${shop.lowStockCount} items`} />
+            <Metric label={t('Avg bill')} value={formatPKR(shop.avgOrderValue)} />
+            <Metric label={t('Staff')} value={`${shop.staffCount}`} icon={Users} />
           </div>
         </div>
 
-        <div className="text-right shrink-0">
+        <div className="text-end shrink-0">
           <div
             className={`inline-flex items-center gap-1 text-sm font-extrabold tabular-nums ${
               up ? 'text-emerald-600' : 'text-rose-600'
@@ -233,10 +236,10 @@ function BranchRow({ shop }: { shop: ShopAnalyticsRow }) {
             <Arrow className="h-4 w-4" />
             {Math.abs(shop.growthVsYesterday).toFixed(0)}%
           </div>
-          <div className="text-[0.6875rem] text-slate-500 font-semibold">kal ke muqable</div>
+          <div className="text-[0.6875rem] text-slate-500 font-semibold">{t('kal ke muqable')}</div>
           <div className="mt-1 text-[0.6875rem] text-slate-600 font-bold inline-flex items-center gap-1">
             <Receipt className="h-3 w-3" />
-            {shop.todayOrders} orders
+            {t('{{todayOrders}} orders', { todayOrders: shop.todayOrders })}
           </div>
         </div>
       </div>

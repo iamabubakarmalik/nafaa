@@ -9,6 +9,7 @@ import type { BusinessModel } from '@core/lib/business-models';
 import { industryChoices } from '@modules/auth/lib/industry-choices';
 import type { OnboardingOptions } from '../api/onboarding.api';
 import { ChoiceCard, StepSection } from '../components/WizardControls';
+import { t } from '@core/i18n';
 
 export interface BusinessForm {
   businessModels: BusinessModel[];
@@ -21,10 +22,10 @@ export interface BusinessForm {
 export type BusinessErrors = Partial<Record<keyof BusinessForm, string>>;
 
 const SIZES = [
-  { value: 'MICRO', title: 'Chhota kaam', description: 'Ghar se ya akele', icon: Home },
-  { value: 'SMALL', title: 'Ek dukaan', description: '1–3 log kaam karte hain', icon: Store },
-  { value: 'MEDIUM', title: 'Barhi dukaan', description: '4–15 log, 1–3 branches', icon: Warehouse },
-  { value: 'LARGE', title: 'Kai branches', description: '15 se zyada log', icon: Network },
+  { value: 'MICRO', title: t('Chhota kaam'), description: t('Ghar se ya akele'), icon: Home },
+  { value: 'SMALL', title: t('Ek dukaan'), description: t('1–3 log kaam karte hain'), icon: Store },
+  { value: 'MEDIUM', title: t('Barhi dukaan'), description: t('4–15 log, 1–3 branches'), icon: Warehouse },
+  { value: 'LARGE', title: t('Kai branches'), description: t('15 se zyada log'), icon: Network },
 ] as const;
 
 export const cleanPhone = (v: string) => v.replace(/[\s-]/g, '');
@@ -32,9 +33,9 @@ const PHONE_RE = /^\+?[0-9]{10,15}$/;
 
 export function validateBusiness(f: BusinessForm): BusinessErrors {
   const e: BusinessErrors = {};
-  if (!f.businessType) e.businessType = 'Apna kaam chunein.';
-  if (!f.businessSize) e.businessSize = 'Dukaan ka size chunein.';
-  if (f.whatsappNumber && !PHONE_RE.test(cleanPhone(f.whatsappNumber))) e.whatsappNumber = 'Number sahi nahi. Misaal: 03001234567';
+  if (!f.businessType) e.businessType = t('Apna kaam chunein.');
+  if (!f.businessSize) e.businessSize = t('Dukaan ka size chunein.');
+  if (f.whatsappNumber && !PHONE_RE.test(cleanPhone(f.whatsappNumber))) e.whatsappNumber = t('Number sahi nahi. Misaal: 03001234567');
   return e;
 }
 
@@ -68,15 +69,15 @@ export function BusinessStep({ value, onChange, errors, options, detectedCity }:
       <BusinessModelPicker value={value.businessModels} onChange={(businessModels) => onChange({ businessModels })} />
 
       <IndustryPicker
-        label="Aap kya bechte hain / kya kaam hai?"
+        label={t('Aap kya bechte hain / kya kaam hai?')}
         choices={choices}
         value={value.businessType}
         onChange={(businessType) => onChange({ businessType })}
         error={errors.businessType}
       />
 
-      <StepSection title="Business kitna barha hai?" hint="Is se staff aur branches wale hisse set hote hain.">
-        <div role="radiogroup" aria-label="Business size" className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <StepSection title={t('Business kitna barha hai?')} hint={t('Is se staff aur branches wale hisse set hote hain.')}>
+        <div role="radiogroup" aria-label={t('Business size')} className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {SIZES.map((s) => (
             <ChoiceCard
               key={s.value}
@@ -94,8 +95,8 @@ export function BusinessStep({ value, onChange, errors, options, detectedCity }:
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Input
-            label="Shahar"
-            placeholder="Misaal: Lahore"
+            label={t('Shahar')}
+            placeholder={t('Misaal: Lahore')}
             list={listId}
             autoComplete="address-level2"
             leftIcon={<MapPin className="h-4 w-4" />}
@@ -112,18 +113,18 @@ export function BusinessStep({ value, onChange, errors, options, detectedCity }:
               onClick={() => onChange({ city: detectedCity })}
               className="mt-1.5 text-xs font-semibold text-brand-700 hover:underline"
             >
-              Aap ki location se: {detectedCity} — yahi rakhein
+              {t('Aap ki location se: {{detectedCity}} — yahi rakhein', { detectedCity })}
             </button>
           )}
         </div>
         <Input
-          label={<>WhatsApp number <span className="font-normal text-slate-500">(zaroori nahi)</span></>}
+          label={<>{t('WhatsApp number')}{' '} <span className="font-normal text-slate-500">{t('(zaroori nahi)')}</span></>}
           type="tel"
           inputMode="tel"
           autoComplete="tel"
           placeholder="03001234567"
           leftIcon={<MessageCircle className="h-4 w-4" />}
-          hint={errors.whatsappNumber ? undefined : 'Customers ko bill aur khata isi number se jayega.'}
+          hint={errors.whatsappNumber ? undefined : t('Customers ko bill aur khata isi number se jayega.')}
           value={value.whatsappNumber}
           onChange={(e) => onChange({ whatsappNumber: e.target.value })}
           error={errors.whatsappNumber}
@@ -131,7 +132,7 @@ export function BusinessStep({ value, onChange, errors, options, detectedCity }:
       </div>
 
       <p className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-600">
-        Kaam badalna ho to baad me <strong className="font-semibold">Settings → Business type</strong> se badal sakte hain. Wahin features bhi on/off hote hain.
+        {t('Kaam badalna ho to baad me')}{' '} <strong className="font-semibold">{t('Settings → Business type')}</strong> {' '}{t('se badal sakte hain. Wahin features bhi on/off hote hain.')}
       </p>
     </div>
   );

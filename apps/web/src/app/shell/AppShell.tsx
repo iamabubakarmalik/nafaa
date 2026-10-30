@@ -41,6 +41,7 @@ import { ShortcutsHelp, useShortcutsHelp } from './keyboard/ShortcutsHelp';
 import { GO_TO, useGlobalKeys } from './keyboard/useGlobalKeys';
 import { useSidebarState } from './useSidebarState';
 import { AiDrawer, AiLauncher } from '@modules/ai-assistant';
+import { t } from '@core/i18n';
 
 const SKIP_LINK = 'pointer-events-auto -translate-y-16 rounded-xl bg-brand-600 px-4 py-2 text-[0.875rem] font-semibold text-brand-fg shadow-lg transition focus:translate-y-0';
 
@@ -84,14 +85,14 @@ export default function AppShell() {
   }, [location.pathname, navigate]);
 
   const handleLogout = async () => {
-    if (!(await confirmDialog({ title: 'Nafaa se logout karein?' }))) return;
+    if (!(await confirmDialog({ title: t('Nafaa se logout karein?') }))) return;
     try {
       if (refreshToken) await authApi.logout(refreshToken);
     } catch {
       // Logging out locally is enough if the server call fails.
     } finally {
       logout();
-      toast.success('Logged out');
+      toast.success(t('Logged out'));
       navigate('/login');
     }
   };
@@ -114,9 +115,9 @@ export default function AppShell() {
 
   return (
     <div className="h-screen-dvh overflow-hidden bg-shell-canvas">
-      <div className="pointer-events-none fixed left-2 top-2 z-[100] flex gap-2">
-        <a href="#main-content" className={SKIP_LINK}>Seedha content par jayein</a>
-        {!settingsMode && <a href="#main-nav" onClick={(e) => { e.preventDefault(); document.querySelector<HTMLElement>('nav[aria-label="Main"] a[href]')?.focus(); }} className={SKIP_LINK}>Menu par jayein</a>}
+      <div className="pointer-events-none fixed start-2 top-2 z-[100] flex gap-2">
+        <a href="#main-content" className={SKIP_LINK}>{t('Seedha content par jayein')}</a>
+        {!settingsMode && <a href="#main-nav" onClick={(e) => { e.preventDefault(); document.querySelector<HTMLElement>('nav[aria-label="Main"] a[href]')?.focus(); }} className={SKIP_LINK}>{t('Menu par jayein')}</a>}
       </div>
       <div
         className={cn(
@@ -126,7 +127,7 @@ export default function AppShell() {
       >
         {!settingsMode && (
           <aside
-            className={cn('hidden h-screen-dvh flex-col overflow-hidden border-r border-shell-line bg-shell-sidebar text-[rgb(var(--fg))] lg:flex print:hidden', sidebarDark && 'dark')}
+            className={cn('hidden h-screen-dvh flex-col overflow-hidden border-e border-shell-line bg-shell-sidebar text-[rgb(var(--fg))] lg:flex print:hidden', sidebarDark && 'dark')}
             style={sidebarSurface}
           >
             <Sidebar {...tenantProps} collapsed={collapsed} onToggleCollapse={toggle} />
@@ -175,7 +176,7 @@ export default function AppShell() {
       <ShortcutsHelp />
       {chord && (
         <div role="status" className="fixed bottom-4 left-1/2 z-[100] flex -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 rounded-2xl bg-slate-900 px-3 py-2 text-[0.75rem] text-white shadow-xl print:hidden">
-          <Kbd className="border-white/20 bg-white/10 text-white">G</Kbd> phir:
+          <Kbd className="border-white/20 bg-white/10 text-white">G</Kbd> {' '}{t('phir:')}
           {GO_TO.map((g) => <span key={g.key} className="inline-flex items-center gap-1"><Kbd className="border-white/20 bg-white/10 text-white">{g.key.toUpperCase()}</Kbd>{g.label}</span>)}
         </div>
       )}

@@ -10,9 +10,10 @@ import { Button, Input, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import type { PaymentMethod } from '@modules/sales/sales/api/sales.api';
 import { PaymentMethodPicker } from './PaymentMethodPicker';
+import { t } from '@core/i18n';
 
 export function TakePaymentModal({
-  title, description, amount: initial, max, allowZero, hint, confirmLabel = 'Payment lein', loading, onConfirm, onClose,
+  title, description, amount: initial, max, allowZero, hint, confirmLabel = t('Payment lein'), loading, onConfirm, onClose,
 }: {
   title: string;
   description?: string;
@@ -35,23 +36,23 @@ export function TakePaymentModal({
   const valid = Number.isFinite(amount) && (allowZero ? amount >= 0 : amount > 0) && (max === undefined || amount <= max + 0.01);
   const left = max !== undefined ? Math.max(max - (Number.isFinite(amount) ? amount : 0), 0) : 0;
   const error = value !== '' && !valid
-    ? (max !== undefined && amount > max + 0.01 ? `Zyada se zyada ${formatPKR(max)}` : 'Amount sahi likhein')
+    ? (max !== undefined && amount > max + 0.01 ? t('Zyada se zyada {{max}}', { max: formatPKR(max) }) : t('Amount sahi likhein'))
     : undefined;
 
   return (
     <Modal open onClose={onClose} size="sm" title={title} description={description}
       footer={
         <div className="flex w-full gap-2">
-          <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
+          <Button variant="secondary" className="flex-1" onClick={onClose}>{t('Cancel')}</Button>
           <Button className="flex-1" loading={loading} disabled={!valid} onClick={() => onConfirm(Math.round(amount * 100) / 100, method)}>
             <CheckCircle2 className="h-4 w-4" /> {confirmLabel}
           </Button>
         </div>
       }>
       <div className="space-y-4">
-        <Input label="Amount (Rs)" inputMode="decimal" autoFocus value={value} error={error}
+        <Input label={t('Amount (Rs)')} inputMode="decimal" autoFocus value={value} error={error}
           onChange={(e) => setValue(e.target.value.replace(/[^\d.]/g, ''))}
-          hint={hint ?? (max !== undefined ? (left > 0.005 ? `Baqi ${formatPKR(left)} customer ke khate me rahega` : 'Poora baqi wasool') : undefined)} />
+          hint={hint ?? (max !== undefined ? (left > 0.005 ? t('Baqi {{left}} customer ke khate me rahega', { left: formatPKR(left) }) : t('Poora baqi wasool')) : undefined)} />
         {amount > 0 && <PaymentMethodPicker value={method} onChange={setMethod} />}
       </div>
     </Modal>

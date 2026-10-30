@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@core/lib/cn';
 import { Sidebar, type SidebarProps } from './Sidebar';
+import { isRtl, t as tr } from '@core/i18n';
 
 /**
  * Phone and tablet menu. Slides in from the left and closes on a backdrop
@@ -44,10 +45,11 @@ export function MobileSidebar({ open, onClose, dark, surface, ...rest }: Props) 
     const dx = t.clientX - s.x;
     const dy = t.clientY - s.y;
     if (s.horizontal === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) s.horizontal = Math.abs(dx) > Math.abs(dy);
-    if (s.horizontal) setDrag(Math.min(0, dx));
+    // Swiping toward the edge the drawer came from closes it.
+    if (s.horizontal) setDrag(isRtl() ? Math.max(0, dx) : Math.min(0, dx));
   };
   const onTouchEnd = () => {
-    if (drag < -80) onClose();
+    if (Math.abs(drag) > 80) onClose();
     setDrag(0);
     start.current = null;
   };
@@ -57,21 +59,22 @@ export function MobileSidebar({ open, onClose, dark, surface, ...rest }: Props) 
       <div
         onClick={onClose}
         className={cn('absolute inset-0 bg-slate-950/50 transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0')}
-        style={open && drag ? { opacity: Math.max(0.2, 1 + drag / 320) } : undefined}
+        style={open && drag ? { opacity: Math.max(0.2, 1 - Math.abs(drag) / 320) } : undefined}
       />
       <aside
         role={open ? 'dialog' : undefined}
         aria-modal={open || undefined}
-        aria-label="Main menu"
+        aria-label={tr('Main menu')}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         style={{
           ...surface,
-          transform: open ? `translateX(${drag}px)` : 'translateX(-105%)',
+          // The drawer opens from the start edge: the left in English, the right in Urdu.
+          transform: open ? `translateX(${drag}px)` : (isRtl() ? 'translateX(105%)' : 'translateX(-105%)'),
           transition: drag ? 'none' : 'transform 320ms cubic-bezier(.32,.72,0,1)',
         }}
-        className={cn('absolute inset-y-0 left-0 flex w-[86vw] max-w-[320px] flex-col bg-shell-sidebar pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-[rgb(var(--fg))] shadow-2xl', dark && 'dark')}
+        className={cn('absolute inset-y-0 start-0 flex w-[86vw] max-w-[320px] flex-col bg-shell-sidebar pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-[rgb(var(--fg))] shadow-2xl', dark && 'dark')}
       >
         <Sidebar {...rest} onItemClick={onClose} onClose={onClose} />
       </aside>

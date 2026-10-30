@@ -6,6 +6,7 @@
 
 import { useMemo } from 'react';
 import { buildScale, useAppearance } from '@/design-system';
+import { t } from '@core/i18n';
 
 export function useChartTheme() {
   const { accentHex, isDark } = useAppearance();
@@ -19,7 +20,7 @@ export function useChartTheme() {
       primarySoft: isDark ? brand(800) : brand(200),
       highlight: isDark ? '#fbbf24' : '#f59e0b',
       profit: isDark ? '#4ade80' : '#16a34a',
-      grid: isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.25)',
+      grid: isDark ? t('rgba(148,163,184,0.12)') : t('rgba(148,163,184,0.25)'),
       axis: { fontSize: 11, fill: isDark ? '#64748b' : '#94a3b8' },
       tooltip: {
         contentStyle: {
@@ -31,7 +32,7 @@ export function useChartTheme() {
           boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
         },
         labelStyle: { color: isDark ? '#94a3b8' : '#64748b', fontWeight: 600 },
-        cursor: { fill: isDark ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.12)' },
+        cursor: { fill: isDark ? t('rgba(148,163,184,0.08)') : t('rgba(148,163,184,0.12)') },
       },
     };
   }, [accentHex, isDark]);
@@ -44,6 +45,6 @@ export const PAYMENT_COLORS: Record<string, string> = {
 };
 
 export const PAYMENT_LABELS: Record<string, string> = {
-  CASH: 'Cash', CARD: 'Card', JAZZCASH: 'JazzCash', EASYPAISA: 'Easypaisa',
-  BANK_TRANSFER: 'Bank transfer', CREDIT: 'Udhaar', ONLINE: 'Online', TRADE_IN: 'Trade-in',
+  CASH: t('Cash'), CARD: t('Card'), JAZZCASH: t('JazzCash'), EASYPAISA: t('Easypaisa'),
+  BANK_TRANSFER: t('Bank transfer'), CREDIT: t('Udhaar'), ONLINE: t('Online'), TRADE_IN: t('Trade-in'),
 };

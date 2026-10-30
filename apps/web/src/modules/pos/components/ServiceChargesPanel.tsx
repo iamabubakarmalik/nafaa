@@ -5,14 +5,15 @@ import {
 } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import type { ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
+import { t } from '@core/i18n';
 
 const PRESETS: Array<{ type: string; label: string; icon: any; color: string; suggested?: number }> = [
-  { type: 'GLUE',         label: 'Adhesive / Glue',     icon: Droplet,  color: 'blue',    suggested: 2000 },
-  { type: 'INSTALLATION', label: 'Installation Labor',  icon: Hammer,   color: 'amber',   suggested: 3000 },
-  { type: 'CUTTING',      label: 'Cutting / Fitting',   icon: Scissors, color: 'violet',  suggested: 1500 },
-  { type: 'DELIVERY',     label: 'Delivery',            icon: Truck,    color: 'emerald', suggested: 1000 },
-  { type: 'UNDERLAY',     label: 'Underlay / Foam',     icon: Layers,   color: 'rose',    suggested: 5000 },
-  { type: 'OTHER',        label: 'Other / Custom',      icon: Package,  color: 'slate' },
+  { type: 'GLUE',         label: t('Adhesive / Glue'),     icon: Droplet,  color: 'blue',    suggested: 2000 },
+  { type: 'INSTALLATION', label: t('Installation Labor'),  icon: Hammer,   color: 'amber',   suggested: 3000 },
+  { type: 'CUTTING',      label: t('Cutting / Fitting'),   icon: Scissors, color: 'violet',  suggested: 1500 },
+  { type: 'DELIVERY',     label: t('Delivery'),            icon: Truck,    color: 'emerald', suggested: 1000 },
+  { type: 'UNDERLAY',     label: t('Underlay / Foam'),     icon: Layers,   color: 'rose',    suggested: 5000 },
+  { type: 'OTHER',        label: t('Other / Custom'),      icon: Package,  color: 'slate' },
 ];
 
 const COLOR_MAP: Record<string, { bg: string; border: string; icon: string; text: string }> = {
@@ -73,9 +74,9 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
             <Wrench className="h-4 w-4" />
           </div>
-          <div className="text-left">
+          <div className="text-start">
             <div className="text-sm font-extrabold text-amber-900 flex items-center gap-1">
-              Service Charges
+              {t('Service Charges')}
               {charges.length > 0 && (
                 <span className="px-1.5 py-0.5 rounded-full bg-amber-600 text-white text-[0.6875rem] font-extrabold">
                   {charges.length}
@@ -83,7 +84,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
               )}
             </div>
             <div className="text-xs text-amber-700 font-semibold">
-              {total > 0 ? `+${formatPKR(total)}` : 'Glue, installation, delivery...'}
+              {total > 0 ? `+${formatPKR(total)}` : t('Glue, installation, delivery...')}
             </div>
           </div>
         </div>
@@ -95,7 +96,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
           <div>
             <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5 flex items-center gap-1">
               <Sparkles className="h-2.5 w-2.5 text-amber-500" />
-              Quick Add
+              {t('Quick Add')}
             </div>
             <div className="grid grid-cols-3 gap-1.5">
               {PRESETS.map((p) => {
@@ -107,7 +108,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                     key={p.type}
                     type="button"
                     onClick={() => addPreset(p)}
-                    className={`p-2 rounded-xl border-2 transition text-left ${
+                    className={`p-2 rounded-xl border-2 transition text-start ${
                       active ? `${c.bg} ${c.border} shadow-sm` : 'bg-white border-slate-200 hover:border-slate-300'
                     }`}
                   >
@@ -129,7 +130,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
           {charges.length > 0 && (
             <div className="space-y-1.5">
               <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600">
-                Applied Charges
+                {t('Applied Charges')}
               </div>
               {charges.map((charge, idx) => {
                 const preset = PRESETS.find((p) => p.type === charge.type);
@@ -145,14 +146,14 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                       className={`flex-1 h-8 rounded-md bg-white border border-slate-200 px-2 text-xs font-bold ${c.text} focus:outline-none focus:border-amber-500`}
                     />
                     <div className="relative">
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[0.6875rem] font-extrabold text-slate-500">Rs</span>
+                      <span className="absolute start-2 top-1/2 -translate-y-1/2 text-[0.6875rem] font-extrabold text-slate-500">Rs</span>
                       <input
                         type="number"
                         step="0.01"
                         min="0"
                         value={charge.amount}
                         onChange={(e) => updateCharge(idx, { amount: Number(e.target.value) || 0 })}
-                        className="h-8 w-24 rounded-md border border-slate-200 pl-7 pr-1.5 text-xs font-extrabold text-right tabular-nums focus:outline-none focus:border-amber-500"
+                        className="h-8 w-24 rounded-md border border-slate-200 ps-7 pe-1.5 text-xs font-extrabold text-end tabular-nums focus:outline-none focus:border-amber-500"
                       />
                     </div>
                     <button
@@ -166,7 +167,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
               })}
 
               <div className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 text-white p-2 flex items-center justify-between shadow-md">
-                <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider">Service Total</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider">{t('Service Total')}</span>
                 <span className="text-base font-extrabold tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>
@@ -174,14 +175,14 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
 
           <div className="pt-2 border-t border-amber-200">
             <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1.5">
-              Custom Charge
+              {t('Custom Charge')}
             </div>
             <div className="flex gap-1.5">
               <input
                 type="text"
                 value={customLabel}
                 onChange={(e) => setCustomLabel(e.target.value)}
-                placeholder="Label (e.g. Extra padding)"
+                placeholder={t('Label (e.g. Extra padding)')}
                 className="flex-1 h-9 rounded-md border-2 border-slate-200 px-2 text-xs font-bold focus:outline-none focus:border-amber-500"
               />
               <input
@@ -190,8 +191,8 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                 min="0"
                 value={customAmount}
                 onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder="Amount"
-                className="h-9 w-24 rounded-md border-2 border-slate-200 px-2 text-xs font-extrabold text-right focus:outline-none focus:border-amber-500"
+                placeholder={t('Amount')}
+                className="h-9 w-24 rounded-md border-2 border-slate-200 px-2 text-xs font-extrabold text-end focus:outline-none focus:border-amber-500"
               />
               <button
                 type="button"
@@ -199,7 +200,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                 disabled={!customLabel.trim() || !(Number(customAmount) > 0)}
                 className="h-9 px-3 rounded-md bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition"
               >
-                <Plus className="h-3 w-3" /> Add
+                <Plus className="h-3 w-3" /> {' '}{t('Add')}
               </button>
             </div>
           </div>

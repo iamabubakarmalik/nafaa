@@ -12,6 +12,7 @@ import { useMasked } from '../engine/useMasked';
 import { WidgetToolbar } from './WidgetToolbar';
 import { useChartTheme } from '../engine/useChartTheme';
 import { EmptyHint, WidgetCard } from '../engine/parts';
+import { t } from '@core/i18n';
 
 const FALLBACK = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
 const FALLBACK_DARK = ['#3987e5', '#d95926', '#199e70', '#c98500', '#d55181', '#22a722', '#9085e9', '#e66767'];
@@ -28,19 +29,19 @@ export function Expenses() {
   const palette = isDark ? FALLBACK_DARK : FALLBACK;
 
   return (
-    <WidgetCard title="Expense kahan gaya" icon={Wallet}
-      description={m ? `Is mahine ${formatPKR(total)} · pichhla mahina ${formatPKR(m.expenses.lastMonth ?? 0)}` : 'Is mahine'} to="/expenses">
+    <WidgetCard title={t('Expense kahan gaya')} icon={Wallet}
+      description={m ? t('Is mahine {{total}} · pichhla mahina {{value}}', { total: formatPKR(total), value: formatPKR(m.expenses.lastMonth ?? 0) }) : t('Is mahine')} to="/expenses">
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Expense kahan gaya', subtitle: 'Is mahine',
-          sections: [{ kind: 'table', columns: [{ label: 'Category' }, { label: 'Entries', align: 'right' }, { label: 'Amount', align: 'right' }],
-            rows: all.map((r) => [r.name, String(r.count), cost(r.amount)]), footer: ['Kul', String(all.reduce((x, r) => x + r.count, 0)), cost(total)] }],
+          title: t('Expense kahan gaya'), subtitle: t('Is mahine'),
+          sections: [{ kind: 'table', columns: [{ label: t('Category') }, { label: t('Entries'), align: 'right' }, { label: t('Amount'), align: 'right' }],
+            rows: all.map((r) => [r.name, String(r.count), cost(r.amount)]), footer: [t('Kul'), String(all.reduce((x, r) => x + r.count, 0)), cost(total)] }],
         })}>
-        <MiniSelect label="Sort" value={st.sort} onChange={(v) => set({ sort: v })} options={[{ value: 'amount', label: 'Amount se' }, { value: 'count', label: 'Entries se' }]} />
-        <MiniSelect label="Kitni" value={st.show} onChange={(v) => set({ show: v })} options={[{ value: '5', label: 'Top 5' }, { value: '8', label: 'Top 8' }, { value: '50', label: 'Sab' }]} />
+        <MiniSelect label={t('Sort')} value={st.sort} onChange={(v) => set({ sort: v })} options={[{ value: 'amount', label: t('Amount se') }, { value: 'count', label: t('Entries se') }]} />
+        <MiniSelect label={t('Kitni')} value={st.show} onChange={(v) => set({ show: v })} options={[{ value: '5', label: t('Top 5') }, { value: '8', label: t('Top 8') }, { value: '50', label: t('Sab') }]} />
       </WidgetToolbar>
       {rows.length === 0 ? (
-        <EmptyHint icon={Wallet} text="Is mahine koi expense darj nahi" />
+        <EmptyHint icon={Wallet} text={t('Is mahine koi expense darj nahi')} />
       ) : (
         <div className="space-y-3">
           {rows.map((r, i) => {
@@ -56,7 +57,7 @@ export function Expenses() {
                   </span>
                   <span className="shrink-0 font-semibold tabular-nums text-slate-900">
                     {formatPKR(r.amount)}
-                    <span className="ml-1.5 text-[0.75rem] font-normal text-slate-500">{total > 0 ? Math.round((r.amount / total) * 100) : 0}%</span>
+                    <span className="ms-1.5 text-[0.75rem] font-normal text-slate-500">{total > 0 ? Math.round((r.amount / total) * 100) : 0}%</span>
                   </span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-100">
@@ -66,7 +67,7 @@ export function Expenses() {
             );
           })}
           <div className="flex items-baseline justify-between border-t border-slate-100 pt-2 text-[0.8125rem]">
-            <span className="font-medium text-slate-500">Kul expense</span>
+            <span className="font-medium text-slate-500">{t('Kul expense')}</span>
             <span className="font-bold tabular-nums text-slate-900">{formatPKR(total)}</span>
           </div>
         </div>

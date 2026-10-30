@@ -67,7 +67,7 @@ export function Panel({ open, onClose, align = 'right', widthClass = 'sm:w-[360p
       className={cn(
         'absolute top-full z-50 mt-2 flex max-h-[min(80dvh,42rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-2xl',
         'animate-in fade-in slide-in-from-top-1 duration-150',
-        align === 'right' ? 'right-0' : 'left-0',
+        align === 'right' ? 'end-0' : 'start-0',
         widthClass,
       )}
     >

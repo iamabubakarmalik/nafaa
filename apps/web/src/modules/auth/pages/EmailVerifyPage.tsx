@@ -11,6 +11,7 @@ import { Alert, Button } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { AuthHeading, AuthLayout } from '../components/AuthLayout';
 import { authErrorMessage, retryAfterSeconds } from '../lib/auth-errors';
+import { t as tr } from '@core/i18n';
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 60;
@@ -48,7 +49,7 @@ export default function EmailVerifyPage() {
       }
       setError(null);
       setCooldown(RESEND_SECONDS);
-      toast.success('Naya code email par bhej diya');
+      toast.success(tr('Naya code email par bhej diya'));
       if (data?.devCode) console.info(`[dev] verify code: ${data.devCode}`);
     },
     onError: (err) => {
@@ -58,7 +59,7 @@ export default function EmailVerifyPage() {
         setCooldown(wait);
         return;
       }
-      setError(authErrorMessage(err, 'Code nahi bheja ja saka. Thori der baad dobara try karein.'));
+      setError(authErrorMessage(err, tr('Code nahi bheja ja saka. Thori der baad dobara try karein.')));
     },
   });
 
@@ -67,11 +68,11 @@ export default function EmailVerifyPage() {
     onSuccess: () => {
       setVerified(true);
       updateUser({ emailVerified: true });
-      toast.success('Email verify ho gaya');
+      toast.success(tr('Email verify ho gaya'));
       setTimeout(goOn, 900);
     },
     onError: (err) => {
-      setError(authErrorMessage(err, 'Code sahi nahi. Dobara likhein.'));
+      setError(authErrorMessage(err, tr('Code sahi nahi. Dobara likhein.')));
       setCode(Array(OTP_LENGTH).fill(''));
       inputs.current[0]?.focus();
     },
@@ -91,7 +92,7 @@ export default function EmailVerifyPage() {
   const submit = (digits: string[]) => {
     const full = digits.join('');
     if (full.length !== OTP_LENGTH) {
-      setError('Pura 6 number ka code likhein.');
+      setError(tr('Pura 6 number ka code likhein.'));
       return;
     }
     setError(null);
@@ -140,7 +141,7 @@ export default function EmailVerifyPage() {
   if (!user) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label="Load ho raha hai" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand-600" aria-label={tr('Load ho raha hai')} />
       </div>
     );
   }
@@ -151,15 +152,15 @@ export default function EmailVerifyPage() {
     <AuthLayout side="signup">
       <AuthHeading
         icon={<MailCheck className="h-5 w-5" />}
-        title="Email verify karein"
-        subtitle={<>6 number ka code bheja gaya hai: <strong className="break-all font-semibold text-slate-800">{user.email}</strong></>}
+        title={tr('Email verify karein')}
+        subtitle={<>{tr('6 number ka code bheja gaya hai:')}{' '} <strong className="break-all font-semibold text-slate-800">{user.email}</strong></>}
       />
 
       {error && <Alert tone="danger" className="mb-4">{error}</Alert>}
-      {verified && <Alert tone="success" className="mb-4">Shukriya! Email verify ho gaya — aage le ja rahe hain…</Alert>}
+      {verified && <Alert tone="success" className="mb-4">{tr('Shukriya! Email verify ho gaya — aage le ja rahe hain…')}</Alert>}
 
       <fieldset disabled={busy} className="mb-2">
-        <legend className="sr-only">6 number ka code</legend>
+        <legend className="sr-only">{tr('6 number ka code')}</legend>
         <div className="flex justify-between gap-2" onPaste={onPaste}>
           {code.map((digit, i) => (
             <input
@@ -171,7 +172,7 @@ export default function EmailVerifyPage() {
               pattern="[0-9]*"
               maxLength={OTP_LENGTH}
               value={digit}
-              aria-label={`Code ka ${i + 1} number`}
+              aria-label={tr('Code ka {{value}} number', { value: i + 1 })}
               autoFocus={i === 0}
               onChange={(e) => onChange(i, e.target.value)}
               onKeyDown={(e) => onKeyDown(i, e)}
@@ -185,7 +186,7 @@ export default function EmailVerifyPage() {
           ))}
         </div>
       </fieldset>
-      <p className="mb-5 text-xs text-slate-500">Code 10 minute tak chalega. Paste bhi kar sakte hain.</p>
+      <p className="mb-5 text-xs text-slate-500">{tr('Code 10 minute tak chalega. Paste bhi kar sakte hain.')}</p>
 
       <Button
         size="xl"
@@ -194,12 +195,12 @@ export default function EmailVerifyPage() {
         disabled={verified || code.join('').length !== OTP_LENGTH}
         onClick={() => submit(code)}
       >
-        Verify karein
+        {tr('Verify karein')}
       </Button>
 
       <div className="mt-5 flex flex-col items-center gap-3 border-t border-slate-200 pt-5 text-sm">
         <p className="text-slate-600">
-          Email nahi mili? Spam folder dekhein, ya{' '}
+          {tr('Email nahi mili? Spam folder dekhein, ya')}{' '}
           <button
             type="button"
             onClick={() => sendMutation.mutate()}
@@ -207,11 +208,11 @@ export default function EmailVerifyPage() {
             className="inline-flex items-center gap-1 font-semibold text-brand-700 hover:underline disabled:cursor-not-allowed disabled:text-slate-400 disabled:no-underline"
           >
             <RefreshCw className={cn('h-3.5 w-3.5', sendMutation.isPending && 'animate-spin')} aria-hidden />
-            {cooldown > 0 ? `${cooldown}s baad naya code` : 'naya code mangwaein'}
+            {cooldown > 0 ? tr('{{cooldown}}s baad naya code', { cooldown }) : tr('naya code mangwaein')}
           </button>
         </p>
         <button type="button" onClick={goOn} className="inline-flex items-center gap-1 text-[0.8125rem] font-medium text-slate-500 hover:text-slate-800">
-          Baad me verify karunga <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          {tr('Baad me verify karunga')}{' '} <ArrowRight className="h-3.5 w-3.5 rtl-flip" aria-hidden />
         </button>
       </div>
     </AuthLayout>

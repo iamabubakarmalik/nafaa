@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, Mic } from 'lucide-react';
 import { Button, Modal, Segmented } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
+import { t as tr } from '@core/i18n';
 
 /**
  * Voice billing on the Web Speech API (no server, no key). Understands
@@ -188,11 +189,11 @@ export function parseVoiceCommands(text: string): VoiceCommand[] {
 
 export function describeCommand(cmd: VoiceCommand): string {
   switch (cmd.kind) {
-    case 'add': return cmd.byMoney ? `Rs ${cmd.byMoney} ka ${cmd.productQuery}` : `${cmd.qty} ${cmd.unit ?? ''} ${cmd.productQuery}`.replace(/\s+/g, ' ');
-    case 'checkout': return cmd.mode === 'credit' ? 'Udhaar — checkout' : 'Checkout';
-    case 'discount': return cmd.pct ? `${cmd.pct}% discount` : `Rs ${cmd.rs} discount`;
-    case 'clear': return 'Bill saaf';
-    default: return `Samjha nahi: "${cmd.text}"`;
+    case 'add': return cmd.byMoney ? tr('Rs {{byMoney}} ka {{productQuery}}', { byMoney: cmd.byMoney, productQuery: cmd.productQuery }) : `${cmd.qty} ${cmd.unit ?? ''} ${cmd.productQuery}`.replace(/\s+/g, ' ');
+    case 'checkout': return cmd.mode === 'credit' ? tr('Udhaar — checkout') : tr('Checkout');
+    case 'discount': return cmd.pct ? tr('{{pct}}% discount', { pct: cmd.pct }) : tr('Rs {{rs}} discount', { rs: cmd.rs });
+    case 'clear': return tr('Bill saaf');
+    default: return tr('Samjha nahi: "{{text}}"', { text: cmd.text });
   }
 }
 
@@ -240,7 +241,7 @@ export function VoiceSaleButton({ onCommand, className = '' }: {
   };
 
   const start = (l: Lang = lang) => {
-    if (!supported) { setError('Is browser mein awaaz ka feature nahi — Chrome ya Edge istemal karein'); return; }
+    if (!supported) { setError(tr('Is browser mein awaaz ka feature nahi — Chrome ya Edge istemal karein')); return; }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const rec = new SR();
     rec.lang = l;
@@ -261,32 +262,32 @@ export function VoiceSaleButton({ onCommand, className = '' }: {
       if (e.error === 'aborted') return;
       if (e.error === 'no-speech') return; // keep listening quietly
       keepRef.current = false;
-      setError(e.error === 'not-allowed' ? 'Mic ki permission chahiye — browser mein Allow dabayein' : 'Awaaz nahi suni ja saki — dobara koshish karein');
+      setError(e.error === 'not-allowed' ? tr('Mic ki permission chahiye — browser mein Allow dabayein') : tr('Awaaz nahi suni ja saki — dobara koshish karein'));
     };
     // Keep the session going: start again after each phrase until the user stops.
     rec.onend = () => { setListening(false); if (keepRef.current) setTimeout(() => { if (keepRef.current) { try { rec.start(); } catch { /* already running */ } } }, 250); };
     recRef.current = rec;
-    try { rec.start(); } catch { setError('Mic shuru nahi hua'); }
+    try { rec.start(); } catch { setError(tr('Mic shuru nahi hua')); }
   };
 
   useEffect(() => () => { keepRef.current = false; try { recRef.current?.abort(); } catch { /* */ } }, []);
 
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); setTimeout(() => start(), 150); }} title="Awaaz se bill (F6)" aria-label="Awaaz se bill"
+      <button type="button" onClick={() => { setOpen(true); setTimeout(() => start(), 150); }} title={tr('Awaaz se bill (F6)')} aria-label={tr('Awaaz se bill')}
         className={className || 'flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-brand-fg shadow-sm transition hover:bg-brand-700'}>
         <Mic className="h-5 w-5" />
       </button>
 
-      <Modal open={open} onClose={close} size="md" title="Awaaz se bill" description="Bolte jayein — har cheez bill mein judti jayegi">
+      <Modal open={open} onClose={close} size="md" title={tr('Awaaz se bill')} description={tr('Bolte jayein — har cheez bill mein judti jayegi')}>
         <div className="space-y-5">
           <div className="flex justify-center">
-            <Segmented label="Zabaan" value={lang} onChange={setLang}
-              items={[{ value: 'ur-PK', label: 'اردو / Urdu' }, { value: 'en-IN', label: 'English / Roman' }]} />
+            <Segmented label={tr('Zabaan')} value={lang} onChange={setLang}
+              items={[{ value: 'ur-PK', label: tr('اردو / Urdu') }, { value: 'en-IN', label: tr('English / Roman') }]} />
           </div>
 
           <div className="flex flex-col items-center">
-            <button type="button" onClick={() => (listening ? stop() : start())} aria-label={listening ? 'Rokein' : 'Sunna shuru karein'}
+            <button type="button" onClick={() => (listening ? stop() : start())} aria-label={listening ? tr('Rokein') : tr('Sunna shuru karein')}
               className={cn('relative flex h-24 w-24 items-center justify-center rounded-full text-white shadow-xl transition',
                 listening ? 'bg-gradient-to-br from-brand-500 to-brand-700 shadow-brand-600/40' : 'bg-slate-800 hover:bg-slate-700')}>
               {listening && <span className="absolute inset-0 animate-ping rounded-full bg-brand-500/30" aria-hidden />}
@@ -294,10 +295,10 @@ export function VoiceSaleButton({ onCommand, className = '' }: {
               <Mic className="relative h-10 w-10" />
             </button>
             <p className={cn('mt-4 text-[0.875rem] font-medium', listening ? 'text-brand-700' : 'text-slate-500')}>
-              {listening ? 'Sun raha hoon…' : error ? 'Ruk gaya' : 'Mic dabayein aur bolein'}
+              {listening ? tr('Sun raha hoon…') : error ? tr('Ruk gaya') : tr('Mic dabayein aur bolein')}
             </p>
             <div className="mt-2 min-h-[3rem] w-full rounded-xl bg-slate-50 px-4 py-3 text-center text-lg font-semibold text-slate-900" dir="auto">
-              {error ? <span className="text-[0.875rem] font-medium text-rose-700">{error}</span> : heard || <span className="text-[0.875rem] font-normal text-slate-400">Jo aap bolenge woh yahan likha aayega</span>}
+              {error ? <span className="text-[0.875rem] font-medium text-rose-700">{error}</span> : heard || <span className="text-[0.875rem] font-normal text-slate-400">{tr('Jo aap bolenge woh yahan likha aayega')}</span>}
             </div>
           </div>
 
@@ -312,12 +313,12 @@ export function VoiceSaleButton({ onCommand, className = '' }: {
           )}
 
           <div>
-            <p className="mb-2 text-[0.75rem] font-medium text-slate-500">Aise bolein</p>
+            <p className="mb-2 text-[0.75rem] font-medium text-slate-500">{tr('Aise bolein')}</p>
             <div className="flex flex-wrap gap-1.5">
               {EXAMPLES.map((ex) => <span key={ex} className="rounded-full bg-slate-100 px-2.5 py-1 text-[0.75rem] text-slate-600">“{ex}”</span>)}
             </div>
           </div>
-          <Button fullWidth variant="secondary" onClick={close}>Ho gaya</Button>
+          <Button fullWidth variant="secondary" onClick={close}>{tr('Ho gaya')}</Button>
         </div>
       </Modal>
     </>

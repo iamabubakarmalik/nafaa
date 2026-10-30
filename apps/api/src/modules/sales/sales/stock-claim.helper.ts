@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { apiMessage } from '../../../common/i18n/api-message';
 
 /**
  * Cart me ek hi product kai lines me ho to sab jor kar stock se milao.
@@ -14,11 +15,10 @@ export function addCartNeed(
 ): number {
   const wanted = (wantByKey.get(key) ?? 0) + quantity;
   if (available < wanted) {
-    throw new BadRequestException(
-      `Stock kam hai — ${label.item}: ${label.shop} me ${available} pada hai`
-        + (wanted > quantity ? `, cart me kul ${wanted}` : `, chahiye ${wanted}`)
-        + '. Pehle stock barhayein, ya Settings → Stock rules me minus stock ki ijazat dein.',
-    );
+    const params = { item: label.item, shop: label.shop, available, wanted };
+    throw new BadRequestException(wanted > quantity
+      ? apiMessage('Stock kam hai — {{item}}: {{shop}} me {{available}} pada hai, cart me kul {{wanted}}. Pehle stock barhayein, ya Settings → Stock rules me minus stock ki ijazat dein.', params)
+      : apiMessage('Stock kam hai — {{item}}: {{shop}} me {{available}} pada hai, chahiye {{wanted}}. Pehle stock barhayein, ya Settings → Stock rules me minus stock ki ijazat dein.', params));
   }
   wantByKey.set(key, wanted);
   return wanted;
@@ -39,9 +39,10 @@ export async function claimShopStock(tx: any, shopStockId: string, quantity: num
   });
   const now = await tx.shopStock.findUnique({ where: { id: shopStockId }, select: { stock: true } });
   if (claimed.count === 0) {
-    throw new BadRequestException(
-      `Stock abhi abhi badal gaya — ${shopName} me ab sirf ${Number(now?.stock ?? 0)} bacha hai. Cart theek karke dobara try karein.`,
-    );
+    throw new BadRequestException(apiMessage(
+      'Stock abhi abhi badal gaya — {{shop}} me ab sirf {{stock}} bacha hai. Cart theek karke dobara try karein.',
+      { shop: shopName, stock: Number(now?.stock ?? 0) },
+    ));
   }
   return Number(now?.stock ?? 0);
 }

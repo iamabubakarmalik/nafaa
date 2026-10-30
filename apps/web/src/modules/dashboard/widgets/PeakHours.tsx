@@ -15,8 +15,9 @@ import { useChartTheme } from '../engine/useChartTheme';
 import { useMasked } from '../engine/useMasked';
 import { axisMoney, EmptyHint, hourLabel, hourTick, WidgetCard } from '../engine/parts';
 import { WidgetToolbar } from './WidgetToolbar';
+import { t } from '@core/i18n';
 
-const SPANS = [{ value: '1', label: 'Aaj' }, { value: '7', label: 'Hafte ka ausat' }, { value: '30', label: 'Mahine ka ausat' }];
+const SPANS = [{ value: '1', label: t('Aaj') }, { value: '7', label: t('Hafte ka ausat') }, { value: '30', label: t('Mahine ka ausat') }];
 
 export function PeakHours({ openFrom = 8, hint }: { openFrom?: number; hint?: string }) {
   const [s, set] = useWidgetState('peak-hours', { days: '1', metric: 'total', range: 'open' });
@@ -43,24 +44,24 @@ export function PeakHours({ openFrom = 8, hint }: { openFrom?: number; hint?: st
   const fmt = (n: number) => (metric === 'count' ? (days === 1 ? String(n) : n.toFixed(1)) : sales(n));
 
   return (
-    <WidgetCard title="Rush ka waqt" icon={Clock} description={peak != null ? `Sab se masroof ${hourLabel(peak)}` : hint}>
+    <WidgetCard title={t('Rush ka waqt')} icon={Clock} description={peak != null ? t('Sab se masroof {{peak}}', { peak: hourLabel(peak) }) : hint}>
       <WidgetToolbar inset={false}
         print={() => ({
-          title: 'Rush ka waqt', subtitle: SPANS.find((x) => x.value === s.days)?.label,
+          title: t('Rush ka waqt'), subtitle: SPANS.find((x) => x.value === s.days)?.label,
           sections: [{
             kind: 'table',
-            columns: [{ label: 'Ghanta' }, { label: 'Bill', align: 'right' }, { label: 'Sale', align: 'right' }],
+            columns: [{ label: t('Ghanta') }, { label: t('Bill'), align: 'right' }, { label: t('Sale'), align: 'right' }],
             rows: rows.filter((r) => r.total > 0).map((r) => [r.full, days === 1 ? String(r.count) : r.count.toFixed(1), sales(r.total)]),
           }],
         })}>
-        <MiniSelect label="Period" value={s.days} onChange={(v) => set({ days: v })} options={SPANS} />
-        <MiniSelect label="Kya dikhayein" value={s.metric} onChange={(v) => set({ metric: v })} options={[{ value: 'total', label: 'Amount' }, { value: 'count', label: 'Bill ginti' }]} />
-        <MiniSelect label="Ghante" value={s.range} onChange={(v) => set({ range: v })} options={[{ value: 'open', label: 'Dukaan ke ghante' }, { value: 'all', label: 'Poore 24 ghante' }]} />
+        <MiniSelect label={t('Period')} value={s.days} onChange={(v) => set({ days: v })} options={SPANS} />
+        <MiniSelect label={t('Kya dikhayein')} value={s.metric} onChange={(v) => set({ metric: v })} options={[{ value: 'total', label: t('Amount') }, { value: 'count', label: t('Bill ginti') }]} />
+        <MiniSelect label={t('Ghante')} value={s.range} onChange={(v) => set({ range: v })} options={[{ value: 'open', label: t('Dukaan ke ghante') }, { value: 'all', label: t('Poore 24 ghante') }]} />
       </WidgetToolbar>
       {isLoading ? <Skeleton className="h-[260px] w-full" /> : hidden ? (
-        <EmptyHint icon={Clock} text="Sale chhupi hui hai" />
+        <EmptyHint icon={Clock} text={t('Sale chhupi hui hai')} />
       ) : rows.length === 0 || rows.every((r) => !r.total) ? (
-        <EmptyHint icon={Clock} text="Abhi ghanton ka hisab nahi" />
+        <EmptyHint icon={Clock} text={t('Abhi ghanton ka hisab nahi')} />
       ) : (
         <>
           <div className="h-[240px] sm:h-[260px]">
@@ -70,7 +71,7 @@ export function PeakHours({ openFrom = 8, hint }: { openFrom?: number; hint?: st
                 <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} interval="preserveStartEnd" />
                 <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={metric === 'total' ? axisMoney : undefined} width={44} />
                 <Tooltip
-                  formatter={(v) => [metric === 'total' ? formatPKR(Number(v)) : fmt(Number(v)), metric === 'total' ? 'Sale' : 'Bill']}
+                  formatter={(v) => [metric === 'total' ? formatPKR(Number(v)) : fmt(Number(v)), metric === 'total' ? t('Sale') : t('Bill')]}
                   labelFormatter={(_, p) => p?.[0]?.payload?.full ?? ''}
                   contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor}
                 />
@@ -81,7 +82,7 @@ export function PeakHours({ openFrom = 8, hint }: { openFrom?: number; hint?: st
             </ResponsiveContainer>
           </div>
           <p className="mt-2 text-center text-[0.75rem] text-slate-500">
-            Gehra rang = sab se masroof ghanta{days === 1 && ' · peela = abhi'}
+            {t('Gehra rang = sab se masroof ghanta{{value}}', { value: days === 1 ? t(' · peela = abhi') : '' })}
           </p>
         </>
       )}

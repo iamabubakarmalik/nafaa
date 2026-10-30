@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, X, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
+import { t } from '@core/i18n';
 
 const DISMISS_KEY = 'nafaa-verify-banner-dismissed';
 
@@ -56,14 +57,14 @@ export function EmailVerifyBanner() {
             <div className="flex items-center gap-1.5 mb-0.5">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-700" />
               <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-amber-800">
-                Action Required
+                {t('Action Required')}
               </span>
             </div>
             <h3 className="text-sm sm:text-base font-extrabold text-amber-900">
-              Email verify karein
+              {t('Email verify karein')}
             </h3>
             <p className="text-xs text-amber-800 mt-0.5 truncate">
-              Aap ke email <strong className="font-bold">{user.email}</strong> pe code bheja gaya hai
+              {t('Aap ke email')}{' '} <strong className="font-bold">{user.email}</strong> {' '}{t('pe code bheja gaya hai')}
             </p>
           </div>
         </div>
@@ -73,13 +74,13 @@ export function EmailVerifyBanner() {
             onClick={() => navigate('/verify-email')}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold shadow-md transition"
           >
-            Verify Now
-            <ArrowRight className="h-3.5 w-3.5" />
+            {t('Verify Now')}
+            <ArrowRight className="h-3.5 w-3.5 rtl-flip" />
           </button>
           <button
             onClick={handleDismiss}
             className="h-9 w-9 rounded-xl bg-white/60 hover:bg-white text-amber-700 inline-flex items-center justify-center transition"
-            title="24 ghante ke liye band karein"
+            title={t('24 ghante ke liye band karein')}
           >
             <X className="h-4 w-4" />
           </button>

@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import { useAuthStore } from '@core/stores/auth.store';
 import { hasPermission, isOwner, type PermissionKey } from '@core/lib/permissions';
+import { t } from '@core/i18n';
 
 interface RoleGuardProps {
   children: ReactNode;
@@ -45,11 +46,11 @@ function AccessDenied({ reason, permission }: { reason: string; permission?: str
         <div className="mx-auto h-16 w-16 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-lg">
           <ShieldAlert className="h-8 w-8" />
         </div>
-        <h2 className="mt-4 text-2xl font-extrabold text-rose-900">Access Denied</h2>
+        <h2 className="mt-4 text-2xl font-extrabold text-rose-900">{t('Access Denied')}</h2>
         <p className="mt-2 text-sm text-rose-800 font-semibold">
           {reason === 'OWNER_ONLY'
-            ? 'Sirf shop Owner is page ko access kar sakta hai.'
-            : 'Aap ke paas is feature ka permission nahi hai.'}
+            ? t('Sirf shop Owner is page ko access kar sakta hai.')
+            : t('Aap ke paas is feature ka permission nahi hai.')}
         </p>
         {permission && (
           <div className="mt-3 inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-rose-100 text-rose-700 text-xs font-mono font-bold">
@@ -57,13 +58,13 @@ function AccessDenied({ reason, permission }: { reason: string; permission?: str
           </div>
         )}
         <p className="mt-4 text-xs text-rose-700">
-          Apni shop ke Owner se baat karein.
+          {t('Apni shop ke Owner se baat karein.')}
         </p>
         <button
           onClick={goBack}
           className="mt-5 inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-extrabold transition"
         >
-          <ArrowLeft className="h-4 w-4" /> Wapas jaein
+          <ArrowLeft className="h-4 w-4 rtl-flip" /> {' '}{t('Wapas jaein')}
         </button>
       </div>
     </div>

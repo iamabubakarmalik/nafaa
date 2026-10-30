@@ -11,6 +11,7 @@ import { formatPKR } from '@core/lib/format';
 import { cn } from '@core/lib/cn';
 import { isWeightUnit } from '../lib/posUnits';
 import type { PosCartLine } from '../lib/posCart';
+import { t } from '@core/i18n';
 
 export type PosBadgeTone = 'danger' | 'warning' | 'info' | 'success' | 'neutral' | 'brand';
 
@@ -70,7 +71,7 @@ function StockPill({ stock, low, unit, className }: { stock: number; low: boolea
     <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums backdrop-blur',
       out ? 'bg-slate-900/80 text-white' : low ? 'bg-amber-500/95 text-white' : 'bg-white/85 text-slate-700 ring-1 ring-black/5', className)}>
       <span className={cn('h-1.5 w-1.5 rounded-full', out ? 'bg-rose-400' : low ? 'bg-white' : 'bg-success-500')} />
-      {out ? 'Khatam' : `${qtyText(stock)} ${isWeightUnit(unit) ? unit : 'baqi'}`}
+      {out ? t('Khatam') : isWeightUnit(unit) ? `${qtyText(stock)} ${unit}` : t('{{stock}} baqi', { stock: qtyText(stock) })}
     </span>
   );
 }
@@ -79,10 +80,10 @@ function Stepper({ qty, onAdd, onRemove, size = 'md' }: { qty: number; onAdd: ()
   const h = size === 'sm' ? 'h-8' : 'h-9';
   return (
     <span className={cn('inline-flex items-center overflow-hidden rounded-full bg-brand-600 text-brand-fg shadow-md shadow-brand-600/25', h)} onClick={(e) => e.stopPropagation()}>
-      <span role="button" tabIndex={0} aria-label="Ek kam" onClick={onRemove} onKeyDown={(e) => e.key === 'Enter' && onRemove()}
+      <span role="button" tabIndex={0} aria-label={t('Ek kam')} onClick={onRemove} onKeyDown={(e) => e.key === 'Enter' && onRemove()}
         className={cn('flex items-center justify-center transition hover:bg-black/10', size === 'sm' ? 'w-8' : 'w-9')}><Minus className="h-4 w-4" /></span>
       <span className="min-w-6 text-center text-[0.875rem] font-bold tabular-nums">{qtyText(qty)}</span>
-      <span role="button" tabIndex={0} aria-label="Ek aur" onClick={onAdd} onKeyDown={(e) => e.key === 'Enter' && onAdd()}
+      <span role="button" tabIndex={0} aria-label={t('Ek aur')} onClick={onAdd} onKeyDown={(e) => e.key === 'Enter' && onAdd()}
         className={cn('flex items-center justify-center transition hover:bg-black/10', size === 'sm' ? 'w-8' : 'w-9')}><Plus className="h-4 w-4" /></span>
     </span>
   );
@@ -118,7 +119,7 @@ export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart,
           <img src={image} alt="" loading="lazy" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
-            <span className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/40 blur-2xl" aria-hidden />
+            <span className="absolute -end-6 -top-6 h-24 w-24 rounded-full bg-white/40 blur-2xl" aria-hidden />
             <span className="relative text-5xl drop-shadow-md transition duration-300 group-hover:scale-110 sm:text-[3.25rem]">{fallback ?? <Package className="h-10 w-10 text-slate-400" />}</span>
           </div>
         )}
@@ -140,7 +141,7 @@ export function PosItemCard({ name, image, price, unit, stock, lowStock, inCart,
         <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-1">
           <div className="min-w-0">
             <div className={cn(touch ? 'text-[1.25rem]' : 'text-[1rem]', 'whitespace-nowrap font-bold tabular-nums leading-none tracking-tight text-brand-700')}>{hidePrices ? '••••' : formatPKR(price)}</div>
-            <div className="mt-1 truncate text-[0.6875rem] text-slate-500">{subline ?? `per ${unit}`}</div>
+            <div className="mt-1 truncate text-[0.6875rem] text-slate-500">{subline ?? t('per {{unit}}', { unit })}</div>
           </div>
           {inCart > 0 && onDecrement ? (
             <Stepper qty={inCart} onAdd={onClick} onRemove={onDecrement} size={touch ? 'md' : 'sm'} />
@@ -174,14 +175,14 @@ export function PosItemRow({ name, image, price, unit, stock, lowStock, inCart, 
             <span key={b.label} className={cn('hidden shrink-0 rounded-full px-1.5 py-0.5 text-[0.5625rem] font-semibold uppercase sm:inline', BADGE[b.tone])}>{b.label}</span>
           ))}
         </span>
-        {!dense && <span className="block truncate text-[0.75rem] text-slate-500">{subline ?? `per ${unit}`}</span>}
+        {!dense && <span className="block truncate text-[0.75rem] text-slate-500">{subline ?? t('per {{unit}}', { unit })}</span>}
       </span>
       {stock !== undefined && (
-        <span className={cn('hidden shrink-0', dense ? 'w-9' : 'w-16', ' text-right text-[0.8125rem] font-medium tabular-nums sm:block', out ? 'text-rose-600' : low ? 'text-amber-600' : 'text-slate-500')}>
-          {out ? 'Khatam' : `${qtyText(stock)} ${isWeightUnit(unit) ? unit : ''}`}
+        <span className={cn('hidden shrink-0', dense ? 'w-9' : 'w-16', ' text-end text-[0.8125rem] font-medium tabular-nums sm:block', out ? 'text-rose-600' : low ? 'text-amber-600' : 'text-slate-500')}>
+          {out ? t('Khatam') : `${qtyText(stock)} ${isWeightUnit(unit) ? unit : ''}`}
         </span>
       )}
-      <span className={cn('shrink-0 text-right font-bold tabular-nums text-slate-900', dense ? 'text-[0.875rem]' : 'w-24 text-[0.9375rem]')}>{hidePrices ? '••••' : formatPKR(price)}</span>
+      <span className={cn('shrink-0 text-end font-bold tabular-nums text-slate-900', dense ? 'text-[0.875rem]' : 'w-24 text-[0.9375rem]')}>{hidePrices ? '••••' : formatPKR(price)}</span>
       {inCart > 0 && onDecrement
         ? <Stepper qty={inCart} onAdd={onClick} onRemove={onDecrement} size="sm" />
         : dense ? null : <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-hover:bg-brand-600 group-hover:text-brand-fg"><Plus className="h-4 w-4" /></span>}
@@ -210,8 +211,8 @@ export function PosComboTile({ combo, cart, hidePrices, onClick }: { combo: any;
       inCart={inCart}
       featured={combo.isFeatured}
       hidePrices={hidePrices}
-      badges={[{ label: 'Combo', tone: 'brand', icon: Sparkles }, ...(savings > 0 ? [{ label: `Bachat ${Math.round(Number(combo.savingsPercentage || 0))}%`, tone: 'success' as const }] : [])]}
-      subline={`${combo.items?.length ?? 0} cheezein${savings > 0 && !hidePrices ? ` · ${formatPKR(savings)} bachat` : ''}`}
+      badges={[{ label: t('Combo'), tone: 'brand', icon: Sparkles }, ...(savings > 0 ? [{ label: t('Bachat {{value}}%', { value: Math.round(Number(combo.savingsPercentage || 0)) }), tone: 'success' as const }] : [])]}
+      subline={t('{{value}} cheezein{{value2}}', { value: combo.items?.length ?? 0, value2: savings > 0 && !hidePrices ? t(' · {{savings}} bachat', { savings: formatPKR(savings) }) : '' })}
       fallback={<span>🎁</span>}
       tint="from-violet-100 to-fuchsia-200 dark:from-violet-500/20 dark:to-fuchsia-500/10"
       onClick={onClick}
@@ -246,7 +247,7 @@ export function PosViewTab({ active, onClick, icon: Icon, label, count, shortcut
       <Icon className="h-4 w-4" />
       {label}
       {count !== undefined && <span className="tabular-nums text-slate-400">{count}</span>}
-      {shortcut && <kbd className="ml-0.5 hidden rounded border border-slate-200 px-1 font-mono text-[0.625rem] text-slate-400 2xl:inline">{shortcut}</kbd>}
+      {shortcut && <kbd className="ms-0.5 hidden rounded border border-slate-200 px-1 font-mono text-[0.625rem] text-slate-400 2xl:inline">{shortcut}</kbd>}
     </button>
   );
 }
@@ -257,7 +258,7 @@ export function PosEmptyState({ icon: Icon, title, hint, onClear }: { icon: Comp
       <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400"><Icon className="h-6 w-6" /></span>
       <p className="mt-3 text-[0.9375rem] font-semibold text-slate-800">{title}</p>
       {hint && <p className="mt-1 max-w-xs text-[0.8125rem] text-slate-500">{hint}</p>}
-      {onClear && <Button className="mt-4" variant="secondary" size="sm" onClick={onClear}>Search saaf karein</Button>}
+      {onClear && <Button className="mt-4" variant="secondary" size="sm" onClick={onClear}>{t('Search saaf karein')}</Button>}
     </div>
   );
 }

@@ -22,15 +22,16 @@ import { useNavigate } from 'react-router-dom';
 import { FIELD, findSearchBox, focusables, hasModifier, isDialogOpen, isMod, isSearchBox, isTyping, isVisible, whenUnhandled } from '@/design-system/keyboard/keys';
 import { triggerSave } from '@/design-system/keyboard/submit';
 import { moveInTabs } from '@/design-system/keyboard/useMenuKeys';
+import { t as tr } from '@core/i18n';
 
 export const GO_TO = [
-  { key: 'd', to: '/dashboard', label: 'Dashboard' },
-  { key: 'p', to: '/pos', label: 'POS counter' },
-  { key: 's', to: '/sales', label: 'Sales history' },
-  { key: 'i', to: '/products', label: 'Inventory / Products' },
-  { key: 'c', to: '/customers', label: 'Customers' },
-  { key: 'r', to: '/reports', label: 'Reports' },
-  { key: 'e', to: '/expenses', label: 'Expenses' },
+  { key: 'd', to: '/dashboard', label: tr('Dashboard') },
+  { key: 'p', to: '/pos', label: tr('POS counter') },
+  { key: 's', to: '/sales', label: tr('Sales history') },
+  { key: 'i', to: '/products', label: tr('Inventory / Products') },
+  { key: 'c', to: '/customers', label: tr('Customers') },
+  { key: 'r', to: '/reports', label: tr('Reports') },
+  { key: 'e', to: '/expenses', label: tr('Expenses') },
 ] as const;
 
 const CHORD_MS = 900;

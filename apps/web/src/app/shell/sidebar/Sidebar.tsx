@@ -21,6 +21,7 @@ import { handleMenuKey } from '@/design-system/keyboard';
 import { BrandMark } from './BrandMark';
 import { FooterLink, GroupHeader, NavRow, NavSection } from './NavParts';
 import { SidebarRail } from './SidebarRail';
+import { t } from '@core/i18n';
 
 /** Menu entries reachable with the arrow keys (pin stars are skipped). */
 const NAV_ITEMS = 'a[href],button[aria-expanded]';
@@ -120,24 +121,24 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
         <div className="flex min-w-0 flex-1 items-center gap-2.5 p-1.5">
           <BrandMark industryId={industry?.id} marketplace={isMarketplace} />
           <div className="min-w-0">
-            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">{tenantName || 'My store'}</div>
+            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">{tenantName || t('My store')}</div>
             <div className="truncate text-[0.75rem] capitalize text-slate-500 dark:text-ink-400">
               {subtitle}{tenantSlug ? <span className="normal-case"> · @{tenantSlug}</span> : null}
             </div>
           </div>
         </div>
         {onToggleCollapse && (
-          <IconButton label="Collapse sidebar (Ctrl+B)" onClick={onToggleCollapse}><PanelLeftClose className="h-4 w-4" /></IconButton>
+          <IconButton label={t('Collapse sidebar (Ctrl+B)')} onClick={onToggleCollapse}><PanelLeftClose className="h-4 w-4" /></IconButton>
         )}
         {onClose && (
-          <IconButton label="Close menu" onClick={onClose} className="h-10 w-10"><X className="h-5 w-5" /></IconButton>
+          <IconButton label={t('Close menu')} onClick={onClose} className="h-10 w-10"><X className="h-5 w-5" /></IconButton>
         )}
       </div>
 
       {/* Menu search */}
       <div className="flex items-center gap-1 px-3 pb-2">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             ref={searchRef}
             value={search}
@@ -148,40 +149,40 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
               if (e.key === 'ArrowDown') { e.preventDefault(); navRef.current?.querySelector<HTMLElement>(NAV_ITEMS)?.focus(); }
               if (e.key === 'Enter') navRef.current?.querySelector<HTMLElement>('a[href]')?.click();
             }}
-            placeholder="Search menu"
-            aria-label="Search menu"
-            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-[0.8125rem] text-slate-900 transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-ink-white/10 dark:bg-ink-white/[0.04] dark:text-ink-white"
+            placeholder={t('Search menu')}
+            aria-label={t('Search menu')}
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white ps-8 pe-8 text-[0.8125rem] text-slate-900 transition placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:border-ink-white/10 dark:bg-ink-white/[0.04] dark:text-ink-white"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              aria-label="Clear search"
-              className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-ink-white/10"
+              aria-label={t('Clear search')}
+              className="absolute end-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-ink-white/10"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
         {!query && (
-          <IconButton label={allOpen ? 'Collapse all groups' : 'Expand all groups'} onClick={() => setAll(!allOpen)}>
+          <IconButton label={allOpen ? t('Collapse all groups') : t('Expand all groups')} onClick={() => setAll(!allOpen)}>
             {allOpen ? <ChevronsDownUp className="h-4 w-4" /> : <ChevronsUpDown className="h-4 w-4" />}
           </IconButton>
         )}
       </div>
 
       {/* Navigation */}
-      <nav ref={navRef} aria-label="Main" onKeyDown={(e) => {
+      <nav ref={navRef} aria-label={t('Main')} onKeyDown={(e) => {
         // ↑ ↓ Home End move between menu links and group headers.
         if (e.key === 'ArrowUp' && document.activeElement === navRef.current?.querySelector(NAV_ITEMS)) { e.preventDefault(); searchRef.current?.focus(); return; }
         if (navRef.current && handleMenuKey(e, navRef.current, NAV_ITEMS, false)) e.preventDefault();
       }} className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-2 pb-4 [scrollbar-width:thin]">
         {query && (
-          <div className="px-2.5 text-[0.75rem] text-slate-500">{total === 0 ? 'No matches' : `${total} result${total > 1 ? 's' : ''}`}</div>
+          <div className="px-2.5 text-[0.75rem] text-slate-500">{total === 0 ? t('No matches') : t('{{count}} results', { count: total })}</div>
         )}
 
         {!query && pinned.length > 0 && (
-          <NavSection title="Pinned" icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}>
+          <NavSection title={t('Pinned')} icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}>
             {pinned.map((it) => (
               <NavRow key={`pin-${it.to}`} item={it} fav onToggleFav={(e) => toggle(it.to, e)} onItemClick={onItemClick} />
             ))}
@@ -190,7 +191,7 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
 
         {!query && recent.length > 0 && (
           <div>
-            <GroupHeader label="Recently visited" icon={Clock} open={showRecent} onClick={() => setShowRecent((v) => !v)} />
+            <GroupHeader label={t('Recently visited')} icon={Clock} open={showRecent} onClick={() => setShowRecent((v) => !v)} />
             {showRecent && (
               <div className="mt-0.5 space-y-0.5">
                 {recent.map((it) => (
@@ -227,7 +228,7 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
         })}
 
         {shownSettings.length > 0 && (
-          <NavSection title="Settings" icon={<Settings className="h-3.5 w-3.5 text-slate-400" />}>
+          <NavSection title={t('Settings')} icon={<Settings className="h-3.5 w-3.5 text-slate-400" />}>
             {shownSettings.map((it) => (
               <NavRow key={`set-${it.to}`} item={it} fav={false} hideStar onItemClick={onItemClick} />
             ))}
@@ -237,9 +238,9 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
         {query && total === 0 && (
           <div className="px-4 py-10 text-center">
             <Search className="mx-auto h-8 w-8 text-slate-300 dark:text-ink-700" />
-            <div className="mt-2 text-sm font-semibold text-slate-700 dark:text-ink-200">Nothing found for “{search}”</div>
+            <div className="mt-2 text-sm font-semibold text-slate-700 dark:text-ink-200">{t('Nothing found for “{{search}}”', { search })}</div>
             <button type="button" onClick={() => setSearch('')} className="mt-2 text-[0.8125rem] font-medium text-brand-700 hover:underline dark:text-brand-400">
-              Clear search
+              {t('Clear search')}
             </button>
           </div>
         )}
@@ -247,11 +248,11 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
 
       {/* Footer */}
       <div className="shrink-0 space-y-0.5 border-t border-shell-line px-2 py-2">
-        <FooterLink to={settingsHome} icon={Settings} label="Settings" active={isSettingsPath(location.pathname)} onClick={onItemClick} />
-        <FooterLink to="/help" icon={HelpCircle} label="Help center" active={isActivePath(location.pathname, '/help')} onClick={onItemClick} />
+        <FooterLink to={settingsHome} icon={Settings} label={t('Settings')} active={isSettingsPath(location.pathname)} onClick={onItemClick} />
+        <FooterLink to="/help" icon={HelpCircle} label={t('Help center')} active={isActivePath(location.pathname, '/help')} onClick={onItemClick} />
         <div className="flex items-center justify-between px-2.5 pt-1.5 text-[0.6875rem] text-slate-400">
           <span className="flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> {workspace.shortLabel} workspace
+            <span className="h-1.5 w-1.5 rounded-full bg-brand-500" /> {' '}{t('{{shortLabel}} workspace', { shortLabel: workspace.shortLabel })}
           </span>
           {onToggleCollapse && <Kbd>Ctrl B</Kbd>}
         </div>

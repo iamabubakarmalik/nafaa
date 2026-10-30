@@ -6,8 +6,9 @@ import { useDashboardList, type LowList } from '../data/queries';
 import { LIMIT_OPTIONS, MiniSelect, useWidgetState } from '../engine/controls';
 import { fmtQty, IconBubble, ListRow, RowList, WidgetCard } from '../engine/parts';
 import { CategorySelect, WidgetToolbar } from './WidgetToolbar';
+import { t } from '@core/i18n';
 
-export function LowStock({ productPath, title = 'Kam stock', hint = 'dobara mangwane ka waqt' }: {
+export function LowStock({ productPath, title = t('Kam stock'), hint = t('dobara mangwane ka waqt') }: {
   productPath: (id: string) => string; title?: string; hint?: string;
 }) {
   const [s, set] = useWidgetState('low-stock', { filter: 'all', limit: '10', categoryId: '' });
@@ -18,31 +19,31 @@ export function LowStock({ productPath, title = 'Kam stock', hint = 'dobara mang
     <WidgetCard
       title={title}
       icon={Package}
-      description={data ? `${data.total} cheezein · ${data.outCount} khatam — ${hint}` : hint}
+      description={data ? t('{{total}} cheezein · {{outCount}} khatam — {{hint}}', { total: data.total, outCount: data.outCount, hint }) : hint}
       to="/low-stock"
       flush
     >
       <WidgetToolbar
         print={() => ({
           title,
-          subtitle: 'Mangwane ki list',
+          subtitle: t('Mangwane ki list'),
           sections: [{
             kind: 'table',
-            columns: [{ label: 'Item' }, { label: 'Stock', align: 'right' }, { label: 'Alert', align: 'right', wideOnly: true }, { label: 'Mangwana', align: 'right' }],
+            columns: [{ label: t('Item') }, { label: t('Stock'), align: 'right' }, { label: t('Alert'), align: 'right', wideOnly: true }, { label: t('Mangwana'), align: 'right' }],
             rows: rows.map((r) => [r.name, `${fmtQty(r.stock)} ${r.unit}`, fmtQty(r.lowStockAlert), '______']),
           }],
         })}
       >
-        <MiniSelect label="Filter" value={s.filter} onChange={(filter) => set({ filter })}
-          options={[{ value: 'all', label: 'Sab' }, { value: 'out', label: 'Sirf khatam' }, { value: 'low', label: 'Sirf kam' }]} />
-        <MiniSelect label="Kitne" value={s.limit} onChange={(limit) => set({ limit })} options={LIMIT_OPTIONS} />
+        <MiniSelect label={t('Filter')} value={s.filter} onChange={(filter) => set({ filter })}
+          options={[{ value: 'all', label: t('Sab') }, { value: 'out', label: t('Sirf khatam') }, { value: 'low', label: t('Sirf kam') }]} />
+        <MiniSelect label={t('Kitne')} value={s.limit} onChange={(limit) => set({ limit })} options={LIMIT_OPTIONS} />
         <CategorySelect value={s.categoryId} onChange={(categoryId) => set({ categoryId })} />
       </WidgetToolbar>
       {isLoading ? (
         <div className="space-y-2 px-5 pb-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-10" />)}</div>
       ) : (
         <div className="max-h-[28rem] overflow-y-auto">
-          <RowList empty="Sab cheezein poori hain" emptyIcon={PackageCheck}>
+          <RowList empty={t('Sab cheezein poori hain')} emptyIcon={PackageCheck}>
             {rows.map((p) => {
               const out = p.stock <= 0;
               return (
@@ -51,8 +52,8 @@ export function LowStock({ productPath, title = 'Kam stock', hint = 'dobara mang
                   to={productPath(p.id)}
                   leading={<IconBubble icon={Package} tone={out ? 'danger' : 'warning'} />}
                   title={p.name}
-                  meta={`${fmtQty(p.stock)} ${p.unit} baqi · alert ${fmtQty(p.lowStockAlert)}${p.category ? ` · ${p.category}` : ''}`}
-                  value={<Badge variant={out ? 'danger' : 'warning'} size="xs">{out ? 'Khatam' : 'Kam'}</Badge>}
+                  meta={t('{{stock}} {{unit}} baqi · alert {{lowStockAlert}}{{value}}', { stock: fmtQty(p.stock), unit: p.unit, lowStockAlert: fmtQty(p.lowStockAlert), value: p.category ? ` · ${p.category}` : '' })}
+                  value={<Badge variant={out ? 'danger' : 'warning'} size="xs">{out ? t('Khatam') : t('Kam')}</Badge>}
                 />
               );
             })}

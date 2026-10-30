@@ -11,15 +11,16 @@ import { cn } from '@core/lib/cn';
 import { formatDate } from '@core/lib/format';
 import type { PosBatch } from '../api/batches.api';
 import { batchDaysLeft, defaultBatch, isBatchExpired, type PosLineBatch } from '../hooks/usePosBatches';
+import { t as tr } from '@core/i18n';
 
 /** Days before expiry when a batch is shown as close to expiry. */
 const SOON_DAYS = 30;
 
 function expiryText(b: PosBatch) {
-  if (!b.expiryDate) return 'Expiry nahi';
+  if (!b.expiryDate) return tr('Expiry nahi');
   const left = batchDaysLeft(b) ?? 0;
-  if (isBatchExpired(b)) return `Expired ${formatDate(b.expiryDate)}`;
-  return left <= SOON_DAYS ? `Exp ${formatDate(b.expiryDate)} · ${left} din` : `Exp ${formatDate(b.expiryDate)}`;
+  if (isBatchExpired(b)) return tr('Expired {{expiryDate}}', { expiryDate: formatDate(b.expiryDate) });
+  return left <= SOON_DAYS ? tr('Exp {{expiryDate}} · {{left}} din', { expiryDate: formatDate(b.expiryDate), left }) : tr('Exp {{expiryDate}}', { expiryDate: formatDate(b.expiryDate) });
 }
 
 function tone(b: PosBatch) {
@@ -49,11 +50,11 @@ export function PosBatchChip({ info, baseQuantity, unit, onPick }: {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} title="Batch badlein"
+      <button type="button" onClick={() => setOpen(true)} title={tr('Batch badlein')}
         className={cn('mt-1 inline-flex max-w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-medium ring-1 transition hover:brightness-95', TONES[t])}>
         {t === 'danger' ? <AlertTriangle className="h-3 w-3 shrink-0" /> : <Layers className="h-3 w-3 shrink-0" />}
         <span className="truncate">
-          Batch {b.batchNumber}{info.picked ? '' : ' (auto)'} · {expiryText(b)}{short ? ' · baqi agle Batch se' : ''}
+          {tr('Batch {{batchNumber}}{{value}} · {{b}}{{value2}}', { batchNumber: b.batchNumber, value: info.picked ? '' : tr(' (auto)'), b: expiryText(b), value2: short ? tr(' · baqi agle Batch se') : '' })}
         </span>
         <ChevronDown className="h-3 w-3 shrink-0" />
       </button>
@@ -74,16 +75,16 @@ function PosBatchPickerModal({ list, currentId, unit, onPick, onClose }: {
 }) {
   const auto = defaultBatch(list);
   return (
-    <Modal open onClose={onClose} size="sm" title="Batch chunein"
-      description="Pehle wohi Batch bikta hai jis ki Expiry sab se qareeb ho. Koi aur Batch bechna ho to yahan chunein.">
+    <Modal open onClose={onClose} size="sm" title={tr('Batch chunein')}
+      description={tr('Pehle wohi Batch bikta hai jis ki Expiry sab se qareeb ho. Koi aur Batch bechna ho to yahan chunein.')}>
       <ul className="space-y-2">
         <li>
           <button type="button" onClick={() => onPick(null)}
-            className={cn('flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left ring-1 transition',
+            className={cn('flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-start ring-1 transition',
               !currentId ? 'bg-brand-50 ring-brand-300' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
             <span>
-              <span className="block text-[0.875rem] font-semibold text-slate-900">Auto (sab se qareeb Expiry)</span>
-              {auto && <span className="block text-[0.75rem] text-slate-500">Abhi: Batch {auto.batchNumber} · {expiryText(auto)}</span>}
+              <span className="block text-[0.875rem] font-semibold text-slate-900">{tr('Auto (sab se qareeb Expiry)')}</span>
+              {auto && <span className="block text-[0.75rem] text-slate-500">{tr('Abhi: Batch {{batchNumber}} · {{auto}}', { batchNumber: auto.batchNumber, auto: expiryText(auto) })}</span>}
             </span>
             {!currentId && <Check className="h-4 w-4 text-brand-700" />}
           </button>
@@ -94,10 +95,10 @@ function PosBatchPickerModal({ list, currentId, unit, onPick, onClose }: {
           return (
             <li key={b.id}>
               <button type="button" onClick={() => onPick(b)}
-                className={cn('flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left ring-1 transition',
+                className={cn('flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-start ring-1 transition',
                   on ? 'bg-brand-50 ring-brand-300' : 'bg-white ring-slate-200 hover:bg-slate-50')}>
                 <span className="min-w-0">
-                  <span className="block truncate text-[0.875rem] font-semibold text-slate-900">Batch {b.batchNumber}</span>
+                  <span className="block truncate text-[0.875rem] font-semibold text-slate-900">{tr('Batch {{batchNumber}}', { batchNumber: b.batchNumber })}</span>
                   <span className={cn('mt-0.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[0.6875rem] font-medium', TONES[t])}>
                     {t === 'danger' && <AlertTriangle className="h-3 w-3" />}{expiryText(b)}
                   </span>
@@ -114,7 +115,7 @@ function PosBatchPickerModal({ list, currentId, unit, onPick, onClose }: {
       {list.some(isBatchExpired) && (
         <p className="mt-3 flex items-start gap-1.5 rounded-xl bg-rose-50 px-3 py-2 text-[0.75rem] text-rose-800">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          Expired maal na bechein. Auto me expired Batch tabhi lagta hai jab theek Batch khatam ho jaye.
+          {tr('Expired maal na bechein. Auto me expired Batch tabhi lagta hai jab theek Batch khatam ho jaye.')}
         </p>
       )}
     </Modal>

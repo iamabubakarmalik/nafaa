@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import type { ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
+import { t } from '@core/i18n';
 
 export interface SharedCartItem {
   cartLineId: string;
@@ -79,14 +80,14 @@ export function useSharedPosCart() {
       const item = prev.find((i) => i.cartLineId === lineId);
       if (!item) return prev;
       if (item.imeiId || item.rollId || item.cutPieceId) {
-        toast.error('Fixed quantity for this item');
+        toast.error(t('Fixed quantity for this item'));
         return prev;
       }
       if (qty < 0.01) {
         return prev.filter((i) => i.cartLineId !== lineId);
       }
       if (qty > item.stock) {
-        toast.error(`Stock limit: ${item.stock} ${item.unit}`);
+        toast.error(t('Stock limit: {{stock}} {{unit}}', { stock: item.stock, unit: item.unit }));
         return prev;
       }
       return prev.map((i) => (i.cartLineId === lineId ? { ...i, quantity: Number(qty.toFixed(2)) } : i));

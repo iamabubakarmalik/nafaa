@@ -4,6 +4,7 @@ import { uploadsApi } from '@modules/organization/settings/api/uploads.api';
 import type { UploadPurpose } from '@modules/organization/settings/api/uploads.api';
 import { toast } from 'sonner';
 import { cn } from '@core/lib/cn';
+import { t } from '@core/i18n';
 
 interface Props {
   value?: string | null;
@@ -36,7 +37,7 @@ export function AvatarUpload({
 
   const handleFile = async (file: File) => {
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('Max size is 10 MB');
+      toast.error(t('Max size is 10 MB'));
       return;
     }
     setUploading(true);
@@ -46,9 +47,9 @@ export function AvatarUpload({
         { purpose },
       );
       onChange(result.url);
-      toast.success('Uploaded');
+      toast.success(t('Uploaded'));
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || 'Upload failed');
+      toast.error(e?.response?.data?.message || t('Upload failed'));
     } finally {
       setUploading(false);
     }
@@ -92,7 +93,7 @@ export function AvatarUpload({
           disabled={uploading}
           className="px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold disabled:opacity-50"
         >
-          {value ? 'Change' : 'Upload'}
+          {value ? t('Change') : t('Upload')}
         </button>
         {value && (
           <button
@@ -100,7 +101,7 @@ export function AvatarUpload({
             onClick={() => onChange(null)}
             className="inline-flex items-center gap-1 text-xs text-rose-600 hover:text-rose-700"
           >
-            <Trash2 className="h-3 w-3" /> Remove
+            <Trash2 className="h-3 w-3" /> {' '}{t('Remove')}
           </button>
         )}
       </div>

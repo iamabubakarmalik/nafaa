@@ -11,9 +11,10 @@ import { authApi } from '@modules/auth/api/auth.api';
 import { Alert, Button, Input } from '@/design-system/components';
 import { AuthHeading, AuthLayout } from '../components/AuthLayout';
 import { authErrorMessage, retryAfterSeconds } from '../lib/auth-errors';
+import { t as tr, Trans } from '@core/i18n';
 
 const schema = z.object({
-  email: z.string().trim().min(1, 'Email likhein').email('Email sahi nahi lag raha. Misaal: ahmad@gmail.com'),
+  email: z.string().trim().min(1, tr('Email likhein')).email(tr('Email sahi nahi lag raha. Misaal: ahmad@gmail.com')),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -42,7 +43,7 @@ export default function ForgotPasswordPage() {
     },
     onError: (err) => {
       setCooldown(retryAfterSeconds(err) ?? 0);
-      setFormError(authErrorMessage(err, 'Link nahi bheja ja saka. Dobara koshish karein.'));
+      setFormError(authErrorMessage(err, tr('Link nahi bheja ja saka. Dobara koshish karein.')));
     },
   });
 
@@ -57,13 +58,13 @@ export default function ForgotPasswordPage() {
         <div>
           <AuthHeading
             icon={<MailCheck className="h-5 w-5" />}
-            title="Email check karein"
-            subtitle={<>Agar <strong className="font-semibold text-slate-800 break-all">{sentTo}</strong> se Nafaa account bana hai to us par password badalne ka link bhej diya gaya hai.</>}
+            title={tr('Email check karein')}
+            subtitle={<Trans text="Agar {{email}} se Nafaa account bana hai to us par password badalne ka link bhej diya gaya hai." values={{ email: <strong className="font-semibold text-slate-800 break-all" dir="ltr">{sentTo}</strong> }} />}
           />
           <ul className="mb-6 space-y-2 text-sm text-slate-600">
-            <li className="flex gap-2"><span aria-hidden>•</span>Link 1 ghante tak chalega.</li>
-            <li className="flex gap-2"><span aria-hidden>•</span>Inbox me na mile to Spam / Promotions folder dekhein.</li>
-            <li className="flex gap-2"><span aria-hidden>•</span>Google se account banaya tha? To seedha "Google se login" kar lein.</li>
+            <li className="flex gap-2"><span aria-hidden>•</span>{tr('Link 1 ghante tak chalega.')}</li>
+            <li className="flex gap-2"><span aria-hidden>•</span>{tr('Inbox me na mile to Spam / Promotions folder dekhein.')}</li>
+            <li className="flex gap-2"><span aria-hidden>•</span>{tr('Google se account banaya tha? To seedha "Google se login" kar lein.')}</li>
           </ul>
           {formError && <Alert tone="danger" className="mb-4">{formError}</Alert>}
           <div className="space-y-2">
@@ -75,10 +76,10 @@ export default function ForgotPasswordPage() {
               disabled={cooldown > 0}
               onClick={() => send(sentTo)}
             >
-              {cooldown > 0 ? `Dobara bhejein (${cooldown}s)` : 'Link dobara bhejein'}
+              {cooldown > 0 ? tr('Dobara bhejein ({{cooldown}}s)', { cooldown }) : tr('Link dobara bhejein')}
             </Button>
             <Button variant="ghost" size="lg" fullWidth onClick={() => { setSentTo(null); setFormError(null); }}>
-              Doosra email likhein
+              {tr('Doosra email likhein')}
             </Button>
           </div>
         </div>
@@ -86,13 +87,13 @@ export default function ForgotPasswordPage() {
         <>
           <AuthHeading
             icon={<KeyRound className="h-5 w-5" />}
-            title="Password bhool gaye?"
-            subtitle="Koi baat nahi. Apna account wala email likhein — hum naya password banane ka link bhej denge."
+            title={tr('Password bhool gaye?')}
+            subtitle={tr('Koi baat nahi. Apna account wala email likhein — hum naya password banane ka link bhej denge.')}
           />
           <form onSubmit={form.handleSubmit((d) => send(d.email))} className="space-y-4" noValidate>
             {formError && <Alert tone="danger">{formError}</Alert>}
             <Input
-              label="Email"
+              label={tr('Email')}
               type="email"
               inputMode="email"
               autoComplete="email"
@@ -106,14 +107,14 @@ export default function ForgotPasswordPage() {
               error={form.formState.errors.email?.message}
             />
             <Button type="submit" size="xl" fullWidth loading={mutation.isPending} disabled={cooldown > 0}>
-              {cooldown > 0 ? `${cooldown} second ruk-ein…` : 'Reset link bhejein'}
+              {cooldown > 0 ? tr('{{cooldown}} second ruk-ein…', { cooldown }) : tr('Reset link bhejein')}
             </Button>
           </form>
         </>
       )}
 
       <Link to="/login" className="mt-6 flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900">
-        <ArrowLeft className="h-4 w-4" aria-hidden /> Login par wapas
+        <ArrowLeft className="h-4 w-4 rtl-flip" aria-hidden /> {' '}{tr('Login par wapas')}
       </Link>
     </AuthLayout>
   );

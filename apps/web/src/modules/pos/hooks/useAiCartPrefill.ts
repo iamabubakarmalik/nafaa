@@ -10,6 +10,7 @@ import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { PosEngine } from '../engine/usePosEngine';
+import { t } from '@core/i18n';
 
 interface AiCartLine { productId: string; qty: number }
 
@@ -32,7 +33,7 @@ export function useAiCartPrefill(e: Pick<PosEngine, 'items' | 'loading' | 'addIt
       added++;
     }
     const missing = cart.length - added;
-    if (missing) toast.info(`${added} cheezein bill me — ${missing} counter par nahi milin, khud jorein`);
-    else toast.success('Nafaa AI ka bill POS me khul gaya');
+    if (missing) toast.info(t('{{added}} cheezein bill me — {{missing}} counter par nahi milin, khud jorein', { added, missing }));
+    else toast.success(t('Nafaa AI ka bill POS me khul gaya'));
   }, [cart, e.loading, e.items]); // eslint-disable-line react-hooks/exhaustive-deps
 }

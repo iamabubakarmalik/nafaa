@@ -32,6 +32,7 @@ import { PosEmptyState, PosQuickKeyTile } from '../components';
 import { quickKeysApi, type QuickKey } from '../api/quick-keys.api';
 import { QuickKeyEditor } from './QuickKeyEditor';
 import { DEFAULT_GROUP, POS_QK_KEY, QK_KEY, groupOf, grouped } from './meta';
+import { t as tr } from '@core/i18n';
 
 type Tab = 'editor' | 'preview';
 type Where = 'all' | 'everywhere' | 'branch' | 'personal';
@@ -93,15 +94,15 @@ export default function QuickKeysPage() {
     onError: (e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(ctx.key, ctx.prev);
       const m = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      toast.error(m || 'Sort save nahi hui');
+      toast.error(m || tr('Sort save nahi hui'));
     },
     onSettled: () => { qc.invalidateQueries({ queryKey: [QK_KEY] }); qc.invalidateQueries({ queryKey: [POS_QK_KEY] }); },
   });
 
   const toggle = useMutation({
     mutationFn: (k: QuickKey) => quickKeysApi.update(k.id, { isActive: !k.isActive }),
-    onSuccess: (_d, k) => { toast.success(k.isActive ? `${k.label} POS se chhup gayi` : `${k.label} POS par wapas`); qc.invalidateQueries({ queryKey: [QK_KEY] }); qc.invalidateQueries({ queryKey: [POS_QK_KEY] }); },
-    onError: () => toast.error('Badal nahi saka'),
+    onSuccess: (_d, k) => { toast.success(k.isActive ? tr('{{label}} POS se chhup gayi', { label: k.label }) : tr('{{label}} POS par wapas', { label: k.label })); qc.invalidateQueries({ queryKey: [QK_KEY] }); qc.invalidateQueries({ queryKey: [POS_QK_KEY] }); },
+    onError: () => toast.error(tr('Badal nahi saka')),
   });
 
   /** Flat order as the POS shows it (group by group), after moving `id` before `targetId` (or to the end of `targetGroup`). */
@@ -161,57 +162,57 @@ export default function QuickKeysPage() {
   return (
     <PageShell>
       <PageHero
-        title="Quick keys"
-        chip={<><Zap /> POS ke shortcut</>}
-        meta="Counter par ek tap me bikne wali cheezein — sort, rang aur group"
+        title={tr('Quick keys')}
+        chip={<><Zap /> {' '}{tr('POS ke shortcut')}</>}
+        meta={tr('Counter par ek tap me bikne wali cheezein — sort, rang aur group')}
         busy={keysQ.isFetching && !keysQ.isLoading || reorder.isPending}
         loading={keysQ.isLoading}
         actions={<>
-          <button type="button" onClick={guide.open} title="Guide (G)" className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {canEdit && <button type="button" onClick={() => setEditor({ key: null })} title="Nayi key (N)" className={heroPrimaryButton}><Plus className="h-4 w-4" /> Nayi key</button>}
+          <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
+          {canEdit && <button type="button" onClick={() => setEditor({ key: null })} title={tr('Nayi key (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Nayi key')}</button>}
         </>}
         stats={[
-          { label: 'POS par chalu', value: on, hint: `${total} me se` },
-          { label: 'Groups', value: groups.length },
-          { label: shop ? `${shop.name} ka POS` : 'Sab branches', value: posKeys.length, hint: 'keys dikhti hain' },
+          { label: tr('POS par chalu'), value: on, hint: tr('{{total}} me se', { total }) },
+          { label: tr('Groups'), value: groups.length },
+          { label: shop ? tr('{{name}} ka POS', { name: shop.name }) : tr('Sab branches'), value: posKeys.length, hint: tr('keys dikhti hain') },
         ]}
       />
 
       <KpiRow cols={4}>
         {keysQ.isLoading ? Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : <>
-          <KpiCard icon={Zap} color="#2563eb" label="Kul keys" value={total} hint={`${on} chalu`} onClick={() => setState('all')} active={state === 'all' && where === 'all'} />
-          <KpiCard icon={EyeOff} color="#64748b" label="Band keys" value={total - on} hint="POS par nahi dikhti" onClick={() => setState(state === 'off' ? 'all' : 'off')} active={state === 'off'} />
-          <KpiCard icon={MapPin} color="#0891b2" label="Sirf ek branch ki" value={keys.filter((k) => k.shopId).length} hint="Baqi har branch par" onClick={() => setWhere(where === 'branch' ? 'all' : 'branch')} active={where === 'branch'} />
-          <KpiCard icon={TriangleAlert} color="#e11d48" label="Kharab keys" value={brokenCount} hint={brokenCount ? 'Product ya combo nahi mila' : 'Sab theek'} onClick={() => setState(state === 'broken' ? 'all' : 'broken')} active={state === 'broken'} />
+          <KpiCard icon={Zap} color="#2563eb" label={tr('Kul keys')} value={total} hint={tr('{{on}} chalu', { on })} onClick={() => setState('all')} active={state === 'all' && where === 'all'} />
+          <KpiCard icon={EyeOff} color="#64748b" label={tr('Band keys')} value={total - on} hint={tr('POS par nahi dikhti')} onClick={() => setState(state === 'off' ? 'all' : 'off')} active={state === 'off'} />
+          <KpiCard icon={MapPin} color="#0891b2" label={tr('Sirf ek branch ki')} value={keys.filter((k) => k.shopId).length} hint={tr('Baqi har branch par')} onClick={() => setWhere(where === 'branch' ? 'all' : 'branch')} active={where === 'branch'} />
+          <KpiCard icon={TriangleAlert} color="#e11d48" label={tr('Kharab keys')} value={brokenCount} hint={brokenCount ? tr('Product ya combo nahi mila') : tr('Sab theek')} onClick={() => setState(state === 'broken' ? 'all' : 'broken')} active={state === 'broken'} />
         </>}
       </KpiRow>
 
       <FilterBar
-        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder="Key ka naam ya group…" label="Search" />}
+        search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={tr('Key ka naam ya group…')} label={tr('Search')} />}
         chips={filtered ? <>
           {q && <FilterChip onRemove={() => setSearch('')}>"{search.trim()}"</FilterChip>}
           {where !== 'all' && <FilterChip onRemove={() => setWhere('all')}>{WHERE.find((w) => w.value === where)?.label}</FilterChip>}
           {state !== 'all' && <FilterChip onRemove={() => setState('all')}>{STATES.find((s) => s.value === state)?.label}</FilterChip>}
         </> : undefined}
         onClear={clear}>
-        <FilterMenu icon={Store} label="Kahan dikhe" value={where} active={where !== 'all'} onChange={setWhere} options={WHERE} />
-        <FilterMenu icon={Filter} label="Haal" value={state} active={state !== 'all'} onChange={setState} options={STATES} align="right" />
+        <FilterMenu icon={Store} label={tr('Kahan dikhe')} value={where} active={where !== 'all'} onChange={setWhere} options={WHERE} />
+        <FilterMenu icon={Filter} label={tr('Haal')} value={state} active={state !== 'all'} onChange={setState} options={STATES} align="right" />
       </FilterBar>
 
       <ViewTabs value={tab} onChange={setTab}
-        hint={filtered && tab === 'editor' ? 'Filter laga hai — sort badalne ke liye filter hatayein' : <><Kbd>N</Kbd> nayi · <Kbd>P</Kbd> preview · <Kbd>/</Kbd> search</>}
-        tabs={[{ id: 'editor', label: 'Keys', icon: LayoutGrid, count: visible.length }, { id: 'preview', label: 'POS preview', icon: ShoppingCart }]} />
+        hint={filtered && tab === 'editor' ? tr('Filter laga hai — sort badalne ke liye filter hatayein') : <><Kbd>N</Kbd> {' '}{tr('nayi ·')}{' '} <Kbd>P</Kbd> {' '}{tr('preview ·')}{' '} <Kbd>/</Kbd> {' '}{tr('search')}</>}
+        tabs={[{ id: 'editor', label: tr('Keys'), icon: LayoutGrid, count: visible.length }, { id: 'preview', label: tr('POS preview'), icon: ShoppingCart }]} />
 
       {!canEdit && (
         <p className="flex items-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
-          <Lock className="h-4 w-4 shrink-0" /> Aap keys dekh sakte hain. Badalne ke liye "Products edit" ki permission chahiye.
+          <Lock className="h-4 w-4 shrink-0" /> {' '}{tr('Aap keys dekh sakte hain. Badalne ke liye "Products edit" ki permission chahiye.')}
         </p>
       )}
 
       {tab === 'preview' ? (
         <div className="rounded-3xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 sm:p-5">
-          <p className="mb-4 text-[0.8125rem] text-slate-500">{shop ? `${shop.name} ke` : 'Har'} counter par "Quick" tab (F10) bilkul aisa dikhta hai. Tile dabane se cheez bill me jaati hai.</p>
-          {!posKeys.length ? <PosEmptyState icon={Zap} title="Koi quick key nahi" hint="Quick keys setup page se banayein" /> : (
+          <p className="mb-4 text-[0.8125rem] text-slate-500">{tr('{{value}} counter par "Quick" tab (F10) bilkul aisa dikhta hai. Tile dabane se cheez bill me jaati hai.', { value: shop ? tr('{{name}} ke', { name: shop.name }) : tr('Har') })}</p>
+          {!posKeys.length ? <PosEmptyState icon={Zap} title={tr('Koi quick key nahi')} hint={tr('Quick keys setup page se banayein')} /> : (
             <div className="space-y-5">
               {grouped(posKeys).map(([g, list]) => (
                 <div key={g}>
@@ -229,11 +230,11 @@ export default function QuickKeysPage() {
       ) : !visible.length ? (
         <div className="rounded-3xl bg-white px-6 py-14 text-center ring-1 ring-slate-200/80">
           <Zap className="mx-auto h-10 w-10 text-slate-300" />
-          <p className="mt-3 font-semibold text-slate-900">{filtered ? 'Is filter me koi key nahi' : 'Abhi koi quick key nahi'}</p>
-          <p className="mt-1 text-sm text-slate-500">Roz zyada bikne wali cheezon ki keys banayein — doodh, double roti, cold drink. Counter par ek tap me bill me.</p>
+          <p className="mt-3 font-semibold text-slate-900">{filtered ? tr('Is filter me koi key nahi') : tr('Abhi koi quick key nahi')}</p>
+          <p className="mt-1 text-sm text-slate-500">{tr('Roz zyada bikne wali cheezon ki keys banayein — doodh, double roti, cold drink. Counter par ek tap me bill me.')}</p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {canEdit && <Button onClick={() => setEditor({ key: null })} leftIcon={<Plus className="h-4 w-4" />}>Pehli key banayein</Button>}
-            {filtered && <Button variant="ghost" onClick={clear}>Filter saaf karein</Button>}
+            {canEdit && <Button onClick={() => setEditor({ key: null })} leftIcon={<Plus className="h-4 w-4" />}>{tr('Pehli key banayein')}</Button>}
+            {filtered && <Button variant="ghost" onClick={clear}>{tr('Filter saaf karein')}</Button>}
           </div>
         </div>
       ) : (
@@ -259,7 +260,7 @@ export default function QuickKeysPage() {
                 {canEdit && !filtered && (
                   <button type="button" onClick={() => setEditor({ key: null })}
                     className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-200 text-[0.75rem] font-medium text-slate-400 transition hover:border-brand-400 hover:text-brand-700">
-                    <Plus className="h-5 w-5" /> Nayi key
+                    <Plus className="h-5 w-5" /> {' '}{tr('Nayi key')}
                   </button>
                 )}
               </div>
@@ -274,14 +275,14 @@ export default function QuickKeysPage() {
       )}
 
       {guide.isOpen && (
-        <PageGuide title="Quick keys — aasaan tareeqa" onClose={guide.close}
+        <PageGuide title={tr('Quick keys — aasaan tareeqa')} onClose={guide.close}
           steps={[
-            { icon: Plus, color: '#2563eb', title: 'Key banayein', text: '"Nayi key" dabayein, product search ya scan karein. Dozen ya carton chun sakte hain, type (variant) bhi. Combo ki key bhi banti hai.' },
-            { icon: Palette, color: '#db2777', title: 'Naam, emoji, rang', text: 'Chhota naam, ek emoji aur rang dein. Ek group (maslan "Doodh") ki sab keys ek rang ki hon to counter par jaldi milti hain.' },
-            { icon: Move, color: '#16a34a', title: 'Sort badlein', text: 'Key ko pakar kar (drag) nayi jagah chhorein, ya teer wale button dabayein. Doosre group me chhorne se group bhi badal jata hai.' },
-            { icon: MapPin, color: '#0891b2', title: 'Kahan dikhe', text: 'Key har branch par dikhti hai. "Sirf is branch" on karein to sirf us branch ke POS par. "Sirf mere liye" se sirf aap ko.' },
-            { icon: Eye, color: '#7c3aed', title: 'Preview dekhein', text: '"POS preview" tab me bilkul wahi dikhta hai jo cashier ko F10 dabane par Quick tab me dikhta hai.' },
-            { icon: MousePointerClick, color: '#d97706', title: 'Counter par', text: 'POS me "Quick" tab (F10) kholein aur key dabayein — cheez seedha bill me. Stock khatam ho to key halki ho jati hai.' },
+            { icon: Plus, color: '#2563eb', title: tr('Key banayein'), text: tr('"Nayi key" dabayein, product search ya scan karein. Dozen ya carton chun sakte hain, type (variant) bhi. Combo ki key bhi banti hai.') },
+            { icon: Palette, color: '#db2777', title: tr('Naam, emoji, rang'), text: tr('Chhota naam, ek emoji aur rang dein. Ek group (maslan "Doodh") ki sab keys ek rang ki hon to counter par jaldi milti hain.') },
+            { icon: Move, color: '#16a34a', title: tr('Sort badlein'), text: tr('Key ko pakar kar (drag) nayi jagah chhorein, ya teer wale button dabayein. Doosre group me chhorne se group bhi badal jata hai.') },
+            { icon: MapPin, color: '#0891b2', title: tr('Kahan dikhe'), text: tr('Key har branch par dikhti hai. "Sirf is branch" on karein to sirf us branch ke POS par. "Sirf mere liye" se sirf aap ko.') },
+            { icon: Eye, color: '#7c3aed', title: tr('Preview dekhein'), text: tr('"POS preview" tab me bilkul wahi dikhta hai jo cashier ko F10 dabane par Quick tab me dikhta hai.') },
+            { icon: MousePointerClick, color: '#d97706', title: tr('Counter par'), text: tr('POS me "Quick" tab (F10) kholein aur key dabayein — cheez seedha bill me. Stock khatam ho to key halki ho jati hai.') },
           ]}
           tips={[
             'Band ki hui key POS se chhup jati hai magar yahan rehti hai — mausam wali cheezon ke liye acha hai.',
@@ -297,17 +298,17 @@ export default function QuickKeysPage() {
 }
 
 const WHERE: Array<{ value: Where; label: string; icon?: typeof Store; color?: string }> = [
-  { value: 'all', label: 'Sab' },
-  { value: 'everywhere', label: 'Har branch, sab ke liye', icon: Store, color: '#2563eb' },
-  { value: 'branch', label: 'Sirf ek branch', icon: MapPin, color: '#0891b2' },
-  { value: 'personal', label: 'Sirf mere liye', icon: User, color: '#7c3aed' },
+  { value: 'all', label: tr('Sab') },
+  { value: 'everywhere', label: tr('Har branch, sab ke liye'), icon: Store, color: '#2563eb' },
+  { value: 'branch', label: tr('Sirf ek branch'), icon: MapPin, color: '#0891b2' },
+  { value: 'personal', label: tr('Sirf mere liye'), icon: User, color: '#7c3aed' },
 ];
 
 const STATES: Array<{ value: State; label: string; icon?: typeof Store; color?: string }> = [
-  { value: 'all', label: 'Sab' },
-  { value: 'on', label: 'Chalu', icon: Eye, color: '#16a34a' },
-  { value: 'off', label: 'Band', icon: EyeOff, color: '#64748b' },
-  { value: 'broken', label: 'Kharab (product nahi mila)', icon: TriangleAlert, color: '#e11d48' },
+  { value: 'all', label: tr('Sab') },
+  { value: 'on', label: tr('Chalu'), icon: Eye, color: '#16a34a' },
+  { value: 'off', label: tr('Band'), icon: EyeOff, color: '#64748b' },
+  { value: 'broken', label: tr('Kharab (product nahi mila)'), icon: TriangleAlert, color: '#e11d48' },
 ];
 
 function EditorTile({ k, tile, first, last, canEdit, canMove, broken, where, dragging, over, onDragStart, onDragEnd, onDragOver, onDrop, onStep, onToggle, onEdit }: {
@@ -320,18 +321,18 @@ function EditorTile({ k, tile, first, last, canEdit, canMove, broken, where, dra
     <div draggable={canMove} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragOver={onDragOver} onDrop={onDrop}
       className={cn('group relative rounded-xl transition', dragging && 'opacity-40', over && 'ring-2 ring-brand-500 ring-offset-2', !k.isActive && 'opacity-60 grayscale')}>
       {tile}
-      {canMove && <GripVertical className="pointer-events-none absolute left-1 top-1 h-3.5 w-3.5 text-slate-300 group-hover:text-slate-500" aria-hidden />}
-      <span className="pointer-events-none absolute right-1 top-1 flex gap-0.5">
-        {broken && <span title="Product ya combo nahi mila" className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-white"><TriangleAlert className="h-3 w-3" /></span>}
-        {where && <span title={where === 'personal' ? 'Sirf aap ke liye' : `Sirf ${where}`} className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900/70 text-white">{where === 'personal' ? <User className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}</span>}
-        {!k.isActive && <span title="Band" className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-500 text-white"><EyeOff className="h-3 w-3" /></span>}
+      {canMove && <GripVertical className="pointer-events-none absolute start-1 top-1 h-3.5 w-3.5 text-slate-300 group-hover:text-slate-500" aria-hidden />}
+      <span className="pointer-events-none absolute end-1 top-1 flex gap-0.5">
+        {broken && <span title={tr('Product ya combo nahi mila')} className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-600 text-white"><TriangleAlert className="h-3 w-3" /></span>}
+        {where && <span title={where === 'personal' ? tr('Sirf aap ke liye') : tr('Sirf {{where}}', { where })} className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900/70 text-white">{where === 'personal' ? <User className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}</span>}
+        {!k.isActive && <span title={tr('Band')} className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-500 text-white"><EyeOff className="h-3 w-3" /></span>}
       </span>
       {canEdit && (
         <span className="absolute inset-x-1 bottom-1 hidden justify-between gap-0.5 group-focus-within:flex group-hover:flex">
-          {canMove && <TileBtn label="Pehle" disabled={first} onClick={() => onStep(-1)}><ArrowLeft className="h-3 w-3" /></TileBtn>}
-          <TileBtn label={k.isActive ? 'Band karein' : 'Chalu karein'} onClick={onToggle}>{k.isActive ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}</TileBtn>
-          <TileBtn label="Badlein" onClick={onEdit}><Palette className="h-3 w-3" /></TileBtn>
-          {canMove && <TileBtn label="Baad me" disabled={last} onClick={() => onStep(1)}><ArrowRight className="h-3 w-3" /></TileBtn>}
+          {canMove && <TileBtn label={tr('Pehle')} disabled={first} onClick={() => onStep(-1)}><ArrowLeft className="h-3 w-3 rtl-flip" /></TileBtn>}
+          <TileBtn label={k.isActive ? tr('Band karein') : tr('Chalu karein')} onClick={onToggle}>{k.isActive ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}</TileBtn>
+          <TileBtn label={tr('Badlein')} onClick={onEdit}><Palette className="h-3 w-3" /></TileBtn>
+          {canMove && <TileBtn label={tr('Baad me')} disabled={last} onClick={() => onStep(1)}><ArrowRight className="h-3 w-3 rtl-flip" /></TileBtn>}
         </span>
       )}
     </div>

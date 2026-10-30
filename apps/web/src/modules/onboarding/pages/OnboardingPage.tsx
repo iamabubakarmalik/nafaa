@@ -17,6 +17,7 @@ import { Logo } from '@core/components/brand/Logo';
 import { isDialogOpen } from '@core/lib/shortcuts';
 import { Alert, Button, Kbd, Modal, Skeleton } from '@/design-system/components';
 import { ThemeToggle } from '@modules/auth/components/ThemeToggle';
+import { LanguageSwitch } from '@core/i18n/components/LanguagePicker';
 import { clearSignupIndustry, readSignupIndustry } from '@modules/auth/lib/industry-choices';
 import { clearSignupModels, DEFAULT_MODELS, readSignupModels, cleanModels } from '@core/lib/business-models';
 import { onboardingApi, type OnboardingOptions, type OnboardingProgress } from '../api/onboarding.api';
@@ -33,6 +34,7 @@ import { ProductsStep, filledProducts, validateProducts, type ProductsErrors, ty
 import { ReceiptStep, validateReceipt, type ReceiptErrors, type ReceiptForm } from '../steps/ReceiptStep';
 import { StaffStep, filledMembers, validateStaff, type StaffErrors, type StaffForm } from '../steps/StaffStep';
 import { FinishStep, type FinishForm } from '../steps/FinishStep';
+import { t as tr } from '@core/i18n';
 
 const DEFAULT_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const IMPORT_PATH = '/products/bulk-import';
@@ -47,9 +49,9 @@ function apiMessage(err: unknown): string {
 
 function errorText(err: unknown): string {
   const e = err as { response?: { status?: number } };
-  if (!e?.response) return 'Server tak nahi pohanch sake. Internet check karke dobara try karein.';
-  if ((e.response.status ?? 0) >= 500) return 'Server me masla aa gaya. Thori der baad dobara try karein.';
-  return apiMessage(err) || 'Save nahi hua. Dobara koshish karein.';
+  if (!e?.response) return tr('Server tak nahi pohanch sake. Internet check karke dobara try karein.');
+  if ((e.response.status ?? 0) >= 500) return tr('Server me masla aa gaya. Thori der baad dobara try karein.');
+  return apiMessage(err) || tr('Save nahi hua. Dobara koshish karein.');
 }
 
 export default function OnboardingPage() {
@@ -143,7 +145,7 @@ export default function OnboardingPage() {
   }, []);
 
   const finishAndLeave = () => {
-    toast.success('Mubarak ho! Aap ki dukaan tayyar hai');
+    toast.success(tr('Mubarak ho! Aap ki dukaan tayyar hai'));
     window.location.replace(takeAfterSetup());
   };
 
@@ -235,12 +237,12 @@ export default function OnboardingPage() {
 
       if (products.mode === 'sample' && !progress.usedSampleData) {
         result = await onboardingApi.step6({ useSampleData: true, products: [] });
-        toast.success(`${result.productsAddedCount || 0} misaal wale products add ho gaye`);
+        toast.success(tr('{{value}} misaal wale products add ho gaye', { value: result.productsAddedCount || 0 }));
       } else if (products.mode === 'manual') {
         result = await onboardingApi.step6({
           products: filledProducts(products).map((p) => ({ name: p.name.trim(), price: Number(p.price), stock: Number(p.stock) || 0 })),
         });
-        toast.success(`${result.productsAddedCount || 0} products add ho gaye`);
+        toast.success(tr('{{value}} products add ho gaye', { value: result.productsAddedCount || 0 }));
       } else if (!alreadyDone) {
         result = await onboardingApi.skip(6);
       }
@@ -287,9 +289,9 @@ export default function OnboardingPage() {
       });
       const added = result.teamMembersAdded ?? 0;
       if (added < members.length) {
-        toast.warning(`${added} staff add hue. ${members.length - added} email pehle se kisi account me hain — unhein doosra email dein.`);
+        toast.warning(tr('{{added}} staff add hue. {{value}} email pehle se kisi account me hain — unhein doosra email dein.', { added, value: members.length - added }));
       } else {
-        toast.success(`${added} staff add ho gaye`);
+        toast.success(tr('{{added}} staff add ho gaye', { added }));
       }
       setStaff({ members: [] });
       return result;
@@ -357,12 +359,13 @@ export default function OnboardingPage() {
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4">
           <Logo size={30} />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold text-slate-900">Dukaan setup</div>
+            <div className="truncate text-sm font-semibold text-slate-900">{tr('Dukaan setup')}</div>
             {tenant?.name && <div className="truncate text-xs text-slate-500">{tenant.name}</div>}
           </div>
+          <LanguageSwitch className="hidden w-[13rem] md:flex" />
           <ThemeToggle className="hidden sm:inline-flex" />
           <Button variant="ghost" size="sm" onClick={() => setConfirmExit(true)} disabled={busy || !progress}>
-            Baad me karunga
+            {tr('Baad me karunga')}
           </Button>
         </div>
       </header>
@@ -374,14 +377,14 @@ export default function OnboardingPage() {
           {loadFailed ? (
             <Alert
               tone="danger"
-              title="Setup load nahi hua"
+              title={tr('Setup load nahi hua')}
               action={(
                 <Button size="sm" variant="secondary" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={() => { void optionsQuery.refetch(); void progressQuery.refetch(); }}>
-                  Dobara
+                  {tr('Dobara')}
                 </Button>
               )}
             >
-              Internet check karein aur dobara try karein.
+              {tr('Internet check karein aur dobara try karein.')}
             </Alert>
           ) : !progress || !options || !position ? (
             <LoadingCard />
@@ -395,14 +398,14 @@ export default function OnboardingPage() {
                     {step ? <step.icon className="h-5 w-5" aria-hidden /> : <PartyPopper className="h-5 w-5" aria-hidden />}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <h1 className="text-xl font-bold tracking-tight text-slate-900">{step ? step.title : 'Sab tayyar hai!'}</h1>
+                    <h1 className="text-xl font-bold tracking-tight text-slate-900">{step ? step.title : tr('Sab tayyar hai!')}</h1>
                     <p className="mt-0.5 text-sm text-slate-600">
-                      {step ? step.description : 'Ek nazar dekh lein. Jo chhor diya woh baad me Settings se ho jayega.'}
+                      {step ? step.description : tr('Ek nazar dekh lein. Jo chhor diya woh baad me Settings se ho jayega.')}
                     </p>
                   </div>
                   {step && (
                     <span className="hidden shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 sm:inline-flex">
-                      <Clock className="h-3.5 w-3.5" aria-hidden /> ~{step.minutes} min
+                      <Clock className="h-3.5 w-3.5" aria-hidden /> {' '}{tr('~{{minutes}} min', { minutes: step.minutes })}
                     </span>
                   )}
                 </header>
@@ -462,26 +465,26 @@ export default function OnboardingPage() {
 
                 <footer className="sticky bottom-0 flex flex-wrap items-center gap-2 rounded-b-2xl border-t border-slate-200 bg-white p-4 sm:px-6">
                   {back && (
-                    <Button variant="secondary" size="lg" onClick={() => go(back)} disabled={busy} leftIcon={<ArrowLeft className="h-4 w-4" />} aria-label="Wapas">
-                      <span className="hidden sm:inline">Wapas</span>
+                    <Button variant="secondary" size="lg" onClick={() => go(back)} disabled={busy} leftIcon={<ArrowLeft className="h-4 w-4 rtl-flip" />} aria-label={tr('Wapas')}>
+                      <span className="hidden sm:inline">{tr('Wapas')}</span>
                     </Button>
                   )}
                   <span className="hidden flex-1 items-center gap-1.5 text-xs text-slate-500 md:flex">
-                    <Kbd>Ctrl</Kbd><Kbd>Enter</Kbd> aage
+                    <Kbd>Ctrl</Kbd><Kbd>Enter</Kbd> {' '}{tr('aage')}
                   </span>
                   <span className="flex-1 md:hidden" />
                   {step?.skippable && (
                     <Button variant="ghost" size="lg" onClick={skip} disabled={busy}>
-                      Skip
+                      {tr('Skip')}
                     </Button>
                   )}
                   <Button
                     size="lg"
                     onClick={primary}
                     loading={busy}
-                    rightIcon={position === 'finish' ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+                    rightIcon={position === 'finish' ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4 rtl-flip" />}
                   >
-                    {position === 'finish' ? 'Start' : 'Next'}
+                    {position === 'finish' ? tr('Start') : tr('Next')}
                   </Button>
                 </footer>
               </section>
@@ -494,17 +497,17 @@ export default function OnboardingPage() {
         open={confirmExit}
         onClose={() => setConfirmExit(false)}
         size="sm"
-        title="Setup baad me karein?"
-        description="Aap seedha dashboard par chale jayenge. Jo abhi save nahi hua woh baad me Settings se kar sakte hain."
+        title={tr('Setup baad me karein?')}
+        description={tr('Aap seedha dashboard par chale jayenge. Jo abhi save nahi hua woh baad me Settings se kar sakte hain.')}
         footer={(
           <>
-            <Button variant="secondary" onClick={() => setConfirmExit(false)}>Setup jaari rakhein</Button>
-            <Button onClick={() => void exitForNow()} loading={busy}>Dashboard par jayein</Button>
+            <Button variant="secondary" onClick={() => setConfirmExit(false)}>{tr('Setup jaari rakhein')}</Button>
+            <Button onClick={() => void exitForNow()} loading={busy}>{tr('Dashboard par jayein')}</Button>
           </>
         )}
       >
         <p className="text-sm text-slate-600">
-          Business type, bill ka size aur staff — sab Settings me mil jayega. Setup ka ye page dobara nahi aayega.
+          {tr('Business type, bill ka size aur staff — sab Settings me mil jayega. Setup ka ye page dobara nahi aayega.')}
         </p>
       </Modal>
     </div>
@@ -513,7 +516,7 @@ export default function OnboardingPage() {
 
 function LoadingCard() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" aria-busy="true" aria-label="Setup load ho raha hai">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" aria-busy="true" aria-label={tr('Setup load ho raha hai')}>
       <div className="flex items-center gap-4">
         <Skeleton className="h-11 w-11" />
         <div className="flex-1 space-y-2">

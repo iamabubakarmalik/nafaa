@@ -15,6 +15,7 @@ import { usePrivacyStore } from '@core/stores/privacy.store';
 import { useAuthStore, type AuthUser } from '@core/stores/auth.store';
 import { authApi } from '@modules/auth/api/auth.api';
 import { day, errorText } from './meta';
+import { t } from '@core/i18n';
 
 export function AccountSecurity({ user }: { user: AuthUser }) {
   const qc = useQueryClient();
@@ -27,17 +28,17 @@ export function AccountSecurity({ user }: { user: AuthUser }) {
   const hasPassword = user.hasPassword !== false;
   const hasGoogle = !!user.googleId;
   const checks = [
-    { label: 'Email verify hai', done: !!user.emailVerified },
-    { label: 'Password laga hai', done: hasPassword },
-    { label: 'Google se login jura hai', done: hasGoogle },
-    ...(canManagePin ? [{ label: 'Malik ka PIN laga hai', done: hasPin }] : []),
+    { label: t('Email verify hai'), done: !!user.emailVerified },
+    { label: t('Password laga hai'), done: hasPassword },
+    { label: t('Google se login jura hai'), done: hasGoogle },
+    ...(canManagePin ? [{ label: t('Malik ka PIN laga hai'), done: hasPin }] : []),
   ];
   const score = checks.filter((c) => c.done).length;
 
   const disconnect = useMutation({
     mutationFn: authApi.disconnectGoogle,
-    onSuccess: () => { toast.success('Google login hata diya'); qc.invalidateQueries({ queryKey: ['auth-me'] }); },
-    onError: (e) => toast.error(errorText(e, 'Google nahi hata')),
+    onSuccess: () => { toast.success(t('Google login hata diya')); qc.invalidateQueries({ queryKey: ['auth-me'] }); },
+    onError: (e) => toast.error(errorText(e, t('Google nahi hata'))),
   });
 
   return (
@@ -45,7 +46,7 @@ export function AccountSecurity({ user }: { user: AuthUser }) {
       {pwd && <PasswordModal mode={pwd} onClose={() => setPwd(null)} />}
       {pin && <PinSetupModal onClose={() => setPin(false)} />}
 
-      <Card className="h-fit rounded-3xl" title="Hifazat ka haal" description={`${score} / ${checks.length} mukammal`}>
+      <Card className="h-fit rounded-3xl" title={t('Hifazat ka haal')} description={t('{{score}} / {{count}} mukammal', { score, count: checks.length })}>
         <div className="mb-3 h-2 overflow-hidden rounded-full bg-slate-100">
           <div className={score === checks.length ? 'h-full bg-emerald-500' : score >= checks.length / 2 ? 'h-full bg-amber-500' : 'h-full bg-rose-500'} style={{ width: `${(score / checks.length) * 100}%` }} />
         </div>
@@ -60,24 +61,24 @@ export function AccountSecurity({ user }: { user: AuthUser }) {
       </Card>
 
       <div className="space-y-3">
-        <Row icon={Lock} title="Password" text={hasPassword ? 'Kam se kam 8 huroof. Kisi ko na batayein.' : 'Abhi sirf Google se login hota hai. Password bana lein taake dono chalein.'}
-          action={hasPassword ? <Button size="sm" variant="secondary" onClick={() => setPwd('change')}>Badlein</Button> : <Button size="sm" onClick={() => setPwd('set')}>Password banayein</Button>} />
+        <Row icon={Lock} title={t('Password')} text={hasPassword ? t('Kam se kam 8 huroof. Kisi ko na batayein.') : t('Abhi sirf Google se login hota hai. Password bana lein taake dono chalein.')}
+          action={hasPassword ? <Button size="sm" variant="secondary" onClick={() => setPwd('change')}>{t('Badlein')}</Button> : <Button size="sm" onClick={() => setPwd('set')}>{t('Password banayein')}</Button>} />
 
-        <Row icon={Mail} title="Email" text={user.emailVerified ? `${user.email} · ${day(user.emailVerifiedAt)} ko verify hua` : `${user.email} abhi verify nahi — password bhoolne par isi se wapas aate hain.`}
-          badge={user.emailVerified ? <Badge variant="success" size="xs">Verified</Badge> : <Badge variant="warning" size="xs">Baqi</Badge>}
-          action={!user.emailVerified ? <Button size="sm" onClick={() => navigate('/verify-email')}>Verify karein</Button> : undefined} />
+        <Row icon={Mail} title={t('Email')} text={user.emailVerified ? t('{{email}} · {{emailVerifiedAt}} ko verify hua', { email: user.email, emailVerifiedAt: day(user.emailVerifiedAt) }) : t('{{email}} abhi verify nahi — password bhoolne par isi se wapas aate hain.', { email: user.email })}
+          badge={user.emailVerified ? <Badge variant="success" size="xs">{t('Verified')}</Badge> : <Badge variant="warning" size="xs">{t('Baqi')}</Badge>}
+          action={!user.emailVerified ? <Button size="sm" onClick={() => navigate('/verify-email')}>{t('Verify karein')}</Button> : undefined} />
 
-        <Row icon={Sparkles} title="Google se login" text={hasGoogle ? 'Google account jura hai — ek click me login.' : 'Google account jor lein to password ke baghair bhi login ho sakta hai.'}
-          badge={hasGoogle ? <Badge variant="success" size="xs">Jura hai</Badge> : undefined}
+        <Row icon={Sparkles} title={t('Google se login')} text={hasGoogle ? t('Google account jura hai — ek click me login.') : t('Google account jor lein to password ke baghair bhi login ho sakta hai.')}
+          badge={hasGoogle ? <Badge variant="success" size="xs">{t('Jura hai')}</Badge> : undefined}
           action={hasGoogle
-            ? <Button size="sm" variant="critical" disabled={!hasPassword} loading={disconnect.isPending} title={!hasPassword ? 'Pehle password banayein' : undefined}
-                onClick={() => disconnect.mutate()}><Unlink className="h-4 w-4" /> Hatayein</Button>
-            : <Button size="sm" variant="secondary" onClick={() => { window.location.href = authApi.googleLoginUrl(); }}>Google jorein</Button>} />
+            ? <Button size="sm" variant="critical" disabled={!hasPassword} loading={disconnect.isPending} title={!hasPassword ? t('Pehle password banayein') : undefined}
+                onClick={() => disconnect.mutate()}><Unlink className="h-4 w-4" /> {' '}{t('Hatayein')}</Button>
+            : <Button size="sm" variant="secondary" onClick={() => { window.location.href = authApi.googleLoginUrl(); }}>{t('Google jorein')}</Button>} />
 
         {canManagePin && (
-          <Row icon={KeyRound} title="Malik ka PIN" text={hasPin ? 'PIN laga hai — cost chhupi rehti hai aur band safhe isi se khulte hain. Poori dukaan ke liye ek.' : 'PIN lagayein taake counter par cost aur profit chhupa rahe.'}
-            badge={hasPin ? <Badge variant="success" size="xs">Laga hai</Badge> : <Badge variant="warning" size="xs">Nahi</Badge>}
-            action={<Button size="sm" variant={hasPin ? 'secondary' : 'primary'} onClick={() => setPin(true)}>{hasPin ? 'PIN settings' : 'PIN lagayein'}</Button>} />
+          <Row icon={KeyRound} title={t('Malik ka PIN')} text={hasPin ? t('PIN laga hai — cost chhupi rehti hai aur band safhe isi se khulte hain. Poori dukaan ke liye ek.') : t('PIN lagayein taake counter par cost aur profit chhupa rahe.')}
+            badge={hasPin ? <Badge variant="success" size="xs">{t('Laga hai')}</Badge> : <Badge variant="warning" size="xs">{t('Nahi')}</Badge>}
+            action={<Button size="sm" variant={hasPin ? 'secondary' : 'primary'} onClick={() => setPin(true)}>{hasPin ? t('PIN settings') : t('PIN lagayein')}</Button>} />
         )}
       </div>
     </div>
@@ -120,29 +121,29 @@ function PasswordModal({ mode, onClose }: { mode: 'change' | 'set'; onClose: () 
       if (signOutOthers && token) await authApi.revokeOtherSessions(token).catch(() => undefined);
     },
     onSuccess: () => {
-      toast.success(mode === 'change' ? 'Password badal gaya' : 'Password ban gaya', { description: signOutOthers ? 'Baqi devices se logout kar diya' : undefined });
+      toast.success(mode === 'change' ? t('Password badal gaya') : t('Password ban gaya'), { description: signOutOthers ? t('Baqi devices se logout kar diya') : undefined });
       qc.invalidateQueries({ queryKey: ['auth-me'] });
       qc.invalidateQueries({ queryKey: ['active-sessions'] });
       onClose();
     },
-    onError: (e) => toast.error(errorText(e, 'Password save nahi hua')),
+    onError: (e) => toast.error(errorText(e, t('Password save nahi hua'))),
   });
 
-  const eye = <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? 'Chhupayein' : 'Dikhayein'} className="pointer-events-auto">{show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>;
+  const eye = <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? t('Chhupayein') : t('Dikhayein')} className="pointer-events-auto">{show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>;
   return (
-    <Modal open onClose={onClose} size="sm" title={mode === 'change' ? 'Password badlein' : 'Password banayein'}
-      description={mode === 'set' ? 'Ab email aur password se bhi login ho sakega' : undefined}
+    <Modal open onClose={onClose} size="sm" title={mode === 'change' ? t('Password badlein') : t('Password banayein')}
+      description={mode === 'set' ? t('Ab email aur password se bhi login ho sakega') : undefined}
       footer={<>
-        <Button variant="secondary" onClick={onClose}>Wapas</Button>
-        <Button onClick={() => save.mutate()} disabled={!ready} loading={save.isPending}>Save karein</Button>
+        <Button variant="secondary" onClick={onClose}>{t('Wapas')}</Button>
+        <Button onClick={() => save.mutate()} disabled={!ready} loading={save.isPending}>{t('Save karein')}</Button>
       </>}>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); if (ready) save.mutate(); }}>
-        {mode === 'change' && <Input label="Purana password" type={show ? 'text' : 'password'} value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" data-autofocus rightIcon={eye} />}
-        <Input label="Naya password" type={show ? 'text' : 'password'} value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password"
-          error={short ? 'Kam se kam 8 huroof' : same ? 'Naya password purane se alag ho' : undefined} rightIcon={mode === 'set' ? eye : undefined} />
-        <Input label="Naya password dobara" type={show ? 'text' : 'password'} value={again} onChange={(e) => setAgain(e.target.value)} autoComplete="new-password"
-          error={mismatch ? 'Dono password aik jaise nahi' : undefined} />
-        <Checkbox label="Baqi sab devices se logout kar dein" checked={signOutOthers} onChange={(e) => setSignOutOthers(e.target.checked)} />
+        {mode === 'change' && <Input label={t('Purana password')} type={show ? 'text' : 'password'} value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" data-autofocus rightIcon={eye} />}
+        <Input label={t('Naya password')} type={show ? 'text' : 'password'} value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password"
+          error={short ? t('Kam se kam 8 huroof') : same ? t('Naya password purane se alag ho') : undefined} rightIcon={mode === 'set' ? eye : undefined} />
+        <Input label={t('Naya password dobara')} type={show ? 'text' : 'password'} value={again} onChange={(e) => setAgain(e.target.value)} autoComplete="new-password"
+          error={mismatch ? t('Dono password aik jaise nahi') : undefined} />
+        <Checkbox label={t('Baqi sab devices se logout kar dein')} checked={signOutOthers} onChange={(e) => setSignOutOthers(e.target.checked)} />
         <button type="submit" hidden />
       </form>
     </Modal>

@@ -8,6 +8,7 @@
 
 import { useCallback, useState } from 'react';
 import { PRICE_TIERS, isPriceTier, type PriceTier } from '@core/lib/priceTiers';
+import { t as tr } from '@core/i18n';
 
 export type PosLayout = 'classic' | 'express' | 'cartfocus' | 'touch';
 export type PosDensity = 'compact' | 'comfortable';
@@ -72,10 +73,10 @@ export const POS_COUNTER_DEFAULTS: PosCounterConfig = {
 };
 
 export const POS_LAYOUTS: Array<{ id: PosLayout; label: string; hint: string }> = [
-  { id: 'classic', label: 'Classic', hint: 'Products baayen, bill daayen' },
-  { id: 'express', label: 'Express', hint: 'Bara search, neeche bill ki table — barcode aur keyboard ke liye' },
-  { id: 'cartfocus', label: 'Bill bara', hint: 'Bara bill baayen, patli product list daayen' },
-  { id: 'touch', label: 'Touch', hint: 'Bare tiles aur buttons — tablet ke liye' },
+  { id: 'classic', label: tr('Classic'), hint: tr('Products baayen, bill daayen') },
+  { id: 'express', label: tr('Express'), hint: tr('Bara search, neeche bill ki table — barcode aur keyboard ke liye') },
+  { id: 'cartfocus', label: tr('Bill bara'), hint: tr('Bara bill baayen, patli product list daayen') },
+  { id: 'touch', label: tr('Touch'), hint: tr('Bare tiles aur buttons — tablet ke liye') },
 ];
 
 const isLayout = (v: unknown): v is PosLayout => POS_LAYOUTS.some((l) => l.id === v);

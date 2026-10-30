@@ -12,6 +12,7 @@ import { formatPKR } from '@core/lib/format';
 import { ScaleChip } from '@core/hardware/ScaleChip';
 import type { Product } from '@modules/inventory/products/api/products.api';
 import type { PosUnitOption } from '../lib/posUnits';
+import { t } from '@core/i18n';
 
 export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, onClose }: {
   product: Product;
@@ -26,10 +27,10 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
   const price = unit.price;
 
   const subUnits = useMemo(() => {
-    if (base === 'kg') return [{ k: 'kg', l: 'KG', toBase: 1 }, { k: 'g', l: 'Gram', toBase: 0.001 }];
-    if (base === 'gram' || base === 'g') return [{ k: 'g', l: 'Gram', toBase: 1 }, { k: 'kg', l: 'KG', toBase: 1000 }];
-    if (base === 'liter' || base === 'litre' || base === 'l') return [{ k: 'l', l: 'Liter', toBase: 1 }, { k: 'ml', l: 'ml', toBase: 0.001 }];
-    if (base === 'ml') return [{ k: 'ml', l: 'ml', toBase: 1 }, { k: 'l', l: 'Liter', toBase: 1000 }];
+    if (base === 'kg') return [{ k: 'kg', l: 'KG', toBase: 1 }, { k: 'g', l: t('Gram'), toBase: 0.001 }];
+    if (base === 'gram' || base === 'g') return [{ k: 'g', l: t('Gram'), toBase: 1 }, { k: 'kg', l: 'KG', toBase: 1000 }];
+    if (base === 'liter' || base === 'litre' || base === 'l') return [{ k: 'l', l: t('Liter'), toBase: 1 }, { k: 'ml', l: 'ml', toBase: 0.001 }];
+    if (base === 'ml') return [{ k: 'ml', l: 'ml', toBase: 1 }, { k: 'l', l: t('Liter'), toBase: 1000 }];
     return [{ k: base, l: unit.unitName.toUpperCase(), toBase: 1 }];
   }, [base, unit.unitName]);
 
@@ -64,7 +65,7 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
       description={`${formatPKR(price)} / ${unit.unitName}${Number.isFinite(available) ? ` · stock ${fmtQty(available)} ${unit.unitName}` : ''}`}
       footer={
         <Button fullWidth size="lg" onClick={submit} disabled={!canAdd}>
-          {qty > 0 ? `${fmtQty(qty)} ${unit.unitName} · ${formatPKR(amount)} — bill mein daalein` : 'Wazan ya amount likhein'}
+          {qty > 0 ? t('{{qty}} {{unitName}} · {{amount}} — bill mein daalein', { qty: fmtQty(qty), unitName: unit.unitName, amount: formatPKR(amount) }) : t('Wazan ya amount likhein')}
         </Button>
       }>
       <div className="space-y-4">
@@ -75,17 +76,17 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
             setWeight(String(Number((inBase / active.toBase).toFixed(3))));
           }} />
         )}
-        <Segmented label="Kaise" value={mode} onChange={setMode} className="w-full [&>button]:flex-1"
-          items={[{ value: 'weight', label: 'Wazan se' }, { value: 'money', label: 'Amount se' }]} />
+        <Segmented label={t('Kaise')} value={mode} onChange={setMode} className="w-full [&>button]:flex-1"
+          items={[{ value: 'weight', label: t('Wazan se') }, { value: 'money', label: t('Amount se') }]} />
 
         {mode === 'weight' ? (
           <div className="space-y-2">
             <div className="flex gap-2">
               <input autoFocus inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value.replace(/[^\d.]/g, ''))}
-                placeholder="0" aria-label="Wazan"
-                className="h-14 min-w-0 flex-1 rounded-xl border border-slate-300 px-4 text-right text-2xl font-bold tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+                placeholder="0" aria-label={t('Wazan')}
+                className="h-14 min-w-0 flex-1 rounded-xl border border-slate-300 px-4 text-end text-2xl font-bold tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
               {subUnits.length > 1 && (
-                <Segmented label="Unit" value={sub} onChange={setSub} items={subUnits.map((s) => ({ value: s.k, label: s.l }))} />
+                <Segmented label={t('Unit')} value={sub} onChange={setSub} items={subUnits.map((s) => ({ value: s.k, label: s.l }))} />
               )}
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -100,8 +101,8 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
         ) : (
           <div className="space-y-2">
             <input autoFocus inputMode="decimal" value={money} onChange={(e) => setMoney(e.target.value.replace(/[^\d.]/g, ''))}
-              placeholder="Rs 0" aria-label="Amount"
-              className="h-14 w-full rounded-xl border border-slate-300 px-4 text-right text-2xl font-bold tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
+              placeholder={t('Rs 0')} aria-label={t('Amount')}
+              className="h-14 w-full rounded-xl border border-slate-300 px-4 text-end text-2xl font-bold tabular-nums outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20" />
             <div className="grid grid-cols-3 gap-1.5">
               {moneyPresets.map((m) => (
                 <button key={m} type="button" onClick={() => setMoney(String(m))}
@@ -115,7 +116,7 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
 
         {qty > 0 && (
           <div className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
-            <span className="text-[0.8125rem] text-slate-500">{mode === 'money' ? 'Itna wazan dein' : 'Itne paise lein'}</span>
+            <span className="text-[0.8125rem] text-slate-500">{mode === 'money' ? t('Itna wazan dein') : t('Itne paise lein')}</span>
             <span className="text-xl font-bold tabular-nums text-slate-900">
               {mode === 'money' ? `${fmtQty(qty)} ${unit.unitName}${base === 'kg' && qty < 1 ? ` (${Math.round(qty * 1000)} g)` : ''}` : formatPKR(amount)}
             </span>
@@ -123,7 +124,7 @@ export function PosWeighModal({ product, unit, prefillMoney, stock, onConfirm, o
         )}
         {over && (
           <p className="flex items-center gap-1.5 text-[0.8125rem] font-medium text-rose-700">
-            <AlertTriangle className="h-4 w-4" /> Stock sirf {fmtQty(available)} {unit.unitName}
+            <AlertTriangle className="h-4 w-4" /> {' '}{t('Stock sirf {{available}} {{unitName}}', { available: fmtQty(available), unitName: unit.unitName })}
           </p>
         )}
       </div>
