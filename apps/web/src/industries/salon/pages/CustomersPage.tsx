@@ -180,7 +180,7 @@ function CustomerModal({ customerId, onClose }: { customerId: string; onClose: (
             <Fact label={tr('Visits')} value={String(h.stats.visits)} />
             <Fact label={tr('Kharch')} value={formatPKR(h.stats.spent)} />
             <Fact label={tr('Pasandeeda stylist')} value={h.stats.favouriteStylist ?? '—'} />
-            <Fact label={tr('Har kitne din')} value={h.stats.everyDays ? `${h.stats.everyDays} din` : '—'} />
+            <Fact label={tr('Har kitne din')} value={h.stats.everyDays ? tr('{{count}} din', { count: h.stats.everyDays }) : '—'} />
           </div>
           {!!h.profile?.allergies?.length && <p className="flex gap-2 rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-800 ring-1 ring-rose-100"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{tr('Allergy: {{value}}', { value: h.profile.allergies.join(', ') })}</p>}
           {(h.memberships.some((m) => m.status === 'ACTIVE') || h.packages.some((p) => p.status === 'ACTIVE')) && (

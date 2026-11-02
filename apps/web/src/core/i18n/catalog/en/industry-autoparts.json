@@ -241,7 +241,7 @@
   "Cancel": "Cancel",
   "Cancel {{cancelledAt}}": "Cancelled {{cancelledAt}}",
   "Cancel {{cancelledAt}} — {{cancellationReason}}{{value}}": "Cancelled {{cancelledAt}} — {{cancellationReason}}{{value}}",
-  "Cancel karein": "Cancel booking",
+  "Cancel karein": "Cancel",
   "Car": "Car",
   "Car / jeep model": "Car / jeep model",
   "Card aur bill par likha aata hai — customer ko pata ho ke genuine hai ya local": "Shown on the card and bill — the customer knows if it's genuine or local",

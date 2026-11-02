@@ -53,7 +53,7 @@ const day = (v: string | null) => (v ? new Intl.DateTimeFormat('en-PK', { day: '
 const ago = (v: string | null) => {
   if (!v) return tr('kabhi nahi');
   const d = Math.floor((Date.now() - new Date(v).getTime()) / 86_400_000);
-  return d === 0 ? 'aaj' : d === 1 ? 'kal' : d < 30 ? tr('{{d}} din pehle', { d }) : d < 365 ? tr('{{value}} mahine pehle', { value: Math.floor(d / 30) }) : tr('{{value}} saal pehle', { value: Math.floor(d / 365) });
+  return d === 0 ? tr('aaj') : d === 1 ? tr('kal') : d < 30 ? tr('{{d}} din pehle', { d }) : d < 365 ? tr('{{value}} mahine pehle', { value: Math.floor(d / 30) }) : tr('{{value}} saal pehle', { value: Math.floor(d / 365) });
 };
 
 function Tile({ label, value, hint }: { label: string; value: React.ReactNode; hint?: React.ReactNode }) {
@@ -261,7 +261,7 @@ export function CustomerProfilePage() {
         <Tile label={tr('Kul khareedari')} value={money(ins?.visits.spent ?? 0)} hint={tr('{{value}} bill', { value: ins?.visits.count ?? 0 })} />
         <Tile label={tr('Ausat bill')} value={money(ins?.visits.average ?? 0)} hint={ins?.visits.best ? tr('sab se bara {{best}}', { best: money(ins.visits.best) }) : undefined} />
         <Tile label={tr('Aakhri dafa')} value={ago(ins?.visits.last ?? null)} hint={ins?.visits.first ? tr('pehli dafa {{first}}', { first: day(ins.visits.first) }) : undefined} />
-        <Tile label={tr('Har kitne din baad')} value={ins?.visits.averageGapDays != null ? `${Math.round(ins.visits.averageGapDays)} din` : '—'} hint={tr('aam tor par aata hai')} />
+        <Tile label={tr('Har kitne din baad')} value={ins?.visits.averageGapDays != null ? tr('{{count}} din', { count: Math.round(ins.visits.averageGapDays) }) : '—'} hint={tr('aam tor par aata hai')} />
         <Tile label={tr('Pasandida din')} value={ins?.visits.favouriteWeekday != null ? WEEKDAYS[ins.visits.favouriteWeekday] : '—'} hint={ins?.visits.favouriteHour != null ? tr('aksar {{value}} {{value2}} ke qareeb', { value: ins.visits.favouriteHour % 12 || 12, value2: ins.visits.favouriteHour < 12 ? tr('AM') : tr('PM') }) : undefined} />
         <Tile label={tr('Points')} value={c.loyaltyPoints} hint={ins?.visits.returned ? tr('{{returned}} dafa maal wapas', { returned: ins.visits.returned }) : undefined} />
       </div>
@@ -279,7 +279,7 @@ export function CustomerProfilePage() {
                     <CartesianGrid stroke={theme.grid} vertical={false} />
                     <XAxis dataKey="label" tick={theme.axis} axisLine={false} tickLine={false} />
                     <YAxis tick={theme.axis} axisLine={false} tickLine={false} tickFormatter={axisMoney} width={44} />
-                    <Tooltip formatter={(v, _n, p) => [`${formatPKR(Number(v))} · ${(p.payload as { bills: number }).bills} bill`, tr('Khareeda')]} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor} />
+                    <Tooltip formatter={(v, _n, p) => [`${formatPKR(Number(v))} · ${tr('{{count}} bill', { count: (p.payload as { bills: number }).bills })}`, tr('Khareeda')]} contentStyle={theme.tooltip.contentStyle} labelStyle={theme.tooltip.labelStyle} cursor={theme.tooltip.cursor} />
                     <Bar dataKey="spent" fill={theme.primary} radius={[5, 5, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -321,7 +321,7 @@ export function CustomerProfilePage() {
               <Tile label={tr('Kul udhaar liya')} value={money(ins?.credit.taken ?? 0)} />
               <Tile label={tr('Payment di')} value={money(ins?.credit.paid ?? 0)} />
               <Tile label={tr('Return / void')} value={money(ins?.credit.reduced ?? 0)} />
-              <Tile label={tr('Sab se purana baqi')} value={dueDays !== null ? `${dueDays} din` : '—'} hint={ins?.credit.oldestDueAt ? day(ins.credit.oldestDueAt) : undefined} />
+              <Tile label={tr('Sab se purana baqi')} value={dueDays !== null ? tr('{{count}} din', { count: dueDays }) : '—'} hint={ins?.credit.oldestDueAt ? day(ins.credit.oldestDueAt) : undefined} />
             </div>
             {ins?.credit.pendingProfit != null && (ins.credit.billProfit ?? 0) > 0.5 && (
               <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-100">

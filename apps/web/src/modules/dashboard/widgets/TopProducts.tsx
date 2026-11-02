@@ -13,7 +13,7 @@ import { t } from '@core/i18n';
 const PERIODS = [
   { value: '1', label: t('Aaj') }, { value: '7', label: t('7 din') }, { value: '30', label: t('30 din') }, { value: '90', label: t('90 din') },
 ];
-const PERIOD_LABEL: Record<string, string> = { '1': 'aaj', '7': t('pichhle 7 din'), '30': t('pichhle 30 din'), '90': t('pichhle 90 din') };
+const PERIOD_LABEL: Record<string, string> = { '1': t('aaj'), '7': t('pichhle 7 din'), '30': t('pichhle 30 din'), '90': t('pichhle 90 din') };
 
 export function TopProducts({ productPath, hint }: { productPath: (id: string) => string; hint?: string }) {
   const [s, set] = useWidgetState('top-products', { days: '30', sort: 'revenue', limit: '10', categoryId: '' });

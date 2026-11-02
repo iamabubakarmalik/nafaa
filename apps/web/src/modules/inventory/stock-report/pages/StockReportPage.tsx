@@ -208,7 +208,7 @@ export default function StockReportPage() {
           { label: costHidden ? tr('Stock bechne par') : tr('Stock ki cost'), value: costHidden ? money(t.retail) : cost(t.cost), hint: tr('{{stocked}} cheezein', { stocked: t.stocked }) },
           { label: tr('Bechne par'), value: money(t.retail), hint: tr('aaj ke rate') },
           { label: tr('Mumkin profit'), value: cost(t.profit), hint: costHidden ? tr('Cost lock') : tr('{{value}}% margin', { value: t.margin.toFixed(1) }) },
-          { label: tr('Kitne din chalega'), value: t.coverDays === null ? '—' : `${t.coverDays} din`, hint: tr('is sale par') },
+          { label: tr('Kitne din chalega'), value: t.coverDays === null ? '—' : tr('{{count}} din', { count: t.coverDays }), hint: tr('is sale par') },
         ] : [{ label: tr('Stock ki cost'), value: '' }, { label: tr('Bechne par'), value: '' }, { label: tr('Mumkin profit'), value: '' }, { label: tr('Kitne din chalega'), value: '' }]}
       />
 

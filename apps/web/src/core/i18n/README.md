@@ -32,8 +32,9 @@ toast.success(t('{{count}} products save ho gaye', { count }));
 - `msg(text)` only marks text for extraction (it returns the text unchanged).
   Use it for values that are stored or compared and translated where shown:
   `const LABELS = [msg('Retail'), msg('Food')]` … `{t(item.category)}`.
-- Lookup: active locale → English (Urdu only) → the key itself. Roman Urdu
-  shows the key unless its catalog has a rewording.
+- Lookup is per area (see "Areas" below): the file's area → the global
+  table → English area → English global (Urdu only) → the key itself. Roman
+  Urdu shows the key unless its catalog has a rewording.
 
 **`t` is a plain function, not a hook.** `main.tsx` loads the active catalog
 (`boot.ts`) before it imports the app (`bootstrap.tsx`), and changing the
@@ -44,12 +45,50 @@ never shows stale text. A language change is rare; a reload is the price.
 **Catalogs** live in `catalog/<locale>/<area>.json`, flat `{ key: text }`,
 sorted. One file per area and locale, so people converting different modules
 never edit the same file. Each locale is one lazy chunk
-(`catalog/<locale>/index.ts` merges its files); the app downloads only the
+(`catalog/<locale>/index.ts` builds per-area tables); the app downloads only the
 active locale (plus English for Urdu). An area is derived from the path
 (`scripts/i18n/lib/files.mjs → areaOf`): `src/modules/<m>` → `<m>`,
 `src/industries/<id>` → `industry-<id>`, `src/integrations/<x>` →
 `integrations-<x>`, `src/app` → `shell`, `src/core` and `src/design-system` →
 `core`, server messages → `api`.
+
+## Areas: one key, different meanings
+
+Catalogs are written per area, and the same source text can mean different
+things in two areas: "Shuru" is Start in distribution but Opening in finance;
+"Halat" is Status in most places but Condition in finance; "Gaya" is Sent on
+a load sheet but Out in a cash book. So lookups are area-first:
+
+- **Build step.** `scripts/i18n/vite-area-plugin.mjs` (registered first in
+  `vite.config.ts`, so it runs in `vite dev` and `vite build`) rewrites
+  `import { t, Trans, … } from '@core/i18n'` in every source file to
+  `virtual:nafaa-i18n/<area>`. That generated module re-exports
+  `@core/i18n` with `t` and `Trans` bound to the area (`area.ts`). The area
+  comes from `areaOf()` in `scripts/i18n/lib/files.mjs`, the same function
+  the extractor uses, so a file always reads the catalog its keys were
+  extracted to. Call sites, aliases (`t as tr`) and types do not change;
+  `tsc` never sees the rewrite. Imports of `msg` only, `import type`, the
+  `core/i18n` folder itself and `src/marketplace` are left alone.
+- **Runtime.** Each locale chunk (`catalog/<locale>/index.ts` →
+  `merge.ts → buildCatalog`) holds one table per area plus a global table.
+  The global table keeps, for each key, the translation most areas use. It
+  answers keys an area does not hold itself, typically a `msg()` label
+  declared in one module and shown with `t(label)` by a component of
+  another; such a label gets the majority meaning, so give a label whose
+  meaning differs by module its own wording, or translate it where it is
+  declared.
+- **Server messages** use the `api` area explicitly
+  (`serverMessage.ts`, used by the axios interceptor and notifications).
+- The plain `t` exported by `runtime.ts` (no area) reads the global table;
+  `translateIn(area, text)` is there for code that needs a fixed area.
+- Bundle size is unchanged: the per-area JSON files were already in the
+  locale chunk; only the lookup structure changed.
+- `pnpm i18n:check` no longer warns when two areas translate a key
+  differently. It warns when one catalog file lists a key twice (JSON keeps
+  the last one). `--conflicts` lists cross-area differences for review.
+- Within one area a key has one meaning. When a module uses the same words
+  for two meanings (a button "Approve" and a status "Approved"), give the
+  second its own key.
 
 **Missing text** in development: `t()` warns once in the console and lists
 the keys in `window.__i18nMissing`. Production shows the fallback silently.
@@ -187,7 +226,9 @@ own catalog files. Commands run from `apps/web`.
 4. **Typecheck:** `pnpm typecheck` (a non-string placeholder value, e.g. a
    React element or boolean, is a type error: move it to `<Trans>`).
 5. **Extract:** `pnpm i18n:extract --area <m>` (adds keys; pre-fills keys
-   another area already translated). `--prune` drops keys no longer used.
+   another area already translated — check those: a short word such as
+   "Aaya" or "Purana" may mean something else in your module).
+   `--prune` drops keys no longer used.
 6. **Translate:** `pnpm i18n:todo --area <m> --out /tmp/<m>` writes work
    files; translate them per `scripts/i18n/TRANSLATION_GUIDE.md` into
    `out-N.json`; `pnpm i18n:validate todo-N.json out-N.json`; then
@@ -201,7 +242,8 @@ own catalog files. Commands run from `apps/web`.
 ## Files
 
 - `index.ts` – public API (`t`, `msg`, `Trans`, locales, `isRtl`).
-- `runtime.ts` – lookup, interpolation, plurals, dev warnings.
+- `runtime.ts` – area-first lookup, interpolation, plurals, dev warnings.
+- `area.ts` – the per-area `t`/`Trans` the Vite plugin hands to each file.
 - `boot.ts` – loads the catalog before the app; first-paint `lang`/`dir`.
 - `preference.ts` – local copy of the choice. `sync.ts` – server sync and
   `changeLanguage()` (kept out of `index.ts`: it imports the API client).
@@ -210,4 +252,4 @@ own catalog files. Commands run from `apps/web`.
 - `catalog/` – translations. Edit with the scripts; hand edits are fine but
   keep keys exactly as in code.
 - Tools: `apps/web/scripts/i18n/` (`wrap`, `rtl`, `extract`, `todo`,
-  `validate`, `import`, `check`).
+  `validate`, `import`, `check`, `vite-area-plugin`).

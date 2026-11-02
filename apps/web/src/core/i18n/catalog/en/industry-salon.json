@@ -53,6 +53,10 @@
   "{{count}} baqi · {{completed}} ho gaye": "{{count}} left · {{completed}} done",
   "{{count}} booking lete hain": "{{count}} take bookings",
   "{{count}} customer aa kar intezar kar rahe hain — chair par bithayein": "{{count}} customers are waiting — seat them",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
   "{{count}} intezar me": "{{count}} waiting",
   "{{count}} jald khatam": "{{count}} ending soon",
   "{{count}} khuli bookings par": "on {{count}} open bookings",
@@ -316,7 +320,7 @@
   "Call karein ya no-show": "Call or mark no-show",
   "Cancel": "Cancel",
   "Cancel ho gaya": "Cancelled",
-  "Cancel karein": "Cancel booking",
+  "Cancel karein": "Cancel",
   "Cancel karein?": "Cancel?",
   "Cancel nahi hua": "Not cancelled",
   "Cancel sirf membership band karta hai. Paisa wapas karna ho to Sales me us ka bill void karein — membership khud cancel ho jati hai.": "Cancel only stops the membership. To refund, void its bill in Sales — the membership cancels itself.",

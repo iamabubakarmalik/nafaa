@@ -55,7 +55,10 @@
   "{{count}} batch ka waqt guzar chuka — aaj hi nikalna ya phenkna hai": "{{count}} batches are past their time — sell or throw away today",
   "{{count}} chaalu": "{{count}} open",
   "{{count}} chaalu · {{due}} baqi lena hai": "{{count}} open · {{due}} to collect",
-  "{{count}} cheezein": "{{count}} items",
+  "{{count}} cheezein": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
   "{{count}} cheezein · {{made}} / {{planned}} bane{{value}}": "{{count}} items · {{made}} / {{planned}} made{{value}}",
   "{{count}} cheezein · kul {{total}} · baqi {{due}}": "{{count}} items · total {{total}} · due {{due}}",
   "{{count}} cheezein · qeemat {{cost}}{{value}}": "{{count}} items · value {{cost}}{{value}}",
@@ -67,6 +70,14 @@
   "{{count}} dafa istemal": "Used {{count}} times",
   "{{count}} dafa maal aaya": "Stock came in {{count}} times",
   "{{count}} dafa theek kiya": "Fixed {{count}} times",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
+  "{{count}} ghante": {
+    "one": "{{count}} hour",
+    "other": "{{count}} hours"
+  },
   "{{count}} guzar gaya": "{{count}} past time",
   "{{count}} late!": "{{count}} late!",
   "{{count}} order aaj dena hai": "{{count}} orders due today",
@@ -1268,7 +1279,7 @@
   "Round": "Round",
   "Royal Icing": "Royal icing",
   "Roz ausat": "Daily average",
-  "Saamaan": "Item",
+  "Saamaan": "Ingredients",
   "Saamaan gum": "Ingredient missing",
   "Saamaan jur gaya": "Item added",
   "Saamaan kam": "Low ingredients",

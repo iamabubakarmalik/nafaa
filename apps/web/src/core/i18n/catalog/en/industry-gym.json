@@ -31,7 +31,10 @@
   "{{count}} aaj": "{{count}} today",
   "{{count}} andar": "{{count}} inside",
   "{{count}} classes ban gayin": "{{count}} classes created",
-  "{{count}} din": "{{count}} days",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
   "{{count}} lockers": {
     "one": "{{count}} locker",
     "other": "{{count}} lockers"
@@ -149,7 +152,7 @@
   "Aam waqt": "Average time",
   "Aam waqt andar": "Average time inside",
   "Aane wali": "Upcoming",
-  "Aaya": "Visited",
+  "Aaya": "Attended",
   "Abhi andar": "Inside now",
   "Abhi data nahi": "No data yet",
   "Abhi gym me": "In the gym now",
@@ -249,7 +252,7 @@
   "Cancel · {{packageNumber}}": "Cancel · {{packageNumber}}",
   "Cancel · {{sessionNumber}}": "Cancel · {{sessionNumber}}",
   "Cancel aur wapas paisa": "Cancel and refund",
-  "Cancel karein": "Cancel booking",
+  "Cancel karein": "Cancel",
   "Cancel nahi hua": "Not cancelled",
   "Cancel nahi hui": "Not cancelled",
   "Cancel paisa wapas nahi karta. Wapas karna ho to Bills tab se us bill ka Return ya Void karein — membership khud cancel ho jati hai.": "Cancel does not refund. To refund, Return or Void that bill from the Bills tab — the membership cancels itself.",
@@ -816,7 +819,7 @@
   "PT sessions plan me daal dein (maslan 12). PT book karte waqt \"Plan se\" chunein — session ka alag bill nahi banta, trainer ki commission banti hai.": "Add PT sessions to the plan (e.g. 12). When booking PT choose \"From plan\" — no separate bill for the session, but the trainer earns commission.",
   "PT sessions shamil": "PT sessions included",
   "PT wale": "With PT",
-  "Purana": "Overdue",
+  "Purana": "Experienced",
   "Purana member wapas aaya ya offer": "Returning member or an offer",
   "Purane bill": "Old bills",
   "Purane members chalte rehte hain": "Old members keep going",

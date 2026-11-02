@@ -37,7 +37,10 @@
   "{{count}} booking ka check-in ka din guzar gaya — no-show ya cancel karein": "{{count}} bookings are past check-in date — mark no-show or cancel",
   "{{count}} check-in · {{count2}} check-out": "{{count}} check-in · {{count2}} check-out",
   "{{count}} check-out aaj hain": "{{count}} check-outs today",
-  "{{count}} cheezein": "{{count}} items",
+  "{{count}} cheezein": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
   "{{count}} ganday": "{{count}} dirty",
   "{{count}} ka bill baqi": "{{count}} with bill due",
   "{{count}} khaali abhi": "{{count}} free now",

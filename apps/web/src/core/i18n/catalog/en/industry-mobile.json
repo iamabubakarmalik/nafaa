@@ -42,6 +42,10 @@
     "one": "Checked {{count}} time",
     "other": "Checked {{count}} times"
   },
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
   "{{count}} IMEI ka check digit nahi milta — dobara dekh lein": "{{count}} IMEI check digits don't match — please check again",
   "{{count}} line jorein": {
     "one": "Add {{count}} line",
@@ -175,13 +179,14 @@
   "90 din se purane": "Older than 90 days",
   "Aadha": "Half",
   "Aage bika": "Sold on",
+  "aaj": "today",
   "Aaj": "Today",
   "Aaj {{todayCount}} naye": "{{todayCount}} new today",
   "Aaj aaye / gaye": "In / out today",
   "Aaj bike": "Sold today",
   "Aam": "Normal",
   "Aane ki date": "Arrival date",
-  "Aaya": "Visited",
+  "Aaya": "Received",
   "Aaya {{purchasedAt}}": "Arrived {{purchasedAt}}",
   "Aaya tha": "Came in",
   "Ab tak bike": "Sold so far",

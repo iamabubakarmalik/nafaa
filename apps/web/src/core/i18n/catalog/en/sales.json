@@ -48,6 +48,10 @@
     "one": "{{count}} item back",
     "other": "{{count}} items back"
   },
+  "{{count}} cheezein": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
   "{{count}} cheezein · {{qty}} qty": {
     "one": "{{count}} item · {{qty}} qty",
     "other": "{{count}} items · {{qty}} qty"
@@ -73,6 +77,7 @@
   "{{payout}} wapas diye": "{{payout}} paid back",
   "{{pendingCount}} bill is computer par save hain — internet aate hi server par chale jayenge": "{{pendingCount}} bills are saved on this computer. They go to the server when the internet is back.",
   "{{qty}} {{unit}} wapas · {{soldQty}} bika · {{count}} dafa": "{{qty}} {{unit}} back · {{soldQty}} sold · {{count}} times",
+  "{{qty}} wapas ho sakti": "{{qty}} can be returned",
   "{{restockedQty}} stock me wapas": "{{restockedQty}} back in stock",
   "{{saleNumber}} · kholein": "{{saleNumber}} · open",
   "{{salesTotal}} sale": "{{salesTotal}} sales",

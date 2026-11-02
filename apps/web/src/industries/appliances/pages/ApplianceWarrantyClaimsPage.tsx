@@ -393,7 +393,7 @@ function Analytics({ s, money: m }: { s?: ClaimSummary; money: (n: number) => st
         <dl className="grid grid-cols-2 gap-3">
           <Box label={tr('Claim kiya')} value={m(s.money.claimed)} /><Box label={tr('Approve')} value={m(s.money.approved)} />
           <Box label={tr('Mila')} value={m(s.money.received)} tone="text-emerald-700" /><Box label={tr('Baqi')} value={m(s.money.pending)} tone="text-amber-700" />
-          <Box label={tr('Kam mila (nuqsan)')} value={m(s.money.shortfall)} tone={s.money.shortfall > 0 ? 'text-rose-700' : 'text-slate-900'} /><Box label={tr('Paisa aane me')} value={`${Math.round(s.avgSettleDays)} din`} />
+          <Box label={tr('Kam mila (nuqsan)')} value={m(s.money.shortfall)} tone={s.money.shortfall > 0 ? 'text-rose-700' : 'text-slate-900'} /><Box label={tr('Paisa aane me')} value={tr('{{count}} din', { count: Math.round(s.avgSettleDays) })} />
         </dl>
       </Panel>
       <Panel title={tr('Brand war wusooli')}><Bars rows={s.byBrand.map((b) => ({ key: b.brand, label: b.brand, value: b.claimed, color: '#2563eb', hint: `${m(b.received)} / ${m(b.claimed)} · ${Math.round(b.recoveryRate)}%` }))} /></Panel>

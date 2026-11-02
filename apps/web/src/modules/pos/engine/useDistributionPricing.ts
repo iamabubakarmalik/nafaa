@@ -182,7 +182,7 @@ export function useDistributionPricing({ customer, cart, setCart, counterPrice, 
           unitName: res.freeProductId ? info?.unit ?? 'pcs' : l.baseUnit, unitLabel: 'FREE', emoji: '🎁',
           unitPrice: 0, basePrice: 0, quantity: qty, baseQuantity: qty, conversionRate: 1,
           baseUnit: res.freeProductId ? info?.unit ?? 'pcs' : l.baseUnit, baseStock: Number.MAX_SAFE_INTEGER,
-          lineTotal: 0, note: tr('Scheme: {{value}}', { value: res.note ?? res.schemeName ?? 'free' }), variantId: res.freeProductId ? undefined : l.variantId,
+          lineTotal: 0, note: `Scheme: ${res.note ?? res.schemeName ?? 'free'}`, // saved with the sale variantId: res.freeProductId ? undefined : l.variantId,
           lockQty: true, fixedPrice: true,
           dist: { listPrice: 0, free: true, forLineId: l.id, schemeId: res.schemeId, schemeNote: res.note ?? res.schemeName },
         });

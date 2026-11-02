@@ -205,7 +205,7 @@ export function CustomersPage() {
       )}
 
       <div className="relative z-10 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 sm:p-4">
-        <div className="flex flex-col gap-2 xl:flex-row">
+        <div className="flex flex-col gap-2 2xl:flex-row">
           <label className="group relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute start-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-600" />
             <input ref={searchRef} value={d.search} onChange={(e) => d.setSearch(e.target.value)} placeholder={tr('Naam, phone (kisi bhi tarah), CNIC, sheher…')} aria-label={tr('Customer search')}

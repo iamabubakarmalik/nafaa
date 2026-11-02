@@ -243,8 +243,8 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
       {guide && <ProductsGuide extra={config.guide} onClose={() => setGuide(false)} />}
 
       <PageHero
-        title={tr('Maal')}
-        chip={<><Package />{st ? `${st.products} ${noun}` : '…'}</>}
+        title={tr('Products')}
+        chip={<><Package />{st ? `${st.products} ${tr(noun)}` : '…'}</>}
         busy={c.fetching && !c.loading}
         meta={`${config.label} · ${shopName ?? tenantName ?? ''}`}
         loading={c.loading || !st}
@@ -328,12 +328,12 @@ export function ProductsPage({ config }: { config: ProductsPageConfig }) {
         onClear={c.clear}>
         {(d?.categories.length ?? 0) > 0 && (
           <FilterMenu icon={Layers} label={tr('Category')} value={c.f.categoryId ?? 'all'} active={!!c.f.categoryId} width="w-72"
-            options={[{ value: 'all', label: tr('Sab') }, ...d!.categories.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}`, color: x.color }))]}
+            options={[{ value: 'all', label: tr('Sab') }, ...d!.categories.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${tr(noun)}`, color: x.color }))]}
             onChange={(v) => c.set('categoryId', v === 'all' ? undefined : v)} />
         )}
         {(d?.brands.length ?? 0) > 0 && (
           <FilterMenu icon={Sparkles} label={tr('Brand')} value={c.f.brandId ?? 'all'} active={!!c.f.brandId} width="w-72"
-            options={[{ value: 'all', label: tr('Sab') }, ...d!.brands.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${noun}` }))]}
+            options={[{ value: 'all', label: tr('Sab') }, ...d!.brands.map((x) => ({ value: x.id, label: x.name, hint: `${x.count} ${tr(noun)}` }))]}
             onChange={(v) => c.set('brandId', v === 'all' ? undefined : v)} />
         )}
         <MoreFilters groups={moreGroups} />

@@ -195,7 +195,7 @@ export default function PrescriptionsPage() {
                     </div>
                     <div className="min-w-0">
                       <p className="flex items-center gap-1.5 truncate font-semibold text-slate-900"><UserRound className="h-3.5 w-3.5 shrink-0 text-slate-400" />{r.patientName || tr('Walk-in')}</p>
-                      <p className="truncate text-[0.75rem] text-slate-500">{[r.patientAge ? `${r.patientAge} saal` : '', r.patientPhone].filter(Boolean).join(' · ') || '—'}</p>
+                      <p className="truncate text-[0.75rem] text-slate-500">{[r.patientAge ? tr('{{count}} saal', { count: r.patientAge }) : '', r.patientPhone].filter(Boolean).join(' · ') || '—'}</p>
                     </div>
                     <div className="min-w-0">
                       <p className="flex items-center gap-1.5 truncate text-[0.875rem] text-slate-700"><Stethoscope className="h-3.5 w-3.5 shrink-0 text-slate-400" />{drName(r.doctorName) || '—'}</p>

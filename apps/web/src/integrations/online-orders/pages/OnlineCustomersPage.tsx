@@ -278,7 +278,7 @@ export default function OnlineCustomersPage() {
                           <div className="font-semibold text-slate-900">{money(c.spent)}</div>
                           {c.avgOrder > 0 && <div className="text-[0.6875rem] text-slate-400">{tr('ausat {{avgOrder}}', { avgOrder: money(c.avgOrder) })}</div>}
                         </Td>
-                        <Td className="px-3 py-2.5 text-end text-slate-600">{c.daysSince === 0 ? 'aaj' : tr('{{daysSince}} din pehle', { daysSince: c.daysSince })}</Td>
+                        <Td className="px-3 py-2.5 text-end text-slate-600">{c.daysSince === 0 ? tr('aaj') : tr('{{daysSince}} din pehle', { daysSince: c.daysSince })}</Td>
                         <Td className="px-4 py-2.5 sm:px-5">
                           <div className="flex justify-end gap-1">
                             {href && (

@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '@core/stores/auth.store';
 import { SHOP_HEADER } from '@core/lib/shopScope';
-import { hasTranslation, t } from '@core/i18n/runtime';
-import { translateServerMessage } from '@core/i18n/serverMessage';
+import { hasServerTranslation, translateServerMessage, translateServerText } from '@core/i18n/serverMessage';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
@@ -38,9 +37,9 @@ function translateBody(body: unknown, isError: boolean) {
   if (typeof b.messageKey === 'string') {
     b.message = translateServerMessage(b.messageKey, b.params);
   } else if (typeof b.message === 'string') {
-    if (isError || hasTranslation(b.message)) b.message = t(b.message);
+    if (isError || hasServerTranslation(b.message)) b.message = translateServerText(b.message);
   } else if (Array.isArray(b.message) && isError) {
-    b.message = b.message.map((m) => (typeof m === 'string' ? t(m) : m));
+    b.message = b.message.map((m) => (typeof m === 'string' ? translateServerText(m) : m));
   }
 }
 

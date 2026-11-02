@@ -111,7 +111,7 @@ export function StaffBoard() {
   const sort = costHidden && s.sort === 'profit' ? 'total' : (s.sort as 'total' | 'bills' | 'average' | 'profit');
   const rows = useMemo(() => [...(data?.staff ?? [])].sort((a, b) => b[sort] - a[sort]), [data, sort]);
   const max = Math.max(...rows.map((r) => r[sort]), 1);
-  const value = (r: (typeof rows)[number]) => (sort === 'bills' ? `${r.bills} bill` : sort === 'profit' ? cost(r.profit) : sort === 'average' ? sales(r.average) : sales(r.total));
+  const value = (r: (typeof rows)[number]) => (sort === 'bills' ? t('{{count}} bill', { count: r.bills }) : sort === 'profit' ? cost(r.profit) : sort === 'average' ? sales(r.average) : sales(r.total));
 
   return (
     <WidgetCard title={t('Staff ki sale')} icon={Medal} description={periodLabel(s.days)} to="/staff/commission" linkLabel={t('Commission')}>

@@ -2,7 +2,7 @@ import { ShieldAlert, ShieldCheck, ShieldQuestion } from 'lucide-react';
 import type { CustomerRisk } from '../api/online-orders.api';
 import { rs } from '../lib/labels';
 import { cn } from '@core/lib/cn';
-import { t } from '@core/i18n';
+import { msg, t } from '@core/i18n';
 
 const TONE: Record<CustomerRisk['level'], string> = {
   NEW: 'bg-sky-100 text-sky-800',
@@ -13,6 +13,17 @@ const TONE: Record<CustomerRisk['level'], string> = {
   BLOCKED: 'bg-slate-900 text-white',
 };
 
+/** The server's label follows from the level; show it in the screen language. */
+const LABEL: Record<CustomerRisk['level'], string> = {
+  NEW: msg('Naya customer'),
+  TRUSTED: msg('Bharosemand'),
+  OK: msg('Theek'),
+  WATCH: msg('Dhyan se'),
+  HIGH: msg('RTO khatra'),
+  BLOCKED: msg('Block kiya hua'),
+};
+const labelOf = (risk: CustomerRisk) => (LABEL[risk.level] ? t(LABEL[risk.level]) : risk.label);
+
 /** List ki chhoti badge — sirf jahan kuch batane layak ho */
 export function RiskBadge({ risk }: { risk?: CustomerRisk | null }) {
   if (!risk) return null;
@@ -20,7 +31,7 @@ export function RiskBadge({ risk }: { risk?: CustomerRisk | null }) {
     <>
       {risk.level !== 'OK' && (
         <span title={risk.reason} className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-bold', TONE[risk.level])}>
-          {risk.label}
+          {labelOf(risk)}
         </span>
       )}
       {(risk.duplicateOpen ?? 0) > 0 && (
@@ -43,7 +54,7 @@ export function RiskCard({ risk }: { risk?: CustomerRisk | null }) {
         : risk.level === 'WATCH' ? 'bg-amber-50 text-amber-900'
           : risk.level === 'TRUSTED' ? 'bg-success-50 text-success-900'
             : 'bg-slate-50 text-slate-700')}>
-      <div className="flex items-center gap-2 font-bold"><Icon className="h-4 w-4" /> {risk.label}</div>
+      <div className="flex items-center gap-2 font-bold"><Icon className="h-4 w-4" /> {labelOf(risk)}</div>
       {(risk.reasons?.length ?? 0) > 1 ? (
         <ul className="mt-1 list-disc space-y-0.5 ps-5 text-xs font-semibold opacity-90">
           {risk.reasons!.map((r) => <li key={r}>{r}</li>)}

@@ -191,7 +191,7 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
         <aside className="hidden min-[1400px]:block">
           <div className="sticky top-24 space-y-3">
             <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
-              <div className="aspect-[4/3] bg-slate-100"><ProductThumb name={c.name || 'Naya'} url={c.images[0]?.url} size="full" /></div>
+              <div className="aspect-[4/3] bg-slate-100"><ProductThumb name={c.name || t('Naya')} url={c.images[0]?.url} size="full" /></div>
               <div className="p-4">
                 <p className="line-clamp-2 font-semibold text-slate-900">{c.name || t('Naam likhein…')}</p>
                 <p className="mt-1 text-[1.25rem] font-bold tabular-nums text-slate-900">{formatPKR(c.price)}<span className="text-[0.75rem] font-medium text-slate-500"> /{c.unit}</span></p>

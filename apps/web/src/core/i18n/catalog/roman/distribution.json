@@ -1,4 +1,8 @@
 {
+  "{{count}} items": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
   "{{name}} — badlein": "{{name}} — edit",
   "{{name}} mitayein?": "{{name}} delete karein?",
   "{{orderNumber}} badlein": "{{orderNumber}} edit",

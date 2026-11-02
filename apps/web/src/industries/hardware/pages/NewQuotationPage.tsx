@@ -208,7 +208,7 @@ export default function NewQuotationPage() {
           <span className="hidden items-center gap-1.5 text-[0.75rem] text-white/70 sm:inline-flex"><Kbd>Ctrl</Kbd>+<Kbd>S</Kbd> {' '}{tr('save')}</span>
           <button type="button" onClick={guide.open} title={tr('Guide (G)')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
         </>}
-        stats={[{ label: tr('Kul amount'), value: formatPKR(totals.total) }, { label: tr('Items'), value: String(lines.length) }, { label: tr('Chalegi'), value: `${validity} din` }]} />
+        stats={[{ label: tr('Kul amount'), value: formatPKR(totals.total) }, { label: tr('Items'), value: String(lines.length) }, { label: tr('Chalegi'), value: tr('{{count}} din', { count: validity }) }]} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-4">

@@ -3,6 +3,14 @@
   "\"CNIC ke aakhri 6 hindse likhein\"": "\"CNIC ke aakhri 6 digits likhein\"",
   "(WooCommerce / Shopify) Nafaa me qeemat badlein → website par 1-2 minute me. Website par sale chalate hon to off rakhein.": "(WooCommerce / Shopify) Nafaa me price badlein → website par 1-2 minute me. Website par sale chalate hon to off rakhein.",
   "{{name}} ne nayi ijazat maangi hai. Dobara install se sab chal padega — koi data nahi mitega.": "{{name}} ne nayi permission maangi hai. Dobara install se sab chal padega — koi data nahi mitega.",
+  "{{name}}: {{count}} products ka Stock/Price nahi ja raha": {
+    "one": "{{name}}: {{count}} product ka Stock/Price nahi ja raha",
+    "other": "{{name}}: {{count}} products ka Stock/Price nahi ja raha"
+  },
+  "{{name}}: {{count}} size wale products bina size jure — theek karein": {
+    "one": "{{name}}: {{count}} size wale product bina size jure — theek karein",
+    "other": "{{name}}: {{count}} size wale products bina size jure — theek karein"
+  },
   "{{siteName}} par bhejo": "{{siteName}} par bhejein",
   "{{size}} {{siteName}} par bhejo": "{{size}} {{siteName}} par bhejein",
   "{{suggested}} salah": "{{suggested}} suggestion",

@@ -21,12 +21,24 @@
   "{{commissionPct}}% share": "{{commissionPct}}% share",
   "{{consultations}} visits": "{{consultations}} visits",
   "{{count}} chalu": "{{count}} active",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
   "{{count}} doctor ke paas mareez": {
     "one": "{{count}} doctor has patients",
     "other": "{{count}} doctors have patients"
   },
   "{{count}} intezar me": "{{count}} waiting",
+  "{{count}} mah": {
+    "one": "{{count}} month",
+    "other": "{{count}} months"
+  },
   "{{count}} mukammal": "{{count}} done",
+  "{{count}} saal": {
+    "one": "{{count}} year",
+    "other": "{{count}} years"
+  },
   "{{createdAt}}{{value}} · baqi {{balanceAfter}}": "{{createdAt}}{{value}} · due {{balanceAfter}}",
   "{{d}} din": "{{d}} days",
   "{{doctor}} — badlein": "{{doctor}} — edit",
@@ -238,7 +250,7 @@
   "Call": "Call",
   "Cancel": "Cancel",
   "Cancel / nahi aaye": "Cancelled / no-show",
-  "Cancel karein": "Cancel booking",
+  "Cancel karein": "Cancel",
   "Cancel: {{cancellationReason}}": "Cancelled: {{cancellationReason}}",
   "Card": "Card",
   "Card number": "Card number",
@@ -395,7 +407,7 @@
   "Exercise": "Exercise",
   "Expense": "Expense",
   "Expired vaccine nahi lag sakti": "An expired vaccine cannot be given",
-  "Expiry": "Expired",
+  "Expiry": "Expiry",
   "F dabayein — doctor ne jin ko dobara bulaya, un ki list; \"Book\" se seedha token.": "Press F — the list of patients the doctor asked to come back; \"Book\" gives a token directly.",
   "F dabayein: follow-up": "Press F: follow-up",
   "Family physician": "Family physician",
@@ -778,7 +790,7 @@
   "Profile": "Profile",
   "Psychiatrist": "Psychiatrist",
   "Pulse": "Pulse",
-  "Purana": "Overdue",
+  "Purana": "Expired",
   "Purana nuskha dobara print — mareez kho de to.": "Reprint an old prescription — if the patient loses it.",
   "Purane bill": "Old bills",
   "Purani bimari": "Past illness",

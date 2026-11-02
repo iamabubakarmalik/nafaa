@@ -129,7 +129,7 @@ export default function OnlineReportsPage() {
           <KpiCard icon={XCircle} color="#e11d48" label={tr('Cancel / reject')} value={`${t.cancelRate}%`} hint={tr('{{cancelled}} order', { cancelled: t.cancelled })} />
           <KpiCard icon={RotateCcw} color="#c026d3" label={tr('Wapas aaya maal')} value={money(t.returnedValue)} hint={tr('{{returned}} parcel', { returned: t.returned })} onClick={() => setTab('couriers')} active={tab === 'couriers'} />
           <KpiCard icon={Timer} color="#0284c7" label={tr('Accept me waqt')} value={acceptText(t.avgAcceptMinutes)} hint={tr('Order aane se bill tak')} />
-          <KpiCard icon={PackageCheck} color="#0d9488" label={tr('Delivery me waqt')} value={t.avgDeliveryDays == null ? '—' : `${t.avgDeliveryDays} din`}
+          <KpiCard icon={PackageCheck} color="#0d9488" label={tr('Delivery me waqt')} value={t.avgDeliveryDays == null ? '—' : tr('{{count}} din', { count: t.avgDeliveryDays })}
             hint={t.pending ? tr('{{pending}} naye abhi accept baqi', { pending: t.pending }) : tr('Courier ko dene se deliver tak')} />
         </>}
       </KpiRow>

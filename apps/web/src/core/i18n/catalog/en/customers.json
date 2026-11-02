@@ -19,6 +19,10 @@
   "{{bills}} bill": "{{bills}} bills",
   "{{buyers}} khareedne walon par": "across {{buyers}} buyers",
   "{{buyers}} ne khareeda": "{{buyers}} bought",
+  "{{count}} bill": {
+    "one": "{{count}} bill",
+    "other": "{{count}} bills"
+  },
   "{{count}} bill · kul {{total}}": {
     "one": "{{count}} bill · total {{total}}",
     "other": "{{count}} bills · total {{total}}"
@@ -38,6 +42,10 @@
     "other": "{{count}} customers"
   },
   "{{count}} customers ka len-den": "Credit activity of {{count}} customers",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
   "{{count}} number copy ho gaye": {
     "one": "{{count}} number copied",
     "other": "{{count}} numbers copied"
@@ -115,6 +123,7 @@
   "90+ din se nahi aaye": "Not seen for 90+ days",
   "A4 bill aur delivery parchi par chhapta hai": "Printed on A4 bills and delivery slips",
   "Aa rahe hain…": "Loading…",
+  "aaj": "today",
   "Aaj salgirah hai — {{age}} saal": "Birthday today — {{age}} years",
   "Aaj salgirah!": "Birthday today!",
   "Aakhri": "Last",
@@ -397,6 +406,7 @@
   "Kabhi nahi khareeda": "Never bought",
   "Kaise mile": "Received by",
   "Kaise paise deta hai": "How they pay",
+  "kal": "yesterday",
   "Kam se kam istemal": "Minimum to use",
   "Kam se kam kitne points istemal": "Minimum points to use",
   "Kam se kam Rs 1 likhein": "Enter at least Rs 1",

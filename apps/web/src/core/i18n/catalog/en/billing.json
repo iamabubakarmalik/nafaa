@@ -3,7 +3,10 @@
   "{{amount}} bachat ({{percent}}%)": "Save {{amount}} ({{percent}}%)",
   "{{amountDue}} ada karein": "Pay {{amountDue}}",
   "{{amountDue}} card se": "{{amountDue}} by card",
-  "{{count}} bill": "{{count}} bills",
+  "{{count}} bill": {
+    "one": "{{count}} bill",
+    "other": "{{count}} bills"
+  },
   "{{count}} bill · dabayein": "{{count}} bills · tap",
   "{{count}} bill khule hain": "{{count}} bills are open",
   "{{count}} cheezein chalu · {{count2}} bare plan me": "{{count}} features on · {{count2}} in bigger plans",

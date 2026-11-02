@@ -25,6 +25,10 @@
   "{{bills}} bill · kal se {{value}}{{change}}%": "{{bills}} bills · {{value}}{{change}}% vs yesterday",
   "{{bills}} bill, return ke baad": "{{bills}} bills, after returns",
   "{{closedDrawers}} galla band hua": "Drawers closed: {{closedDrawers}}",
+  "{{count}} bill": {
+    "one": "{{count}} bill",
+    "other": "{{count}} bills"
+  },
   "{{count}} cheezein {{value}} me download karein": "Download {{count}} items in {{value}}",
   "{{count}} device par login hai": {
     "one": "Logged in on {{count}} device",

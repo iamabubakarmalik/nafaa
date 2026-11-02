@@ -21,7 +21,7 @@ function HeroLinks() {
 }
 
 const chip = 'inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold';
-const life = (h?: number | null) => (!h ? null : h >= 48 ? `${Math.round(h / 24)} din` : `${h} ghante`);
+const life = (h?: number | null) => (!h ? null : h >= 48 ? t('{{count}} din', { count: Math.round(h / 24) }) : t('{{count}} ghante', { count: h }));
 
 const base: Omit<ProductsPageConfig, 'extras' | 'columns'> = {
   label: t('Dairy'),

@@ -300,7 +300,7 @@ export function OnlineAnalytics({ data, money, sections = ALL_SECTIONS, onTab }:
                     {repeatPct < 20 ? tr('Dobara aane wale kam hain — parcel me shukriya card ya agle order par discount rakhein.') : tr('Achha hai — inhein WhatsApp par naye maal ki khabar dein.')}
                   </p>
                   <RankList rows={data.topCustomers.map((c) => ({
-                    key: c.phone, title: c.name, meta: [`${c.orders} order`, c.city].filter(Boolean).join(' · '), right: money(c.value), bar: c.value,
+                    key: c.phone, title: c.name, meta: [tr('{{count}} order', { count: c.orders }), c.city].filter(Boolean).join(' · '), right: money(c.value), bar: c.value,
                     to: `/online-orders?search=${encodeURIComponent(c.phone)}`,
                   }))} />
                   <Link to="/online-orders/customers" className="mt-3 inline-block text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Sab customers aur WhatsApp →')}</Link>

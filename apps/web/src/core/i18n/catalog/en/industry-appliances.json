@@ -38,6 +38,14 @@
     "one": "{{count}} contract",
     "other": "{{count}} contracts"
   },
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
+  "{{count}} mahine": {
+    "one": "{{count}} month",
+    "other": "{{count}} months"
+  },
   "{{count}} qist × {{each}} · advance {{advance}}": {
     "one": "{{count}} instalment × {{each}} · advance {{advance}}",
     "other": "{{count}} instalments × {{each}} · advance {{advance}}"
@@ -174,7 +182,7 @@
   "Aaj koi delivery nahi": "No deliveries today",
   "Aaj koi visit nahi": "No visits today",
   "Aaj theek hue": "Fixed today",
-  "Aaya": "Visited",
+  "Aaya": "Received",
   "Aaya {{dayOnly}}{{value}}": "Came {{dayOnly}}{{value}}",
   "Ab tak: {{totalVisitsUsed}} visits · parts {{formatPKR}} · customer ne mazdoori me {{formatPKR2}} bachaye": "So far: {{totalVisitsUsed}} visits · parts {{formatPKR}} · customer saved {{formatPKR2}} on labour",
   "Abhi khula kaam": "Open work now",
@@ -325,7 +333,7 @@
   "Brands: {{value}}": "Brands: {{value}}",
   "Call": "Call",
   "Cancel": "Cancel",
-  "Cancel karein": "Cancel booking",
+  "Cancel karein": "Cancel",
   "Capacitor badla, gas check ki": "Changed capacitor, checked gas",
   "Capacitor jal gaya tha": "Capacitor had burnt",
   "Capacity": "Capacity",
@@ -492,7 +500,7 @@
   "Demo diye": "Demos given",
   "Din ba din": "Day by day",
   "Dishwasher": "Dishwasher",
-  "Diya": "Paid",
+  "Diya": "Delivered",
   "Diya {{deliveredAt}}": "Delivered {{deliveredAt}}",
   "Dobara chalu": "Restart",
   "Dobara dekhna hai (follow-up)": "Needs another check (follow-up)",
@@ -1227,7 +1235,7 @@
   "Warranty me hai": "Under warranty",
   "Warranty me theek kiye kaam jin ka claim abhi nahi bana": "Warranty jobs done with no claim made yet",
   "Warranty repair ke parts aur mazdoori company se wapas lein": "Get warranty repair parts and labour back from the company",
-  "Warranty repair mukammal hone par \"Company se claim\" dabayein, ya \"Claim nahi kiye\" tab se. Parts aur mazdoori khud aa jate hain.": "When a warranty repair is complete, press \"Company se claim\", or use the \"Not claimed\" tab. Parts and labour fill in by themselves.",
+  "Warranty repair mukammal hone par \"Company se claim\" dabayein, ya \"Claim nahi kiye\" tab se. Parts aur mazdoori khud aa jate hain.": "When a warranty repair is complete, press \"Claim from company\", or use the \"Not claimed\" tab. Parts and labour fill in by themselves.",
   "Warranty repair mukammal karein to 'Company se claim' button aata hai — ya yahan khud likhein.": "When you complete a warranty repair a 'Claim from company' button appears — or add one here yourself.",
   "Warranty wale": "Under warranty",
   "Warranty wale kaam par customer se kuch nahi — \"Company se claim\" se parts ka paisa company se lein. AMC visit khud ginti hoti hai.": "Nothing from the customer on warranty jobs — get the parts money from the company with \"Claim from company\". AMC visits are counted by themselves.",

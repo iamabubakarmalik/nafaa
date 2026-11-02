@@ -19,7 +19,7 @@ const when = (left: number | null) => {
   if (left === null) return '—';
   if (left < 0) return tr('Late');
   if (left <= 24) return `${Math.round(left)}h`;
-  return `${Math.round(left / 24)} din`;
+  return tr('{{count}} din', { count: Math.round(left / 24) });
 };
 
 /** Meat headline numbers, offered next to the common ones. */

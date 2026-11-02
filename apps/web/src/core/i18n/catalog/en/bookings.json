@@ -21,6 +21,10 @@
     "one": "{{count}} item",
     "other": "{{count}} items"
   },
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
   "{{count}} pickup · {{value}} baqi": {
     "one": "{{count}} pickup · {{value}} due",
     "other": "{{count}} pickups · {{value}} due"

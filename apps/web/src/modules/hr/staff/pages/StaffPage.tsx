@@ -205,7 +205,7 @@ export default function StaffPage() {
                 options={[{ value: '', label: tr('Sab branches') }, ...shops.map((s) => ({ value: s.id, label: s.name })), { value: 'none', label: tr('Kisi ek branch ke nahi') }]} />
             )}
             <FilterMenu icon={Filter} label={tr('Haal')} value={status} active={status !== 'current'} onChange={setStatus} align="right" options={STATUS_FILTERS} />
-            <FilterMenu icon={ArrowDownWideNarrow} label={{ name: 'Naam', login: 'Aakhri login', sales: 'Aaj ki sale', joined: 'Naye pehle' }[sort]} value={sort} onChange={setSort} align="right"
+            <FilterMenu icon={ArrowDownWideNarrow} label={tr('Sort')} value={sort} onChange={setSort} align="right"
               options={[
                 { value: 'name', label: tr('Duty wale pehle, phir naam') }, { value: 'joined', label: tr('Naye pehle') },
                 ...(canTeam ? [{ value: 'login' as Sort, label: tr('Aakhri login') }] : []),

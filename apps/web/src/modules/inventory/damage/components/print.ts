@@ -32,7 +32,7 @@ export function damageDoc(list: DamageList, period: string, filter: string): Pri
         title: tr('Khulasa'),
         rows: [
           { label: tr('Approval baqi'), value: `${t.reported} · ${formatPKR(t.pendingValue)}` },
-          { label: tr('Approve'), value: String(t.approved) },
+          { label: tr('Approved'), value: String(t.approved) },
           { label: tr('Rad'), value: String(t.rejected) },
           { label: tr('Asal nuqsan'), value: `−${formatPKR(t.lost)}`, strong: true },
         ],

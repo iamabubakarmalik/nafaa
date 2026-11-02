@@ -2,15 +2,20 @@
 /**
  * i18n:check — fails when translations are missing or broken. CI-friendly.
  *
- *   node scripts/i18n/check.mjs [--area pos,dashboard] [--locales en,ur] [--leftovers] [--json out.json]
+ *   node scripts/i18n/check.mjs [--area pos,dashboard] [--locales en,ur] [--leftovers] [--conflicts] [--json out.json]
  *
  * Errors (exit code 1):
  *   - a key used in code has no English or Urdu text in its area catalog
  *   - a translation uses different {{placeholders}} than its key
  * Warnings:
- *   - the same key is translated differently in two areas
+ *   - a catalog file lists the same key twice (JSON keeps only the last one)
  *   - with --leftovers, sentence-like strings in the area's files that are
  *     still not wrapped in t() (from the wrap codemod's report)
+ *
+ * The same key translated differently in two areas is not a problem: t()
+ * looks in the caller's area first (core/i18n/README.md). --conflicts lists
+ * those differences for review; they only matter for keys an area shows
+ * without holding them itself (msg() labels shown by another module).
  */
 
 import { execFileSync } from 'node:child_process';
@@ -18,10 +23,10 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { areaOf, listFiles, parseArgs, REQUIRED_LOCALES, rel, WEB_ROOT } from './lib/files.mjs';
-import { catalogAreas, entryTexts, isFilled, placeholders, readCatalog } from './lib/catalog.mjs';
+import { catalogAreas, catalogPath, entryTexts, isFilled, placeholders, readCatalog } from './lib/catalog.mjs';
 import { scanAll } from './lib/scan.mjs';
 
-const { flags } = parseArgs(process.argv.slice(2), ['leftovers']);
+const { flags } = parseArgs(process.argv.slice(2), ['leftovers', 'conflicts']);
 const only = flags.area ? String(flags.area).split(',').map((s) => s.trim()).filter(Boolean) : null;
 const locales = flags.locales ? String(flags.locales).split(',') : REQUIRED_LOCALES;
 
@@ -54,17 +59,37 @@ for (const [area, used] of [...byArea.entries()].sort()) {
   }
 }
 
-// Conflicting translations of the same key in different areas.
-for (const locale of locales) {
-  const seen = new Map();
+// A key listed twice in one file: JSON.parse silently keeps the last value.
+for (const locale of [...locales, 'roman']) {
   for (const area of catalogAreas()) {
-    for (const [key, value] of Object.entries(readCatalog(locale, area))) {
-      if (!isFilled(value)) continue;
-      const v = JSON.stringify(value);
-      const prev = seen.get(key);
-      if (prev && prev.v !== v && (!only || only.includes(area) || only.includes(prev.area))) {
-        warnings.push({ locale, key, problem: `${prev.area}: ${prev.v}  vs  ${area}: ${v}` });
-      } else if (!prev) seen.set(key, { area, v });
+    if (only && !only.includes(area)) continue;
+    const file = catalogPath(locale, area);
+    if (!fs.existsSync(file)) continue;
+    const keys = new Set();
+    for (const m of fs.readFileSync(file, 'utf8').matchAll(/^ {2}("(?:[^"\\]|\\.)*")\s*:/gm)) {
+      const key = JSON.parse(m[1]);
+      if (keys.has(key)) warnings.push({ locale, key, problem: `listed twice in ${area}.json` });
+      keys.add(key);
+    }
+  }
+}
+
+// Different translations of the same key in different areas (informational).
+const conflicts = [];
+if (flags.conflicts) {
+  for (const locale of locales) {
+    const byKey = new Map();
+    for (const area of catalogAreas()) {
+      for (const [key, value] of Object.entries(readCatalog(locale, area))) {
+        if (!isFilled(value)) continue;
+        if (!byKey.has(key)) byKey.set(key, []);
+        byKey.get(key).push({ area, v: JSON.stringify(value) });
+      }
+    }
+    for (const [key, list] of byKey) {
+      if (new Set(list.map((x) => x.v)).size < 2) continue;
+      if (only && !list.some((x) => only.includes(x.area))) continue;
+      conflicts.push({ locale, key, areas: list.map((x) => `${x.area}: ${x.v}`) });
     }
   }
 }
@@ -89,14 +114,18 @@ if (errors.length) {
 }
 if (warnings.length) {
   console.log(`\nWarnings: ${warnings.length}`);
-  byKind(warnings, (w) => `  [${w.locale}] "${w.key}" translated differently — ${w.problem}`);
+  byKind(warnings, (w) => `  [${w.locale}] "${w.key}" ${w.problem}`);
+}
+if (flags.conflicts) {
+  console.log(`\nTranslated differently by area (looked up per area, not an error): ${conflicts.length}`);
+  byKind(conflicts, (c) => `  [${c.locale}] "${c.key}"\n      ${c.areas.join('\n      ')}`);
 }
 if (flags.leftovers) {
   console.log(`\nText not wrapped in t(): ${leftovers.length}`);
   byKind(leftovers, (l) => `  ${l.where}  ${l.text}   [${l.why}]`);
 }
-if (flags.json) fs.writeFileSync(flags.json, JSON.stringify({ errors, warnings, leftovers }, null, 2));
+if (flags.json) fs.writeFileSync(flags.json, JSON.stringify({ errors, warnings, conflicts, leftovers }, null, 2));
 
 const areasChecked = only ? only.join(', ') : 'all areas';
-console.log(`\n${errors.length ? 'FAILED' : 'OK'} — ${areasChecked}; locales ${locales.join(', ')}; ${errors.length} error(s), ${warnings.length} warning(s)${flags.leftovers ? `, ${leftovers.length} unwrapped` : ''}.`);
+console.log(`\n${errors.length ? 'FAILED' : 'OK'} — ${areasChecked}; locales ${locales.join(', ')}; ${errors.length} error(s), ${warnings.length} warning(s)${flags.conflicts ? `, ${conflicts.length} cross-area difference(s)` : ''}${flags.leftovers ? `, ${leftovers.length} unwrapped` : ''}.`);
 process.exit(errors.length ? 1 : 0);

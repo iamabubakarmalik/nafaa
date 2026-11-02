@@ -43,7 +43,7 @@ export function BookingsAnalytics({ filters, money }: { filters: Omit<BookingQue
         <Kpi icon={Wallet} label={tr('Paise mile')} value={money(t.received)} sub={tr('Advance aur baad ki payments')} tone="emerald" />
         <Kpi icon={RotateCcw} label={tr('Wapas diye')} value={money(t.refunded)} sub={tr('Cancel par return')} tone="rose" />
         <Kpi icon={Percent} label={tr('Ausat advance')} value={t.avgAdvancePct == null ? '—' : `${t.avgAdvancePct}%`} sub={tr('Booking ke waqt kul ka kitna')} tone="amber" />
-        <Kpi icon={Timer} label={tr('Sale tak ausat')} value={t.avgDaysToSale == null ? '—' : `${t.avgDaysToSale} din`} sub={tr('Booking se pickup tak')} />
+        <Kpi icon={Timer} label={tr('Sale tak ausat')} value={t.avgDaysToSale == null ? '—' : tr('{{count}} din', { count: t.avgDaysToSale })} sub={tr('Booking se pickup tak')} />
         <Kpi icon={TrendingUp} label={tr('Sale ki amount')} value={money(t.convertedValue)} sub={tr('Jo bookings bik gayi')} tone="emerald" />
         <Kpi icon={CalendarClock} label={tr('Agle 14 din')} value={String(load.reduce((s, x) => s + x.count, 0))}
           sub={tr('pickup · {{value}} baqi', { value: money(load.reduce((s, x) => s + x.balance, 0)) })} tone="amber" />

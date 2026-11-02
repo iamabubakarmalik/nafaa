@@ -508,7 +508,7 @@ export function OrderComposer({ counter = false, initialMode, initialTableId, or
             <details className="group rounded-xl bg-white ring-1 ring-slate-200">
               <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-[0.8125rem] font-semibold text-slate-700">
                 <Percent className="h-4 w-4 text-slate-400" /> {' '}{tr('Charges, discount aur note')}
-                <span className="ms-auto text-[0.75rem] font-medium text-slate-500">{[svcPct ? `Service ${svcPct}%` : '', Number(taxPct) ? `Tax ${taxPct}%` : '', disc ? `Discount ${formatPKR(disc)}` : ''].filter(Boolean).join(' · ') || 'kholein'}</span>
+                <span className="ms-auto text-[0.75rem] font-medium text-slate-500">{[svcPct ? tr('Service {{value}}%', { value: svcPct }) : '', Number(taxPct) ? tr('Tax {{value}}%', { value: taxPct }) : '', disc ? tr('Discount {{value}}', { value: formatPKR(disc) }) : ''].filter(Boolean).join(' · ') || tr('kholein')}</span>
               </summary>
               <div className="grid grid-cols-2 gap-2 border-t border-slate-100 p-3">
                 {mode === 'DINE_IN' && <NumField label={tr('Service charge %')} value={serviceText} onChange={setServicePct} hint={shopService ? tr('Dukaan ka {{shopService}}% (Settings) — sirf is order ke liye badlein', { shopService }) : tr('Sirf is order ke liye; dukaan ka Settings → Counter rules me')} />}

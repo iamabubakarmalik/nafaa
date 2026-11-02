@@ -34,7 +34,7 @@ export function duration(fromIso?: string | null, toIso?: string | null) {
   const mins = Math.round(ms / 60_000);
   if (mins < 60) return `${Math.max(mins, 1)} min`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} ghante`;
+  if (hours < 24) return tr('{{count}} ghante', { count: hours });
   const days = Math.floor(hours / 24);
   const rest = hours % 24;
   return rest ? tr('{{days}} din {{rest}} ghante', { days, rest }) : tr('{{days}} din', { days });

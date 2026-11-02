@@ -29,7 +29,8 @@ export async function keepAdvance(d: PosCheckoutResult, total: number, customerI
       amount: Number((d.paidAmount - total).toFixed(2)),
       paymentMethod: d.paymentMethod,
       reference: saleNumber,
-      note: t('Bill {{value}} par zyada diya — advance', { value: saleNumber ?? '' }),
+      // Saved on the khata, so it reads the same whatever the cashier's language.
+      note: `Bill ${saleNumber ?? ''} par zyada diya — advance`,
     });
     return true;
   } catch {

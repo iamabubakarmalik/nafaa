@@ -20,7 +20,7 @@ export function TaxAuthorityReceiptBadge({ saleId, className }: { saleId?: strin
     refetchInterval: (q) => (q.state.data && q.state.data.status !== 'SUCCESS' && q.state.dataUpdateCount < 12 ? 5_000 : false),
   });
   const svg = useMemo(() => (data?.qrText ? qrSvg(data.qrText, 110) : ''), [data?.qrText]);
-  if (!data) return null;
+  if (!data?.authority) return null;
   if (data.status !== 'SUCCESS') {
     return <div className={cn('text-center text-[0.625rem] font-bold', className)}>{t('{{authority}} invoice: bheja ja raha hai', { authority: data.authority })}</div>;
   }

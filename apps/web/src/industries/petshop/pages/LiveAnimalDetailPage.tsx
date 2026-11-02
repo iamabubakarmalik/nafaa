@@ -113,7 +113,7 @@ export default function LiveAnimalDetailPage() {
               <Stat label={a.status === 'SOLD' ? tr('Bika') : tr('Rate')} value={money(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice)} />
               {!costHidden && <Stat label={tr('Cost')} value={costMoney(a.costPrice ?? 0)} />}
               {!costHidden && <Stat label={tr('Profit')} value={costMoney((a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) - (a.costPrice ?? 0))} tone={(a.status === 'SOLD' ? a.soldPrice ?? 0 : a.askingPrice) >= (a.costPrice ?? 0) ? 'text-success-700' : 'text-rose-700'} />}
-              <Stat label={tr('Dukaan me')} value={inStore === null ? '—' : `${-inStore} din`} tone={inStore !== null && -inStore > 60 && onSale ? 'text-amber-700' : undefined} />
+              <Stat label={tr('Dukaan me')} value={inStore === null ? '—' : tr('{{count}} din', { count: -inStore })} tone={inStore !== null && -inStore > 60 && onSale ? 'text-amber-700' : undefined} />
             </div>
             {a.status === 'SOLD' && <p className="mt-3 text-[0.8125rem] text-slate-600">{longDate(a.soldAt)}{a.soldToCustomerName ? ` · ${a.soldToCustomerName}` : ''}</p>}
             {onSale && canSell && (

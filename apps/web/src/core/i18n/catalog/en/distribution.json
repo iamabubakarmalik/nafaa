@@ -48,7 +48,10 @@
   "{{count}} invoice ka maal wapas — Return": "Goods returned on {{count}} invoices — Return",
   "{{count}} invoice settle nahi hui — neeche dekhein": "{{count}} invoices not settled, see below",
   "{{count}} invoices ·": "{{count}} invoices ·",
-  "{{count}} items": "{{count}} items",
+  "{{count}} items": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
   "{{count}} items ·": "{{count}} items ·",
   "{{count}} items · cost par": "{{count}} items · at cost",
   "{{count}} order cancel karein?": "Cancel {{count}} orders?",
@@ -239,7 +242,7 @@
   "Apne rates": "Own rates",
   "Apni scheme": "Own scheme",
   "approve": "approve",
-  "Approve": "Approved",
+  "Approve": "Approve",
   "Approve — khata credit": "Approve: credit customer",
   "approve ·": "approve ·",
   "Approve + Invoice": "Approve + Invoice",

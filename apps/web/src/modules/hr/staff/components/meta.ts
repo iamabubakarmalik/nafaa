@@ -143,7 +143,7 @@ export function tenure(iso?: string | null) {
   if (months < 1) return t('Naya');
   const y = Math.floor(months / 12);
   const m = months % 12;
-  return [y && `${y} saal`, m && `${m} mahine`].filter(Boolean).join(' ');
+  return [y && t('{{count}} saal', { count: y }), m && t('{{count}} mahine', { count: m })].filter(Boolean).join(' ');
 }
 
 /** Short device name from a user agent when the server saved none. */

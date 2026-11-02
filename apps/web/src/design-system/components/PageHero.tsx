@@ -102,7 +102,8 @@ export function PageHero({ title, subtitle, back, backLabel = t('Wapas'), chip, 
     >
       <HeroBackdrop pattern={pattern} />
       <div className={cn('relative flex flex-wrap items-center justify-between', compact ? 'gap-2' : 'gap-3')}>
-        <div className={cn('flex min-w-0 flex-1 items-center', compact ? 'gap-2.5' : 'gap-3')}>
+        {/* The title keeps a minimum width so a long action row wraps below it instead of squeezing it. */}
+        <div className={cn('flex min-w-[min(100%,16rem)] flex-1 items-center', compact ? 'gap-2.5' : 'gap-3')}>
           {!inFrame && typeof back === 'string' && (
             <Link to={back} aria-label={backLabel} title={backLabel} className={heroIconButton}><ArrowLeft className="h-4 w-4 rtl-flip" /></Link>
           )}
@@ -139,7 +140,7 @@ export function PageHero({ title, subtitle, back, backLabel = t('Wapas'), chip, 
                 {loading ? <span className={cn('nafaa-hero-skeleton mt-1 block animate-pulse rounded-lg', big ? (compact ? 'h-7 w-32' : 'h-9 w-40') : 'h-6 w-24')} /> : (
                   <p className={cn('font-bold leading-tight tabular-nums',
                     big ? (compact ? 'text-[1.375rem] tracking-tight' : 'text-[1.875rem] tracking-tight') : (compact ? 'text-base' : 'text-[1.125rem]'))}>
-                    {x.value}{x.hint && <span className="nafaa-hero-subtle ms-1.5 text-[0.6875rem] font-medium">{x.hint}</span>}
+                    {x.value}{x.hint && <span className="nafaa-hero-subtle ms-1.5 text-[0.6875rem] font-medium [unicode-bidi:isolate]">{x.hint}</span>}
                   </p>
                 )}
               </div>

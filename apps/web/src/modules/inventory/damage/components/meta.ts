@@ -44,7 +44,7 @@ export const FILTER_REASONS = REASONS.filter((r) => r.id === r.code);
 
 export const STATUS: Record<DamageStatus, { label: string; icon: LucideIcon; tone: string; color: string }> = {
   REPORTED: { label: t('Approval baqi'), icon: Clock, tone: 'bg-amber-50 text-amber-800 ring-amber-200', color: '#d97706' },
-  APPROVED: { label: t('Approve'), icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
+  APPROVED: { label: t('Approved'), icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', color: '#16a34a' },
   REJECTED: { label: t('Rad'), icon: XCircle, tone: 'bg-rose-50 text-rose-700 ring-rose-200', color: '#e11d48' },
   WRITTEN_OFF: { label: t('Khaate se nikala'), icon: PackageX, tone: 'bg-slate-100 text-slate-700 ring-slate-200', color: '#475569' },
 };

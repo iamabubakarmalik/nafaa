@@ -116,7 +116,8 @@ export function ReturnModal({ sale, onClose, onDone }: {
     mutationFn: () => returnsApi.create({
       saleId: sale.id,
       refundMethod,
-      reason: reason.trim() || undefined,
+      // A picked reason shows in the screen language but is saved as written in REASONS.
+      reason: (REASONS.find((r) => t(r) === reason.trim()) ?? reason.trim()) || undefined,
       notes: notes.trim() || undefined,
       items: selected.map((l) => {
         const c = carpet[l.id];
@@ -273,9 +274,9 @@ export function ReturnModal({ sale, onClose, onDone }: {
               <h3 className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Wapas kyun aaya')}</h3>
               <div className="mb-2 flex flex-wrap gap-1.5">
                 {REASONS.map((r) => (
-                  <button key={r} type="button" onClick={() => setReason(reason === r ? '' : r)} aria-pressed={reason === r}
+                  <button key={r} type="button" onClick={() => setReason(reason === t(r) ? '' : t(r))} aria-pressed={reason === t(r)}
                     className={cn('rounded-full px-3 py-1 text-[0.75rem] font-medium ring-1 transition',
-                      reason === r ? 'bg-amber-600 text-white ring-amber-600' : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-300')}>
+                      reason === t(r) ? 'bg-amber-600 text-white ring-amber-600' : 'bg-white text-slate-600 ring-slate-200 hover:ring-slate-300')}>
                     {t(r)}
                   </button>
                 ))}

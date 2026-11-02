@@ -11,6 +11,7 @@
   "{{low}} kam": "{{low}} low",
   "{{name}} qty": "{{name}} qty",
   "{{name}} quantity": "{{name}} quantity",
+  "{{out}} khatam": "{{out}} out",
   "{{shopName}} · {{count}} cheezein{{value}}": {
     "one": "{{shopName}} · {{count}} item{{value}}",
     "other": "{{shopName}} · {{count}} items{{value}}"

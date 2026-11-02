@@ -34,7 +34,7 @@
     "one": "{{count}} kind",
     "other": "{{count}} kinds"
   },
-  "{{count}} me se": "Of {{count}}",
+  "{{count}} me se": "of {{count}}",
   "{{count}} rental aaj": {
     "one": "{{count}} rental today",
     "other": "{{count}} rentals today"
@@ -183,7 +183,7 @@
   "Cafe sessions": "Cafe sessions",
   "Cafe, top-ups aur rentals — aaj aur is mahine": "Cafe, top-ups and rentals — today and this month",
   "Cancel": "Cancel",
-  "Cancel karein": "Cancel booking",
+  "Cancel karein": "Cancel",
   "Cancel ke ilawa": "Except cancelled",
   "Cancel nahi hua": "Not cancelled",
   "Capture card": "Capture card",
@@ -306,7 +306,7 @@
   "Entry nahi hui": "Entry not saved",
   "Events": "Events",
   "Excel se seedha paste karein — code, PIN, serial": "Paste straight from Excel — code, PIN, serial",
-  "Expiry": "Expired",
+  "Expiry": "Expiry",
   "Expiry {{expiryDate}}": "Expiry {{expiryDate}}",
   "FC 25, Tekken 8, PUBG": "FC 25, Tekken 8, PUBG",
   "Fee abhi mili": "Fee received now",

@@ -164,7 +164,7 @@ export function HoursView({ data, hue }: { data: BranchComparison; hue: (id: str
               <CartesianGrid vertical={false} stroke={theme.grid} />
               <XAxis dataKey="hour" tickFormatter={(h) => hourTick(Number(h))} tick={theme.axis} axisLine={false} tickLine={false} />
               <YAxis allowDecimals={false} width={32} tick={theme.axis} axisLine={false} tickLine={false} />
-              <Tooltip labelFormatter={(h) => hourLabel(Number(h))} formatter={(v, n) => [`${v} bill`, String(n)]} {...theme.tooltip} />
+              <Tooltip labelFormatter={(h) => hourLabel(Number(h))} formatter={(v, n) => [tr('{{count}} bill', { count: Number(v) }), String(n)]} {...theme.tooltip} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               {data.shops.map((s, i) => <Bar key={s.id} dataKey={s.id} name={s.name} stackId="h" fill={hue(s.id)} maxBarSize={26} radius={i === data.shops.length - 1 ? [4, 4, 0, 0] : undefined} />)}
             </BarChart>

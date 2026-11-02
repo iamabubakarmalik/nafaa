@@ -326,7 +326,7 @@ function UnitCard({ id, canManage, onClose, onMove }: { id: string; canManage: b
           <div className="flex flex-wrap gap-2"><Pill meta={serialStatusOf(u.status)} />{u.installationRequired && <Pill meta={installStatusOf(u.installationStatus)} />}</div>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             <Box label={tr('Company warranty')} value={u.warrantyEndDate ? dayOnly(u.warrantyEndDate) : '—'} tone={w?.mainDaysLeft != null && w.mainDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />
-            {(u.shopWarrantyEndDate || u.product?.shopWarrantyMonths) && <Box label={tr('Dukaan warranty')} value={u.shopWarrantyEndDate ? dayOnly(u.shopWarrantyEndDate) : `${u.product?.shopWarrantyMonths} mahine`} tone={w?.shopDaysLeft != null && w.shopDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />}
+            {(u.shopWarrantyEndDate || u.product?.shopWarrantyMonths) && <Box label={tr('Dukaan warranty')} value={u.shopWarrantyEndDate ? dayOnly(u.shopWarrantyEndDate) : tr('{{count}} mahine', { count: u.product?.shopWarrantyMonths ?? 0 })} tone={w?.shopDaysLeft != null && w.shopDaysLeft < 0 ? 'text-rose-700' : 'text-slate-900'} />}
             <Box label={tr('Compressor')} value={u.compressorWarrantyEndDate ? dayOnly(u.compressorWarrantyEndDate) : '—'} />
             <Box label={tr('Motor')} value={u.motorWarrantyEndDate ? dayOnly(u.motorWarrantyEndDate) : '—'} />
             <Box label={tr('Service kharcha')} value={formatPKR(u.serviceCost || 0)} />

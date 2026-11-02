@@ -21,6 +21,14 @@
   "{{billNumber}} · {{totalLiters}} · {{totalDeliveries}} delivery": "{{billNumber}} · {{totalLiters}} · {{totalDeliveries}} deliveries",
   "{{children}} L": "{{children}} L",
   "{{count}} cheezein kharab likhi — {{value}} ka nuqsan": "{{count}} items marked damaged — {{value}} loss",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
+  "{{count}} ghante": {
+    "one": "{{count}} hour",
+    "other": "{{count}} hours"
+  },
   "{{currentBalance}} baqi": "{{currentBalance}} due",
   "{{currentBalance}} dena": "{{currentBalance}} owed",
   "{{debtorCount}} customers ka {{receivable}} baqi hai — mahine ka bill bhejein": "{{receivable}} due from {{debtorCount}} customers — send the monthly bill",
@@ -196,7 +204,7 @@
   "C grade": "C grade",
   "Call": "Call",
   "Cancel": "Cancel",
-  "Cancel karein": "Cancel booking",
+  "Cancel karein": "Cancel",
   "Cancel nahi hua": "Not cancelled",
   "Cancel nahi hui": "Not cancelled",
   "Card": "Card",
@@ -284,7 +292,7 @@
   "Din ka kharab maal": "Day's damaged stock",
   "Din ke aakhir ka kharab maal": "Day-end damaged stock",
   "Din ke aakhir me jo doodh ya dahi kharab hua likhein — stock se nikalta hai aur profit report me nuqsan dikhta hai.": "At day end, enter the milk or yogurt that went bad — it leaves stock and shows as a loss in the profit report.",
-  "Diya": "Paid",
+  "Diya": "Delivered",
   "Dobara chalu": "Turn on again",
   "Dono waqt": "Both times",
   "Doodh": "Milk",

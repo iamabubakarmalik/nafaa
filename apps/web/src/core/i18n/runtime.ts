@@ -10,10 +10,15 @@
  * function: it works in components, hooks, toasts, zod schemas and
  * module-level config alike, and never returns stale text.
  *
- * Lookup order:  active locale  ->  English (for Urdu)  ->  the key itself.
+ * Each source file translates in its own area (the catalog file its keys were
+ * extracted to). The Vite plugin in scripts/i18n/vite-area-plugin.mjs binds
+ * the `t` and `Trans` a file imports from '@core/i18n' to that file's area;
+ * see area.ts. Unbound calls (this module's `t`) have no area.
+ *
+ * Lookup order:  area  ->  global  [-> English area -> English global, Urdu only]  ->  the key.
  */
 
-import type { Entry } from './catalog/merge';
+import type { Catalog, Entry } from './catalog/merge';
 import { DEFAULT_LOCALE, type Locale } from './locales';
 
 export type Params = Record<string, string | number | null | undefined>;
@@ -21,13 +26,14 @@ export type Params = Record<string, string | number | null | undefined>;
 interface State {
   locale: Locale;
   ready: boolean;
-  primary: Map<string, Entry>;
-  fallback: Map<string, Entry> | null;
+  primary: Catalog;
+  fallback: Catalog | null;
 }
 
-const state: State = { locale: DEFAULT_LOCALE, ready: false, primary: new Map(), fallback: null };
+const empty: Catalog = { areas: new Map(), global: new Map() };
+const state: State = { locale: DEFAULT_LOCALE, ready: false, primary: empty, fallback: null };
 
-const loaders: Record<Locale, () => Promise<{ default: Map<string, Entry> }>> = {
+const loaders: Record<Locale, () => Promise<{ default: Catalog }>> = {
   en: () => import('./catalog/en/index'),
   ur: () => import('./catalog/ur/index'),
   roman: () => import('./catalog/roman/index'),
@@ -65,16 +71,31 @@ export function interpolate(text: string, params?: Params): string {
   });
 }
 
-/** Translates source text. Unknown text is returned as written. */
-export function t(text: string, params?: Params): string {
+const find = (catalog: Catalog, area: string | undefined, text: string): Entry | undefined =>
+  (area === undefined ? undefined : catalog.areas.get(area)?.get(text)) ?? catalog.global.get(text);
+
+function lookup(area: string | undefined, text: string): Entry | undefined {
+  return find(state.primary, area, text) ?? (state.fallback ? find(state.fallback, area, text) : undefined);
+}
+
+/** Translates source text in the given catalog area. Unknown text is returned as written. */
+export function translateIn(area: string | undefined, text: string, params?: Params): string {
   if (import.meta.env.DEV && !state.ready) warnEarly(text);
-  const entry = state.primary.get(text) ?? state.fallback?.get(text);
+  const entry = lookup(area, text);
   if (entry === undefined && import.meta.env.DEV) reportMissing(text);
   return interpolate(entry === undefined ? text : pick(entry, params), params);
 }
 
+/**
+ * Translates source text. In app code this name is rebound per file to the
+ * file's area at build time; called directly it uses the global table only.
+ */
+export function t(text: string, params?: Params): string {
+  return translateIn(undefined, text, params);
+}
+
 /** True when the active locale (or its fallback) has its own text for this key. */
-export const hasTranslation = (text: string): boolean => state.primary.has(text) || !!state.fallback?.has(text);
+export const hasTranslation = (text: string, area?: string): boolean => lookup(area, text) !== undefined;
 
 /**
  * Marks text for extraction without translating it. Use it for values that are

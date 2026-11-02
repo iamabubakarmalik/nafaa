@@ -105,7 +105,7 @@ export function OverviewView({ data, loading, failed, onRetryLoad, money, onInvo
                     formatter={(v, name) => [money(Number(v ?? 0)), name === 'tax' ? t('Tax') : t('Taxable sale')]}
                     labelFormatter={(_, p) => {
                       const d = p?.[0]?.payload as (typeof series)[number] | undefined;
-                      return d ? `${data.bucket === 'month' ? monthName(d.day) : dayShort(d.day)} · ${d.bills} bill` : '';
+                      return d ? `${data.bucket === 'month' ? monthName(d.day) : dayShort(d.day)} · ${t('{{count}} bill', { count: d.bills })}` : '';
                     }} />
                   <Bar dataKey="tax" fill={theme.primary} radius={[4, 4, 0, 0]} maxBarSize={28} />
                 </BarChart>

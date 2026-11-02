@@ -2,10 +2,13 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
+import i18nArea from './scripts/i18n/vite-area-plugin.mjs';
 
 export default defineConfig({
   base: process.env.VITE_BASE || '/',
   plugins: [
+    // Binds t()/Trans in each source file to its catalog area (core/i18n/README.md).
+    i18nArea(),
     react(),
     VitePWA({
       registerType: 'autoUpdate',

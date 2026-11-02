@@ -51,7 +51,7 @@ export const LEAVE_TYPE: Record<LeaveType, string> = {
 
 export const LEAVE_STATUS: Record<LeaveStatus, { label: string; tone: string; icon: LucideIcon }> = {
   PENDING: { label: tr('Faisla baqi'), tone: 'bg-amber-50 text-amber-800 ring-amber-200', icon: Clock },
-  APPROVED: { label: tr('Approve'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
+  APPROVED: { label: tr('Approved'), tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: CheckCircle2 },
   REJECTED: { label: tr('Na-approve'), tone: 'bg-rose-50 text-rose-700 ring-rose-200', icon: UserX },
   CANCELLED: { label: tr('Cancel'), tone: 'bg-slate-100 text-slate-600 ring-slate-200', icon: Coffee },
 };

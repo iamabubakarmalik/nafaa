@@ -127,7 +127,7 @@ export default function BirthdayRemindersPage() {
                 <Tr key={r.id} interactive onClick={() => navigate(`/toystore/birthdays/${r.id}`)}>
                   <Td>
                     <p className="font-medium text-slate-900">{r.childName}</p>
-                    <p className="text-[0.75rem] text-slate-500">{[labelOf(GENDERS, r.childGender), `${Math.floor(r.computed?.currentAge ?? 0)} saal`].filter(Boolean).join(' · ')}</p>
+                    <p className="text-[0.75rem] text-slate-500">{[labelOf(GENDERS, r.childGender), t('{{count}} saal', { count: Math.floor(r.computed?.currentAge ?? 0) })].filter(Boolean).join(' · ')}</p>
                   </Td>
                   <Td><p>{r.customerName}</p><p className="text-[0.75rem] tabular-nums text-slate-500">{r.customerPhone}</p></Td>
                   <Td>

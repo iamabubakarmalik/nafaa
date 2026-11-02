@@ -32,7 +32,7 @@
   "· profit {{profit}}": "· profit {{profit}}",
   "\"Bina branch\" me wo kharchay aur tankhwah hain jin par branch nahi likhi — purane record ya poori dukaan ke kharch.": "\"No branch\" has expenses and salary with no branch set — old records or whole-shop costs.",
   "\"Hadd\" se tay karein kitni discount bari hai, kitni amount bari hai, aur dukaan kab khulti/band hoti hai. Ye sirf aap ki screen par lagti hai.": "Use \"Limits\" to set how big a discount is big, how big an amount is big, and when the shop opens/closes. These apply only to your screen.",
-  "\"Log\" tab me dekhein kis ne kitne kaam kiye. Naam dabane se sirf us ke kaam aa jate hain.": "See in the \"Log\" tab who did how much. Tap a name to see only their actions.",
+  "\"Log\" tab me dekhein kis ne kitne kaam kiye. Naam dabane se sirf us ke kaam aa jate hain.": "See in the \"People\" tab who did how much. Tap a name to see only their actions.",
   "\"Maal\" tab me \"Ruka hua maal\" dekhein — jo is period me bilkul nahi bika, us par sale lagayein.": "Check \"Stuck stock\" in the \"Stock\" tab — put the items that didn't sell at all this period on sale.",
   "\"Naya\" customer woh hai jis ne is branch par pehli dafa isi period me khareeda.": "A \"New\" customer is one who bought at this branch for the first time in this period.",
   "\"Paisa aaya/gaya\" batata hai jeb me kitna aaya, aur profit se farq kyun hai — udhaar, purchase, khata.": "\"Money in/out\" shows how much came into your pocket, and why it differs from profit — credit, purchase, customer credit.",
@@ -65,6 +65,10 @@
   "{{cashRefunds}} cash · {{refundRate}}% sale ka": "{{cashRefunds}} cash · {{refundRate}}% of sale",
   "{{closedByOther}} shift kisi aur ne band ki": "{{closedByOther}} shifts closed by someone else",
   "{{count}} · purchase {{total}}": "{{count}} · purchase {{total}}",
+  "{{count}} bill": {
+    "one": "{{count}} bill",
+    "other": "{{count}} bills"
+  },
   "{{count}} bill · bill par click se receipt khulti hai": "{{count}} bills · click a bill to open the receipt",
   "{{count}} bill · maal {{total}} · diye {{paid}}": "{{count}} bills · stock {{total}} · paid {{paid}}",
   "{{count}} bill cancel hue ({{pct}}) — team ki ausat {{team}}": "{{count}} bills cancelled ({{pct}}) — team average {{team}}",
@@ -96,7 +100,10 @@
   "{{count}} kharchay ({{amount}}) abhi \"baqi\" hain — payment tak shamil nahi.": "{{count}} expenses ({{amount}}) are still \"due\" — not counted until paid.",
   "{{count}} number copy ho gaye": "{{count}} numbers copied",
   "{{count}} register gine aur band kiye gaye.": "{{count}} registers counted and closed.",
-  "{{count}} return": "{{count}} returns",
+  "{{count}} return": {
+    "one": "{{count}} return",
+    "other": "{{count}} returns"
+  },
   "{{count}} void · {{count2}} return": "{{count}} void · {{count2}} return",
   "{{count}} zaroori": "{{count}} important",
   "{{creditBills}} bill · {{creditPct}}": "{{creditBills}} bills · {{creditPct}}",

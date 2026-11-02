@@ -91,7 +91,7 @@ export function AttendanceAnalytics({ sheet, rows }: { sheet: Sheet; rows: Sheet
         <Ranked icon={AlarmClock} title={tr('Sab se zyada late')} color="bg-amber-500"
           rows={ranked((r) => r.totals.lateMinutes, (r) => tr('{{late}} dafa · {{lateMinutes}}', { late: r.totals.late, lateMinutes: mins(r.totals.lateMinutes) }))} />
         <Ranked icon={UserX} title={tr('Sab se zyada ghair hazir')} color="bg-rose-500"
-          rows={ranked((r) => absentDays(r.totals), (r) => `${absentDays(r.totals)} din`)} />
+          rows={ranked((r) => absentDays(r.totals), (r) => tr('{{count}} din', { count: absentDays(r.totals) }))} />
         <Ranked icon={Timer} title={tr('Sab se zyada overtime')} color="bg-sky-500"
           rows={ranked((r) => r.totals.overtimeHours, (r) => hours(r.totals.overtimeHours))} />
       </div>

@@ -4,6 +4,13 @@ import type { ComponentType, ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import type { FilterOption } from '@/design-system/components';
 import type { CatalogFilters, CatalogItem, CatalogPage, CatalogSort } from './api';
+import { msg } from '@core/i18n';
+
+/** Words industry configs use for "products"; listed so the products page can translate them. */
+export const PRODUCT_NOUNS: string[] = [
+  msg('cheezein'), msg('cheez'), msg('item'), msg('product'), msg('maal'), msg('part'), msg('model'),
+  msg('dawai'), msg('khilona'), msg('joota'), msg('zewar'), msg('kapra'),
+];
 
 export interface ProductExtras {
   /** Small badges over the picture (top right). */
@@ -25,7 +32,7 @@ export interface GuideStep { icon: LucideIcon; color: string; title: string; tex
 export interface ProductsPageConfig {
   /** Business type shown in the header, e.g. "Bakery". */
   label: string;
-  /** What one product is called here, e.g. "maal", "item". */
+  /** What products are called here, e.g. "maal", "item"; one of PRODUCT_NOUNS so it translates. */
   noun?: string;
   paths: {
     detail: (id: string) => string;

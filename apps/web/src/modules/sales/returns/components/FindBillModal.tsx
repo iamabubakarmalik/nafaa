@@ -108,7 +108,7 @@ export function FindBillModal({ initial = '', scan = false, onPick, onClose }: {
                             : b.status === 'PARTIALLY_RETURNED' && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[0.6875rem] text-amber-700 ring-1 ring-amber-200">{tr('Kuch wapas ho chuka')}</span>}
                         </span>
                         <span className="block truncate text-[0.75rem] text-slate-500">
-                          {[when(b.soldAt), b.customer?.name ?? 'Walk-in', b.customer?.phone, `${b.lines} cheezein`, !done && `${qtyText(b.returnableQty)} wapas ho sakti`, b.shop?.name].filter(Boolean).join(' · ')}
+                          {[when(b.soldAt), b.customer?.name ?? tr('Walk-in'), b.customer?.phone, tr('{{count}} cheezein', { count: b.lines }), !done && tr('{{qty}} wapas ho sakti', { qty: qtyText(b.returnableQty) }), b.shop?.name].filter(Boolean).join(' · ')}
                         </span>
                       </span>
                       <span className="shrink-0 text-end text-sm font-semibold tabular-nums text-slate-900">{formatPKR(b.total)}</span>

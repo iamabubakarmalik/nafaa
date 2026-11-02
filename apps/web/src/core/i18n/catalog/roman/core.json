@@ -1,5 +1,9 @@
 {
   "\"{{name}}\" hatayein?": "\"{{name}}\" delete karein?",
+  "{{count}} items": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
   "🔐 Ye PIN server par mehfooz hai — aap jis bhi mobile ya computer se login karein, wohi PIN chalega. Kisi ko bata dein to wo bhi apne phone se cost dekh sakega.": "🔐 Ye PIN server par safe hai — aap jis bhi mobile ya computer se login karein, wohi PIN chalega. Kisi ko bata dein to wo bhi apne phone se cost dekh sakega.",
   "Aap ka koi data waste nahi hua — bas ye safha ruk gaya hai.": "Aap ka koi data waste nahi hua — bas ye page ruk gaya hai.",
   "Auzaar": "Tools",

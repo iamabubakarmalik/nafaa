@@ -23,6 +23,10 @@
   "{{bills}} bill abhi authority ne nahi liye (tax {{tax}}). Yeh upar ke figures me shamil nahi. Tax → Invoices me dekh kar dobara bhejein.": "{{bills}} bills not yet accepted by the authority (tax {{tax}}). They are not in the figures above. Check them in Tax → Invoices and resend.",
   "{{bills}} bill abhi nahi liye gaye (tax {{tax}}) →": "{{bills}} bills not accepted yet (tax {{tax}}) →",
   "{{bills}} bill{{value}} · tax ke baghair": "{{bills}} bills{{value}} · without tax",
+  "{{count}} bill": {
+    "one": "{{count}} bill",
+    "other": "{{count}} bills"
+  },
   "{{count}} POS ID · {{branchText}}{{value}}": "{{count}} POS ID · {{branchText}}{{value}}",
   "{{failed}} fail": "{{failed}} failed",
   "{{failed}} fail · {{pending}} qatar me{{value}}": "{{failed}} failed · {{pending}} in queue{{value}}",

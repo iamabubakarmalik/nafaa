@@ -47,6 +47,14 @@
   "{{cashSalesCount}} bill": "{{cashSalesCount}} bills",
   "{{count}} aam categories bana dein": "Create {{count}} common categories",
   "{{count}} account + golak": "{{count}} accounts + drawer",
+  "{{count}} bill": {
+    "one": "{{count}} bill",
+    "other": "{{count}} bills"
+  },
+  "{{count}} cheezein": {
+    "one": "{{count}} item",
+    "other": "{{count}} items"
+  },
   "{{count}} cheezein cost se sasti biki · kul {{amount}}": "{{count}} items sold below cost · total {{amount}}",
   "{{count}} cheezein CSV me": "{{count}} items in CSV",
   "{{count}} entries · {{hint}}": "{{count}} entries · {{hint}}",
@@ -106,6 +114,7 @@
   "{{products}} cheezein": "{{products}} items",
   "{{purchaseCount}} purchase": "{{purchaseCount}} purchases",
   "{{qty}} {{unit}} · {{revenue}} sale{{value}}": "{{qty}} {{unit}} · {{revenue}} sale{{value}}",
+  "{{qty}} biki": "{{qty}} sold",
   "{{qty}} units · {{value}} bill": "{{qty}} units · {{value}} bills",
   "{{receivableCount}} customer": "{{receivableCount}} customers",
   "{{refund}} wapas diye · {{returnedQty}} cheezein": "{{refund}} refunded · {{returnedQty}} items",

@@ -72,7 +72,7 @@ export function timeAgo(iso?: string | null): string {
   const h = Math.floor(m / 60);
   if (h < 24) return t('{{h}} ghante pehle', { h });
   const d = Math.floor(h / 24);
-  return d === 1 ? 'kal' : t('{{d}} din pehle', { d });
+  return d === 1 ? t('kal') : t('{{d}} din pehle', { d });
 }
 
 export function whenText(iso?: string | null): string {

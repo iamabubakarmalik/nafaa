@@ -256,7 +256,7 @@ function PlanRow({ p, money, shopName, canManage, onCollect }: { p: EmiPlan; mon
           <span className="text-[0.75rem] text-slate-500">{tr('{{done}}/{{installmentCount}} qist', { done, installmentCount: p.installmentCount })}</span>
         </div>
         <p className={cn('mt-0.5 text-[0.75rem]', late ? 'font-semibold text-rose-700' : 'text-slate-500')}>
-          {late ? tr('{{overdueCount}} qist late · {{overdueAmount}}', { overdueCount: p.overdueCount, overdueAmount: money(p.overdueAmount) }) : p.nextDueDate ? tr('Agli qist {{nextDueDate}}{{value}} · {{nextDueAmount}}', { nextDueDate: dayOnly(p.nextDueDate), value: next !== null && next <= 7 ? ` (${next <= 0 ? 'aaj' : `${next} din`})` : '', nextDueAmount: money(p.nextDueAmount) }) : p.customerPhone ?? ''}
+          {late ? tr('{{overdueCount}} qist late · {{overdueAmount}}', { overdueCount: p.overdueCount, overdueAmount: money(p.overdueAmount) }) : p.nextDueDate ? tr('Agli qist {{nextDueDate}}{{value}} · {{nextDueAmount}}', { nextDueDate: dayOnly(p.nextDueDate), value: next !== null && next <= 7 ? ` (${next <= 0 ? tr('aaj') : tr('{{count}} din', { count: next })})` : '', nextDueAmount: money(p.nextDueAmount) }) : p.customerPhone ?? ''}
         </p>
       </Link>
       <div className="shrink-0 text-end">

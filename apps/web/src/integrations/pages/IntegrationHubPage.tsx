@@ -710,5 +710,5 @@ function timeAgo(dateStr: string): string {
   const hr = Math.floor(min / 60);
   if (hr < 24) return tr('{{hr}} ghante pehle', { hr });
   const d = Math.floor(hr / 24);
-  return d === 1 ? 'kal' : tr('{{d}} din pehle', { d });
+  return d === 1 ? tr('kal') : tr('{{d}} din pehle', { d });
 }

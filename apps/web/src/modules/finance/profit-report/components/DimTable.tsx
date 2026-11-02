@@ -44,7 +44,7 @@ export function DimTable({ rows, title, note, fmt, onPick }: {
                   <span className="min-w-0">
                     <span className="block truncate font-semibold text-slate-900">{r.name}</span>
                     <span className="block text-[0.75rem] text-slate-500">
-                      {[r.products ? `${r.products} cheezein` : null, r.bills ? `${r.bills} bill` : null, `${qty(r.qty)} biki`].filter(Boolean).join(' · ')}
+                      {[r.products ? t('{{count}} cheezein', { count: r.products }) : null, r.bills ? t('{{count}} bill', { count: r.bills }) : null, t('{{qty}} biki', { qty: qty(r.qty) })].filter(Boolean).join(' · ')}
                     </span>
                   </span>
                 </span>

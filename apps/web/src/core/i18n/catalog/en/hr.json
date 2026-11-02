@@ -53,14 +53,38 @@
   "{{count}} bande": "{{count}} staff",
   "{{count}} bandon": "{{count}} staff",
   "{{count}} bandon ka": "Of {{count}} staff",
+  "{{count}} bill": {
+    "one": "{{count}} bill",
+    "other": "{{count}} bills"
+  },
   "{{count}} brand chune": "{{count}} brands selected",
   "{{count}} category chuni — baqi maal par ye rule nahi lagega": "{{count}} categories selected — this rule won't apply to other goods",
   "{{count}} chune · {{chosenTotal}}": "{{count}} selected · {{chosenTotal}}",
-  "{{count}} me se": "Of {{count}}",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
+  "{{count}} mahine": {
+    "one": "{{count}} month",
+    "other": "{{count}} months"
+  },
+  "{{count}} me se": "of {{count}}",
   "{{count}} permissions": "{{count}} permissions",
   "{{count}} permissions shuru me": "{{count}} permissions by default",
   "{{count}} poori ada": "{{count}} fully paid",
   "{{count}} record": "{{count}} records",
+  "{{count}} return": {
+    "one": "{{count}} return",
+    "other": "{{count}} returns"
+  },
+  "{{count}} saal": {
+    "one": "{{count}} year",
+    "other": "{{count}} years"
+  },
+  "{{count}} shift": {
+    "one": "{{count}} shift",
+    "other": "{{count}} shifts"
+  },
   "{{count}} tankhwah ban gayi{{value}}": "{{count}} salaries made{{value}}",
   "{{days}} din": "{{days}} days",
   "{{designation}} · {{months}} mahine · ausat {{average}}": "{{designation}} · {{months}} months · average {{average}}",
@@ -319,6 +343,7 @@
   "Approve chhutti": "Approved leave",
   "Approve chhutti cancel karein": "Cancel approved leave",
   "Approve chhutti ke din sheet par khud 'Chhutti' dikhte hain": "Approved leave days show as 'Leave' on the sheet",
+  "Approved": "Approved",
   "Apr": "Apr",
   "Asal bill": "Original bill",
   "Asal sale": "Net sale",
@@ -1044,7 +1069,7 @@
   "Nahi": "No",
   "Nahi aaye": "Absent",
   "Nahi badli": "Not changed",
-  "Nahi hua": "Not approved",
+  "Nahi hua": "Failed",
   "Naukri par nahi tha": "Not employed then",
   "Naya": "New",
   "naya ·": "new ·",
@@ -1354,6 +1379,7 @@
   "Slab chahiye? Do rule banayein: \"2% sale par\" aur \"1% aur — kam se kam sale 2 lakh\". Dono jur jate hain.": "Need a slab? Make two rules: \"2% on sale\" and \"1% more — minimum sale 2 lakh\". They add up.",
   "Slip": "Slip",
   "Slip par": "On the slip",
+  "Sort": "Sort",
   "staff": "staff",
   "Staff": "Staff",
   "Staff — aasaan tareeqa": "Staff — the easy way",

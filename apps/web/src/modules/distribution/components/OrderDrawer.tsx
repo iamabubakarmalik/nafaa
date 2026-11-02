@@ -111,7 +111,7 @@ function Body({ o }: { o: OrderDetail }) {
         <Item label={t('Route')}>{o.routeName ?? '—'}</Item>
         <Item label={t('Godown')}>{o.shopName ?? '—'}</Item>
         {o.deliveryDate && <Item label={t('Delivery date')}>{dayTime(o.deliveryDate).split(',')[0]}</Item>}
-        {o.approvedAt && <Item label={t('Approve')}>{dayTime(o.approvedAt)} · {o.approvedByName ?? ''}</Item>}
+        {o.approvedAt && <Item label={t('Approved')}>{dayTime(o.approvedAt)} · {o.approvedByName ?? ''}</Item>}
         <Item label={t('Invoice')} icon={<Receipt className="h-3.5 w-3.5" />}>
           {o.saleId ? <Link to={`/sales/${o.saleId}`} className="font-semibold text-brand-700 hover:underline">{o.saleNumber}</Link> : t('Abhi nahi bana')}
         </Item>

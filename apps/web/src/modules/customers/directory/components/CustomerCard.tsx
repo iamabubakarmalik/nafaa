@@ -9,7 +9,7 @@ import { reminderText, thanksText, toneFor, loadTemplates, waLink } from '../mes
 import { t } from '@core/i18n';
 
 export const ago = (days: number | null) =>
-  days === null ? t('kabhi nahi') : days === 0 ? 'aaj' : days === 1 ? 'kal' : days < 30 ? t('{{days}} din pehle', { days }) : days < 365 ? t('{{value}} mahine pehle', { value: Math.floor(days / 30) }) : t('{{value}} saal pehle', { value: Math.floor(days / 365) });
+  days === null ? t('kabhi nahi') : days === 0 ? t('aaj') : days === 1 ? t('kal') : days < 30 ? t('{{days}} din pehle', { days }) : days < 365 ? t('{{value}} mahine pehle', { value: Math.floor(days / 30) }) : t('{{value}} saal pehle', { value: Math.floor(days / 365) });
 
 export function waFor(c: DirectoryCustomer, shop: string) {
   const text = c.balance > 0.009 ? reminderText(loadTemplates()[toneFor(c.dueDays)], c, shop) : thanksText(c, shop);

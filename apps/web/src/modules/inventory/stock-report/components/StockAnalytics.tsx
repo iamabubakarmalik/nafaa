@@ -63,7 +63,7 @@ export function StockAnalytics({ data, loading, money, cost, costHidden, groupLa
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi icon={TrendingUp} label={tr('Period ki sale')} value={money(t.sold.revenue)} sub={<Delta value={sales} prev={money(t.prevSold.revenue)} />} />
         <Kpi icon={PiggyBank} label={tr('Sale ka profit')} value={cost(t.sold.profit)} sub={costHidden ? tr('Cost lock') : <Delta value={profit} prev={cost(t.prevSold.profit)} />} />
-        <Kpi icon={Timer} label={tr('Maal kitne din chalega')} value={t.coverDays === null ? '—' : `${t.coverDays} din`} sub={tr('Is period ki sale ki raftaar se')} />
+        <Kpi icon={Timer} label={tr('Maal kitne din chalega')} value={t.coverDays === null ? '—' : tr('{{count}} din', { count: t.coverDays })} sub={tr('Is period ki sale ki raftaar se')} />
         <Kpi icon={Hourglass} label={tr('Dead stock')} value={fmt(costHidden ? t.dead.retail : t.dead.cost)} sub={tr('{{count}} cheezein · {{deadDays}}+ din se nahi biki', { count: t.dead.count, deadDays: data.period.deadDays })} tone="rose" />
       </div>
 
@@ -170,7 +170,7 @@ export function StockAnalytics({ data, loading, money, cost, costHidden, groupLa
                   <li key={`${b.productId}${b.batchNumber}`}>
                     <button type="button" onClick={() => onOpen(b.productId)} className="flex w-full items-center justify-between gap-2 py-2 text-start text-[0.8125rem] hover:opacity-80">
                       <span className="min-w-0"><span className="block truncate font-medium text-slate-800">{b.name}</span><span className="text-[0.6875rem] text-slate-500">{tr('Batch {{batchNumber}} · {{expiryDate}}', { batchNumber: b.batchNumber, expiryDate: dateText(b.expiryDate) })}</span></span>
-                      <span className="shrink-0 text-end"><span className={cn('block font-semibold', b.days < 0 ? 'text-rose-700' : b.days <= 30 ? 'text-amber-700' : 'text-slate-700')}>{b.days < 0 ? 'expire' : tr('{{days}} din', { days: b.days })}</span><span className="text-[0.6875rem] text-slate-500">{qty(b.qty)} · {cost(b.cost)}</span></span>
+                      <span className="shrink-0 text-end"><span className={cn('block font-semibold', b.days < 0 ? 'text-rose-700' : b.days <= 30 ? 'text-amber-700' : 'text-slate-700')}>{b.days < 0 ? tr('Expire') : tr('{{days}} din', { days: b.days })}</span><span className="text-[0.6875rem] text-slate-500">{qty(b.qty)} · {cost(b.cost)}</span></span>
                     </button>
                   </li>
                 ))}

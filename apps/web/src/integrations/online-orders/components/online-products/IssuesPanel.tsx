@@ -19,6 +19,21 @@ const ICON: Record<Issue['kind'], LucideIcon> = {
   reconnect: PlugZap, 'fix-size-less': Ruler, errors: TriangleAlert, 'link-sure': Sparkles, link: Link2,
 };
 
+/** The server sends finished Roman Urdu text; rebuild it here so it follows the screen language. */
+function issueText(i: Issue, c: OnlineChannel | undefined): string {
+  if (!c) return i.text;
+  const name = c.name;
+  const count = i.count ?? 0;
+  switch (i.kind) {
+    case 'reconnect': return t('{{name}} jura nahi — dobara jorein', { name });
+    case 'fix-size-less': return t('{{name}}: {{count}} size wale products bina size jure — theek karein', { name, count });
+    case 'errors': return t('{{name}}: {{count}} products ka Stock/Price nahi ja raha', { name, count });
+    case 'link-sure': return t('{{name}}: {{count}} products jorna baqi — sab pakke jod dein', { name, count });
+    case 'link': return t('{{name}}: {{count}} naye products Nafaa se jure nahi', { name, count });
+    default: return i.text;
+  }
+}
+
 export function IssuesPanel({ channels, canManage, onLink, onFilter }: {
   channels: OnlineChannel[]; canManage: boolean;
   onLink: (c: OnlineChannel) => void; onFilter: (c: OnlineChannel, f: GridFilter) => void;
@@ -81,7 +96,7 @@ export function IssuesPanel({ channels, canManage, onLink, onFilter }: {
               </span>
               {c && <ChannelMark channel={c} size="sm" className="max-sm:hidden" />}
               <span className="min-w-0 flex-1">
-                <span className="block text-[0.8125rem] font-medium text-slate-800">{i.text}</span>
+                <span className="block text-[0.8125rem] font-medium text-slate-800">{issueText(i, c)}</span>
                 {i.detail && <span className="block truncate text-[0.75rem] text-slate-500">{i.detail}</span>}
               </span>
               <span className="ms-auto shrink-0">{action(i)}</span>

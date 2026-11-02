@@ -25,7 +25,10 @@
   "{{activeSuppliers}} chalu supplier": "{{activeSuppliers}} active supplier",
   "{{bills}} bill · diye {{paid}}": "{{bills}} bills · paid {{paid}}",
   "{{count}} dafa · fi {{unit}}": "{{count}} times · per {{unit}}",
-  "{{count}} din": "{{count}} days",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
   "{{count}} order · {{value}} ka maal aana baqi{{value2}}": "{{count}} orders · {{value}} of goods still to come{{value2}}",
   "{{count}} supplier": "{{count}} supplier",
   "{{count}} supplier · {{totalPurchased}}": "{{count}} supplier · {{totalPurchased}}",
@@ -318,8 +321,8 @@
   "Kam stock — ek tap me jorein": "Low stock — add in one tap",
   "kg": "kg",
   "Khali = cost ke barabar": "Empty = same as cost",
-  "Khali = poora bill diya. Kuch na diya ho to \"Udhaar\" dabayein; baqi supplier ke khate me chala jayega.": "Empty = full bill paid. If nothing was paid, tap \"Udhaar\"; the rest goes to the supplier's credit.",
-  "Khali chhorein to poora bill diya maana jata hai. Kuch na diya ho to \"Udhaar\" — baqi supplier ke khate me jata hai, chahein to aakhri date bhi.": "Leave it empty and the full bill counts as paid. If nothing was paid, use \"Udhaar\" — the rest goes to the supplier's credit, with a due date if you like.",
+  "Khali = poora bill diya. Kuch na diya ho to \"Udhaar\" dabayein; baqi supplier ke khate me chala jayega.": "Empty = full bill paid. If nothing was paid, tap \"Credit\"; the rest goes to the supplier's credit.",
+  "Khali chhorein to poora bill diya maana jata hai. Kuch na diya ho to \"Udhaar\" — baqi supplier ke khate me jata hai, chahein to aakhri date bhi.": "Leave it empty and the full bill counts as paid. If nothing was paid, use \"Credit\" — the rest goes to the supplier's credit, with a due date if you like.",
   "Khali chhorein to purana rate rahega": "Leave empty to keep the old rate",
   "Khamosh suppliers": "Quiet suppliers",
   "Kharab maal": "Damaged goods",

@@ -85,7 +85,7 @@ export function MorningSummaryWidget() {
                 ].filter(Boolean).join(' · ') || undefined} />
             )}
             {f.khata && <Tile label={tr('Udhaar diya / wapas')} value={`${sales(f.khata.given)}`} hint={tr('Wapas {{collected}} · baqi {{outstanding}}', { collected: sales(f.khata.collected), outstanding: sales(f.khata.outstanding) })} />}
-            <Tile label={tr('Stock')} value={`${f.lowStock.out} khatam`} hint={tr('{{low}} kam', { low: f.lowStock.low })} tone={f.lowStock.out > 0 ? 'bad' : undefined} />
+            <Tile label={tr('Stock')} value={tr('{{out}} khatam', { out: f.lowStock.out })} hint={tr('{{low}} kam', { low: f.lowStock.low })} tone={f.lowStock.out > 0 ? 'bad' : undefined} />
           </div>
           {f.topItem && <p className="text-[0.8125rem] text-slate-600">{tr('Sab se zyada bika:')}{' '} <span className="font-semibold text-slate-900">{f.topItem}</span></p>}
           {m?.ecommerce && <OnlineBlock e={m.ecommerce} sales={sales} cost={cost} hidden={costHidden || salesHidden} />}

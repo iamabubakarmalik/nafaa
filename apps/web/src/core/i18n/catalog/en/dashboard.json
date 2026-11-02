@@ -25,6 +25,10 @@
   "({{returnedQty}} wapas)": "({{returnedQty}} returned)",
   "{{bills}} bill · ausat {{average}}{{value}}{{value2}}": "{{bills}} bills · avg {{average}}{{value}}{{value2}}",
   "{{bills}} bill{{value}}": "{{bills}} bills{{value}}",
+  "{{count}} bill": {
+    "one": "{{count}} bill",
+    "other": "{{count}} bills"
+  },
   "{{count}} branches · Sales {{sales}} · Expenses {{expenses}}": {
     "one": "1 branch · Sales {{sales}} · Expenses {{expenses}}",
     "other": "{{count}} branches · Sales {{sales}} · Expenses {{expenses}}"
@@ -109,6 +113,7 @@
   "7 ya 30 din ki sale aur profit": "Sales and profit for 7 or 30 days",
   "90 din": "90 days",
   "90 din se": "90+ days",
+  "aaj": "today",
   "Aaj": "Today",
   "Aaj — ek nazar me": "Today at a glance",
   "Aaj {{todayTotal}} · is mahine {{monthTotal}}": "Today {{todayTotal}} · this month {{monthTotal}}",
@@ -142,7 +147,7 @@
   "Amount se": "By amount",
   "Apni marzi ka dashboard": "Your own dashboard",
   "Atka hua maal": "Stuck stock",
-  "Ausat": "Average",
+  "Ausat": "Avg",
   "Ausat bill": "Avg bill",
   "Ausat bill se": "By avg bill",
   "Ausat sale": "Avg sale",
@@ -531,7 +536,7 @@
   "Udhaar": "Credit",
   "udhaar {{balance}}": "credit {{balance}}",
   "Udhaar baqi": "Credit due",
-  "Udhaar diya": "Given on credit",
+  "Udhaar diya": "Credit",
   "Udhaar mein": "On credit",
   "Udhaar mein (abhi aana hai)": "On credit (still to come)",
   "udhaar mein {{pending}}": "{{pending}} on credit",

@@ -8,16 +8,26 @@
  */
 
 import { Fragment, type ReactNode } from 'react';
-import { t } from './runtime';
+import { translateIn } from './runtime';
 
 const SPLIT = /(\{\{\s*\w+\s*\}\})/;
 
-export function Trans({ text, values = {} }: { text: string; values?: Record<string, ReactNode> }) {
+export interface TransProps {
+  text: string;
+  values?: Record<string, ReactNode>;
+}
+
+export function Trans(props: TransProps) {
+  return renderTrans(undefined, props);
+}
+
+/** Shared by `Trans` and the per-area copies made in area.ts. */
+export function renderTrans(area: string | undefined, { text, values = {} }: TransProps) {
   const plain: Record<string, string | number> = {};
   for (const [name, value] of Object.entries(values)) {
     if (typeof value === 'string' || typeof value === 'number') plain[name] = value;
   }
-  const translated = t(text, plain);
+  const translated = translateIn(area, text, plain);
   const parts = translated.split(SPLIT);
   return (
     <>

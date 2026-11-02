@@ -124,7 +124,7 @@ export function LowStockAnalytics({ data, loading, money, cost, costHidden }: {
         <Card className="rounded-2xl" title={tr('Sab se zyada ruki sale')} description={tr('Khatam maal × roz ki sale × rate — andaza')}>
           {!data.topLost.length ? <Empty text={tr('Koi bikta hua maal khatam nahi')} /> : (
             <RankTable head={[tr('Cheez'), tr('Kab se'), tr('Roz'), tr('Ruki sale')]} rows={data.topLost.map((r) => [
-              <span key="n" className="font-medium text-slate-900">{r.name}</span>, r.outDays !== null ? `${r.outDays} din` : '—', money(r.lostPerDay), <b key="v">{money(r.lostSales)}</b>,
+              <span key="n" className="font-medium text-slate-900">{r.name}</span>, r.outDays !== null ? tr('{{count}} din', { count: r.outDays }) : '—', money(r.lostPerDay), <b key="v">{money(r.lostSales)}</b>,
             ])} />
           )}
         </Card>

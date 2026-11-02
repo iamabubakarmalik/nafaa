@@ -41,6 +41,8 @@ import { msg, t as tr } from '@core/i18n';
 const PAPERS = [{ value: '58', label: tr('58mm') }, { value: '80', label: tr('80mm') }, { value: 'A4', label: tr('A4') }] as const;
 /** Stored as written; translated where shown. */
 const VOID_REASONS = [msg('Ghalat bill bana'), msg('Customer ne liya hi nahi'), msg('Demo / test bill'), msg('Do dafa ban gaya')];
+// A picked reason is shown in the screen language but saved as written above, so records match in every language.
+const rawVoidReason = (s: string) => VOID_REASONS.find((r) => tr(r) === s) ?? s;
 const num = (v: unknown) => Number(v ?? 0) || 0;
 
 /**
@@ -300,7 +302,7 @@ function Banner({ tone, icon, children }: { tone: 'rose' | 'amber'; icon: React.
 function VoidModal({ id, onClose, onDone }: { id: string; onClose: () => void; onDone: () => void }) {
   const [reason, setReason] = useState('');
   const mut = useMutation({
-    mutationFn: () => salesApi.voidSale(id, reason.trim()),
+    mutationFn: () => salesApi.voidSale(id, rawVoidReason(reason.trim())),
     onSuccess: () => { toast.success(tr('Bill cancel ho gaya — stock wapas aa gaya')); onDone(); },
     onError: (e: any) => toast.error(e?.response?.data?.message || e?.message || tr('Cancel nahi hua')),
   });
@@ -310,8 +312,8 @@ function VoidModal({ id, onClose, onDone }: { id: string; onClose: () => void; o
       footer={<><Button variant="secondary" onClick={onClose}>{tr('Rehne dein')}</Button><Button variant="danger" loading={mut.isPending} disabled={!reason.trim()} onClick={() => mut.mutate()}>{tr('Cancel karein')}</Button></>}>
       <div className="mb-2 flex flex-wrap gap-1.5">
         {VOID_REASONS.map((r) => (
-          <button key={r} type="button" onClick={() => setReason(r)} aria-pressed={reason === r}
-            className={`rounded-full px-3 py-1 text-[0.8125rem] ring-1 transition ${reason === r ? 'bg-rose-600 text-white ring-rose-600' : 'text-slate-600 ring-slate-200 hover:ring-slate-300'}`}>{tr(r)}</button>
+          <button key={r} type="button" onClick={() => setReason(tr(r))} aria-pressed={reason === tr(r)}
+            className={`rounded-full px-3 py-1 text-[0.8125rem] ring-1 transition ${reason === tr(r) ? 'bg-rose-600 text-white ring-rose-600' : 'text-slate-600 ring-slate-200 hover:ring-slate-300'}`}>{tr(r)}</button>
         ))}
       </div>
       <input data-autofocus value={reason} onChange={(e) => setReason(e.target.value)} placeholder={tr('Wajah likhein')} aria-label={tr('Wajah')}

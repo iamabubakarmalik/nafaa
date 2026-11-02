@@ -4,7 +4,10 @@
   "{{completed}} mukammal": "{{completed}} done",
   "{{conversion}} ne khareeda": "{{conversion}} bought",
   "{{count}} apne chart": "{{count}} own charts",
-  "{{count}} mahine": "{{count}} months",
+  "{{count}} mahine": {
+    "one": "{{count}} month",
+    "other": "{{count}} months"
+  },
   "{{count}} size ({{sizeSystem}})": "{{count}} sizes ({{sizeSystem}})",
   "{{count}} size banayein": "Create {{count}} sizes",
   "{{empty}} khatam": "{{empty}} out",
@@ -96,7 +99,7 @@
   "Customer ko ek size chhota dein": "Give the customer one size down",
   "Customer ko sahi size batane ke liye": "To tell the customer the right size",
   "Customer ko size na mile to uska number likh lein — maal aate hi bata sakenge.": "If the customer can't find a size, note their number — you can tell them when stock arrives.",
-  "Customer le gaya to \"Le gaya\", warna \"Nahi liya\". Bill counter (POS) par hi banta hai.": "If the customer took it, \"Le gaya\", else \"Nahi liya\". The bill is made at the counter (POS).",
+  "Customer le gaya to \"Le gaya\", warna \"Nahi liya\". Bill counter (POS) par hi banta hai.": "If the customer took it, \"Taken\", else \"Not taken\". The bill is made at the counter (POS).",
   "Customers": "Customers",
   "Dabba": "Box",
   "Dabba {{boxNumber}}": "Box {{boxNumber}}",
@@ -336,7 +339,7 @@
   "Warranty 0 se 60 mahine": "Warranty 0 to 60 months",
   "Wedges": "Wedges",
   "WhatsApp": "WhatsApp",
-  "WhatsApp se message bhejein aur \"Bata diya\" dabayein.": "Send a WhatsApp message and press \"Bata diya\".",
+  "WhatsApp se message bhejein aur \"Bata diya\" dabayein.": "Send a WhatsApp message and press \"Told\".",
   "Ya article / naam": "Or article / name",
   "Ye brand aadha size chhota chalta hai": "This brand runs half a size small"
 }

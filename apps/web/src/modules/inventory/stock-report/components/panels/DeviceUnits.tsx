@@ -99,7 +99,7 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
                 <li key={u.id} className="flex items-center justify-between gap-2 py-2 text-[0.8125rem]">
                   <span className="min-w-0"><span className="block truncate font-medium text-slate-800">{u.name}</span><span className="font-mono text-[0.6875rem] text-slate-500">{u.ref}</span></span>
                   <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-[0.6875rem] font-semibold', (u.warrantyDaysLeft ?? 0) < 0 ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-800')}>
-                    {(u.warrantyDaysLeft ?? 0) < 0 ? 'khatam' : t('{{warrantyDaysLeft}} din', { warrantyDaysLeft: u.warrantyDaysLeft })}
+                    {(u.warrantyDaysLeft ?? 0) < 0 ? t('khatam') : t('{{warrantyDaysLeft}} din', { warrantyDaysLeft: u.warrantyDaysLeft })}
                   </span>
                 </li>
               ))}
@@ -130,7 +130,7 @@ export function DeviceUnits({ data, loading, error }: { data?: DeviceReport; loa
                     <Td className="text-inherit px-2 py-2"><span className="font-medium text-slate-900">{u.name}</span>{u.brand && <span className="text-slate-500"> · {u.brand}</span>}</Td>
                     <Td className="px-2 py-2 text-slate-600">{u.tag ?? '—'}</Td>
                     <Td className={cn('px-2 py-2 text-end tabular-nums', u.ageDays > 90 ? 'font-semibold text-rose-700' : 'text-slate-700')}>{ageText(u.ageDays)}</Td>
-                    <Td className="px-2 py-2 text-end tabular-nums text-slate-600">{u.warrantyDaysLeft === null ? '—' : u.warrantyDaysLeft < 0 ? 'khatam' : t('{{warrantyDaysLeft}} din', { warrantyDaysLeft: u.warrantyDaysLeft })}</Td>
+                    <Td className="px-2 py-2 text-end tabular-nums text-slate-600">{u.warrantyDaysLeft === null ? '—' : u.warrantyDaysLeft < 0 ? t('khatam') : t('{{warrantyDaysLeft}} din', { warrantyDaysLeft: u.warrantyDaysLeft })}</Td>
                     <Td className="text-inherit px-2 py-2 text-end tabular-nums">{cost(u.cost)}</Td>
                     <Td className="text-inherit px-4 py-2 text-end tabular-nums">{money(u.price)}</Td>
                   </Tr>

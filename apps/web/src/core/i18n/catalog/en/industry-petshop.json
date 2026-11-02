@@ -15,6 +15,10 @@
   "{{available}} janwar · sab theek": "{{available}} animals · all fine",
   "{{available}} janwar{{value}}": "{{available}} animals{{value}}",
   "{{completedAppointments}} visits{{value}}": "{{completedAppointments}} visits{{value}}",
+  "{{count}} din": {
+    "one": "{{count}} day",
+    "other": "{{count}} days"
+  },
   "{{count}} janwar bik gaye — record me likh diya": "{{count}} animals sold — recorded",
   "{{count}} janwar ki vaccine ya deworming baqi hai": "{{count}} animals have vaccine or deworming due",
   "{{count}} ki vaccine ya deworming baqi": "{{count}} with vaccine or deworming due",
@@ -263,8 +267,8 @@
   "Dukaan me": "In shop",
   "EasyPaisa": "EasyPaisa",
   "Ek pack ka wazan": "Weight of one pack",
-  "Expire": "Expires",
-  "Expiry": "Expired",
+  "Expire": "Expired",
+  "Expiry": "Expiry",
   "Expiry har batch ki Stock step me likhein": "Enter each batch's expiry in the Stock step",
   "Extra": "Extra",
   "Extra ({{value}})": "Extra ({{value}})",

@@ -178,7 +178,7 @@ function StaffReport() {
       <KpiRow>
         {!t || !d ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (<>
           <KpiCard icon={BadgePercent} color="#db2777" label={tr('Haath se discount')} value={money(t.manualDiscount)}
-            hint={hint(t.manualDiscount, prev?.manualDiscount, `${pct(d.team.discountPct)} · ${t.discountBills} bill`, 'bad')}
+            hint={hint(t.manualDiscount, prev?.manualDiscount, `${pct(d.team.discountPct)} · ${tr('{{count}} bill', { count: t.discountBills })}`, 'bad')}
             onClick={() => { setTab('staff'); setSort('discountPct'); }} active={tab === 'staff' && sort === 'discountPct'} />
           <KpiCard icon={Ban} color="#e11d48" label={tr('Cancel bill')} value={String(t.voided)}
             hint={hint(t.voided, prev?.voided, t.voided ? money(t.voidedValue) : tr('Koi nahi'), 'bad')}

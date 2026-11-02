@@ -93,7 +93,7 @@ const config: DetailConfig<Extra> = {
     const p = extra?.profile;
     if (!p) return [];
     const facts: Array<[string, ReactNode]> = [];
-    const life = p.shelfLifeDays ? `${p.shelfLifeDays} din` : p.shelfLifeHours ? `${p.shelfLifeHours} ghante` : null;
+    const life = p.shelfLifeDays ? tr('{{count}} din', { count: p.shelfLifeDays }) : p.shelfLifeHours ? tr('{{count}} ghante', { count: p.shelfLifeHours }) : null;
     if (life) facts.push([tr('Chalti hai'), life]);
     if (p.weightGrams) facts.push([tr('Wazan'), `${p.weightGrams} g`]);
     if (p.numberOfSlices) facts.push([tr('Slice'), p.numberOfSlices]);
@@ -104,7 +104,7 @@ const config: DetailConfig<Extra> = {
   },
   tile: ({ extra }) => {
     const p = extra?.profile;
-    const life = p?.shelfLifeDays ? `${p.shelfLifeDays} din` : p?.shelfLifeHours ? `${p.shelfLifeHours} ghante` : null;
+    const life = p?.shelfLifeDays ? tr('{{count}} din', { count: p.shelfLifeDays }) : p?.shelfLifeHours ? tr('{{count}} ghante', { count: p.shelfLifeHours }) : null;
     return life ? { label: tr('Freshness'), value: life, hint: p?.requiresRefrigeration ? tr('fridge mein') : undefined } : null;
   },
   alerts: ({ extra, product, cost }) => {

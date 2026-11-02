@@ -197,7 +197,7 @@ export default function ProfitLossPage() {
             <KpiCard icon={Scale} color="#16a34a" label={tr('Gross profit')} value={s.grossProfit == null ? '—' : cost(s.grossProfit)}
               hint={costHidden || s.grossProfit == null ? tr('Cost chhupi') : <ChangeChip value={change(s.grossProfit, p.grossProfit)} suffix={prevShort.toLowerCase()} />} />
             <KpiCard icon={Receipt} color="#d97706" label={tr('Kharchay')} value={sales(s.expenses.total)} onClick={() => setTab('analytics')}
-              hint={<ChangeChip value={change(s.expenses.total, p.expenses.total)} upIsGood={false} suffix="· analytics" />} />
+              hint={<ChangeChip value={change(s.expenses.total, p.expenses.total)} upIsGood={false} suffix={prevShort.toLowerCase()} />} />
             <KpiCard icon={AlertTriangle} color="#e11d48" label={tr('Stock nuqsan')} value={s.writeOffs == null ? '—' : cost(s.writeOffs.net)}
               hint={s.writeOffs ? tr('{{count}} entries · dabayein', { count: s.writeOffs.count }) : tr('Cost ki permission nahi')}
               onClick={s.writeOffs ? () => setDrill(lines.find((l) => l.id === 'w-damage') ?? null) : undefined} />

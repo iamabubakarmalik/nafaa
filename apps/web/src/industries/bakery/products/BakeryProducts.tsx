@@ -12,7 +12,7 @@ import BakeryRawMaterials from './BakeryRawMaterials';
 import { t } from '@core/i18n';
 
 const shelfLife = (days: number | null, hours: number | null) =>
-  days ? `${days} din` : hours ? `${hours} ghante` : null;
+  days ? t('{{count}} din', { count: days }) : hours ? t('{{count}} ghante', { count: hours }) : null;
 
 function IngredientsLink() {
   return (

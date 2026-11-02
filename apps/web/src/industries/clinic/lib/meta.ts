@@ -124,7 +124,7 @@ export function ageOf(dob?: string | null): string {
   let months = (now.getFullYear() - b.getFullYear()) * 12 + (now.getMonth() - b.getMonth());
   if (now.getDate() < b.getDate()) months -= 1;
   if (months < 0) return '';
-  return months < 24 ? `${months} mah` : `${Math.floor(months / 12)} saal`;
+  return months < 24 ? t('{{count}} mah', { count: months }) : t('{{count}} saal', { count: Math.floor(months / 12) });
 }
 
 /** "Saima Bibi · 34 saal · Aurat" */

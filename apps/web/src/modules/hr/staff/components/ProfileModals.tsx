@@ -142,7 +142,7 @@ export function StatusModal({ p, back, onClose }: { p: Profile; back: boolean; o
         {!back && p.history?.any && (
           <p className="rounded-xl bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">
             {t('Is ke naam {{value}} hain. Yeh sab waisa hi rahega — record kabhi mitaya nahi jata.', { value: [
-              p.history.sales && `${p.history.sales} bill`, p.history.returns && `${p.history.returns} return`, p.history.shifts && `${p.history.shifts} shift`,
+              p.history.sales && t('{{count}} bill', { count: p.history.sales }), p.history.returns && t('{{count}} return', { count: p.history.returns }), p.history.shifts && t('{{count}} shift', { count: p.history.shifts }),
               p.history.expenses && `${p.history.expenses} expenses`, p.history.purchases && `${p.history.purchases} purchase`,
             ].filter(Boolean).join(', ') })}
           </p>

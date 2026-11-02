@@ -485,7 +485,7 @@ export function usePosEngine(config: PosIndustryConfig) {
         id: posLineId(), type: 'product', name: u.name, image: u.image,
         unitName: 'pcs', unitLabel: 'USED', emoji: '📱',
         unitPrice: u.price, basePrice: u.price, quantity: 1, baseQuantity: 1, conversionRate: 1, baseUnit: 'pcs', baseStock: 1,
-        lineTotal: u.price, note: u.note || tr('Used · {{code}}', { code: u.code }), usedPhoneId: u.usedPhoneId, lockQty: true,
+        lineTotal: u.price, note: u.note || `Used · ${u.code}`, // saved with the sale; same text in every language usedPhoneId: u.usedPhoneId, lockQty: true,
       }];
     });
   }, []);
@@ -923,7 +923,7 @@ export function usePosEngine(config: PosIndustryConfig) {
           for (const ci of l.comboItems as any[]) {
             const op = Number(ci.originalPrice) || 0;
             const dp = op * factor;
-            const line = { productId: ci.productId, variantId: ci.variantId || undefined, priceOverride: Number.isFinite(dp) && dp > 0 ? dp : op, note: tr('Combo: {{name}}', { name: l.name }) };
+            const line = { productId: ci.productId, variantId: ci.variantId || undefined, priceOverride: Number.isFinite(dp) && dp > 0 ? dp : op, note: `Combo: ${l.name}` }; // saved with the sale; same text in every language
             let qty = Number(ci.quantity) * l.quantity;
             while (qty >= 1) {
               const at = picks.findIndex((p) => p.productId === ci.productId);

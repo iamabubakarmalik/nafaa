@@ -236,7 +236,7 @@ export default function ExpensesPage() {
               options={[{ value: '' as StatusFilter, label: tr('Sab') }, ...(Object.keys(STATUS) as ExpenseStatus[]).map((k) => ({ value: k as StatusFilter, label: STATUS[k].label, icon: STATUS[k].icon }))]} />
           )}
           {tab === 'record' && (
-            <FilterMenu icon={ArrowDownWideNarrow} label={sort === 'amount' ? tr('Bari amount pehle') : tr('Naye pehle')} value={sort} onChange={setSort} align="right"
+            <FilterMenu icon={ArrowDownWideNarrow} label={tr('Sort')} value={sort} onChange={setSort} align="right"
               options={[{ value: 'recent', label: tr('Naye pehle') }, { value: 'amount', label: tr('Bari amount pehle') }]} />
           )}
         </FilterBar>

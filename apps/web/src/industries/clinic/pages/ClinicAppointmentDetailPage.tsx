@@ -206,7 +206,7 @@ export default function ClinicAppointmentDetailPage() {
                     {canRecords && rx.status === 'ACTIVE' && <Button size="sm" variant="ghost" loading={rxStatus.isPending} onClick={() => rxStatus.mutate(rx)}>{tr('Dawai de di')}</Button>}
                   </div>
                   <ol className="mt-2 space-y-1 text-[0.875rem] text-slate-700">
-                    {rx.items.map((it, i) => <li key={it.id ?? i}>{i + 1}. <b>{[it.form, it.drugName, it.strength].filter(Boolean).join(' ')}</b> — {[it.dose, it.frequency, it.durationDays ? `${it.durationDays} din` : null, it.afterMeal ? tr('khane ke baad') : it.beforeMeal ? tr('khane se pehle') : null].filter(Boolean).join(' · ')}</li>)}
+                    {rx.items.map((it, i) => <li key={it.id ?? i}>{i + 1}. <b>{[it.form, it.drugName, it.strength].filter(Boolean).join(' ')}</b> — {[it.dose, it.frequency, it.durationDays ? tr('{{count}} din', { count: it.durationDays }) : null, it.afterMeal ? tr('khane ke baad') : it.beforeMeal ? tr('khane se pehle') : null].filter(Boolean).join(' · ')}</li>)}
                   </ol>
                 </li>
               ))}

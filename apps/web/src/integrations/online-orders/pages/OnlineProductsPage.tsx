@@ -160,9 +160,9 @@ export default function OnlineProductsPage() {
         </>}
         stats={[
           { label: tr('Jure hue'), value: channelsQ.data ? linkedRows.toLocaleString('en-PK') : '', hint: channels.length ? tr('{{sellable}} products/sizes × {{count}} channels', { sellable: sellable.toLocaleString('en-PK'), count: channels.length }) : undefined },
-          { label: tr('Jorna baqi'), value: s ? s.unlinked.toLocaleString('en-PK') : '', hint: 'products' },
+          { label: tr('Jorna baqi'), value: s ? s.unlinked.toLocaleString('en-PK') : '', hint: tr('products') },
           { label: tr('Masle'), value: channelsQ.data ? failedRows.toLocaleString('en-PK') : '', hint: s?.errors ? tr('{{errors}} products', { errors: s.errors }) : tr('sab theek') },
-          { label: tr('Price farq'), value: s ? s.price.toLocaleString('en-PK') : '', hint: 'products' },
+          { label: tr('Price farq'), value: s ? s.price.toLocaleString('en-PK') : '', hint: tr('products') },
         ]}
       />
 

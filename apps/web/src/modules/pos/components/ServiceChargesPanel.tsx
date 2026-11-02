@@ -5,15 +5,16 @@ import {
 } from 'lucide-react';
 import { formatPKR } from '@core/lib/format';
 import type { ServiceChargeItem } from '@modules/sales/sales/api/sales.api';
-import { t } from '@core/i18n';
+import { msg, t } from '@core/i18n';
 
+// Labels are saved with the sale as written (same in every language) and translated where shown.
 const PRESETS: Array<{ type: string; label: string; icon: any; color: string; suggested?: number }> = [
-  { type: 'GLUE',         label: t('Adhesive / Glue'),     icon: Droplet,  color: 'blue',    suggested: 2000 },
-  { type: 'INSTALLATION', label: t('Installation Labor'),  icon: Hammer,   color: 'amber',   suggested: 3000 },
-  { type: 'CUTTING',      label: t('Cutting / Fitting'),   icon: Scissors, color: 'violet',  suggested: 1500 },
-  { type: 'DELIVERY',     label: t('Delivery'),            icon: Truck,    color: 'emerald', suggested: 1000 },
-  { type: 'UNDERLAY',     label: t('Underlay / Foam'),     icon: Layers,   color: 'rose',    suggested: 5000 },
-  { type: 'OTHER',        label: t('Other / Custom'),      icon: Package,  color: 'slate' },
+  { type: 'GLUE',         label: msg('Adhesive / Glue'),     icon: Droplet,  color: 'blue',    suggested: 2000 },
+  { type: 'INSTALLATION', label: msg('Installation Labor'),  icon: Hammer,   color: 'amber',   suggested: 3000 },
+  { type: 'CUTTING',      label: msg('Cutting / Fitting'),   icon: Scissors, color: 'violet',  suggested: 1500 },
+  { type: 'DELIVERY',     label: msg('Delivery'),            icon: Truck,    color: 'emerald', suggested: 1000 },
+  { type: 'UNDERLAY',     label: msg('Underlay / Foam'),     icon: Layers,   color: 'rose',    suggested: 5000 },
+  { type: 'OTHER',        label: msg('Other / Custom'),      icon: Package,  color: 'slate' },
 ];
 
 const COLOR_MAP: Record<string, { bg: string; border: string; icon: string; text: string }> = {
@@ -114,7 +115,7 @@ export function ServiceChargesPanel({ charges, onChange }: Props) {
                   >
                     <Icon className={`h-3.5 w-3.5 mb-0.5 ${active ? c.icon : 'text-slate-400'}`} />
                     <div className={`text-[0.6875rem] font-extrabold leading-tight ${active ? c.text : 'text-slate-600'}`}>
-                      {p.label}
+                      {t(p.label)}
                     </div>
                     {p.suggested && !active && (
                       <div className="text-[0.625rem] text-slate-500 font-bold mt-0.5">
